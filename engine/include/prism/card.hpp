@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "prism/types.hpp"
 
@@ -41,6 +42,21 @@ struct CardDef {
   Stats stats;
   std::vector<KeywordRef> keywords;
   std::vector<EffectDef> effects;
+
+  // Keyword lookup helpers used by the rules (e.g. "does this creature have
+  // pierce?", "what is its regen N?"). Static keywords (pierce, provoke) are
+  // queried during combat; numeric keywords (regen, photosynthesis) via keywordN.
+  const KeywordRef* keyword(std::string_view id) const {
+    for (const auto& k : keywords)
+      if (k.id == id) return &k;
+    return nullptr;
+  }
+  bool hasKeyword(std::string_view id) const { return keyword(id) != nullptr; }
+  int keywordN(std::string_view id, int fallback = 0) const {
+    const KeywordRef* k = keyword(id);
+    if (k && k->n) return *k->n;
+    return fallback;
+  }
 };
 
 // Loads and owns every CardDef. Pointers returned by find() are stable for the

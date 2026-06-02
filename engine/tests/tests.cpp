@@ -24,7 +24,29 @@ static const char* kTestCards = R"json([
     "stats": { "atk": 0, "def": 4, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
     "color": ["red"], "cost": { "generic": 1, "red": 1 },
-    "stats": { "atk": 2, "def": 1, "hp": 2 } }
+    "stats": { "atk": 2, "def": 1, "hp": 2 } },
+  { "id": "regenbear", "name": { "ru": "Регенератор" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 0, "def": 0, "hp": 5 },
+    "keywords": [{ "id": "regen", "n": 2 }] },
+  { "id": "piercer", "name": { "ru": "Бур" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 5, "def": 0, "hp": 5 },
+    "keywords": [{ "id": "pierce" }] },
+  { "id": "smallwall", "name": { "ru": "Барьер" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 0, "def": 2, "hp": 2 } },
+  { "id": "guard", "name": { "ru": "Маяк" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 0, "def": 2, "hp": 3 },
+    "keywords": [{ "id": "provoke" }] },
+  { "id": "frost1", "name": { "ru": "Иней" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "freeze", "value": 1 }] },
+  { "id": "photoaura", "name": { "ru": "Корень" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "photosynthesis", "n": 1 }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -122,6 +144,78 @@ TEST_CASE("drawing from an empty deck deals fatigue") {
   g.start();
   CHECK(g.player(0).fatigue == 1);
   CHECK(g.player(0).heroHp == HeroStartHp - 1);
+}
+
+TEST_CASE("regen heals at the owner's turn start up to max") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("regenbear", 30), repeat("bear", 30), 11);
+  g.start();
+  REQUIRE(g.playCard(0));
+  g.player(0).board[0].hp = 1;
+  g.endTurn();
+  g.endTurn();
+  CHECK(g.player(0).board[0].hp == 3);
+}
+
+TEST_CASE("pierce sends lethal excess to the enemy hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("piercer", 30), repeat("smallwall", 30), 22);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId p = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));
+  EntityId w = g.player(1).board[0].id;
+  g.endTurn();
+  CHECK(g.attackCreature(p, w));
+  CHECK(g.player(1).board.empty());
+  CHECK(g.player(1).heroHp == HeroStartHp - 3);
+}
+
+TEST_CASE("provoke forces attackers onto the provoker") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("guard", 30), 33);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId atk = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));
+  EntityId guardId = g.player(1).board[0].id;
+  g.player(1).hand.push_back(CardInstance{777, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(1).hand.size()) - 1));
+  EntityId plainId = g.player(1).board.back().id;
+  g.endTurn();
+  CHECK_FALSE(g.attackHero(atk));
+  CHECK_FALSE(g.attackCreature(atk, plainId));
+  CHECK(g.attackCreature(atk, guardId));
+}
+
+TEST_CASE("freeze stops a creature from attacking, then thaws") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("frost1", 30), repeat("bear", 30), 44);
+  g.start();
+  g.endTurn();
+  REQUIRE(g.playCard(0));
+  EntityId bear = g.player(1).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0, bear));
+  CHECK(g.player(1).board[0].frozenTurns == 1);
+  g.endTurn();
+  CHECK_FALSE(g.attackHero(bear));
+  g.endTurn();
+  g.endTurn();
+  CHECK(g.attackHero(bear));
+  CHECK(g.player(0).heroHp == HeroStartHp - 3);
+}
+
+TEST_CASE("photosynthesis adds temporary mana at turn start") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("photoaura", 30), repeat("bear", 30), 55);
+  g.start();
+  REQUIRE(g.playCard(0));
+  g.endTurn();
+  g.endTurn();
+  CHECK(g.player(0).mana.totalAvailable() == 1);
 }
 
 #ifdef PRISM_SAMPLE

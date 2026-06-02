@@ -33,7 +33,7 @@ void Game::start() {
   startTurn();
 }
 
-// Turn order (DESIGN §1): refill mana -> (start triggers) -> draw -> main phase.
+// Turn order (DESIGN §1): refill mana -> start triggers -> draw -> main phase.
 void Game::startTurn() {
   Player& p = players_[current_];
   p.mana.refill();
@@ -42,7 +42,28 @@ void Game::startTurn() {
     c.sick = false;
     c.attacked = false;
   }
+  applyTurnStartTriggers(p);
   draw(p, 1);
+}
+
+// OnTurnStart triggers. Regen heals each creature up to its max; Photosynthesis
+// (on creatures or auras) adds temporary mana for this turn only.
+void Game::applyTurnStartTriggers(Player& p) {
+  for (auto& c : p.board) {
+    int r = c.def->keywordN("regen");
+    if (r > 0) c.hp = std::min(c.maxHp, c.hp + r);
+  }
+  int ramp = 0;
+  for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
+  for (const auto* a : p.auras) ramp += a->keywordN("photosynthesis");
+  if (ramp > 0) p.mana.addTemporary(Color::Colorless, ramp);
+}
+
+// Freeze ticks down at the end of the frozen creature's owner's turn, so
+// "freeze N" makes a creature sit out N of its own turns.
+void Game::tickFreeze(Player& p) {
+  for (auto& c : p.board)
+    if (c.frozenTurns > 0) c.frozenTurns -= 1;
 }
 
 void Game::draw(Player& p, int n) {
@@ -94,7 +115,7 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   return true;
 }
 
-bool Game::playCard(int handIndex) {
+bool Game::playCard(int handIndex, EntityId target) {
   if (over_) return false;
   Player& p = players_[current_];
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size())) return false;
@@ -109,17 +130,26 @@ bool Game::playCard(int handIndex) {
   if (def->type == CardType::Creature) {
     // Enters summoning sick; live stats start from the template.
     p.board.push_back(Creature{ci.id, def, def->stats.atk, def->stats.def,
-                               def->stats.hp, def->stats.hp, true, false});
+                               def->stats.hp, def->stats.hp, true, false, 0});
   } else if (def->type == CardType::Aura) {
-    p.auras.push_back(def);  // sits in play; no continuous effect yet
-  } else {
-    p.graveyard.push_back(def);  // spell: resolves to nothing yet
+    p.auras.push_back(def);  // sits in play; its static effects are read live
   }
+  // Run any OnPlay (battlecry/spell) effect, then send a spell to the graveyard.
+  resolveOnPlay(def, p, target);
+  if (def->type == CardType::Spell) p.graveyard.push_back(def);
   return true;
+}
+
+bool Game::enemyHasProvoke(const Player& opp) const {
+  for (const auto& c : opp.board)
+    if (c.def->hasKeyword("provoke")) return true;
+  return false;
 }
 
 // Mutual, simultaneous combat (DESIGN §2): the attacker uses its atk, the
 // defender retaliates with its def (not its atk). Both can die at once.
+// Provoke forces the attacker onto a provoker; Pierce sends lethal excess to
+// the enemy hero.
 bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (over_) return false;
   Player& me = players_[current_];
@@ -127,9 +157,15 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   Creature* a = findCreature(me, attacker);
   Creature* b = findCreature(opp, target);
   if (!a || !b) return false;
-  if (a->sick || a->attacked || a->atk <= 0) return false;
+  if (!a->canAttack()) return false;
+  if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
+  int targetHpBefore = b->hp;
   b->hp -= a->atk;
   a->hp -= b->def_;
+  if (a->def->hasKeyword("pierce")) {
+    int overflow = a->atk - targetHpBefore;
+    if (overflow > 0) dealHeroDamage(opp, overflow);
+  }
   a->attacked = true;
   checkDeaths();
   return true;
@@ -140,7 +176,8 @@ bool Game::attackHero(EntityId attacker) {
   Player& me = players_[current_];
   Player& opp = players_[1 - current_];
   Creature* a = findCreature(me, attacker);
-  if (!a || a->sick || a->attacked || a->atk <= 0) return false;
+  if (!a || !a->canAttack()) return false;
+  if (enemyHasProvoke(opp)) return false;  // taunt blocks attacks to the face
   dealHeroDamage(opp, a->atk);
   a->attacked = true;
   return true;
@@ -160,6 +197,23 @@ void Game::checkDeaths() {
   }
 }
 
+// Dispatch the inline effect grammar (DESIGN §8): [trigger]+[selector]->[action].
+// Only the actions used by current cards are implemented; adding a new action
+// is a new branch here plus a new selector case if needed.
+void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
+  for (const auto& e : def->effects)
+    if (e.trigger == "on_play") executeAction(e, owner, target);
+}
+
+void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
+  if (e.action == "freeze") {
+    // selector "chosen_enemy_minion": the passed target on the enemy board.
+    Player& opp = players_[1 - owner.index];
+    Creature* t = findCreature(opp, target);
+    if (t) t->frozenTurns = e.value;
+  }
+}
+
 Creature* Game::findCreature(Player& p, EntityId id) {
   for (auto& c : p.board)
     if (c.id == id) return &c;
@@ -168,6 +222,7 @@ Creature* Game::findCreature(Player& p, EntityId id) {
 
 void Game::endTurn() {
   if (over_) return;
+  tickFreeze(players_[current_]);  // the ending player's frozen creatures thaw
   current_ = 1 - current_;
   turn_ += 1;
   startTurn();

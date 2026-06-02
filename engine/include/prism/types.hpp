@@ -92,6 +92,11 @@ struct ManaPool {
     available[idx(c)] += 1;
   }
 
+  // Mana for this turn only (does not persist past the next refill). Used by
+  // green ramp such as Photosynthesis, which tops up each turn rather than
+  // permanently growing the crystal count.
+  void addTemporary(Color c, int n) { available[idx(c)] += n; }
+
   int totalAvailable() const {
     int s = 0;
     for (int v : available) s += v;

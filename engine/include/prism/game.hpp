@@ -42,6 +42,13 @@ struct Creature {
   int maxHp;
   bool sick = true;
   bool attacked = false;
+  int frozenTurns = 0;  // Blue freeze status; ticks down at the owner's turn end
+
+  // May this creature attack right now? It must be un-sick, not have attacked,
+  // not frozen, and have positive atk (0-atk creatures are pure walls).
+  bool canAttack() const {
+    return !sick && !attacked && frozenTurns == 0 && atk > 0;
+  }
 };
 
 // Everything one player owns. Hidden information (hand/deck) is kept here; a
@@ -77,8 +84,10 @@ class Game {
   // `color` must be one of the card's colors, or Colorless for a neutral card.
   bool placeCardToMana(int handIndex, Color color);
   // Pay a card's cost and resolve it: creatures enter the board (summoning
-  // sick); spells/auras currently just leave the hand (no effect yet).
-  bool playCard(int handIndex);
+  // sick), auras stay in play, spells resolve and go to the graveyard. Any
+  // on_play effect runs against `target` (e.g. the enemy creature to freeze);
+  // pass 0 for cards that need no target.
+  bool playCard(int handIndex, EntityId target = 0);
   // Attacker deals its atk to the target; the target retaliates with its def.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes have no def).
@@ -94,11 +103,18 @@ class Game {
   int winner() const { return winner_; }
 
  private:
-  void startTurn();  // refill mana, unsick creatures, draw one
+  void startTurn();  // refill mana, unsick creatures, start triggers, draw one
   void draw(Player& p, int n);
   void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
+
+  // Phase 2: keyword/effect execution.
+  void applyTurnStartTriggers(Player& p);  // regen heal, photosynthesis ramp
+  void tickFreeze(Player& p);              // decrement freeze at the turn's end
+  bool enemyHasProvoke(const Player& opp) const;  // taunt: must be attacked first
+  void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
+  void executeAction(const EffectDef& e, Player& owner, EntityId target);
 
   const CardLibrary& lib_;
   std::array<Player, 2> players_;
