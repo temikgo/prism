@@ -58,12 +58,11 @@ inline std::optional<CardType> cardTypeFromString(std::string_view s) {
   return std::nullopt;
 }
 
-// Creature combat profile (DESIGN §2). atk is dealt when this creature
-// attacks; def is the retaliation dealt back when it is attacked; hp is its
-// life, wounds persisting across turns.
+// Creature combat profile (DESIGN §2). atk is the damage it deals; hp is its
+// life, wounds persisting across turns. Combat is mutual: when one creature
+// attacks another, both deal their atk to each other simultaneously.
 struct Stats {
   int atk = 0;
-  int def = 0;
   int hp = 0;
 };
 

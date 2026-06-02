@@ -48,7 +48,6 @@ static CardDef parseCard(const json& j) {
   if (j.contains("stats")) {
     d.hasStats = true;
     d.stats.atk = j["stats"].value("atk", 0);
-    d.stats.def = j["stats"].value("def", 0);
     d.stats.hp = j["stats"].value("hp", 0);
   }
 

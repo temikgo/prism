@@ -11,8 +11,8 @@
 
 // The authoritative game state and the legal-action API. The engine is
 // deterministic given the same seed and the same sequence of action calls,
-// which is what the tests rely on. Phase 1 = the bare loop (no keyword/effect
-// execution yet); see README.md for scope.
+// which is what the tests rely on. See README.md for the implemented keyword
+// set and what is still deferred.
 
 namespace prism {
 
@@ -38,28 +38,31 @@ struct ManaCard {
   Color color;
 };
 
-// A creature in play. atk/def_/hp are the live (buffable, woundable) values;
-// they start from def->stats. `sick` blocks attacking on the summon turn
-// (summoning sickness); `attacked` enforces one attack per turn. Both flags
-// are cleared at the owner's turn start.
+// A creature in play. atk/hp are the live (buffable, woundable) values; they
+// start from def->stats. `sick` blocks attacking on the summon turn (summoning
+// sickness); `attacked` enforces one attack per turn. Both flags are cleared at
+// the owner's turn start. The status fields below back the colored keywords.
 struct Creature {
   EntityId id;
   const CardDef* def;
   int atk;
-  int def_;
   int hp;
   int maxHp;
   bool sick = true;
   bool attacked = false;
-  int frozenTurns =
-      0;  // Blue freeze status; ticks down at the owner's turn end
-  bool token =
-      false;  // created by an ability, not from a deck (e.g. illusions)
+  int frozenTurns = 0;     // Blue freeze: ticks down at the owner's turn end
+  int blindTurns = 0;      // Yellow blind: cannot attack while > 0
+  bool token = false;      // created by an ability (e.g. illusions), not a deck
+  bool shield = false;     // Yellow shield: absorbs the next instance of damage
+  bool stealthed = false;  // Violet stealth: untargetable until it attacks
+  bool brittle = false;    // Blue brittle: takes double damage while frozen
+  int unhealable = 0;      // Red lingering wounds that healing cannot restore
 
   // May this creature attack right now? It must be un-sick, not have attacked,
-  // not frozen, and have positive atk (0-atk creatures are pure walls).
+  // not be frozen or blinded, and have positive atk (0-atk creatures are
+  // walls).
   bool canAttack() const {
-    return !sick && !attacked && frozenTurns == 0 && atk > 0;
+    return !sick && !attacked && frozenTurns == 0 && blindTurns == 0 && atk > 0;
   }
 };
 
@@ -121,9 +124,9 @@ class Game {
   // available crystals, and that crystal/slot is consumed. Only cards carrying
   // the `awaken` keyword qualify.
   bool awaken(int manaRowIndex, EntityId target = 0);
-  // Attacker deals its atk to the target; the target retaliates with its def.
+  // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
-  // Attacker hits the enemy hero (no retaliation; heroes have no def).
+  // Attacker hits the enemy hero (no retaliation; heroes do not fight back).
   bool attackHero(EntityId attacker);
   // Pass priority to the other player and begin their turn.
   void endTurn();
@@ -143,8 +146,8 @@ class Game {
   Creature* findCreature(Player& p, EntityId id);
 
   // Phase 2: keyword/effect execution.
-  void applyTurnStartTriggers(Player& p);  // regen heal, photosynthesis ramp
-  void tickFreeze(Player& p);              // decrement freeze at the turn's end
+  void applyTurnStartTriggers(Player& p);  // regen heal, growth, photosynthesis
+  void tickStatuses(Player& p);  // decrement freeze/blind at the turn's end
   bool enemyHasProvoke(
       const Player& opp) const;  // taunt: must be attacked first
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
@@ -152,6 +155,18 @@ class Game {
   // Put an already-paid-for card into play and run its effects. Shared by
   // playCard (from hand) and awaken (from the mana row).
   void playResolved(Player& p, const CardInstance& ci, EntityId target);
+
+  // Combat / stat helpers.
+  Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,
+                        int hpOverride);
+  // Apply `amount` damage to a creature, honouring shield (absorbs), brittle
+  // (double while frozen) and lingering (the wound becomes unhealable).
+  // Returns the damage actually dealt to hp.
+  int damageCreature(Creature& target, int amount, const Creature* source);
+  void healCreature(Creature& c, int amount);  // capped by maxHp - unhealable
+  void buffStats(Creature& c, int n);          // "+n/+n" = +n atk and +n hp
+  void bounceCreature(EntityId id);            // return a creature to its hand
+  void makeMirage(Player& owner, EntityId target);  // illusion copy of a target
 
   // Tokens, illusions, and the death-event queue.
   EntityId summonToken(Player& p, const CardDef* def, bool sick,

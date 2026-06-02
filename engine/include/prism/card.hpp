@@ -14,15 +14,14 @@ namespace prism {
 
 // A named keyword on a card, e.g. {"id":"regen","n":1}. `n` is the single
 // numeric parameter shown on the card. The keyword catalog is in
-// ../../EFFECTS.md. Phase 1 parses keywords but does not execute them yet.
+// ../../EFFECTS.md.
 struct KeywordRef {
   std::string id;
   std::optional<int> n;
 };
 
 // An inline primitive effect: [trigger] + [selector] -> [action](value).
-// This mirrors the effect grammar in DESIGN §8. Also parsed-but-inert in
-// Phase 1.
+// This mirrors the effect grammar in DESIGN §8 and is run by executeAction.
 struct EffectDef {
   std::string trigger;
   std::string selector;

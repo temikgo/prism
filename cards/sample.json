@@ -7,7 +7,7 @@
     "type": "creature",
     "color": ["red"],
     "cost": { "generic": 1, "red": 1 },
-    "stats": { "atk": 3, "def": 1, "hp": 3 },
+    "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "pierce" }, { "id": "regen", "n": 1 }]
   },
   {
@@ -18,7 +18,7 @@
     "type": "creature",
     "color": ["yellow"],
     "cost": { "generic": 2, "yellow": 1 },
-    "stats": { "atk": 0, "def": 4, "hp": 5 },
+    "stats": { "atk": 0, "hp": 5 },
     "keywords": [{ "id": "provoke" }]
   },
   {
@@ -51,7 +51,7 @@
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 2, "violet": 1 },
-    "stats": { "atk": 2, "def": 0, "hp": 2 },
+    "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "awaken" }, { "id": "split", "n": 2 }]
   },
   {
@@ -62,7 +62,7 @@
     "type": "creature",
     "color": [],
     "cost": { "generic": 3 },
-    "stats": { "atk": 3, "def": 2, "hp": 4 },
+    "stats": { "atk": 3, "hp": 4 },
     "keywords": []
   }
 ]

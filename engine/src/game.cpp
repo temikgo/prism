@@ -46,12 +46,15 @@ void Game::startTurn() {
   draw(p, 1);
 }
 
-// OnTurnStart triggers. Regen heals each creature up to its max; Photosynthesis
-// (on creatures or auras) adds temporary mana for this turn only.
+// OnTurnStart triggers. Regen heals up to max; Growth adds +N/+N;
+// Photosynthesis (on creatures or auras) adds temporary mana for this turn
+// only.
 void Game::applyTurnStartTriggers(Player& p) {
   for (auto& c : p.board) {
     int r = c.def->keywordN("regen");
-    if (r > 0) c.hp = std::min(c.maxHp, c.hp + r);
+    if (r > 0) healCreature(c, r);
+    int g = c.def->keywordN("growth");
+    if (g > 0) buffStats(c, g);
   }
   int ramp = 0;
   for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
@@ -59,11 +62,13 @@ void Game::applyTurnStartTriggers(Player& p) {
   if (ramp > 0) p.mana.addTemporary(Color::Colorless, ramp);
 }
 
-// Freeze ticks down at the end of the frozen creature's owner's turn, so
-// "freeze N" makes a creature sit out N of its own turns.
-void Game::tickFreeze(Player& p) {
-  for (auto& c : p.board)
+// Freeze and blind tick down at the end of the affected creature's owner's
+// turn, so "freeze N" / "blind N" makes it sit out N of its own turns.
+void Game::tickStatuses(Player& p) {
+  for (auto& c : p.board) {
     if (c.frozenTurns > 0) c.frozenTurns -= 1;
+    if (c.blindTurns > 0) c.blindTurns -= 1;
+  }
 }
 
 void Game::draw(Player& p, int n) {
@@ -141,17 +146,16 @@ bool Game::playCard(int handIndex, EntityId target) {
 void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
   const CardDef* def = ci.def;
   if (def->type == CardType::Creature) {
-    p.board.push_back(Creature{ci.id, def, def->stats.atk, def->stats.def,
-                               def->stats.hp, def->stats.hp, true, false, 0});
-    // Violet split: spawn N permanent illusion copies -- same atk/def but 1 HP,
-    // no keywords (a hollow copy), normal summoning sickness. They do not
+    p.board.push_back(makeCreature(ci.id, def, /*sick=*/true, /*token=*/false,
+                                   /*hpOverride=*/-1));
+    // Violet split: spawn N permanent illusion copies -- same atk but 1 HP, no
+    // keywords (a hollow copy), normal summoning sickness. They do not
     // re-trigger split or battlecries. Illusions' only weakness is fragility.
     int copies = def->keywordN("split");
     if (copies > 0) {
       const CardDef* illusion =
-          internToken("illusion_" + std::to_string(def->stats.atk) + "_" +
-                          std::to_string(def->stats.def),
-                      Stats{def->stats.atk, def->stats.def, 1});
+          internToken("illusion_" + std::to_string(def->stats.atk),
+                      Stats{def->stats.atk, 1});
       for (int i = 0;
            i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
         summonToken(p, illusion, /*sick=*/true, /*hpOverride=*/-1);
@@ -161,6 +165,7 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
   }
   resolveOnPlay(def, p, target);
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
+  checkDeaths();  // an on_play effect may have damaged or destroyed creatures
 }
 
 // Violet awaken: play a card straight from the mana row. The banked crystal is
@@ -198,10 +203,11 @@ bool Game::enemyHasProvoke(const Player& opp) const {
   return false;
 }
 
-// Mutual, simultaneous combat (DESIGN §2): the attacker uses its atk, the
-// defender retaliates with its def (not its atk). Both can die at once.
-// Provoke forces the attacker onto a provoker; Pierce sends lethal excess to
-// the enemy hero.
+// Mutual, simultaneous combat (DESIGN §2): both creatures deal their atk to
+// each other at once, so both can die. Provoke forces the attacker onto a
+// provoker; Pierce sends lethal excess to the enemy hero; Stealth hides a
+// creature from being targeted; lifesteal heals the attacker for the damage it
+// dealt.
 bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (over_) return false;
   Player& me = players_[current_];
@@ -210,14 +216,17 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   Creature* b = findCreature(opp, target);
   if (!a || !b) return false;
   if (!a->canAttack()) return false;
+  if (b->stealthed) return false;  // a hidden creature cannot be targeted
   if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
   int targetHpBefore = b->hp;
-  b->hp -= a->atk;
-  a->hp -= b->def_;
+  int dealt = damageCreature(*b, a->atk, a);
+  damageCreature(*a, b->atk, b);  // simultaneous retaliation
   if (a->def->hasKeyword("pierce")) {
-    int overflow = a->atk - targetHpBefore;
+    int overflow = dealt - targetHpBefore;
     if (overflow > 0) dealHeroDamage(opp, overflow);
   }
+  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt);
+  a->stealthed = false;  // attacking reveals a stealthed creature
   a->attacked = true;
   checkDeaths();
   return true;
@@ -229,8 +238,11 @@ bool Game::attackHero(EntityId attacker) {
   Player& opp = players_[1 - current_];
   Creature* a = findCreature(me, attacker);
   if (!a || !a->canAttack()) return false;
-  if (enemyHasProvoke(opp)) return false;  // taunt blocks attacks to the face
+  // Provoke blocks the face unless the attacker has Bypass (Red).
+  if (enemyHasProvoke(opp) && !a->def->hasKeyword("bypass")) return false;
   dealHeroDamage(opp, a->atk);
+  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, a->atk);
+  a->stealthed = false;
   a->attacked = true;
   return true;
 }
@@ -266,26 +278,116 @@ void Game::processEvents() {
 }
 
 void Game::reactTo(const Event& e) {
-  if (e.type == EventType::Died && e.card) {
-    // Green spores: the dead creature leaves N 1/1 sprout tokens behind.
-    int n = e.card->keywordN("spores");
-    if (n > 0) {
-      const CardDef* sprout = internToken("sprout", Stats{1, 0, 1});
-      Player& owner = players_[e.player];
-      for (int i = 0;
-           i < n && static_cast<int>(owner.board.size()) < BoardLimit; ++i)
-        summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
-    }
+  if (e.type != EventType::Died || !e.card) return;
+  Player& owner = players_[e.player];
+  // Green spores: the dead creature leaves N 1/1 sprout tokens behind.
+  int n = e.card->keywordN("spores");
+  if (n > 0) {
+    const CardDef* sprout = internToken("sprout", Stats{1, 1});
+    for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit;
+         ++i)
+      summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
+  }
+  // Green compost: each surviving ally with Compost grows when an ally dies.
+  for (auto& c : owner.board) {
+    int cm = c.def->keywordN("compost");
+    if (cm > 0) buffStats(c, cm);
+  }
+  // Violet haunt: the dead creature leaves a permanent illusion of itself.
+  if (e.card->hasKeyword("haunt") &&
+      static_cast<int>(owner.board.size()) < BoardLimit) {
+    const CardDef* illusion =
+        internToken("illusion_" + std::to_string(e.card->stats.atk),
+                    Stats{e.card->stats.atk, 1});
+    summonToken(owner, illusion, /*sick=*/true, /*hpOverride=*/-1);
   }
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
                            int hpOverride) {
-  int hp = hpOverride >= 0 ? hpOverride : def->stats.hp;
   EntityId id = nextId_++;
-  p.board.push_back(Creature{id, def, def->stats.atk, def->stats.def, hp, hp,
-                             sick, false, 0, /*token=*/true});
+  p.board.push_back(makeCreature(id, def, sick, /*token=*/true, hpOverride));
   return id;
+}
+
+Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
+                            bool token, int hpOverride) {
+  int hp = hpOverride >= 0 ? hpOverride : def->stats.hp;
+  Creature c{};
+  c.id = id;
+  c.def = def;
+  c.atk = def->stats.atk;
+  c.hp = hp;
+  c.maxHp = hp;
+  c.sick = sick;
+  c.token = token;
+  // Tokens are hollow copies: they never carry their template's keywords.
+  c.shield = !token && def->hasKeyword("shield");
+  c.stealthed = !token && def->hasKeyword("stealth");
+  c.brittle = !token && def->hasKeyword("brittle");
+  return c;
+}
+
+int Game::damageCreature(Creature& target, int amount, const Creature* source) {
+  if (amount <= 0) return 0;
+  if (target.shield) {
+    target.shield = false;  // divine shield absorbs the whole instance
+    return 0;
+  }
+  int dmg = amount;
+  if (target.brittle && target.frozenTurns > 0) dmg *= 2;
+  target.hp -= dmg;
+  if (source && source->def && source->def->hasKeyword("lingering"))
+    target.unhealable = std::min(target.maxHp, target.unhealable + dmg);
+  return dmg;
+}
+
+void Game::healCreature(Creature& c, int amount) {
+  if (amount <= 0) return;
+  int cap = c.maxHp - c.unhealable;  // lingering wounds cannot be healed back
+  if (cap < 0) cap = 0;
+  int want = c.hp + amount;
+  if (want > cap) want = cap;
+  if (want > c.hp) c.hp = want;
+}
+
+void Game::buffStats(Creature& c, int n) {
+  c.atk += n;
+  c.maxHp += n;
+  c.hp += n;
+}
+
+void Game::bounceCreature(EntityId id) {
+  for (auto& pl : players_) {
+    for (std::size_t i = 0; i < pl.board.size(); ++i) {
+      if (pl.board[i].id != id) continue;
+      Creature c = pl.board[i];
+      pl.board.erase(pl.board.begin() + i);
+      // Tokens cease to exist when bounced; real cards return to hand (or burn
+      // if the hand is full).
+      if (!c.token) {
+        if (static_cast<int>(pl.hand.size()) < HandLimit)
+          pl.hand.push_back(CardInstance{c.id, c.def});
+        else
+          pl.graveyard.push_back(c.def);
+      }
+      return;
+    }
+  }
+}
+
+void Game::makeMirage(Player& owner, EntityId target) {
+  for (auto& pl : players_) {
+    for (const auto& c : pl.board) {
+      if (c.id != target) continue;
+      if (static_cast<int>(owner.board.size()) < BoardLimit) {
+        const CardDef* illusion =
+            internToken("illusion_" + std::to_string(c.atk), Stats{c.atk, 1});
+        summonToken(owner, illusion, /*sick=*/true, /*hpOverride=*/-1);
+      }
+      return;
+    }
+  }
 }
 
 const CardDef* Game::internToken(const std::string& id, Stats s) {
@@ -310,11 +412,31 @@ void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
 }
 
 void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
-  if (e.action == "freeze") {
-    // selector "chosen_enemy_minion": the passed target on the enemy board.
-    Player& opp = players_[1 - owner.index];
-    Creature* t = findCreature(opp, target);
-    if (t) t->frozenTurns = e.value;
+  Player& opp = players_[1 - owner.index];
+  const std::string& a = e.action;
+  if (a == "freeze") {
+    if (Creature* t = findCreature(opp, target)) t->frozenTurns = e.value;
+  } else if (a == "blind") {
+    if (Creature* t = findCreature(opp, target)) t->blindTurns = e.value;
+  } else if (a == "flash") {
+    for (auto& c : opp.board) c.blindTurns = e.value;  // blind every enemy
+  } else if (a == "damage") {
+    if (e.selector == "enemy_hero")
+      dealHeroDamage(opp, e.value);
+    else if (Creature* t = findCreature(opp, target))
+      damageCreature(*t, e.value, nullptr);
+  } else if (a == "damage_all") {
+    for (auto& pl : players_)
+      for (auto& c : pl.board) damageCreature(c, e.value, nullptr);
+  } else if (a == "destroy") {
+    if (Creature* t = findCreature(opp, target))
+      t->hp = 0;  // checkDeaths reaps
+  } else if (a == "draw") {
+    draw(owner, e.value);
+  } else if (a == "scatter") {
+    bounceCreature(target);
+  } else if (a == "mirage") {
+    makeMirage(owner, target);
   }
 }
 
@@ -326,7 +448,7 @@ Creature* Game::findCreature(Player& p, EntityId id) {
 
 void Game::endTurn() {
   if (over_) return;
-  tickFreeze(players_[current_]);  // the ending player's frozen creatures thaw
+  tickStatuses(players_[current_]);  // ending player's freeze/blind tick down
   current_ = 1 - current_;
   turn_ += 1;
   startTurn();
