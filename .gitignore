@@ -4,4 +4,5 @@ build/
 *.a
 .godot/
 client-godot/.godot/
+client-godot/.godot-bin/
 client-godot/export_presets.cfg
