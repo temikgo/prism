@@ -29,7 +29,9 @@ if(CLANG_FORMAT)
   file(GLOB_RECURSE PRISM_FORMAT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../server/src/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../server/src/*.cpp)
   add_test(NAME format_check
     COMMAND ${CLANG_FORMAT} --dry-run --Werror ${PRISM_FORMAT_SOURCES})
 endif()
