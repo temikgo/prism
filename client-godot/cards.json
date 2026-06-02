@@ -1,0 +1,68 @@
+[
+  {
+    "id": "red_undying_borer",
+    "name": { "ru": "Неугасимый бур" },
+    "text": { "ru": "Пробитие. Регенерация 1." },
+    "art": "dynamic close-up of a crimson crystal-light drill-creature's head and shoulders, fierce expression, strong silhouette",
+    "type": "creature",
+    "color": ["red"],
+    "cost": { "generic": 1, "red": 1 },
+    "stats": { "atk": 3, "hp": 3 },
+    "keywords": [{ "id": "pierce" }, { "id": "regen", "n": 1 }]
+  },
+  {
+    "id": "yellow_beacon_guard",
+    "name": { "ru": "Маяк-страж" },
+    "text": { "ru": "Маяк." },
+    "art": "close-up of a stout yellow crystal-light guardian's head and torso, a single bright beacon-crystal glowing in its chest, calm protective stance",
+    "type": "creature",
+    "color": ["yellow"],
+    "cost": { "generic": 2, "yellow": 1 },
+    "stats": { "atk": 0, "hp": 5 },
+    "keywords": [{ "id": "provoke" }]
+  },
+  {
+    "id": "green_lightroot",
+    "name": { "ru": "Светокорень" },
+    "text": { "ru": "Фотосинтез 1." },
+    "art": "close-up of a green crystal-light root-spirit, a few large emerald facets and a couple of fresh shoots, lively and lush",
+    "type": "aura",
+    "color": ["green"],
+    "cost": { "generic": 1, "green": 1 },
+    "keywords": [{ "id": "photosynthesis", "n": 1 }]
+  },
+  {
+    "id": "blue_frostmark",
+    "name": { "ru": "Стылый росчерк" },
+    "text": { "ru": "Заморозка 2 выбранному существу." },
+    "art": "close-up of an icy blue crystal-light sigil freezing a target, a few bold frost shards, cold blue glow",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 2 }
+    ]
+  },
+  {
+    "id": "violet_phantom_twin",
+    "name": { "ru": "Призрачный двойник" },
+    "text": { "ru": "Awaken. Расщепление 2." },
+    "art": "close-up of a violet crystal-light figure with two faint ghostly duplicates beside it, one solid and the others shimmering, mysterious",
+    "type": "creature",
+    "color": ["violet"],
+    "cost": { "generic": 2, "violet": 1 },
+    "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "awaken" }, { "id": "split", "n": 2 }]
+  },
+  {
+    "id": "neutral_warden",
+    "name": { "ru": "Гранёный страж" },
+    "text": { "ru": "" },
+    "art": "close-up of a colourless crystal-light warden's head and shoulders, smooth facets with subtle rainbow refractions, calm and powerful",
+    "type": "creature",
+    "color": [],
+    "cost": { "generic": 3 },
+    "stats": { "atk": 3, "hp": 4 },
+    "keywords": []
+  }
+]

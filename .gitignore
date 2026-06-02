@@ -2,3 +2,6 @@ engine/build/
 build/
 *.o
 *.a
+.godot/
+client-godot/.godot/
+client-godot/export_presets.cfg
