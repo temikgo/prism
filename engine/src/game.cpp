@@ -134,6 +134,7 @@ bool Game::playCard(int handIndex, EntityId target) {
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
+  if (!playTargetLegal(def, p, target)) return false;
   p.mana.pay(def->cost);
   p.hand.erase(p.hand.begin() + handIndex);
   playResolved(p, ci, target);
@@ -148,18 +149,14 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
   if (def->type == CardType::Creature) {
     p.board.push_back(makeCreature(ci.id, def, /*sick=*/true, /*token=*/false,
                                    /*hpOverride=*/-1));
-    // Violet split: spawn N permanent illusion copies -- same atk but 1 HP, no
-    // keywords (a hollow copy), normal summoning sickness. They do not
-    // re-trigger split or battlecries. Illusions' only weakness is fragility.
+    // Violet split: spawn N permanent illusion copies of this card -- same atk
+    // and keywords but 1 HP, normal summoning sickness. summonToken does not
+    // run on_play/split, so they never re-trigger. Their only weakness is
+    // fragility.
     int copies = def->keywordN("split");
-    if (copies > 0) {
-      const CardDef* illusion =
-          internToken("illusion_" + std::to_string(def->stats.atk),
-                      Stats{def->stats.atk, 1});
-      for (int i = 0;
-           i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
-        summonToken(p, illusion, /*sick=*/true, /*hpOverride=*/-1);
-    }
+    for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit;
+         ++i)
+      summonToken(p, def, /*sick=*/true, /*hpOverride=*/1);
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
@@ -185,6 +182,7 @@ bool Game::awaken(int manaRowIndex, EntityId target) {
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
+  if (!playTargetLegal(def, p, target)) return false;
   Cost eff = def->cost;
   eff.generic = eff.generic > 0 ? eff.generic - 1 : 0;
   ManaPool sim = p.mana;
@@ -293,14 +291,11 @@ void Game::reactTo(const Event& e) {
     int cm = c.def->keywordN("compost");
     if (cm > 0) buffStats(c, cm);
   }
-  // Violet haunt: the dead creature leaves a permanent illusion of itself.
+  // Violet haunt: the dead creature leaves a 1 HP illusion of itself (an
+  // illusion copies the original card, keywords included).
   if (e.card->hasKeyword("haunt") &&
-      static_cast<int>(owner.board.size()) < BoardLimit) {
-    const CardDef* illusion =
-        internToken("illusion_" + std::to_string(e.card->stats.atk),
-                    Stats{e.card->stats.atk, 1});
-    summonToken(owner, illusion, /*sick=*/true, /*hpOverride=*/-1);
-  }
+      static_cast<int>(owner.board.size()) < BoardLimit)
+    summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1);
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
@@ -321,10 +316,10 @@ Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
   c.maxHp = hp;
   c.sick = sick;
   c.token = token;
-  // Tokens are hollow copies: they never carry their template's keywords.
-  c.shield = !token && def->hasKeyword("shield");
-  c.stealthed = !token && def->hasKeyword("stealth");
-  c.brittle = !token && def->hasKeyword("brittle");
+  // Illusions reference the original card, so they inherit its keywords -- that
+  // is the point of illusions. (Sprouts use a vanilla token def, so none.)
+  c.shield = def->hasKeyword("shield");
+  c.stealthed = def->hasKeyword("stealth");
   return c;
 }
 
@@ -334,12 +329,10 @@ int Game::damageCreature(Creature& target, int amount, const Creature* source) {
     target.shield = false;  // divine shield absorbs the whole instance
     return 0;
   }
-  int dmg = amount;
-  if (target.brittle && target.frozenTurns > 0) dmg *= 2;
-  target.hp -= dmg;
+  target.hp -= amount;
   if (source && source->def && source->def->hasKeyword("lingering"))
-    target.unhealable = std::min(target.maxHp, target.unhealable + dmg);
-  return dmg;
+    target.unhealable = std::min(target.maxHp, target.unhealable + amount);
+  return amount;
 }
 
 void Game::healCreature(Creature& c, int amount) {
@@ -380,11 +373,9 @@ void Game::makeMirage(Player& owner, EntityId target) {
   for (auto& pl : players_) {
     for (const auto& c : pl.board) {
       if (c.id != target) continue;
-      if (static_cast<int>(owner.board.size()) < BoardLimit) {
-        const CardDef* illusion =
-            internToken("illusion_" + std::to_string(c.atk), Stats{c.atk, 1});
-        summonToken(owner, illusion, /*sick=*/true, /*hpOverride=*/-1);
-      }
+      // A 1 HP illusion copy of the target card (keywords included).
+      if (static_cast<int>(owner.board.size()) < BoardLimit)
+        summonToken(owner, c.def, /*sick=*/true, /*hpOverride=*/1);
       return;
     }
   }
@@ -400,6 +391,20 @@ const CardDef* Game::internToken(const std::string& id, Stats s) {
   d.stats = s;
   tokenDefs_.push_back(d);
   return &tokenDefs_.back();
+}
+
+// An on_play effect that picks an enemy creature needs a real, non-stealthed
+// target; otherwise the whole play is illegal (checked before paying).
+bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
+  Player& opp = players_[1 - owner.index];
+  for (const auto& e : def->effects) {
+    if (e.trigger != "on_play") continue;
+    if (e.selector == "chosen_enemy_minion") {
+      Creature* t = findCreature(opp, target);
+      if (!t || t->stealthed) return false;
+    }
+  }
+  return true;
 }
 
 // Dispatch the inline effect grammar (DESIGN §8):

@@ -48,9 +48,6 @@ static const char* kTestCards = R"json([
   { "id": "lingerer", "name": { "ru": "Неугас" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "lingering" }] },
-  { "id": "brittler", "name": { "ru": "Хрупкий лёд" }, "type": "creature",
-    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 4 },
-    "keywords": [{ "id": "brittle" }] },
   { "id": "hider", "name": { "ru": "Незримка" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "stealth" }] },
@@ -423,22 +420,6 @@ TEST_CASE("lingering wounds cannot be healed by regen") {
   CHECK(g.player(1).board[0].hp == 3);  // capped at maxHp - unhealable = 3
 }
 
-TEST_CASE("brittle doubles damage to a frozen creature") {
-  CardLibrary lib = testLib();
-  Game g(lib, repeat("bear", 30), repeat("brittler", 30), 218);
-  g.start();
-  REQUIRE(g.playCard(0));
-  EntityId bear = g.player(0).board[0].id;
-  g.endTurn();
-  REQUIRE(g.playCard(0));
-  EntityId br = g.player(1).board[0].id;
-  g.endTurn();
-  g.player(0).hand.push_back(CardInstance{904, lib.find("frost1")});
-  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1, br));
-  CHECK(g.attackCreature(bear, br));  // 3 doubled to 6 -> brittler (hp 4) dies
-  CHECK(g.player(1).board.empty());
-}
-
 TEST_CASE("growth adds +1/+1 at the owner's turn start") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("grower", 30), repeat("bear", 30), 205);
@@ -615,6 +596,33 @@ TEST_CASE("haunt leaves an illusion when the creature dies") {
   CHECK(g.player(0).board[0].token);
   CHECK(g.player(0).board[0].atk == 2);
   CHECK(g.player(0).board[0].hp == 1);
+}
+
+TEST_CASE("illusions inherit the original's keywords") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("shielded", 30), repeat("bear", 30), 220);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId s = g.player(0).board[0].id;
+  g.player(0).hand.push_back(CardInstance{905, lib.find("miragespell")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1, s));
+  REQUIRE(g.player(0).board.size() == 2);
+  const Creature& ill = g.player(0).board[1];
+  CHECK(ill.token);
+  CHECK(ill.hp == 1);
+  CHECK(ill.shield);  // copied the original's shield keyword
+}
+
+TEST_CASE("a stealthed creature cannot be targeted by enemy spells") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("frost1", 30), repeat("hider", 30), 221);
+  g.start();
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 summons a hider (stealthed)
+  EntityId h = g.player(1).board[0].id;
+  g.endTurn();
+  CHECK_FALSE(g.playCard(0, h));  // freeze on a hidden creature is illegal
+  CHECK(g.player(1).board[0].frozenTurns == 0);
 }
 
 #ifdef PRISM_SAMPLE

@@ -55,7 +55,6 @@ struct Creature {
   bool token = false;      // created by an ability (e.g. illusions), not a deck
   bool shield = false;     // Yellow shield: absorbs the next instance of damage
   bool stealthed = false;  // Violet stealth: untargetable until it attacks
-  bool brittle = false;    // Blue brittle: takes double damage while frozen
   int unhealable = 0;      // Red lingering wounds that healing cannot restore
 
   // May this creature attack right now? It must be un-sick, not have attacked,
@@ -152,6 +151,9 @@ class Game {
       const Player& opp) const;  // taunt: must be attacked first
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target);
+  // True if `target` is a legal target for the card's on_play effects (a
+  // chosen_enemy_minion must exist and not be stealthed).
+  bool playTargetLegal(const CardDef* def, Player& owner, EntityId target);
   // Put an already-paid-for card into play and run its effects. Shared by
   // playCard (from hand) and awaken (from the mana row).
   void playResolved(Player& p, const CardInstance& ci, EntityId target);
