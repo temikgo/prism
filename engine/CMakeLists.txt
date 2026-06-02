@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.16)
+project(prism_engine CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+add_library(prism_engine
+  src/card.cpp
+  src/game.cpp
+)
+target_include_directories(prism_engine PUBLIC include third_party)
+
+enable_testing()
+add_executable(prism_tests tests/tests.cpp)
+target_link_libraries(prism_tests PRIVATE prism_engine)
+target_compile_definitions(prism_tests PRIVATE
+  PRISM_SAMPLE="${CMAKE_CURRENT_SOURCE_DIR}/../cards/sample.json")
+add_test(NAME prism_tests COMMAND prism_tests)
