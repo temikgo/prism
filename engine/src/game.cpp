@@ -109,7 +109,9 @@ bool Game::placeCardToMana(int handIndex, Color color) {
     ok = std::find(def->colors.begin(), def->colors.end(), color) !=
          def->colors.end();
   if (!ok) return false;
+  CardInstance card = p.hand[handIndex];
   p.hand.erase(p.hand.begin() + handIndex);
+  p.manaRow.push_back(ManaCard{card, color});  // keep identity for awaken
   p.mana.addCrystal(color);
   p.placedManaThisTurn = true;
   return true;
@@ -127,21 +129,62 @@ bool Game::playCard(int handIndex, EntityId target) {
     return false;
   p.mana.pay(def->cost);
   p.hand.erase(p.hand.begin() + handIndex);
+  playResolved(p, ci, target);
+  return true;
+}
+
+// Put an already-paid-for card into play. Creatures enter summoning sick;
+// auras stay in play; spells resolve and go to the graveyard. Any on_play
+// effect runs against `target`.
+void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
+  const CardDef* def = ci.def;
   if (def->type == CardType::Creature) {
-    // Enters summoning sick; live stats start from the template.
     p.board.push_back(Creature{ci.id, def, def->stats.atk, def->stats.def,
                                def->stats.hp, def->stats.hp, true, false, 0});
-    // Violet split: spawn N illusion copies (same atk/def, 1 HP). They enter
-    // un-sick so they can swing this turn, then vanish at this turn's end.
+    // Violet split: spawn N permanent illusion copies -- same atk/def but 1 HP,
+    // no keywords (a hollow copy), normal summoning sickness. They do not
+    // re-trigger split or battlecries. Illusions' only weakness is fragility.
     int copies = def->keywordN("split");
-    for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
-      summonToken(p, def, /*sick=*/false, /*vanish=*/true, /*hpOverride=*/1);
+    if (copies > 0) {
+      const CardDef* illusion = internToken(
+          "illusion_" + std::to_string(def->stats.atk) + "_" +
+              std::to_string(def->stats.def),
+          Stats{def->stats.atk, def->stats.def, 1});
+      for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
+        summonToken(p, illusion, /*sick=*/true, /*hpOverride=*/-1);
+    }
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
-  // Run any OnPlay (battlecry/spell) effect, then send a spell to the graveyard.
   resolveOnPlay(def, p, target);
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
+}
+
+// Violet awaken: play a card straight from the mana row. The banked crystal is
+// consumed -- it pays 1 generic toward the cost, and the remainder is paid from
+// the player's other available crystals. Net cost: (cost - 1) plus the lost slot.
+bool Game::awaken(int manaRowIndex, EntityId target) {
+  if (over_) return false;
+  Player& p = players_[current_];
+  if (manaRowIndex < 0 || manaRowIndex >= static_cast<int>(p.manaRow.size()))
+    return false;
+  ManaCard mc = p.manaRow[manaRowIndex];
+  const CardDef* def = mc.card.def;
+  if (!def->hasKeyword("awaken")) return false;
+  int c = idx(mc.color);
+  if (p.mana.available[c] < 1) return false;  // its own crystal must be unspent
+  if (def->type == CardType::Creature &&
+      static_cast<int>(p.board.size()) >= BoardLimit)
+    return false;
+  Cost eff = def->cost;
+  eff.generic = eff.generic > 0 ? eff.generic - 1 : 0;
+  ManaPool sim = p.mana;
+  sim.crystals[c] -= 1;
+  sim.available[c] -= 1;
+  if (!sim.pay(eff)) return false;  // remainder unaffordable -> nothing changes
+  p.mana = sim;
+  p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
+  playResolved(p, mc.card, target);
   return true;
 }
 
@@ -226,17 +269,17 @@ void Game::reactTo(const Event& e) {
       const CardDef* sprout = internToken("sprout", Stats{1, 0, 1});
       Player& owner = players_[e.player];
       for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit; ++i)
-        summonToken(owner, sprout, /*sick=*/true, /*vanish=*/false, /*hpOverride=*/-1);
+        summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
     }
   }
 }
 
-EntityId Game::summonToken(Player& p, const CardDef* def, bool sick, bool vanish,
+EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
                            int hpOverride) {
   int hp = hpOverride >= 0 ? hpOverride : def->stats.hp;
   EntityId id = nextId_++;
   p.board.push_back(Creature{id, def, def->stats.atk, def->stats.def, hp, hp,
-                             sick, false, 0, /*token=*/true, vanish});
+                             sick, false, 0, /*token=*/true});
   return id;
 }
 
@@ -250,14 +293,6 @@ const CardDef* Game::internToken(const std::string& id, Stats s) {
   d.stats = s;
   tokenDefs_.push_back(d);
   return &tokenDefs_.back();
-}
-
-void Game::removeVanishing(Player& p) {
-  std::vector<Creature> keep;
-  keep.reserve(p.board.size());
-  for (auto& c : p.board)
-    if (!c.vanish) keep.push_back(c);
-  p.board.swap(keep);
 }
 
 // Dispatch the inline effect grammar (DESIGN §8): [trigger]+[selector]->[action].
@@ -285,8 +320,7 @@ Creature* Game::findCreature(Player& p, EntityId id) {
 
 void Game::endTurn() {
   if (over_) return;
-  removeVanishing(players_[current_]);  // illusions disappear at their turn's end
-  tickFreeze(players_[current_]);       // the ending player's frozen creatures thaw
+  tickFreeze(players_[current_]);  // the ending player's frozen creatures thaw
   current_ = 1 - current_;
   turn_ += 1;
   startTurn();

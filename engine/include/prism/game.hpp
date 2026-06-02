@@ -30,6 +30,13 @@ struct CardInstance {
   const CardDef* def;
 };
 
+// A card sacrificed into the mana row. It became a crystal of `color`, but its
+// identity is kept face-down so Violet `awaken` can later wake it from there.
+struct ManaCard {
+  CardInstance card;
+  Color color;
+};
+
 // A creature in play. atk/def_/hp are the live (buffable, woundable) values;
 // they start from def->stats. `sick` blocks attacking on the summon turn
 // (summoning sickness); `attacked` enforces one attack per turn. Both flags
@@ -45,7 +52,6 @@ struct Creature {
   bool attacked = false;
   int frozenTurns = 0;  // Blue freeze status; ticks down at the owner's turn end
   bool token = false;   // created by an ability, not from a deck (e.g. illusions)
-  bool vanish = false;  // removed at the end of its controller's turn (illusions)
 
   // May this creature attack right now? It must be un-sick, not have attacked,
   // not frozen, and have positive atk (0-atk creatures are pure walls).
@@ -80,8 +86,9 @@ struct Player {
   ManaPool mana;
   std::vector<CardInstance> hand;
   std::vector<CardInstance> deck;
+  std::vector<ManaCard> manaRow;           // sacrificed cards = crystals (face-down)
   std::vector<Creature> board;
-  std::vector<const CardDef*> auras;       // inert in Phase 1
+  std::vector<const CardDef*> auras;
   std::vector<const CardDef*> graveyard;
 };
 
@@ -106,6 +113,11 @@ class Game {
   // on_play effect runs against `target` (e.g. the enemy creature to freeze);
   // pass 0 for cards that need no target.
   bool playCard(int handIndex, EntityId target = 0);
+  // Violet awaken: play a card straight from the mana row. The banked crystal
+  // counts as 1 generic toward the cost; the remainder is paid from your other
+  // available crystals, and that crystal/slot is consumed. Only cards carrying
+  // the `awaken` keyword qualify.
+  bool awaken(int manaRowIndex, EntityId target = 0);
   // Attacker deals its atk to the target; the target retaliates with its def.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes have no def).
@@ -133,12 +145,13 @@ class Game {
   bool enemyHasProvoke(const Player& opp) const;  // taunt: must be attacked first
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target);
+  // Put an already-paid-for card into play and run its effects. Shared by
+  // playCard (from hand) and awaken (from the mana row).
+  void playResolved(Player& p, const CardInstance& ci, EntityId target);
 
   // Tokens, illusions, and the death-event queue.
-  EntityId summonToken(Player& p, const CardDef* def, bool sick, bool vanish,
-                       int hpOverride);
+  EntityId summonToken(Player& p, const CardDef* def, bool sick, int hpOverride);
   const CardDef* internToken(const std::string& id, Stats s);  // owns a token def
-  void removeVanishing(Player& p);  // drop illusions at their controller's turn end
   void emit(const Event& e) { events_.push_back(e); }
   void processEvents();            // drain the queue, running reactions
   void reactTo(const Event& e);    // built-in reactions (Died -> spores, ...)

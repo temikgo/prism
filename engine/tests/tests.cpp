@@ -54,7 +54,11 @@ static const char* kTestCards = R"json([
   { "id": "sporecarrier", "name": { "ru": "Спороносец" }, "type": "creature",
     "color": [], "cost": { "generic": 0 },
     "stats": { "atk": 2, "def": 0, "hp": 2 },
-    "keywords": [{ "id": "spores", "n": 2 }] }
+    "keywords": [{ "id": "spores", "n": 2 }] },
+  { "id": "sleeper", "name": { "ru": "Спящий-фантом" }, "type": "creature",
+    "color": [], "cost": { "generic": 2 },
+    "stats": { "atk": 3, "def": 0, "hp": 3 },
+    "keywords": [{ "id": "awaken" }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -226,7 +230,7 @@ TEST_CASE("photosynthesis adds temporary mana at turn start") {
   CHECK(g.player(0).mana.totalAvailable() == 1);
 }
 
-TEST_CASE("split spawns illusions that act now and vanish at turn end") {
+TEST_CASE("split spawns permanent 1 HP illusion copies") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("splitter", 30), repeat("bear", 30), 66);
   g.start();
@@ -235,16 +239,19 @@ TEST_CASE("split spawns illusions that act now and vanish at turn end") {
   int illusions = 0;
   EntityId anIllusion = 0;
   for (const auto& c : g.player(0).board)
-    if (c.vanish) {
+    if (c.token) {
       illusions += 1;
       anIllusion = c.id;
       CHECK(c.hp == 1);
+      CHECK(c.atk == 2);  // copies the splitter's atk
     }
   CHECK(illusions == 2);
-  CHECK(g.attackHero(anIllusion));  // un-sick: can attack the turn it is made
-  CHECK(g.player(1).heroHp == HeroStartHp - 2);
+  CHECK_FALSE(g.attackHero(anIllusion));  // summoning sick the turn it is made
   g.endTurn();
-  CHECK(g.player(0).board.size() == 1);  // illusions gone, only the splitter left
+  CHECK(g.player(0).board.size() == 3);  // permanent: illusions stay on board
+  g.endTurn();                           // back to p0: illusions are un-sick now
+  CHECK(g.attackHero(anIllusion));
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);
 }
 
 TEST_CASE("spores summons sprout tokens when the creature dies") {
@@ -263,6 +270,41 @@ TEST_CASE("spores summons sprout tokens when the creature dies") {
     CHECK(c.hp == 1);
     CHECK(c.atk == 1);
   }
+}
+
+TEST_CASE("awaken plays a banked card; its crystal pays 1 and is consumed") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sleeper", 30), repeat("bear", 30), 88);
+  g.start();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // turn 1: bank a sleeper
+  g.endTurn();
+  g.endTurn();                                      // back to p0 (turn 3)
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // bank another -> 2 crystals
+  REQUIRE(g.awaken(0));                             // wake the first sleeper
+  REQUIRE(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].def->id == "sleeper");
+  CHECK(g.player(0).manaRow.size() == 1);  // one banked card consumed
+  CHECK(g.player(0).mana.crystals[idx(Color::Colorless)] == 1);
+}
+
+TEST_CASE("awaken needs mana beyond the banked crystal") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sleeper", 30), repeat("bear", 30), 99);
+  g.start();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));
+  CHECK_FALSE(g.awaken(0));  // one crystal: nothing left to pay the remainder
+  CHECK(g.player(0).manaRow.size() == 1);
+}
+
+TEST_CASE("only awaken cards can be played from the mana row") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 101);
+  g.start();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));
+  g.endTurn();
+  g.endTurn();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 2 crystals, but bear has no awaken
+  CHECK_FALSE(g.awaken(0));
 }
 
 #ifdef PRISM_SAMPLE
