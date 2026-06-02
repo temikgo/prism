@@ -13,7 +13,9 @@ extends Control
 # Clicking does the same via a two-step "select, then pick target" flow.
 
 const DEFAULT_URL := "ws://127.0.0.1:8080"
-const CARD_SIZE := Vector2(104, 146)
+const CARD_SIZE := Vector2(150, 210)
+const FRAME := 5.0     # colored-gradient frame thickness around the art
+const GEM := 34.0      # diameter of the cost / atk / hp corner gems
 
 var socket := WebSocketPeer.new()
 var was_open := false
@@ -53,14 +55,54 @@ func _primary_color(d: Dictionary) -> Color:
 	return _color_for(String(colors[0]))
 
 
+func _icon(icon_name: String, px: float, color: Color) -> TextureRect:
+	var tex := TextureRect.new()
+	tex.texture = load("res://icons/%s.svg" % icon_name)
+	tex.custom_minimum_size = Vector2(px, px)
+	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tex.modulate = color
+	return tex
+
+
 # --- a draggable / droppable card or zone -------------------------------------
 
 class UiCard extends PanelContainer:
 	signal clicked(payload: Dictionary)
+	# Shared across all cards: the payload of the drag currently in flight, so
+	# any card can decide whether to light up as a legal drop target.
+	static var active_drag = null
 	var payload: Dictionary = {}        # non-empty + draggable=true => can drag
 	var drag_label: String = ""
+	var preview_builder: Callable = Callable()   # returns the drag-preview Control
+	var tooltip_builder: Callable = Callable()   # returns the hover-tooltip Control
 	var can_drop_fn: Callable = Callable()
 	var drop_fn: Callable = Callable()
+	var hoverable := false                        # lift + scale on mouse-over
+	var _is_drag_source := false
+
+	func _ready() -> void:
+		mouse_entered.connect(_on_hover_in)
+		mouse_exited.connect(_on_hover_out)
+
+	func _on_hover_in() -> void:
+		if not hoverable:
+			return
+		pivot_offset = size / 2.0
+		z_index = 20
+		create_tween().tween_property(self, "scale", Vector2(1.08, 1.08), 0.08)
+
+	func _on_hover_out() -> void:
+		if not hoverable:
+			return
+		z_index = 0
+		create_tween().tween_property(self, "scale", Vector2.ONE, 0.08)
+
+	func _make_custom_tooltip(_for_text: String) -> Object:
+		if tooltip_builder.is_valid():
+			return tooltip_builder.call()
+		return null
 
 	func _gui_input(event: InputEvent) -> void:
 		# Fire on release, not press: a press that turns into a drag is consumed
@@ -73,18 +115,15 @@ class UiCard extends PanelContainer:
 	func _get_drag_data(_at: Vector2) -> Variant:
 		if not bool(payload.get("draggable", false)):
 			return null
-		var ghost := Label.new()
-		ghost.text = drag_label
-		ghost.add_theme_color_override("font_color", Color.WHITE)
-		var preview := PanelContainer.new()
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.1, 0.1, 0.12, 0.9)
-		sb.set_border_width_all(2)
-		sb.border_color = Color.WHITE
-		sb.set_content_margin_all(6)
-		preview.add_theme_stylebox_override("panel", sb)
-		preview.add_child(ghost)
-		set_drag_preview(preview)
+		active_drag = payload
+		_is_drag_source = true
+		if preview_builder.is_valid():
+			set_drag_preview(preview_builder.call())
+		else:
+			var ghost := Label.new()
+			ghost.text = drag_label
+			ghost.add_theme_color_override("font_color", Color.WHITE)
+			set_drag_preview(ghost)
 		return payload
 
 	func _can_drop_data(_at: Vector2, data: Variant) -> bool:
@@ -95,6 +134,19 @@ class UiCard extends PanelContainer:
 	func _drop_data(_at: Vector2, data: Variant) -> void:
 		if drop_fn.is_valid():
 			drop_fn.call(data)
+
+	func _notification(what: int) -> void:
+		# While a drag is in flight: dim the source card, glow legal targets.
+		if what == NOTIFICATION_DRAG_BEGIN:
+			if _is_drag_source:
+				modulate = Color(1, 1, 1, 0.35)
+			elif active_drag != null and can_drop_fn.is_valid() \
+					and bool(can_drop_fn.call(active_drag)):
+				modulate = Color(1.45, 1.45, 1.1)
+		elif what == NOTIFICATION_DRAG_END:
+			active_drag = null
+			_is_drag_source = false
+			modulate = Color.WHITE
 
 
 # --- lifecycle ---------------------------------------------------------------
@@ -115,30 +167,82 @@ func _load_cards() -> void:
 
 
 func _build_shell() -> void:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.08, 0.09, 0.12)
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", bg)
-	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(panel)
+	var bg := TextureRect.new()
+	bg.texture = _bg_texture()
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	add_child(margin)
 
 	root_box = VBoxContainer.new()
 	root_box.add_theme_constant_override("separation", 8)
-	panel.add_child(root_box)
+	margin.add_child(root_box)
 
 	var bar := HBoxContainer.new()
+	bar.add_theme_constant_override("separation", 8)
 	url_edit = LineEdit.new()
 	url_edit.text = DEFAULT_URL
 	url_edit.custom_minimum_size = Vector2(280, 0)
 	bar.add_child(url_edit)
-	var connect_btn := Button.new()
-	connect_btn.text = "Connect"
+	var connect_btn := _neon_button("Connect", Color(0.4, 0.8, 1.0))
 	connect_btn.pressed.connect(_on_connect)
 	bar.add_child(connect_btn)
 	status_label = Label.new()
 	status_label.text = "disconnected"
+	status_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
 	bar.add_child(status_label)
 	root_box.add_child(bar)
+
+
+func _bg_texture() -> Texture2D:
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+	grad.colors = PackedColorArray([
+		Color(0.07, 0.08, 0.15), Color(0.10, 0.06, 0.16), Color(0.02, 0.02, 0.05)])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.42)
+	tex.fill_to = Vector2(1.05, 1.1)
+	return tex
+
+
+# Translucent dark "glass" with a neon accent border and a soft accent glow.
+func _glass(accent: Color, bg_alpha: float) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.09, 0.15, bg_alpha)
+	sb.set_corner_radius_all(10)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.6)
+	sb.shadow_size = 10
+	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.28)
+	sb.set_content_margin_all(8)
+	return sb
+
+
+func _neon_button(text: String, accent: Color) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.add_theme_font_size_override("font_size", 15)
+	b.add_theme_color_override("font_color", accent.lightened(0.5))
+	b.add_theme_color_override("font_hover_color", Color.WHITE)
+	b.add_theme_color_override("font_pressed_color", Color.WHITE)
+	b.add_theme_color_override("font_disabled_color", Color(0.4, 0.43, 0.5))
+	b.add_theme_stylebox_override("normal", _glass(accent, 0.4))
+	b.add_theme_stylebox_override("hover", _glass(accent, 0.62))
+	b.add_theme_stylebox_override("pressed", _glass(accent, 0.8))
+	var dis := _glass(Color(0.32, 0.34, 0.42), 0.22)
+	dis.shadow_size = 0
+	b.add_theme_stylebox_override("disabled", dis)
+	return b
 
 
 func _on_connect() -> void:
@@ -242,13 +346,18 @@ func _separator() -> Control:
 func _banner(you: int) -> Control:
 	var banner := Label.new()
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner.add_theme_font_size_override("font_size", 18)
+	banner.add_theme_font_size_override("font_size", 22)
 	if bool(view.get("over", false)):
 		var w := int(view.get("winner", -1))
-		banner.text = "GAME OVER - " + ("YOU WIN" if w == you else "YOU LOSE")
+		var win := w == you
+		banner.text = "GAME OVER - " + ("YOU WIN" if win else "YOU LOSE")
+		banner.add_theme_color_override("font_color",
+			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
 	else:
 		var who := "YOUR TURN" if _my_turn() else "OPPONENT'S TURN"
 		banner.text = "%s   -   turn %d" % [who, int(view.get("turn", 0))]
+		banner.add_theme_color_override("font_color",
+			Color(0.45, 0.85, 1.0) if _my_turn() else Color(0.6, 0.62, 0.72))
 	return banner
 
 
@@ -263,6 +372,8 @@ func _enemy_strip(opp: Dictionary) -> Control:
 		_send({"action": "attackHero", "attacker": int(data["id"])})
 		_clear_selection()
 	zone.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
+	if attacker_id >= 0:
+		zone.modulate = Color(1.35, 1.35, 1.05)
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -430,6 +541,9 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			else:
 				_play_payload(data, cid)
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_creature(cid))
+		# Click-fallback: light up enemy creatures while a target is awaited.
+		if attacker_id >= 0 or casting_index >= 0 or awaken_index >= 0:
+			card.modulate = Color(1.45, 1.45, 1.1)
 	return card
 
 
@@ -460,13 +574,8 @@ func _hand_row(hand: Array) -> Control:
 
 func _mana_zone() -> Control:
 	var zone := UiCard.new()
-	zone.custom_minimum_size = Vector2(70, CARD_SIZE.y)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.14, 0.16, 0.2)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.5, 0.5, 0.6)
-	sb.set_corner_radius_all(6)
-	zone.add_theme_stylebox_override("panel", sb)
+	zone.custom_minimum_size = Vector2(84, CARD_SIZE.y)
+	zone.add_theme_stylebox_override("panel", _glass(Color(0.55, 0.55, 0.7), 0.32))
 	zone.can_drop_fn = func(data: Variant) -> bool:
 		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "hand"
 	zone.drop_fn = func(data: Variant) -> void:
@@ -483,69 +592,237 @@ func _mana_zone() -> Control:
 # --- card visual -------------------------------------------------------------
 
 func _make_card(def_id: String, runtime) -> UiCard:
-	var d: Dictionary = cards.get(def_id, {})
-	var col := _primary_color(d)
+	# Minimal card face: art + cost/atk/hp gems + a color frame. Name, rules
+	# text and keywords live in the hover tooltip, not on the face.
 	var card := UiCard.new()
 	card.custom_minimum_size = CARD_SIZE
-
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.13, 0.14, 0.17)
-	sb.set_border_width_all(3)
-	sb.border_color = col
-	sb.set_corner_radius_all(7)
-	sb.set_content_margin_all(5)
-	card.add_theme_stylebox_override("panel", sb)
-
-	var v := VBoxContainer.new()
-	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_theme_constant_override("separation", 2)
-	card.add_child(v)
-
-	# Header: cost badge (left) + status badges (right).
-	var header := HBoxContainer.new()
-	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_child(_cost_node(d.get("cost", {})))
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	header.add_child(spacer)
-	if typeof(runtime) == TYPE_DICTIONARY:
-		var st := _status_text(runtime)
-		if st != "":
-			header.add_child(_info_label(st, 11))
-	v.add_child(header)
-
-	# Name.
-	var name_label := Label.new()
-	name_label.text = _name_of(def_id)
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_label.add_theme_font_size_override("font_size", 13)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(name_label)
-
-	# Art area: res://art/<id>.png if present, else a colored placeholder.
-	var art := _art_node(def_id, col)
-	v.add_child(art)
-
-	# Rules text.
-	var txt := _text_of(def_id)
-	if txt != "":
-		var text_label := Label.new()
-		text_label.text = txt
-		text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		text_label.add_theme_font_size_override("font_size", 10)
-		text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		v.add_child(text_label)
-
-	# Stats footer for creatures: runtime atk/hp if on board, else printed.
-	var stat_row = _stats_node(def_id, runtime)
-	if stat_row != null:
-		v.add_child(stat_row)
+	# Neon glow in the card's own color (drawn by the card panel, behind the
+	# rounded face, so it is not clipped).
+	var col := _primary_color(cards.get(def_id, {}))
+	var glow := StyleBoxFlat.new()
+	glow.bg_color = Color(0, 0, 0, 0)
+	glow.set_corner_radius_all(12)
+	glow.shadow_size = 7
+	glow.shadow_color = Color(col.r, col.g, col.b, 0.5)
+	card.add_theme_stylebox_override("panel", glow)
+	card.add_child(_card_face(def_id, runtime))
+	# Pretty hover tooltip (built lazily) instead of the plain text one. A
+	# non-empty tooltip_text is still required for the tooltip to trigger.
+	card.tooltip_text = _name_of(def_id)
+	card.tooltip_builder = func() -> Control: return _build_tooltip(def_id)
+	card.hoverable = true
+	# The drag preview is the card itself, centered under the cursor.
+	card.preview_builder = func() -> Control:
+		var wrapper := Control.new()
+		var f := _card_face(def_id, runtime)
+		f.size = CARD_SIZE
+		f.position = -CARD_SIZE / 2.0
+		wrapper.add_child(f)
+		return wrapper
 	return card
 
 
-func _art_node(def_id: String, col: Color) -> Control:
+func _build_tooltip(def_id: String) -> Control:
+	var d: Dictionary = cards.get(def_id, {})
+	var col := _primary_color(d)
+
+	var panel := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.10, 0.11, 0.15, 0.98)
+	sb.set_corner_radius_all(10)
+	sb.set_border_width_all(2)
+	sb.border_color = col
+	sb.set_content_margin_all(11)
+	panel.add_theme_stylebox_override("panel", sb)
+	# Kill Godot's default tooltip wrapper (the dim panel behind ours).
+	var th := Theme.new()
+	th.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new())
+	panel.theme = th
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 5)
+	v.custom_minimum_size = Vector2(250, 0)
+	panel.add_child(v)
+
+	var header := HBoxContainer.new()
+	var name_l := Label.new()
+	name_l.text = _name_of(def_id)
+	name_l.add_theme_font_size_override("font_size", 18)
+	name_l.add_theme_color_override("font_color", col.lightened(0.4))
+	header.add_child(name_l)
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(sp)
+	var cost_l := Label.new()
+	cost_l.text = "%d" % _total_cost(d.get("cost", {}))
+	cost_l.add_theme_font_size_override("font_size", 18)
+	cost_l.add_theme_color_override("font_color", Color(0.85, 0.88, 0.98))
+	header.add_child(cost_l)
+	v.add_child(header)
+
+	var type_l := Label.new()
+	type_l.text = _type_label(d)
+	type_l.add_theme_font_size_override("font_size", 12)
+	type_l.add_theme_color_override("font_color", Color(0.6, 0.65, 0.75))
+	v.add_child(type_l)
+
+	var txt := _text_of(def_id)
+	if txt != "":
+		v.add_child(HSeparator.new())
+		var text_l := Label.new()
+		text_l.text = txt
+		text_l.add_theme_font_size_override("font_size", 14)
+		text_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		text_l.custom_minimum_size = Vector2(250, 0)
+		v.add_child(text_l)
+	return panel
+
+
+func _type_label(d: Dictionary) -> String:
+	var ru_type := {"creature": "Существо", "spell": "Заклинание", "aura": "Аура"}
+	var line: String = ru_type.get(String(d.get("type", "")), String(d.get("type", "")))
+	var colors: Array = d.get("color", [])
+	if colors.is_empty():
+		return line + " - нейтральная"
+	var ru_color := {
+		"red": "красный", "yellow": "жёлтый", "green": "зелёный",
+		"blue": "синий", "violet": "фиолетовый",
+	}
+	var names := []
+	for c in colors:
+		names.append(ru_color.get(String(c), String(c)))
+	return line + " - " + ", ".join(names)
+
+
+# Full card visual as a fixed-size Control with everything anchored to corners,
+# so the size is constant regardless of contents (used for the card and the
+# drag preview alike).
+func _card_face(def_id: String, runtime) -> Control:
+	var d: Dictionary = cards.get(def_id, {})
+	var face := Panel.new()
+	face.custom_minimum_size = CARD_SIZE
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Rounded body; clip_children rounds the gradient frame and art to it. The
+	# corner gems are circles and sit clear of the rounded corners, so they read
+	# fully. clip_children draws the panel normally, so the shadow still shows.
+	var body := StyleBoxFlat.new()
+	body.bg_color = Color(0.07, 0.07, 0.10)
+	body.set_corner_radius_all(12)
+	face.add_theme_stylebox_override("panel", body)
+	face.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+
+	# Color frame: gradient built from the card's colors (neutral = white).
+	var frame := TextureRect.new()
+	frame.texture = _frame_texture(d)
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.add_child(frame)
+
+	# Art inset by FRAME px so the gradient shows as a ring around it.
+	var art := _art_full(def_id)
+	_anchor_inset(art, FRAME)
+	face.add_child(art)
+
+	# Status overlays that cover the art so they read at a glance.
+	if typeof(runtime) == TYPE_DICTIONARY and int(runtime.get("frozen", 0)) > 0:
+		var ice := ColorRect.new()
+		ice.color = Color(0.45, 0.72, 1.0, 0.32)
+		ice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_anchor_inset(ice, FRAME)
+		face.add_child(ice)
+	if typeof(runtime) == TYPE_DICTIONARY and bool(runtime.get("sick", false)):
+		var sleep := ColorRect.new()
+		sleep.color = Color(0.08, 0.10, 0.24, 0.42)
+		sleep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_anchor_inset(sleep, FRAME)
+		face.add_child(sleep)
+
+	# Cost gem (top-left), ring tinted by the card's primary color.
+	var cost_gem := _gem(str(_total_cost(d.get("cost", {}))), _primary_color(d).lightened(0.2))
+	_anchor_corner(cost_gem, 0, 0, FRAME, FRAME)
+	face.add_child(cost_gem)
+
+	# Stat gems (bottom corners) for creatures.
+	var has_stats: bool = d.has("stats") or (typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"))
+	if has_stats:
+		var atk := 0
+		var hp := 0
+		var max_hp := 0
+		if typeof(runtime) == TYPE_DICTIONARY:
+			atk = int(runtime.get("atk", 0))
+			hp = int(runtime.get("hp", 0))
+			max_hp = int(runtime.get("maxHp", hp))
+		else:
+			atk = int(d["stats"].get("atk", 0))
+			hp = int(d["stats"].get("hp", 0))
+			max_hp = hp
+		var atk_gem := _gem(str(atk), Color(0.95, 0.8, 0.35))
+		_anchor_corner(atk_gem, 0, 1, FRAME, -GEM - FRAME)
+		face.add_child(atk_gem)
+		var hp_color := Color(0.55, 0.95, 0.5) if hp >= max_hp else Color(0.97, 0.4, 0.4)
+		var hp_gem := _gem(str(hp), hp_color)
+		_anchor_corner(hp_gem, 1, 1, -GEM - FRAME, -GEM - FRAME)
+		face.add_child(hp_gem)
+
+	# Status icons (top-right), right-aligned and growing left/down.
+	if typeof(runtime) == TYPE_DICTIONARY:
+		var status_row = _status_icons(runtime)
+		if status_row != null:
+			status_row.anchor_left = 1
+			status_row.anchor_right = 1
+			status_row.offset_left = -FRAME
+			status_row.offset_right = -FRAME
+			status_row.offset_top = FRAME
+			status_row.offset_bottom = FRAME
+			status_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+			status_row.grow_vertical = Control.GROW_DIRECTION_END
+			face.add_child(status_row)
+	return face
+
+
+func _anchor_inset(node: Control, inset: float) -> void:
+	node.set_anchors_preset(Control.PRESET_FULL_RECT)
+	node.offset_left = inset
+	node.offset_top = inset
+	node.offset_right = -inset
+	node.offset_bottom = -inset
+
+
+func _anchor_corner(node: Control, ax: float, ay: float, ox: float, oy: float) -> void:
+	# Pin a GEM-sized node to corner (ax,ay in {0,1}) with offset (ox,oy).
+	node.anchor_left = ax
+	node.anchor_right = ax
+	node.anchor_top = ay
+	node.anchor_bottom = ay
+	node.offset_left = ox
+	node.offset_right = ox + GEM
+	node.offset_top = oy
+	node.offset_bottom = oy + GEM
+
+
+func _gem(text: String, ring: Color) -> Control:
+	var g := Panel.new()
+	g.custom_minimum_size = Vector2(GEM, GEM)
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.05, 0.08, 0.94)
+	sb.set_corner_radius_all(int(GEM / 2.0))
+	sb.set_border_width_all(2)
+	sb.border_color = ring
+	g.add_theme_stylebox_override("panel", sb)
+	var l := Label.new()
+	l.text = text
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 17)
+	l.add_theme_color_override("font_color", ring.lightened(0.4))
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g.add_child(l)
+	return g
+
+
+func _art_full(def_id: String) -> Control:
 	var path := "res://art/%s.png" % def_id
 	if ResourceLoader.exists(path):
 		var tex := TextureRect.new()
@@ -553,116 +830,93 @@ func _art_node(def_id: String, col: Color) -> Control:
 		tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		tex.custom_minimum_size = Vector2(0, 64)
-		tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		return tex
-	var ph := Panel.new()
-	ph.custom_minimum_size = Vector2(0, 64)
+	var ph := ColorRect.new()
+	ph.color = _primary_color(cards.get(def_id, {})).darkened(0.4)
 	ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ph.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = col.darkened(0.35)
-	sb.set_corner_radius_all(4)
-	ph.add_theme_stylebox_override("panel", sb)
 	return ph
 
 
-func _cost_node(cost: Dictionary) -> Control:
-	var box := HBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 2)
-	var gen := int(cost.get("generic", 0))
-	var badge := Label.new()
-	badge.text = str(gen)
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	badge.add_theme_font_size_override("font_size", 14)
-	badge.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
-	box.add_child(badge)
-	for color in ["red", "yellow", "green", "blue", "violet"]:
-		for _i in int(cost.get(color, 0)):
-			var pip := Panel.new()
-			pip.custom_minimum_size = Vector2(9, 9)
-			pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var psb := StyleBoxFlat.new()
-			psb.bg_color = _color_for(color)
-			psb.set_corner_radius_all(5)
-			pip.add_theme_stylebox_override("panel", psb)
-			box.add_child(pip)
-	return box
-
-
-func _stats_node(def_id: String, runtime) -> Control:
-	var d: Dictionary = cards.get(def_id, {})
-	var atk := 0
-	var hp := 0
-	if typeof(runtime) == TYPE_DICTIONARY:
-		atk = int(runtime.get("atk", 0))
-		hp = int(runtime.get("hp", 0))
-	elif d.has("stats"):
-		atk = int(d["stats"].get("atk", 0))
-		hp = int(d["stats"].get("hp", 0))
+func _frame_texture(d: Dictionary) -> Texture2D:
+	var cols := PackedColorArray()
+	var card_colors: Array = d.get("color", [])
+	if card_colors.is_empty():
+		# Colorless: a clean white frame. The prismatic rainbow is reserved for
+		# a card that genuinely carries all five colors.
+		cols.append(Color(0.93, 0.93, 0.97))
+		cols.append(Color(0.78, 0.80, 0.88))
 	else:
-		return null   # auras / spells have no stats
+		for c in card_colors:
+			cols.append(_color_for(String(c)))
+		if cols.size() == 1:
+			cols.append(cols[0])
 
+	var grad := Gradient.new()
+	var offs := PackedFloat32Array()
+	for i in cols.size():
+		offs.append(float(i) / float(cols.size() - 1))
+	grad.offsets = offs
+	grad.colors = cols
+
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_LINEAR
+	tex.fill_from = Vector2(0, 0)
+	tex.fill_to = Vector2(1, 1)
+	return tex
+
+
+func _total_cost(cost: Dictionary) -> int:
+	var t := int(cost.get("generic", 0))
+	for c in ["red", "yellow", "green", "blue", "violet"]:
+		t += int(cost.get(c, 0))
+	return t
+
+
+func _status_icons(cr: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var a := Label.new()
-	a.text = "%d ATK" % atk
-	a.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	a.add_theme_font_size_override("font_size", 15)
-	a.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
-	row.add_child(a)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
-	var h := Label.new()
-	h.text = "%d HP" % hp
-	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_theme_font_size_override("font_size", 15)
-	# Tint HP red when damaged below printed max.
-	if typeof(runtime) == TYPE_DICTIONARY and hp < int(runtime.get("maxHp", hp)):
-		h.add_theme_color_override("font_color", Color(0.95, 0.4, 0.4))
-	else:
-		h.add_theme_color_override("font_color", Color(0.5, 0.95, 0.5))
-	row.add_child(h)
-	return row
-
-
-func _status_text(cr: Dictionary) -> String:
-	var parts := []
+	row.add_theme_constant_override("separation", 3)
+	var any := false
 	if int(cr.get("frozen", 0)) > 0:
-		parts.append("ICE")
-	if int(cr.get("blind", 0)) > 0:
-		parts.append("BLIND")
+		row.add_child(_icon("snowflake", 20, Color(0.6, 0.85, 1.0)))
+		any = true
 	if bool(cr.get("shield", false)):
-		parts.append("SHLD")
+		row.add_child(_icon("shield", 20, Color(0.97, 0.88, 0.4)))
+		any = true
 	if bool(cr.get("stealth", false)):
-		parts.append("HID")
+		row.add_child(_icon("eye", 20, Color(0.75, 0.55, 0.97)))
+		any = true
+	if int(cr.get("blind", 0)) > 0:
+		row.add_child(_icon("eye", 20, Color(0.97, 0.5, 0.5)))
+		any = true
 	if bool(cr.get("sick", false)):
-		parts.append("ZZ")
-	return " ".join(parts)
+		row.add_child(_icon("moon", 20, Color(0.72, 0.77, 0.87)))
+		any = true
+	if not any:
+		return null
+	# Dark chip behind the icons so they read over any art.
+	var chip := PanelContainer.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.03, 0.03, 0.05, 0.7)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin_all(3)
+	chip.add_theme_stylebox_override("panel", sb)
+	chip.add_child(row)
+	return chip
 
 
 # --- styles ------------------------------------------------------------------
 
 func _hero_style(tint: Color) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = tint.darkened(0.55)
-	sb.set_border_width_all(2)
-	sb.border_color = tint
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(8)
-	return sb
+	return _glass(tint, 0.4)
 
 
 func _zone_style(mine: bool) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.10, 0.14, 0.12) if mine else Color(0.14, 0.10, 0.10)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.25, 0.4, 0.3) if mine else Color(0.4, 0.25, 0.25)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(6)
+	var accent := Color(0.3, 0.75, 0.6) if mine else Color(0.75, 0.35, 0.4)
+	var sb := _glass(accent, 0.22)
+	sb.shadow_size = 0   # board zones stay calm; only cards/heroes glow
 	return sb
 
 
@@ -671,8 +925,7 @@ func _zone_style(mine: bool) -> StyleBoxFlat:
 func _controls() -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
-	var end_btn := Button.new()
-	end_btn.text = "End Turn"
+	var end_btn := _neon_button("End Turn", Color(1.0, 0.62, 0.3))
 	end_btn.disabled = not _my_turn()
 	end_btn.pressed.connect(func() -> void:
 		_clear_selection()
@@ -681,6 +934,7 @@ func _controls() -> Control:
 
 	var hint := Label.new()
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hint.add_theme_color_override("font_color", Color(0.62, 0.66, 0.78))
 	if casting_index >= 0 or awaken_index >= 0:
 		hint.text = "pick an enemy creature as the target (click the card again to cancel)"
 	elif attacker_id >= 0:
