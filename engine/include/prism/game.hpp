@@ -5,6 +5,7 @@
 #include <random>
 #include <string>
 #include <vector>
+
 #include "prism/card.hpp"
 #include "prism/types.hpp"
 
@@ -50,8 +51,10 @@ struct Creature {
   int maxHp;
   bool sick = true;
   bool attacked = false;
-  int frozenTurns = 0;  // Blue freeze status; ticks down at the owner's turn end
-  bool token = false;   // created by an ability, not from a deck (e.g. illusions)
+  int frozenTurns =
+      0;  // Blue freeze status; ticks down at the owner's turn end
+  bool token =
+      false;  // created by an ability, not from a deck (e.g. illusions)
 
   // May this creature attack right now? It must be un-sick, not have attacked,
   // not frozen, and have positive atk (0-atk creatures are pure walls).
@@ -71,7 +74,7 @@ struct Event {
   EntityId source = 0;
   EntityId target = 0;
   int amount = 0;
-  int player = -1;            // the relevant player (e.g. a dead creature's owner)
+  int player = -1;  // the relevant player (e.g. a dead creature's owner)
   const CardDef* card = nullptr;  // the source card, kept valid after removal
 };
 
@@ -86,7 +89,7 @@ struct Player {
   ManaPool mana;
   std::vector<CardInstance> hand;
   std::vector<CardInstance> deck;
-  std::vector<ManaCard> manaRow;           // sacrificed cards = crystals (face-down)
+  std::vector<ManaCard> manaRow;  // sacrificed cards = crystals (face-down)
   std::vector<Creature> board;
   std::vector<const CardDef*> auras;
   std::vector<const CardDef*> graveyard;
@@ -142,7 +145,8 @@ class Game {
   // Phase 2: keyword/effect execution.
   void applyTurnStartTriggers(Player& p);  // regen heal, photosynthesis ramp
   void tickFreeze(Player& p);              // decrement freeze at the turn's end
-  bool enemyHasProvoke(const Player& opp) const;  // taunt: must be attacked first
+  bool enemyHasProvoke(
+      const Player& opp) const;  // taunt: must be attacked first
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target);
   // Put an already-paid-for card into play and run its effects. Shared by
@@ -150,11 +154,13 @@ class Game {
   void playResolved(Player& p, const CardInstance& ci, EntityId target);
 
   // Tokens, illusions, and the death-event queue.
-  EntityId summonToken(Player& p, const CardDef* def, bool sick, int hpOverride);
-  const CardDef* internToken(const std::string& id, Stats s);  // owns a token def
+  EntityId summonToken(Player& p, const CardDef* def, bool sick,
+                       int hpOverride);
+  const CardDef* internToken(const std::string& id,
+                             Stats s);  // owns a token def
   void emit(const Event& e) { events_.push_back(e); }
-  void processEvents();            // drain the queue, running reactions
-  void reactTo(const Event& e);    // built-in reactions (Died -> spores, ...)
+  void processEvents();          // drain the queue, running reactions
+  void reactTo(const Event& e);  // built-in reactions (Died -> spores, ...)
 
   const CardLibrary& lib_;
   std::array<Player, 2> players_;
@@ -163,8 +169,8 @@ class Game {
   bool over_ = false;
   int winner_ = -1;
   EntityId nextId_ = 1;
-  std::mt19937 rng_;            // seeded -> deterministic shuffles
-  std::deque<Event> events_;   // reactive events awaiting processing
+  std::mt19937 rng_;               // seeded -> deterministic shuffles
+  std::deque<Event> events_;       // reactive events awaiting processing
   std::deque<CardDef> tokenDefs_;  // stable storage for synthesized token cards
 };
 

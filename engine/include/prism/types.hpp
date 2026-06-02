@@ -31,12 +31,18 @@ inline std::optional<Color> colorFromString(std::string_view s) {
 
 inline std::string_view colorName(Color c) {
   switch (c) {
-    case Color::Red: return "red";
-    case Color::Yellow: return "yellow";
-    case Color::Green: return "green";
-    case Color::Blue: return "blue";
-    case Color::Violet: return "violet";
-    case Color::Colorless: return "colorless";
+    case Color::Red:
+      return "red";
+    case Color::Yellow:
+      return "yellow";
+    case Color::Green:
+      return "green";
+    case Color::Blue:
+      return "blue";
+    case Color::Violet:
+      return "violet";
+    case Color::Colorless:
+      return "colorless";
   }
   return "colorless";
 }

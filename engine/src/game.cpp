@@ -98,7 +98,8 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   if (over_) return false;
   Player& p = players_[current_];
   if (p.placedManaThisTurn) return false;
-  if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size())) return false;
+  if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
+    return false;
   const CardDef* def = p.hand[handIndex].def;
   // A neutral card can only become a Colorless crystal; a colored card may
   // become a crystal of any one of its colors (chosen here).
@@ -120,7 +121,8 @@ bool Game::placeCardToMana(int handIndex, Color color) {
 bool Game::playCard(int handIndex, EntityId target) {
   if (over_) return false;
   Player& p = players_[current_];
-  if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size())) return false;
+  if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
+    return false;
   CardInstance ci = p.hand[handIndex];
   const CardDef* def = ci.def;
   if (!p.mana.canPay(def->cost)) return false;
@@ -146,11 +148,12 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
     // re-trigger split or battlecries. Illusions' only weakness is fragility.
     int copies = def->keywordN("split");
     if (copies > 0) {
-      const CardDef* illusion = internToken(
-          "illusion_" + std::to_string(def->stats.atk) + "_" +
-              std::to_string(def->stats.def),
-          Stats{def->stats.atk, def->stats.def, 1});
-      for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
+      const CardDef* illusion =
+          internToken("illusion_" + std::to_string(def->stats.atk) + "_" +
+                          std::to_string(def->stats.def),
+                      Stats{def->stats.atk, def->stats.def, 1});
+      for (int i = 0;
+           i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
         summonToken(p, illusion, /*sick=*/true, /*hpOverride=*/-1);
     }
   } else if (def->type == CardType::Aura) {
@@ -162,7 +165,8 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
 
 // Violet awaken: play a card straight from the mana row. The banked crystal is
 // consumed -- it pays 1 generic toward the cost, and the remainder is paid from
-// the player's other available crystals. Net cost: (cost - 1) plus the lost slot.
+// the player's other available crystals. Net cost: (cost - 1) plus the lost
+// slot.
 bool Game::awaken(int manaRowIndex, EntityId target) {
   if (over_) return false;
   Player& p = players_[current_];
@@ -268,7 +272,8 @@ void Game::reactTo(const Event& e) {
     if (n > 0) {
       const CardDef* sprout = internToken("sprout", Stats{1, 0, 1});
       Player& owner = players_[e.player];
-      for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit; ++i)
+      for (int i = 0;
+           i < n && static_cast<int>(owner.board.size()) < BoardLimit; ++i)
         summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
     }
   }
@@ -295,9 +300,10 @@ const CardDef* Game::internToken(const std::string& id, Stats s) {
   return &tokenDefs_.back();
 }
 
-// Dispatch the inline effect grammar (DESIGN §8): [trigger]+[selector]->[action].
-// Only the actions used by current cards are implemented; adding a new action
-// is a new branch here plus a new selector case if needed.
+// Dispatch the inline effect grammar (DESIGN §8):
+// [trigger]+[selector]->[action]. Only the actions used by current cards are
+// implemented; adding a new action is a new branch here plus a new selector
+// case if needed.
 void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
   for (const auto& e : def->effects)
     if (e.trigger == "on_play") executeAction(e, owner, target);

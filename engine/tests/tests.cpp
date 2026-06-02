@@ -249,7 +249,7 @@ TEST_CASE("split spawns permanent 1 HP illusion copies") {
   CHECK_FALSE(g.attackHero(anIllusion));  // summoning sick the turn it is made
   g.endTurn();
   CHECK(g.player(0).board.size() == 3);  // permanent: illusions stay on board
-  g.endTurn();                           // back to p0: illusions are un-sick now
+  g.endTurn();  // back to p0: illusions are un-sick now
   CHECK(g.attackHero(anIllusion));
   CHECK(g.player(1).heroHp == HeroStartHp - 2);
 }
@@ -278,9 +278,10 @@ TEST_CASE("awaken plays a banked card; its crystal pays 1 and is consumed") {
   g.start();
   REQUIRE(g.placeCardToMana(0, Color::Colorless));  // turn 1: bank a sleeper
   g.endTurn();
-  g.endTurn();                                      // back to p0 (turn 3)
-  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // bank another -> 2 crystals
-  REQUIRE(g.awaken(0));                             // wake the first sleeper
+  g.endTurn();  // back to p0 (turn 3)
+  REQUIRE(
+      g.placeCardToMana(0, Color::Colorless));  // bank another -> 2 crystals
+  REQUIRE(g.awaken(0));                         // wake the first sleeper
   REQUIRE(g.player(0).board.size() == 1);
   CHECK(g.player(0).board[0].def->id == "sleeper");
   CHECK(g.player(0).manaRow.size() == 1);  // one banked card consumed
@@ -303,7 +304,8 @@ TEST_CASE("only awaken cards can be played from the mana row") {
   REQUIRE(g.placeCardToMana(0, Color::Colorless));
   g.endTurn();
   g.endTurn();
-  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 2 crystals, but bear has no awaken
+  REQUIRE(g.placeCardToMana(
+      0, Color::Colorless));  // 2 crystals, but bear has no awaken
   CHECK_FALSE(g.awaken(0));
 }
 

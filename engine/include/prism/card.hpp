@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
 #include "prism/types.hpp"
 
 // Static card definitions and the library that loads them from JSON.
@@ -12,15 +13,16 @@
 namespace prism {
 
 // A named keyword on a card, e.g. {"id":"regen","n":1}. `n` is the single
-// numeric parameter shown on the card. The keyword catalog is in ../../EFFECTS.md.
-// Phase 1 parses keywords but does not execute them yet.
+// numeric parameter shown on the card. The keyword catalog is in
+// ../../EFFECTS.md. Phase 1 parses keywords but does not execute them yet.
 struct KeywordRef {
   std::string id;
   std::optional<int> n;
 };
 
 // An inline primitive effect: [trigger] + [selector] -> [action](value).
-// This mirrors the effect grammar in DESIGN §8. Also parsed-but-inert in Phase 1.
+// This mirrors the effect grammar in DESIGN §8. Also parsed-but-inert in
+// Phase 1.
 struct EffectDef {
   std::string trigger;
   std::string selector;
@@ -45,7 +47,8 @@ struct CardDef {
 
   // Keyword lookup helpers used by the rules (e.g. "does this creature have
   // pierce?", "what is its regen N?"). Static keywords (pierce, provoke) are
-  // queried during combat; numeric keywords (regen, photosynthesis) via keywordN.
+  // queried during combat; numeric keywords (regen, photosynthesis) via
+  // keywordN.
   const KeywordRef* keyword(std::string_view id) const {
     for (const auto& k : keywords)
       if (k.id == id) return &k;

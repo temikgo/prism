@@ -22,3 +22,13 @@ target_compile_definitions(prism_tests PRIVATE
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest.cmake)
 doctest_discover_tests(prism_tests)
+
+find_program(CLANG_FORMAT NAMES clang-format)
+if(CLANG_FORMAT)
+  file(GLOB_RECURSE PRISM_FORMAT_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+  add_test(NAME format_check
+    COMMAND ${CLANG_FORMAT} --dry-run --Werror ${PRISM_FORMAT_SOURCES})
+endif()
