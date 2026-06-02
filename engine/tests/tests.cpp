@@ -46,7 +46,15 @@ static const char* kTestCards = R"json([
                   "action": "freeze", "value": 1 }] },
   { "id": "photoaura", "name": { "ru": "Корень" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
-    "keywords": [{ "id": "photosynthesis", "n": 1 }] }
+    "keywords": [{ "id": "photosynthesis", "n": 1 }] },
+  { "id": "splitter", "name": { "ru": "Двойник-фантом" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 2, "def": 0, "hp": 2 },
+    "keywords": [{ "id": "split", "n": 2 }] },
+  { "id": "sporecarrier", "name": { "ru": "Спороносец" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 2, "def": 0, "hp": 2 },
+    "keywords": [{ "id": "spores", "n": 2 }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -216,6 +224,45 @@ TEST_CASE("photosynthesis adds temporary mana at turn start") {
   g.endTurn();
   g.endTurn();
   CHECK(g.player(0).mana.totalAvailable() == 1);
+}
+
+TEST_CASE("split spawns illusions that act now and vanish at turn end") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("splitter", 30), repeat("bear", 30), 66);
+  g.start();
+  REQUIRE(g.playCard(0));
+  REQUIRE(g.player(0).board.size() == 3);  // the splitter plus two illusions
+  int illusions = 0;
+  EntityId anIllusion = 0;
+  for (const auto& c : g.player(0).board)
+    if (c.vanish) {
+      illusions += 1;
+      anIllusion = c.id;
+      CHECK(c.hp == 1);
+    }
+  CHECK(illusions == 2);
+  CHECK(g.attackHero(anIllusion));  // un-sick: can attack the turn it is made
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);
+  g.endTurn();
+  CHECK(g.player(0).board.size() == 1);  // illusions gone, only the splitter left
+}
+
+TEST_CASE("spores summons sprout tokens when the creature dies") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sporecarrier", 30), repeat("wall", 30), 77);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId sc = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));
+  EntityId w = g.player(1).board[0].id;
+  g.endTurn();
+  CHECK(g.attackCreature(sc, w));  // sporecarrier dies to the wall's DEF
+  REQUIRE(g.player(0).board.size() == 2);
+  for (const auto& c : g.player(0).board) {
+    CHECK(c.hp == 1);
+    CHECK(c.atk == 1);
+  }
 }
 
 #ifdef PRISM_SAMPLE

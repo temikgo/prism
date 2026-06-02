@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <deque>
 #include <random>
 #include <string>
 #include <vector>
@@ -43,12 +44,29 @@ struct Creature {
   bool sick = true;
   bool attacked = false;
   int frozenTurns = 0;  // Blue freeze status; ticks down at the owner's turn end
+  bool token = false;   // created by an ability, not from a deck (e.g. illusions)
+  bool vanish = false;  // removed at the end of its controller's turn (illusions)
 
   // May this creature attack right now? It must be un-sick, not have attacked,
   // not frozen, and have positive atk (0-atk creatures are pure walls).
   bool canAttack() const {
     return !sick && !attacked && frozenTurns == 0 && atk > 0;
   }
+};
+
+// Game events drive reactive triggers (DESIGN §8). The queue currently carries
+// Died (for deathrattle-style abilities and death chains); the other types are
+// declared as the growth points for future keywords. Turn-start and on_play
+// effects are player-initiated and handled directly, not through this queue.
+enum class EventType { TurnStart, TurnEnd, Summoned, Died, DamageDealt };
+
+struct Event {
+  EventType type;
+  EntityId source = 0;
+  EntityId target = 0;
+  int amount = 0;
+  int player = -1;            // the relevant player (e.g. a dead creature's owner)
+  const CardDef* card = nullptr;  // the source card, kept valid after removal
 };
 
 // Everything one player owns. Hidden information (hand/deck) is kept here; a
@@ -116,6 +134,15 @@ class Game {
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target);
 
+  // Tokens, illusions, and the death-event queue.
+  EntityId summonToken(Player& p, const CardDef* def, bool sick, bool vanish,
+                       int hpOverride);
+  const CardDef* internToken(const std::string& id, Stats s);  // owns a token def
+  void removeVanishing(Player& p);  // drop illusions at their controller's turn end
+  void emit(const Event& e) { events_.push_back(e); }
+  void processEvents();            // drain the queue, running reactions
+  void reactTo(const Event& e);    // built-in reactions (Died -> spores, ...)
+
   const CardLibrary& lib_;
   std::array<Player, 2> players_;
   int current_ = 0;
@@ -123,7 +150,9 @@ class Game {
   bool over_ = false;
   int winner_ = -1;
   EntityId nextId_ = 1;
-  std::mt19937 rng_;  // seeded -> deterministic shuffles
+  std::mt19937 rng_;            // seeded -> deterministic shuffles
+  std::deque<Event> events_;   // reactive events awaiting processing
+  std::deque<CardDef> tokenDefs_;  // stable storage for synthesized token cards
 };
 
 }  // namespace prism

@@ -131,6 +131,11 @@ bool Game::playCard(int handIndex, EntityId target) {
     // Enters summoning sick; live stats start from the template.
     p.board.push_back(Creature{ci.id, def, def->stats.atk, def->stats.def,
                                def->stats.hp, def->stats.hp, true, false, 0});
+    // Violet split: spawn N illusion copies (same atk/def, 1 HP). They enter
+    // un-sick so they can swing this turn, then vanish at this turn's end.
+    int copies = def->keywordN("split");
+    for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit; ++i)
+      summonToken(p, def, /*sick=*/false, /*vanish=*/true, /*hpOverride=*/1);
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
@@ -183,18 +188,76 @@ bool Game::attackHero(EntityId attacker) {
   return true;
 }
 
+// State-based death check: every creature at <=0 hp leaves play, then its Died
+// event is processed (which may summon tokens, e.g. Green spores). Tokens that
+// vanish (illusions) are not removed here -- that happens at turn end.
 void Game::checkDeaths() {
+  std::vector<Event> deaths;
   for (auto& p : players_) {
     std::vector<Creature> survivors;
     survivors.reserve(p.board.size());
     for (auto& c : p.board) {
-      if (c.hp > 0)
+      if (c.hp > 0) {
         survivors.push_back(c);
-      else
+      } else {
         p.graveyard.push_back(c.def);
+        deaths.push_back(Event{EventType::Died, c.id, 0, 0, p.index, c.def});
+      }
     }
     p.board.swap(survivors);
   }
+  for (const auto& e : deaths) emit(e);
+  processEvents();
+}
+
+void Game::processEvents() {
+  while (!events_.empty()) {
+    Event e = events_.front();
+    events_.pop_front();
+    reactTo(e);
+  }
+}
+
+void Game::reactTo(const Event& e) {
+  if (e.type == EventType::Died && e.card) {
+    // Green spores: the dead creature leaves N 1/1 sprout tokens behind.
+    int n = e.card->keywordN("spores");
+    if (n > 0) {
+      const CardDef* sprout = internToken("sprout", Stats{1, 0, 1});
+      Player& owner = players_[e.player];
+      for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit; ++i)
+        summonToken(owner, sprout, /*sick=*/true, /*vanish=*/false, /*hpOverride=*/-1);
+    }
+  }
+}
+
+EntityId Game::summonToken(Player& p, const CardDef* def, bool sick, bool vanish,
+                           int hpOverride) {
+  int hp = hpOverride >= 0 ? hpOverride : def->stats.hp;
+  EntityId id = nextId_++;
+  p.board.push_back(Creature{id, def, def->stats.atk, def->stats.def, hp, hp,
+                             sick, false, 0, /*token=*/true, vanish});
+  return id;
+}
+
+const CardDef* Game::internToken(const std::string& id, Stats s) {
+  for (auto& d : tokenDefs_)
+    if (d.id == id) return &d;
+  CardDef d;
+  d.id = id;
+  d.type = CardType::Creature;
+  d.hasStats = true;
+  d.stats = s;
+  tokenDefs_.push_back(d);
+  return &tokenDefs_.back();
+}
+
+void Game::removeVanishing(Player& p) {
+  std::vector<Creature> keep;
+  keep.reserve(p.board.size());
+  for (auto& c : p.board)
+    if (!c.vanish) keep.push_back(c);
+  p.board.swap(keep);
 }
 
 // Dispatch the inline effect grammar (DESIGN §8): [trigger]+[selector]->[action].
@@ -222,7 +285,8 @@ Creature* Game::findCreature(Player& p, EntityId id) {
 
 void Game::endTurn() {
   if (over_) return;
-  tickFreeze(players_[current_]);  // the ending player's frozen creatures thaw
+  removeVanishing(players_[current_]);  // illusions disappear at their turn's end
+  tickFreeze(players_[current_]);       // the ending player's frozen creatures thaw
   current_ = 1 - current_;
   turn_ += 1;
   startTurn();
