@@ -19,4 +19,6 @@ add_executable(prism_tests tests/tests.cpp)
 target_link_libraries(prism_tests PRIVATE prism_engine)
 target_compile_definitions(prism_tests PRIVATE
   PRISM_SAMPLE="${CMAKE_CURRENT_SOURCE_DIR}/../cards/sample.json")
-add_test(NAME prism_tests COMMAND prism_tests)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/third_party/doctest.cmake)
+doctest_discover_tests(prism_tests)
