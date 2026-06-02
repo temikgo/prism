@@ -9,8 +9,10 @@
 #include <string>
 #include <vector>
 
+#include "json.hpp"
 #include "prism/card.hpp"
 #include "prism/game.hpp"
+#include "prism/protocol.hpp"
 #include "prism/types.hpp"
 
 using namespace prism;
@@ -665,6 +667,38 @@ TEST_CASE("resonance scales attack with your crystals") {
   REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 1 crystal
   REQUIRE(g.playCard(0));
   CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 crystal)
+}
+
+TEST_CASE("view redacts hidden information per player") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sleeper", 30), repeat("bear", 30), 300);
+  g.start();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // p0 banks an awaken card
+  nlohmann::json v0 = nlohmann::json::parse(viewJson(g, 0));
+  nlohmann::json v1 = nlohmann::json::parse(viewJson(g, 1));
+  // Own view: hand listed, own awaken card visible in the mana row.
+  CHECK(v0["players"][0].contains("hand"));
+  CHECK(v0["players"][0]["manaRow"][0].contains("card"));
+  CHECK(v0["players"][0]["manaRow"][0]["card"] == "sleeper");
+  // Opponent's view of player 0: hand hidden (count only), identity hidden.
+  CHECK_FALSE(v1["players"][0].contains("hand"));
+  CHECK(v1["players"][0]["handCount"].get<int>() >= 0);
+  CHECK_FALSE(v1["players"][0]["manaRow"][0].contains("card"));
+  CHECK(v1["players"][0]["manaRow"][0]["color"] == "colorless");
+}
+
+TEST_CASE("applyAction dispatches JSON actions and enforces the turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 301);
+  g.start();
+  CHECK_FALSE(applyAction(g, 1, R"({"action":"endTurn"})"));  // not p1's turn
+  CHECK(applyAction(g, 0, R"({"action":"play","handIndex":0})"));
+  CHECK(g.player(0).board.size() == 1);
+  CHECK(applyAction(g, 0, R"({"action":"endTurn"})"));
+  CHECK(g.current() == 1);
+  CHECK(applyAction(
+      g, 1, R"({"action":"placeMana","handIndex":0,"color":"colorless"})"));
+  CHECK(g.player(1).mana.crystals[idx(Color::Colorless)] == 1);
 }
 
 #ifdef PRISM_SAMPLE
