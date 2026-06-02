@@ -60,6 +60,15 @@ static const char* kTestCards = R"json([
   { "id": "haunter", "name": { "ru": "Морок-зверь" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "haunt" }] },
+  { "id": "chillaura", "name": { "ru": "Стужа-аура" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "chill", "n": 1 }] },
+  { "id": "undergrowther", "name": { "ru": "Подлесок-зверь" },
+    "type": "creature", "color": [], "cost": { "generic": 0 },
+    "stats": { "atk": 1, "hp": 4 }, "keywords": [{ "id": "undergrowth", "n": 1 }] },
+  { "id": "resonator", "name": { "ru": "Резонатор" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
+    "keywords": [{ "id": "resonance", "n": 1 }] },
   { "id": "frost1", "name": { "ru": "Иней" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
@@ -623,6 +632,39 @@ TEST_CASE("a stealthed creature cannot be targeted by enemy spells") {
   g.endTurn();
   CHECK_FALSE(g.playCard(0, h));  // freeze on a hidden creature is illegal
   CHECK(g.player(1).board[0].frozenTurns == 0);
+}
+
+TEST_CASE("chill aura lowers enemy attack and reverses when removed") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("chillaura", 30), repeat("bear", 30), 230);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 plays the chill aura
+  g.endTurn();
+  REQUIRE(g.playCard(0));                // p1 summons a bear (atk 3)
+  CHECK(g.player(1).board[0].atk == 2);  // chilled by 1
+  g.player(0).auras.clear();             // aura gone
+  g.endTurn();                           // a turn start recomputes
+  CHECK(g.player(1).board[0].atk == 3);  // attack restored
+}
+
+TEST_CASE("undergrowth scales attack with your other creatures") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("undergrowther", 30), repeat("bear", 30), 231);
+  g.start();
+  REQUIRE(g.playCard(0));
+  CHECK(g.player(0).board[0].atk == 1);  // 1 + 1*(0 others)
+  g.player(0).hand.push_back(CardInstance{910, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));
+  CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 other)
+}
+
+TEST_CASE("resonance scales attack with your crystals") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("resonator", 30), repeat("bear", 30), 232);
+  g.start();
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 1 crystal
+  REQUIRE(g.playCard(0));
+  CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 crystal)
 }
 
 #ifdef PRISM_SAMPLE

@@ -43,6 +43,7 @@ void Game::startTurn() {
     c.attacked = false;
   }
   applyTurnStartTriggers(p);
+  recomputeContinuous();  // growth changed bases; refresh the live layer
   draw(p, 1);
 }
 
@@ -120,6 +121,7 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   p.manaRow.push_back(ManaCard{card, color});  // keep identity for awaken
   p.mana.addCrystal(color);
   p.placedManaThisTurn = true;
+  recomputeContinuous();  // crystal count changed -> refresh resonance
   return true;
 }
 
@@ -149,6 +151,18 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
   if (def->type == CardType::Creature) {
     p.board.push_back(makeCreature(ci.id, def, /*sick=*/true, /*token=*/false,
                                    /*hpOverride=*/-1));
+    // Snapshot the HP part of undergrowth/resonance at summon. Only atk is
+    // continuous (recomputed live); HP is baked once to avoid shrinking HP and
+    // cascade deaths. (Continuous HP is a later upgrade -- see README.)
+    int allies = static_cast<int>(p.board.size()) - 1;
+    int crystals = 0;
+    for (int v : p.mana.crystals) crystals += v;
+    int hpBonus = def->keywordN("undergrowth") * allies +
+                  def->keywordN("resonance") * crystals;
+    if (hpBonus > 0) {
+      p.board.back().maxHp += hpBonus;
+      p.board.back().hp += hpBonus;
+    }
     // Violet split: spawn N permanent illusion copies of this card -- same atk
     // and keywords but 1 HP, normal summoning sickness. summonToken does not
     // run on_play/split, so they never re-trigger. Their only weakness is
@@ -265,6 +279,7 @@ void Game::checkDeaths() {
   }
   for (const auto& e : deaths) emit(e);
   processEvents();
+  recomputeContinuous();  // board changed -> refresh continuous attack
 }
 
 void Game::processEvents() {
@@ -312,6 +327,7 @@ Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
   c.id = id;
   c.def = def;
   c.atk = def->stats.atk;
+  c.baseAtk = def->stats.atk;
   c.hp = hp;
   c.maxHp = hp;
   c.sick = sick;
@@ -345,9 +361,28 @@ void Game::healCreature(Creature& c, int amount) {
 }
 
 void Game::buffStats(Creature& c, int n) {
+  c.baseAtk += n;  // permanent: the live layer is added on top of this
   c.atk += n;
   c.maxHp += n;
   c.hp += n;
+}
+
+void Game::recomputeContinuous() {
+  for (int pi = 0; pi < 2; ++pi) {
+    Player& me = players_[pi];
+    Player& opp = players_[1 - pi];
+    int crystals = 0;
+    for (int v : me.mana.crystals) crystals += v;
+    int enemyChill = 0;
+    for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
+    int allies = static_cast<int>(me.board.size());
+    for (auto& c : me.board) {
+      int cont = c.def->keywordN("undergrowth") * (allies - 1) +
+                 c.def->keywordN("resonance") * crystals - enemyChill;
+      int eff = c.baseAtk + cont;
+      c.atk = eff < 0 ? 0 : eff;
+    }
+  }
 }
 
 void Game::bounceCreature(EntityId id) {

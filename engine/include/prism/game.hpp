@@ -45,7 +45,8 @@ struct ManaCard {
 struct Creature {
   EntityId id;
   const CardDef* def;
-  int atk;
+  int atk;      // effective attack = baseAtk + live continuous modifiers
+  int baseAtk;  // printed + permanent buffs (growth/compost); auras add on top
   int hp;
   int maxHp;
   bool sick = true;
@@ -161,13 +162,18 @@ class Game {
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,
                         int hpOverride);
-  // Apply `amount` damage to a creature, honouring shield (absorbs), brittle
-  // (double while frozen) and lingering (the wound becomes unhealable).
-  // Returns the damage actually dealt to hp.
+  // Apply `amount` damage to a creature, honouring shield (absorbs the
+  // instance) and lingering (the wound becomes unhealable). Returns damage
+  // dealt to hp.
   int damageCreature(Creature& target, int amount, const Creature* source);
   void healCreature(Creature& c, int amount);  // capped by maxHp - unhealable
-  void buffStats(Creature& c, int n);          // "+n/+n" = +n atk and +n hp
-  void bounceCreature(EntityId id);            // return a creature to its hand
+  void buffStats(Creature& c, int n);  // permanent "+n/+n" (base atk +n)
+  // Recompute every creature's effective atk from baseAtk plus the live
+  // continuous layer: undergrowth (+N per other ally), resonance (+N per
+  // crystal), and enemy chill auras (-N). Run after any board/crystal/aura
+  // change. Only atk is continuous, so this never causes deaths.
+  void recomputeContinuous();
+  void bounceCreature(EntityId id);  // return a creature to its hand
   void makeMirage(Player& owner, EntityId target);  // illusion copy of a target
 
   // Tokens, illusions, and the death-event queue.
