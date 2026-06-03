@@ -74,7 +74,7 @@ static func icon(icon_name: String, px: float, color: Color) -> TextureRect:
 
 # One mana crystal in the hero bar: a colored bar, or a rotated diamond for
 # neutral. `filled` = still available this turn (bright), else spent (dim).
-static func mana_pip(color: String, filled: bool) -> Control:
+static func mana_pip(color: String, filled: bool, temp := false) -> Control:
 	var is_neutral := color == "colorless"
 	var c := Color(0.9, 0.92, 1.0) if is_neutral else Palette.color_for(color)
 	var sb := StyleBoxFlat.new()
@@ -88,6 +88,15 @@ static func mana_pip(color: String, filled: bool) -> Control:
 	else:
 		sb.bg_color = Color(c.r, c.g, c.b, 0.12)
 		sb.border_color = Color(c.r, c.g, c.b, 0.5)
+	if temp:
+		# Bonus mana for this turn only (e.g. green photosynthesis ramp): keep the
+		# pip's own fill but ring it in a green glow so it reads as extra, not a
+		# permanent crystal.
+		var g := Color(0.42, 0.9, 0.5)
+		sb.border_color = g.lightened(0.3)
+		sb.set_border_width_all(2)
+		sb.shadow_size = 8
+		sb.shadow_color = Color(g.r, g.g, g.b, 0.75)
 
 	if is_neutral:
 		# A rotated square reads as "any color" -- a prism/diamond.

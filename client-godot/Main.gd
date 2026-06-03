@@ -876,11 +876,7 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	piles.add_child(_pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95)))
 	piles.add_child(_pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68)))
 	col.add_child(piles)
-	var info := "рука %d" % int(p.get("handCount", 0))
-	var pending := int(p.get("pendingCount", 0))
-	if pending > 0:
-		info += " · отлож %d" % pending
-	var il := Ui.label(info, 11, Color(0.6, 0.64, 0.74), true)
+	var il := Ui.label("рука %d" % int(p.get("handCount", 0)), 11, Color(0.6, 0.64, 0.74), true)
 	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(il)
 	# Lens clairvoyance: your revealed top card sits by your deck.
@@ -914,15 +910,18 @@ func _mana_pips(mana: Dictionary) -> Control:
 	var any := false
 	for color in ["red", "yellow", "green", "blue", "violet", "colorless"]:
 		var t := int(total.get(color, 0))
-		if t <= 0:
+		var av := int(avail.get(color, 0))
+		# Show permanent crystals plus any temporary mana on top (available beyond
+		# the permanent stock -- e.g. photosynthesis ramp), so bonus mana is visible.
+		var count := maxi(t, av)
+		if count <= 0:
 			continue
 		any = true
-		var av := int(avail.get(color, 0))
 		var group := HBoxContainer.new()
 		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		group.add_theme_constant_override("separation", 2)
-		for i in t:
-			group.add_child(Ui.mana_pip(color, i < av))
+		for i in count:
+			group.add_child(Ui.mana_pip(color, i < av, i >= t))
 		flow.add_child(group)
 	if not any:
 		var l := Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))
