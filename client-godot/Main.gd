@@ -326,9 +326,25 @@ func _clear_selection() -> void:
 
 # --- view queries ------------------------------------------------------------
 
+# Generated tokens are numbered per size (e.g. germinate's "sprout2"); fall back
+# to the base family ("sprout") so they share its name and art.
+func _display_id(id: String) -> String:
+	if cards.has(id):
+		return id
+	var base := id.rstrip("0123456789")
+	if base != "" and base != id and cards.has(base):
+		return base
+	return id
+
+
+func _def(id: String) -> Dictionary:
+	return cards.get(_display_id(id), {})
+
+
 func _name_of(card_id: String) -> String:
-	if cards.has(card_id) and cards[card_id].has("name"):
-		return cards[card_id]["name"].get("ru", card_id)
+	var d := _def(card_id)
+	if d.has("name"):
+		return d["name"].get("ru", card_id)
 	return card_id
 
 
@@ -777,7 +793,7 @@ func _aura_shelf(auras: Array, mine: bool) -> Control:
 
 
 func _aura_tile(card_id: String) -> Control:
-	var col := Palette.primary(cards.get(card_id, {}))
+	var col := Palette.primary(_def(card_id))
 	var tile := UiCard.new()
 	tile.custom_minimum_size = Vector2(140, 58)
 	var sb := StyleBoxFlat.new()
@@ -808,7 +824,7 @@ func _aura_tile(card_id: String) -> Control:
 # A square art thumbnail for a card, or a tinted placeholder if the art is
 # missing. Shared by the aura shelf and the awaken chips.
 func _art_thumb(card_id: String, fallback: Color, px: float) -> Control:
-	var path := "res://art/%s.png" % card_id
+	var path := "res://art/%s.png" % _display_id(card_id)
 	if ResourceLoader.exists(path):
 		var tex := TextureRect.new()
 		tex.texture = load(path)
@@ -1108,51 +1124,154 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 		if await_attack or await_spell:
 			card.modulate = Color(1.45, 1.45, 1.1)
 
-	# Green germinate: an "activate" button on your own creature.
-	if mine and _has_keyword(String(cr["card"]), "germinate"):
-		card.add_child(_germinate_button(cr, cid))
+	# Activated abilities (e.g. germinate): round icon buttons centered along the
+	# bottom edge, in the same row as the ATK/HP gems -- a separate control from
+	# the attack drag, so several abilities can sit side by side. Added to the
+	# face (a Panel that respects anchors), not the card (a Container that would
+	# stretch it over the whole art).
+	if mine:
+		var dock := _ability_dock(cr, cid)
+		if dock != null:
+			card.get_child(0).add_child(dock)
 
 	_card_nodes[cid] = card
 	return card
 
 
-# True if you can use this creature's germinate right now.
-func _can_germinate(cr: Dictionary) -> bool:
-	if not _my_turn() or bool(cr.get("usedActive", false)):
-		return false
-	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	if int(me.get("board", []).size()) >= BOARD_LIMIT:
-		return false
-	var avail: Dictionary = me["mana"].get("available", {})
-	var total := 0
-	for c in ["red", "yellow", "green", "blue", "violet", "colorless"]:
-		total += int(avail.get(c, 0))
-	return total >= 1
+# An activated-ability keyword -> its dock icon and accent (empty = not one).
+func _ability_meta(kid: String) -> Dictionary:
+	match kid:
+		"germinate":
+			return {"icon": "leaf", "accent": Color(0.38, 0.82, 0.46)}
+	return {}
 
 
-func _germinate_button(cr: Dictionary, cid: int) -> Button:
-	var acc := Color(0.4, 0.8, 0.46)
-	var ok := _can_germinate(cr)
-	var n := int(_keyword_n(String(cr["card"]), "germinate"))
-	var b := Button.new()
-	b.text = "росток %d/%d" % [n, n]
-	b.add_theme_font_size_override("font_size", 11)
-	b.disabled = not ok
-	b.tooltip_text = "Проращивание: 1 кристалл → росток %d/%d (раз в ход)" % [n, n]
-	b.add_theme_color_override("font_color", acc.lightened(0.5))
-	b.add_theme_color_override("font_disabled_color", Color(0.45, 0.48, 0.55))
-	b.add_theme_stylebox_override("normal", Ui.glass(acc, 0.55))
-	b.add_theme_stylebox_override("hover", Ui.glass(acc, 0.75))
-	var dis := Ui.glass(Color(0.3, 0.32, 0.4), 0.3)
-	dis.shadow_size = 0
-	b.add_theme_stylebox_override("disabled", dis)
-	b.position = Vector2(FRAME + 2, FRAME + 2)
-	b.size = Vector2(CARD_SIZE.x - 2 * (FRAME + 2), 22)
+func _ability_dock(cr: Dictionary, cid: int) -> Control:
+	var dock := HBoxContainer.new()
+	dock.add_theme_constant_override("separation", 4)
+	dock.alignment = BoxContainer.ALIGNMENT_CENTER
+	dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for kw in _def(String(cr["card"])).get("keywords", []):
+		if not _ability_meta(String(kw.get("id", ""))).is_empty():
+			dock.add_child(_ability_button(cr, cid, String(kw["id"])))
+	if dock.get_child_count() == 0:
+		return null
+	# Full-width strip pinned to the bottom; centered so the buttons sit between
+	# the corner stat gems.
+	dock.anchor_left = 0
+	dock.anchor_right = 1
+	dock.anchor_top = 1
+	dock.anchor_bottom = 1
+	dock.offset_top = -34 - FRAME
+	dock.offset_bottom = -FRAME
+	return dock
+
+
+func _ability_button(cr: Dictionary, cid: int, kid: String) -> Button:
+	var meta := _ability_meta(kid)
+	var acc: Color = meta["accent"]
+	var used := bool(cr.get("usedActive", false))
+	var ready := _can_ability(cr, kid)
+	var b := AbilityButton.new()
+	b.custom_minimum_size = Vector2(30, 30)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER  # stay a 30px circle
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	b.focus_mode = Control.FOCUS_NONE
+	b.icon = load("res://icons/%s.svg" % meta["icon"])
+	b.expand_icon = true
+	b.disabled = not ready
+	# Frame: bright accent when ready, faded accent once spent, neutral grey when
+	# simply unaffordable. Always a clean round frame -- never bare.
+	var frame_col := acc if ready else (acc.darkened(0.4) if used else Color(0.42, 0.44, 0.52))
+	var icon_col := acc.lightened(0.55) if ready else Color(0.55, 0.57, 0.64)
+	b.add_theme_color_override("icon_normal_color", icon_col)
+	b.add_theme_color_override("icon_hover_color", Color.WHITE)
+	b.add_theme_color_override("icon_disabled_color", icon_col)
+	b.add_theme_stylebox_override("normal", _round_style(frame_col, ready))
+	b.add_theme_stylebox_override("hover", _round_style(frame_col.lightened(0.25), ready))
+	b.add_theme_stylebox_override("pressed", _round_style(frame_col, true))
+	b.add_theme_stylebox_override("disabled", _round_style(frame_col, false))
+	# Styled hover panel (a non-empty tooltip_text is still required to trigger).
+	b.tooltip_text = Glossary.keyword_name({"id": kid, "n": _keyword_n(String(cr["card"]), kid)})
+	b.tooltip_builder = func() -> Control: return _ability_tooltip_panel(cr, kid, used)
 	b.pressed.connect(func() -> void:
 		_send({"action": "activate", "id": cid})
 		_clear_selection())
 	return b
+
+
+func _round_style(border: Color, glow: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.07, 0.11, 0.96)
+	sb.set_corner_radius_all(15)  # half of 30 -> a circle
+	sb.set_border_width_all(2)
+	sb.border_color = border
+	sb.set_content_margin_all(5)
+	if glow:
+		sb.shadow_size = 8
+		sb.shadow_color = Color(border.r, border.g, border.b, 0.6)
+	return sb
+
+
+func _can_ability(cr: Dictionary, kid: String) -> bool:
+	return _ability_reason(cr, kid) == ""
+
+
+# Why this ability can't be used right now (specific), or "" if it can.
+func _ability_reason(cr: Dictionary, kid: String) -> String:
+	if not _my_turn():
+		return "Не ваш ход."
+	if bool(cr.get("usedActive", false)):
+		return "Уже использовано в этом ходу."
+	var you := int(view["you"])
+	var me: Dictionary = view["players"][you]
+	match kid:
+		"germinate":
+			if int(me.get("board", []).size()) >= BOARD_LIMIT:
+				return "Стол заполнен (%d существ)." % BOARD_LIMIT
+			var avail: Dictionary = me["mana"].get("available", {})
+			var total := 0
+			for c in ["red", "yellow", "green", "blue", "violet", "colorless"]:
+				total += int(avail.get(c, 0))
+			if total < 1:
+				return "Нет свободного кристалла (нужен 1)."
+	return ""
+
+
+func _ability_tooltip_panel(cr: Dictionary, kid: String, used: bool) -> Control:
+	var meta := _ability_meta(kid)
+	var acc: Color = meta["accent"]
+	var kw := {"id": kid, "n": _keyword_n(String(cr["card"]), kid)}
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel",
+		Ui.bordered(Color(0.10, 0.11, 0.15, 0.98), 10, 2, acc, 11))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 5)
+	v.custom_minimum_size = Vector2(230, 0)
+	panel.add_child(v)
+
+	# Header: the ability icon + its name.
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	head.add_child(Ui.icon(meta["icon"], 22, acc.lightened(0.4)))
+	head.add_child(Ui.label(Glossary.keyword_name(kw), 16, acc.lightened(0.4)))
+	v.add_child(head)
+
+	# Description: the keyword's explanation (without the leading name).
+	var full := Glossary.keyword(kw)
+	var ci := full.find(":")
+	v.add_child(_rich(full.substr(ci + 1).strip_edges() if ci > 0 else full,
+		13, Color(0.82, 0.86, 0.92)))
+
+	# State line: the specific reason it's unavailable, or a ready prompt.
+	var reason := _ability_reason(cr, kid)
+	if reason == "":
+		v.add_child(Ui.label("Готово к использованию.", 12, acc.lightened(0.3)))
+	else:
+		var col := Color(0.95, 0.6, 0.5) if used else Color(0.78, 0.8, 0.88)
+		v.add_child(Ui.label(reason, 12, col))
+	return panel
 
 
 # --- hand --------------------------------------------------------------------
@@ -1221,7 +1340,7 @@ func _make_card(def_id: String, runtime) -> UiCard:
 	card.custom_minimum_size = CARD_SIZE
 	# Neon glow in the card's own color (drawn by the card panel, behind the
 	# rounded face, so it is not clipped).
-	var col := Palette.primary(cards.get(def_id, {}))
+	var col := Palette.primary(_def(def_id))
 	var glow := StyleBoxFlat.new()
 	glow.bg_color = Color(0, 0, 0, 0)
 	glow.set_corner_radius_all(12)
@@ -1246,7 +1365,7 @@ func _make_card(def_id: String, runtime) -> UiCard:
 
 
 func _build_tooltip(def_id: String, runtime = null) -> Control:
-	var d: Dictionary = cards.get(def_id, {})
+	var d: Dictionary = _def(def_id)
 	var col := Palette.primary(d)
 
 	var panel := PanelContainer.new()
@@ -1268,22 +1387,55 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 
 	v.add_child(Ui.label(Glossary.type_label(d), 12, Color(0.6, 0.65, 0.75)))
 
-	# Rules are generated from the card's data (single source of truth): a full
-	# explanation per keyword, then a plain imperative sentence per effect. Cards
-	# carry no hand-written rules text.
-	var lines := []
-	for kw in d.get("keywords", []):
-		var kl := Glossary.keyword(kw)
-		if kl != "":
-			lines.append(kl)
+	# Rules are generated from the card's data (single source of truth). The bold
+	# "headline" is the card's printed text: keyword names plus the on_play
+	# effects, prefixed by a bold, precise "when" -- "При выходе:" for a creature,
+	# or "Через N ход(ов):" when delay folds the timing in. Below it, each keyword
+	# gets a full plain-language explanation.
+	var is_creature := String(d.get("type", "")) == "creature"
+	var delay_n := _keyword_n(def_id, "delay")
+	var effs := []
 	for e in d.get("effects", []):
-		var el := Glossary.effect_text(e)
-		if el != "":
-			lines.append(el)
-	if not lines.is_empty():
+		if String(e.get("trigger", "")) == "on_play":
+			var s := Glossary.effect_text(e)
+			if s != "":
+				effs.append(s)
+	# Delay is shown as the effect's timing, not as a separate keyword.
+	var fold_delay := delay_n > 0 and not effs.is_empty()
+
+	var head := ""
+	for kw in d.get("keywords", []):
+		if fold_delay and String(kw.get("id", "")) == "delay":
+			continue
+		var nm := Glossary.keyword_name(kw)
+		if nm != "":
+			head += "[b]%s[/b]. " % nm
+	if not effs.is_empty():
+		var joined: String = " ".join(effs)
+		var when := ""
+		if fold_delay:
+			when = "[b]Через %d ход(ов):[/b] " % delay_n
+		elif is_creature:
+			when = "[b]При выходе:[/b] "
+		head += when + joined
+	head = head.strip_edges()
+	if head != "":
 		v.add_child(HSeparator.new())
-		for line in lines:
-			v.add_child(_explain_label(line))
+		v.add_child(_rich(head, 14, Color(0.9, 0.92, 0.97)))
+
+	# Detailed keyword explanations (the bold name, then its meaning).
+	var details := []
+	for kw in d.get("keywords", []):
+		if fold_delay and String(kw.get("id", "")) == "delay":
+			continue
+		var full := Glossary.keyword(kw)
+		if full == "":
+			continue
+		var ci := full.find(":")
+		details.append("[b]%s[/b]%s" % [full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
+	if not details.is_empty():
+		for dline in details:
+			v.add_child(_rich(dline, 12, Color(0.74, 0.8, 0.64)))
 
 	# Optional flavor (lore) line, shown dim under the rules when present.
 	var flavor := _text_of(def_id)
@@ -1306,18 +1458,27 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 	return panel
 
 
-func _explain_label(text: String) -> Label:
-	var l := Ui.label(text, 12, Color(0.74, 0.8, 0.64))
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size = Vector2(250, 0)
-	return l
+# A wrapping label that honours [b]bold[/b] BBCode, for the rules text.
+func _rich(bb: String, size: int, color: Color) -> RichTextLabel:
+	var r := RichTextLabel.new()
+	r.bbcode_enabled = true
+	r.fit_content = true
+	r.scroll_active = false
+	r.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	r.custom_minimum_size = Vector2(250, 0)
+	r.add_theme_font_size_override("normal_font_size", size)
+	r.add_theme_font_size_override("bold_font_size", size)
+	r.add_theme_color_override("default_color", color)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.text = bb
+	return r
 
 
 # Full card visual as a fixed-size Control with everything anchored to corners,
 # so the size is constant regardless of contents (used for the card and the
 # drag preview alike).
 func _card_face(def_id: String, runtime) -> Control:
-	var d: Dictionary = cards.get(def_id, {})
+	var d: Dictionary = _def(def_id)
 	var face := Panel.new()
 	face.custom_minimum_size = CARD_SIZE
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1448,7 +1609,7 @@ func _gem(text: String, ring: Color) -> Control:
 
 
 func _art_full(def_id: String) -> Control:
-	var path := "res://art/%s.png" % def_id
+	var path := "res://art/%s.png" % _display_id(def_id)
 	if ResourceLoader.exists(path):
 		var tex := TextureRect.new()
 		tex.texture = load(path)
@@ -1457,7 +1618,7 @@ func _art_full(def_id: String) -> Control:
 		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		return tex
 	var ph := ColorRect.new()
-	ph.color = Palette.primary(cards.get(def_id, {})).darkened(0.4)
+	ph.color = Palette.primary(_def(def_id)).darkened(0.4)
 	ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return ph
 

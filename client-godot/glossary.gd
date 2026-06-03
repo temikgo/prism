@@ -63,6 +63,18 @@ static func keyword(kw: Dictionary) -> String:
 	return s
 
 
+# Just the keyword's short name (the part before the colon), with N filled in:
+# "Маяк", "Регенерация 1". Used for the bold headline on the card.
+static func keyword_name(kw: Dictionary) -> String:
+	var id := String(kw.get("id", ""))
+	if not KW.has(id):
+		return ""
+	var nm: String = String(KW[id]).split(":")[0]
+	if kw.has("n"):
+		nm = nm.replace("N", str(int(kw["n"])))
+	return nm
+
+
 # The generated rules sentence for one effect (imperative). A couple of actions
 # read the selector so the target reads naturally (hero vs minion, any vs enemy).
 static func effect_text(e: Dictionary) -> String:
