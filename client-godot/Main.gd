@@ -122,6 +122,10 @@ class UiCard extends PanelContainer:
 	var tooltip_builder: Callable = Callable()   # returns the hover-tooltip Control
 	var can_drop_fn: Callable = Callable()
 	var drop_fn: Callable = Callable()
+	# Optional: decides whether to glow as a drop target (when it differs from
+	# what we actually accept -- e.g. a creature accepts a play-drop but should
+	# not light up as if the card were played "onto" it).
+	var highlight_check: Callable = Callable()
 	var hoverable := false                        # lift + scale on mouse-over
 	var rest_modulate := Color.WHITE              # modulate to restore after a drag
 	var _is_drag_source := false
@@ -184,9 +188,10 @@ class UiCard extends PanelContainer:
 		if what == NOTIFICATION_DRAG_BEGIN:
 			if _is_drag_source:
 				modulate = Color(1, 1, 1, 0.35)
-			elif active_drag != null and can_drop_fn.is_valid() \
-					and bool(can_drop_fn.call(active_drag)):
-				modulate = Color(1.45, 1.45, 1.1)
+			elif active_drag != null:
+				var check := highlight_check if highlight_check.is_valid() else can_drop_fn
+				if check.is_valid() and bool(check.call(active_drag)):
+					modulate = Color(1.45, 1.45, 1.1)
 		elif what == NOTIFICATION_DRAG_END:
 			active_drag = null
 			_is_drag_source = false
@@ -355,6 +360,8 @@ func _text_of(card_id: String) -> String:
 
 
 func _my_turn() -> bool:
+	if bool(view.get("over", false)):
+		return false  # the game is decided -- no actions
 	return int(view.get("current", -1)) == int(view.get("you", -2))
 
 
@@ -407,7 +414,33 @@ func _is_playable(card_id: String) -> bool:
 		return false
 	if _is_creature(card_id) and int(me.get("board", []).size()) >= 8:
 		return false
+	# Cannot play an aura you already control (matches the engine rule).
+	if String(cards.get(card_id, {}).get("type", "")) == "aura":
+		for a in me.get("auras", []):
+			if String(a.get("card", "")) == card_id:
+				return false
+	# A targeted spell with no legal target on the board cannot be cast.
+	if _needs_target(card_id) and not _has_legal_target(card_id):
+		return false
 	return true
+
+
+# Is there at least one legal target for this card's targeted effect?
+func _has_legal_target(card_id: String) -> bool:
+	var side := _target_side(card_id)
+	if side == "":
+		return true
+	var you := int(view["you"])
+	var me: Dictionary = view["players"][you]
+	var opp: Dictionary = view["players"][1 - you]
+	if side == "enemy" or side == "any":
+		for c in opp.get("board", []):
+			if not bool(c.get("stealth", false)):
+				return true
+	if side == "friendly" or side == "any":
+		if not me.get("board", []).is_empty():
+			return true
+	return false
 
 
 func _has_keyword(card_id: String, kw: String) -> bool:
@@ -439,6 +472,17 @@ func _valid_attack_target(cr: Dictionary) -> bool:
 	return true
 
 
+# Does the currently selected attacker (click-fallback) have Bypass?
+func _attacker_has_bypass() -> bool:
+	if attacker_id < 0:
+		return false
+	var you := int(view["you"])
+	for c in view["players"][you].get("board", []):
+		if int(c["id"]) == attacker_id:
+			return _has_keyword(String(c["card"]), "bypass")
+	return false
+
+
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
@@ -456,9 +500,15 @@ func _rebuild() -> void:
 
 	root_box.add_child(_banner(you))
 	root_box.add_child(_enemy_strip(opp))
+	var opp_auras: Array = opp.get("auras", [])
+	if not opp_auras.is_empty():
+		root_box.add_child(_aura_row(opp_auras, false))
 	root_box.add_child(_board_row(opp.get("board", []), false))
 	root_box.add_child(_separator())
 	root_box.add_child(_board_row(me.get("board", []), true))
+	var my_auras: Array = me.get("auras", [])
+	if not my_auras.is_empty():
+		root_box.add_child(_aura_row(my_auras, true))
 	root_box.add_child(_me_strip(me))
 	root_box.add_child(_hand_row(me.get("hand", [])))
 	root_box.add_child(_controls())
@@ -492,15 +542,18 @@ func _banner(you: int) -> Control:
 
 func _enemy_strip(opp: Dictionary) -> Control:
 	var zone := UiCard.new()
+	zone.custom_minimum_size = Vector2(0, 72)  # a fat, easy drop target for face hits
 	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.9, 0.32, 0.38)))
+	# Attack the face: blocked by a provoker unless the attacker has Bypass.
 	zone.can_drop_fn = func(data: Variant) -> bool:
-		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "attacker" \
-			and not _enemy_has_provoke()
+		if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
+			return false
+		return not _enemy_has_provoke() or bool(data.get("bypass", false))
 	zone.drop_fn = func(data: Variant) -> void:
 		_send({"action": "attackHero", "attacker": int(data["id"])})
 		_clear_selection()
 	zone.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
-	if attacker_id >= 0 and not _enemy_has_provoke():
+	if attacker_id >= 0 and (not _enemy_has_provoke() or _attacker_has_bypass()):
 		zone.modulate = Color(1.5, 1.4, 1.1)
 
 	var row := HBoxContainer.new()
@@ -536,15 +589,69 @@ func _me_strip(me: Dictionary) -> Control:
 	row.add_child(spacer)
 	row.add_child(_mana_crystals(me.get("mana", {})))
 	row.add_child(_manarow_view(me.get("manaRow", []), true))
-	var auras: Array = me.get("auras", [])
-	if not auras.is_empty():
-		var names := []
-		for a in auras:
-			names.append(_name_of(String(a.get("card", ""))))
-		row.add_child(_info_label("ауры: " + ", ".join(names), 12))
 	row.add_child(_counts_label(me))
 	zone.add_child(row)
 	return zone
+
+
+func _aura_row(auras: Array, mine: bool) -> Control:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	var tag := Label.new()
+	tag.text = "ВАШИ АУРЫ" if mine else "АУРЫ ВРАГА"
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.add_theme_font_size_override("font_size", 11)
+	tag.add_theme_color_override("font_color", Color(0.6, 0.64, 0.74))
+	box.add_child(tag)
+	for a in auras:
+		box.add_child(_aura_tile(String(a.get("card", ""))))
+	return box
+
+
+func _aura_tile(card_id: String) -> Control:
+	var col := _primary_color(cards.get(card_id, {}))
+	var tile := UiCard.new()
+	tile.custom_minimum_size = Vector2(140, 58)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.09, 0.10, 0.15, 0.92)
+	sb.set_corner_radius_all(8)
+	sb.set_border_width_all(2)
+	sb.border_color = col
+	sb.shadow_size = 8
+	sb.shadow_color = Color(col.r, col.g, col.b, 0.5)
+	sb.set_content_margin_all(5)
+	tile.add_theme_stylebox_override("panel", sb)
+	tile.tooltip_text = _name_of(card_id)
+	tile.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
+
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 6)
+	var path := "res://art/%s.png" % card_id
+	if ResourceLoader.exists(path):
+		var tex := TextureRect.new()
+		tex.texture = load(path)
+		tex.custom_minimum_size = Vector2(46, 46)
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(tex)
+	else:
+		var ph := ColorRect.new()
+		ph.color = col.darkened(0.4)
+		ph.custom_minimum_size = Vector2(46, 46)
+		ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(ph)
+	var name_l := Label.new()
+	name_l.text = _name_of(card_id)
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_l.add_theme_font_size_override("font_size", 12)
+	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_l.custom_minimum_size = Vector2(66, 0)
+	row.add_child(name_l)
+	tile.add_child(row)
+	return tile
 
 
 func _hero_block(hero: Dictionary, title: String) -> Control:
@@ -729,13 +836,21 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 	if mine:
 		# Your creature: drag to attack; also a drop target for playing a creature
 		# here or casting a friendly/any-target spell on it.
+		# Mirror Creature::canAttack: not sick/attacked/frozen/blinded and atk > 0.
 		var can_attack := _my_turn() and int(cr.get("atk", 0)) > 0 \
-			and int(cr.get("frozen", 0)) == 0 \
+			and int(cr.get("frozen", 0)) == 0 and int(cr.get("blind", 0)) == 0 \
 			and not bool(cr.get("sick", false)) and not bool(cr.get("attacked", false))
-		card.payload = {"kind": "attacker", "id": cid, "draggable": can_attack}
+		card.payload = {
+			"kind": "attacker", "id": cid, "draggable": can_attack,
+			"bypass": _has_keyword(String(cr["card"]), "bypass"),
+		}
 		card.drag_label = _name_of(String(cr["card"]))
+		# Accept a creature/aura play-drop OR a friendly/any spell, but only glow
+		# for the spell case (playing a creature is not played "onto" this one).
 		card.can_drop_fn = func(data: Variant) -> bool:
 			return _can_play_here(data) or _can_cast_on(data, "friendly")
+		card.highlight_check = func(data: Variant) -> bool:
+			return _can_cast_on(data, "friendly")
 		card.drop_fn = func(data: Variant) -> void:
 			if _can_cast_on(data, "friendly"):
 				_play_payload(data, cid)
@@ -844,7 +959,7 @@ func _make_card(def_id: String, runtime) -> UiCard:
 	# Pretty hover tooltip (built lazily) instead of the plain text one. A
 	# non-empty tooltip_text is still required for the tooltip to trigger.
 	card.tooltip_text = _name_of(def_id)
-	card.tooltip_builder = func() -> Control: return _build_tooltip(def_id)
+	card.tooltip_builder = func() -> Control: return _build_tooltip(def_id, runtime)
 	card.hoverable = true
 	# The drag preview is the card itself, centered under the cursor.
 	card.preview_builder = func() -> Control:
@@ -857,7 +972,7 @@ func _make_card(def_id: String, runtime) -> UiCard:
 	return card
 
 
-func _build_tooltip(def_id: String) -> Control:
+func _build_tooltip(def_id: String, runtime = null) -> Control:
 	var d: Dictionary = cards.get(def_id, {})
 	var col := _primary_color(d)
 
@@ -921,7 +1036,39 @@ func _build_tooltip(def_id: String) -> Control:
 		v.add_child(HSeparator.new())
 		for line in lines:
 			v.add_child(_explain_label(line))
+
+	# Active statuses on a creature in play, with how long they last.
+	var status := _status_lines(runtime)
+	if not status.is_empty():
+		v.add_child(HSeparator.new())
+		for s in status:
+			var sl := Label.new()
+			sl.text = s
+			sl.add_theme_font_size_override("font_size", 12)
+			sl.add_theme_color_override("font_color", Color(0.55, 0.82, 1.0))
+			sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			sl.custom_minimum_size = Vector2(250, 0)
+			v.add_child(sl)
 	return panel
+
+
+func _status_lines(runtime) -> Array:
+	var out := []
+	if typeof(runtime) != TYPE_DICTIONARY:
+		return out
+	var fr := int(runtime.get("frozen", 0))
+	if fr > 0:
+		out.append("Заморожен: ещё %d ход(ов) — не атакует, не пробуждается от урона." % fr)
+	var bl := int(runtime.get("blind", 0))
+	if bl > 0:
+		out.append("Ослеплён: ещё %d ход(ов) — не может атаковать." % bl)
+	if bool(runtime.get("shield", false)):
+		out.append("Щит: поглотит следующий источник урона целиком.")
+	if bool(runtime.get("stealth", false)):
+		out.append("Незрим: нельзя выбрать целью, пока это не атакует.")
+	if bool(runtime.get("sick", false)):
+		out.append("Болезнь призыва: не может атаковать в этот ход.")
+	return out
 
 
 func _explain_label(text: String) -> Label:
