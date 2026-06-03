@@ -119,6 +119,9 @@ static const char* kTestCards = R"json([
   { "id": "sleeper", "name": { "ru": "Спящий-фантом" }, "type": "creature",
     "color": [], "cost": { "generic": 2 }, "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "awaken" }] },
+  { "id": "violetsleeper", "name": { "ru": "Фиалка-фантом" }, "type": "creature",
+    "color": ["violet"], "cost": { "generic": 1, "violet": 1 },
+    "stats": { "atk": 2, "hp": 2 }, "keywords": [{ "id": "awaken" }] },
   { "id": "selffreeze", "name": { "ru": "Само-лёд" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
@@ -428,6 +431,26 @@ TEST_CASE("awaken needs mana beyond the banked crystal") {
   REQUIRE(g.placeCardToMana(0, Color::Colorless));
   CHECK_FALSE(g.awaken(0));  // one crystal: nothing left to pay the remainder
   CHECK(g.player(0).manaRow.size() == 1);
+}
+
+TEST_CASE("awaken's banked crystal pays its own colored pip") {
+  CardLibrary lib = testLib();
+  // A Violet awaken card banked as Violet should cover its own Violet pip, so
+  // it needs only 1 extra (generic) crystal -- not a second Violet.
+  Game g(lib, {"violetsleeper", "bear", "bear", "bear"}, repeat("bear", 30),
+         77);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "violetsleeper"), Color::Violet));
+  g.endTurn();
+  g.endTurn();  // back to p0 with the Violet crystal refilled
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  // Banked Violet pays the Violet pip; the leftover generic 1 comes from the
+  // Colorless crystal. Under the old "discount only generic" rule this failed
+  // (it still demanded a second Violet).
+  REQUIRE(g.awaken(0));
+  CHECK(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].def->id == "violetsleeper");
+  CHECK(g.player(0).manaRow.size() == 1);  // the Violet crystal was consumed
 }
 
 TEST_CASE("only awaken cards can be played from the mana row") {

@@ -215,9 +215,9 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
 }
 
 // Violet awaken: play a card straight from the mana row. The banked crystal is
-// consumed -- it pays 1 generic toward the cost, and the remainder is paid from
-// the player's other available crystals. Net cost: (cost - 1) plus the lost
-// slot.
+// consumed -- it pays 1 of the cost in its own color (or 1 generic if that
+// color isn't required), and the remainder is paid from the player's other
+// available crystals. Net cost: (cost - 1) plus the lost slot.
 bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   if (over_) return false;
   Player& p = players_[current_];
@@ -234,9 +234,17 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
   if (!playTargetLegal(def, p, target)) return false;
   Cost eff = def->cost;
-  eff.generic = eff.generic > 0 ? eff.generic - 1 : 0;
+  // The banked crystal pays 1 of the cost in its OWN color (it became a crystal
+  // of that color when sacrificed). Only if the cost doesn't ask for that color
+  // does it fall back to covering 1 generic. This is the real discount: a
+  // Violet card banked as Violet covers its own Violet pip instead of being
+  // wasted.
+  if (eff.pips[c] > 0)
+    eff.pips[c] -= 1;
+  else if (eff.generic > 0)
+    eff.generic -= 1;
   ManaPool sim = p.mana;
-  sim.crystals[c] -= 1;
+  sim.crystals[c] -= 1;  // the banked crystal leaves the pool
   sim.available[c] -= 1;
   if (!sim.pay(eff)) return false;  // remainder unaffordable -> nothing changes
   p.mana = sim;

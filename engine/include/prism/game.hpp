@@ -133,9 +133,10 @@ class Game {
   // default) appends to the right.
   bool playCard(int handIndex, EntityId target = 0, int pos = -1);
   // Violet awaken: play a card straight from the mana row. The banked crystal
-  // counts as 1 generic toward the cost; the remainder is paid from your other
-  // available crystals, and that crystal/slot is consumed. Only cards carrying
-  // the `awaken` keyword qualify.
+  // pays 1 of the cost in its own color (or 1 generic if that color isn't
+  // required); the remainder is paid from your other available crystals, and
+  // that crystal/slot is consumed. Only cards carrying the `awaken` keyword
+  // qualify.
   bool awaken(int manaRowIndex, EntityId target = 0, int pos = -1);
   // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
