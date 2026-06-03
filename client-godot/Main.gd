@@ -38,6 +38,7 @@ var _summoned := {}            # creature id -> true if newly on the board
 var _my_creatures_row: Control = null  # the HBox holding your board creatures
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
 var _board_gap: Control = null         # slot opened while dragging a creature in
+var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 
 var url_edit: LineEdit
 var status_label: Label
@@ -66,7 +67,7 @@ const KW_DESC := {
 	"self_lifesteal": "Алый дар: его урон лечит его самого на столько же.",
 	"provoke": "Маяк: вражеские существа обязаны атаковать это.",
 	"shield": "Щит: игнорирует следующий источник урона целиком.",
-	"blind": "Ослепление N: не может атаковать N ход(ов).",
+	"blind": "Ослепление N: N ход(ов) не атакует и не наносит боевой урон — даже в ответ при защите.",
 	"flash": "Вспышка N: ослепляет всех врагов на N ход(ов).",
 	"photosynthesis": "Фотосинтез N: в начале вашего хода +N кристалл(ов).",
 	"growth": "Рост N: в начале вашего хода +N/+N этому существу.",
@@ -74,7 +75,7 @@ const KW_DESC := {
 	"spores": "Споры N: при смерти призывает N ростков 1/1.",
 	"undergrowth": "Подлесок N: +N/+N за каждое другое ваше существо.",
 	"resonance": "Резонанс N: +N/+N за каждый ваш кристалл.",
-	"freeze": "Заморозка N: не атакует N ход(ов); не пробуждается от урона.",
+	"freeze": "Заморозка N: N ход(ов) не может атаковать, но в защите бьёт в ответ.",
 	"chill": "Стужа N: вражеские существа -N к атаке, пока аура в игре.",
 	"stealth": "Незримость: нельзя выбрать целью, пока это не атакует.",
 	"split": "Расщепление N: при выходе создаёт N иллюзий (1 HP).",
@@ -85,8 +86,8 @@ const KW_DESC := {
 # Plain-language meaning of each spell-effect action (the inline grammar used by
 # spells/battlecries). "N" is replaced by the effect's value.
 const EFFECT_DESC := {
-	"freeze": "Заморозка N: цель не атакует N ход(ов); не пробуждается от урона.",
-	"blind": "Ослепление N: цель не может атаковать N ход(ов).",
+	"freeze": "Заморозка N: цель N ход(ов) не атакует, но в защите бьёт в ответ.",
+	"blind": "Ослепление N: цель N ход(ов) не атакует и не наносит боевой урон (даже в ответ).",
 	"flash": "Вспышка N: ослепляет всех врагов на N ход(ов).",
 	"damage": "Урон N: наносит N урона цели.",
 	"damage_all": "Выметание N: наносит N урона всем существам.",
@@ -778,6 +779,8 @@ func _rebuild() -> void:
 		c.queue_free()
 	if bool(view.get("over", false)):
 		_overlay.add_child(_game_over_panel(you))
+	elif bool(view.get("mulligan", false)):
+		_overlay.add_child(_mulligan_panel(me))
 
 
 func _separator() -> Control:
@@ -820,6 +823,103 @@ func _game_over_panel(you: int) -> Control:
 	return dim
 
 
+# Opening-hand mulligan: tap cards to mark them for replacement, then confirm.
+# Both players choose at once; the first turn begins when both have confirmed.
+func _mulligan_panel(me: Dictionary) -> Control:
+	var accent := Color(0.45, 0.85, 1.0)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.62)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # block the board underneath
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _glass(accent, 0.92))
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	panel.add_child(vb)
+	center.add_child(panel)
+
+	var title := Label.new()
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", accent.lightened(0.3))
+	vb.add_child(title)
+
+	# Once you have confirmed, just wait for the opponent.
+	if bool(me.get("mulliganDone", false)):
+		title.text = "Ждём соперника…"
+		var hint := Label.new()
+		hint.text = "Ваш мулиган принят."
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
+		vb.add_child(hint)
+		return dim
+
+	title.text = "Мулиган"
+	var sub := Label.new()
+	sub.text = "Нажмите на карты, которые хотите заменить, затем подтвердите."
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 14)
+	sub.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
+	vb.add_child(sub)
+
+	var hand: Array = me.get("hand", [])
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	for i in hand.size():
+		var cid: String = hand[i]
+		var marked: bool = _mull_sel.has(i)
+		var wrap := Control.new()
+		wrap.custom_minimum_size = CARD_SIZE
+		var card := _make_card(cid, null)
+		if marked:
+			# Dim and red-tint cards staged for replacement.
+			card.modulate = Color(1.0, 0.5, 0.5, 0.6)
+			card.rest_modulate = card.modulate
+		var idx := i
+		card.clicked.connect(func(_p: Dictionary) -> void: _toggle_mulligan(idx))
+		wrap.add_child(card)
+		if marked:
+			var badge := Label.new()
+			badge.text = "ЗАМЕНА"
+			badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			badge.add_theme_font_size_override("font_size", 16)
+			badge.add_theme_color_override("font_color", Color(1.0, 0.7, 0.7))
+			badge.position = Vector2(0, CARD_SIZE.y / 2.0 - 12)
+			badge.size = Vector2(CARD_SIZE.x, 24)
+			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			wrap.add_child(badge)
+		row.add_child(wrap)
+	vb.add_child(row)
+
+	var n := _mull_sel.size()
+	var btn := _neon_button("Заменить %d" % n if n > 0 else "Оставить руку", accent)
+	btn.custom_minimum_size = Vector2(0, 40)
+	btn.pressed.connect(_send_mulligan)
+	vb.add_child(btn)
+	return dim
+
+
+func _toggle_mulligan(index: int) -> void:
+	if _mull_sel.has(index):
+		_mull_sel.erase(index)
+	else:
+		_mull_sel[index] = true
+	_rebuild()  # redraw the panel with the new selection
+
+
+func _send_mulligan() -> void:
+	var indices: Array = _mull_sel.keys()
+	indices.sort()
+	_send({"action": "mulligan", "indices": indices})
+	_mull_sel.clear()
+
+
 func _banner(you: int) -> Control:
 	var banner := Label.new()
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -830,6 +930,9 @@ func _banner(you: int) -> Control:
 		banner.text = "GAME OVER - " + ("YOU WIN" if win else "YOU LOSE")
 		banner.add_theme_color_override("font_color",
 			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
+	elif bool(view.get("mulligan", false)):
+		banner.text = "МУЛИГАН"
+		banner.add_theme_color_override("font_color", Color(0.45, 0.85, 1.0))
 	else:
 		var who := "YOUR TURN" if _my_turn() else "OPPONENT'S TURN"
 		banner.text = "%s   -   turn %d" % [who, int(view.get("turn", 0))]
@@ -1389,10 +1492,10 @@ func _status_lines(runtime) -> Array:
 		return out
 	var fr := int(runtime.get("frozen", 0))
 	if fr > 0:
-		out.append("Заморожен: ещё %d ход(ов) — не атакует, не пробуждается от урона." % fr)
+		out.append("Заморожен: ещё %d ход(ов) — не атакует, но даёт сдачу в защите." % fr)
 	var bl := int(runtime.get("blind", 0))
 	if bl > 0:
-		out.append("Ослеплён: ещё %d ход(ов) — не может атаковать." % bl)
+		out.append("Ослеплён: ещё %d ход(ов) — не атакует и не наносит урон в бою (даже в ответ)." % bl)
 	if bool(runtime.get("shield", false)):
 		out.append("Щит: поглотит следующий источник урона целиком.")
 	if bool(runtime.get("stealth", false)):

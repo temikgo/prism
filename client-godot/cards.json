@@ -125,14 +125,14 @@
   {
     "id": "yellow_blue_blinding_rime",
     "name": { "ru": "Слепящий Иней" },
-    "text": { "ru": "Ослепление 2 и заморозка 1 существу." },
+    "text": { "ru": "Ослепление 1 и заморозка 2 существу." },
     "art": "a burst of blinding yellow light freezing into pale blue rime over an enemy's eyes, cold radiance",
     "type": "spell",
     "color": ["yellow", "blue"],
     "cost": { "generic": 2, "yellow": 1, "blue": 1 },
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 2 },
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 1 },
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 2 }
     ]
   },
   {
