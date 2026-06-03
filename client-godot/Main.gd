@@ -29,6 +29,11 @@ var awaken_index := -1     # mana-row index of a targeted awaken card
 var pending_side := ""     # side a pending targeted spell can hit: enemy/friendly/any
 var _picker: Control = null   # open mana-color chooser, if any
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
+var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
+var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
+var _card_nodes := {}          # creature id -> its card node this rebuild
+var _dmg := {}                 # creature id -> damage taken since the last view
+var _summoned := {}            # creature id -> true if newly on the board
 
 var url_edit: LineEdit
 var status_label: Label
@@ -304,11 +309,11 @@ func _build_shell() -> void:
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_overlay)
 
-	# Effects overlay on top of everything (attack arrow, etc.).
-	var fx := FxLayer.new()
-	fx.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(fx)
+	# Effects overlay on top of everything (attack arrow, damage numbers, ghosts).
+	_fx = FxLayer.new()
+	_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fx)
 
 
 func _bg_texture() -> Texture2D:
@@ -373,8 +378,7 @@ func _process(_dt: float) -> void:
 			var txt := socket.get_packet().get_string_from_utf8()
 			var data: Variant = JSON.parse_string(txt)
 			if typeof(data) == TYPE_DICTIONARY:
-				view = data
-				_rebuild()
+				_ingest_view(data)
 	elif st == WebSocketPeer.STATE_CLOSED and was_open:
 		was_open = false
 		status_label.text = "closed"
@@ -383,6 +387,89 @@ func _process(_dt: float) -> void:
 func _send(obj: Dictionary) -> void:
 	if socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		socket.send_text(JSON.stringify(obj))
+
+
+# Apply a fresh view: diff creature HP against the last one to drive damage,
+# death and summon animations, then rebuild.
+func _ingest_view(new_view: Dictionary) -> void:
+	_dmg = {}
+	_summoned = {}
+	var new_hp := {}
+	for s in 2:
+		for cr in new_view["players"][s].get("board", []):
+			new_hp[int(cr["id"])] = int(cr["hp"])
+	for id in new_hp:
+		if _prev_hp.has(id):
+			if new_hp[id] < _prev_hp[id]:
+				_dmg[id] = _prev_hp[id] - new_hp[id]
+		else:
+			_summoned[id] = true
+	# A creature we had is gone: rescue its node from the doomed tree and fade it.
+	for id in _prev_hp:
+		if not new_hp.has(id) and _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
+			_fade_out_dead(_card_nodes[id])
+
+	view = new_view
+	_card_nodes = {}
+	_rebuild()  # _creature_card consumes _dmg/_summoned and refills _card_nodes
+	_prev_hp = new_hp
+	var dmg_copy := _dmg.duplicate()
+	_dmg = {}
+	_summoned = {}
+	if not dmg_copy.is_empty():
+		_spawn_damage_numbers(dmg_copy)
+
+
+func _flash_card(card: Control) -> void:
+	var rest: Color = card.rest_modulate
+	var t := create_tween()
+	t.tween_property(card, "modulate", Color(1.7, 0.5, 0.5), 0.07)
+	t.tween_property(card, "modulate", rest, 0.3)
+
+
+func _pop_in(card: Control) -> void:
+	var rest: Color = card.rest_modulate
+	card.modulate = Color(rest.r, rest.g, rest.b, 0.0)
+	create_tween().tween_property(card, "modulate", rest, 0.22)
+
+
+func _fade_out_dead(node: Control) -> void:
+	var gp := node.global_position
+	var parent := node.get_parent()
+	if parent != null:
+		parent.remove_child(node)
+	_fx.add_child(node)
+	node.global_position = gp
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.pivot_offset = node.size * 0.5
+	var t := create_tween()
+	t.set_parallel(true)
+	t.tween_property(node, "modulate", Color(1, 1, 1, 0), 0.35)
+	t.tween_property(node, "scale", Vector2(0.7, 0.7), 0.35)
+	t.chain().tween_callback(node.queue_free)
+
+
+func _spawn_damage_numbers(dmg: Dictionary) -> void:
+	await get_tree().process_frame  # let the new board lay out before reading positions
+	for id in dmg:
+		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
+			var nd: Control = _card_nodes[id]
+			_spawn_float_number(nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.25), int(dmg[id]))
+
+
+func _spawn_float_number(pos: Vector2, amount: int) -> void:
+	var lbl := Label.new()
+	lbl.text = "-%d" % amount
+	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.42, 0.42))
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.position = pos
+	_fx.add_child(lbl)
+	var t := create_tween()
+	t.set_parallel(true)
+	t.tween_property(lbl, "position", pos + Vector2(0, -42), 0.7)
+	t.tween_property(lbl, "modulate", Color(1, 1, 1, 0), 0.7)
+	t.chain().tween_callback(lbl.queue_free)
 
 
 func _clear_selection() -> void:
@@ -978,6 +1065,12 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			and pending_side in ["enemy", "any"] and not bool(cr.get("stealth", false))
 		if await_attack or await_spell:
 			card.modulate = Color(1.45, 1.45, 1.1)
+
+	_card_nodes[cid] = card
+	if _dmg.has(cid):
+		_flash_card(card)
+	elif _summoned.has(cid):
+		_pop_in(card)
 	return card
 
 
