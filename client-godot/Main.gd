@@ -1154,28 +1154,31 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 
 	v.add_child(Ui.label(Glossary.type_label(d), 12, Color(0.6, 0.65, 0.75)))
 
-	var txt := _text_of(def_id)
-	if txt != "":
-		v.add_child(HSeparator.new())
-		var text_l := Ui.label(txt, 14)
-		text_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text_l.custom_minimum_size = Vector2(250, 0)
-		v.add_child(text_l)
-
-	# Plain-language explanation of each keyword and each spell effect.
+	# Rules are generated from the card's data (single source of truth): a full
+	# explanation per keyword, then a plain imperative sentence per effect. Cards
+	# carry no hand-written rules text.
 	var lines := []
 	for kw in d.get("keywords", []):
 		var kl := Glossary.keyword(kw)
 		if kl != "":
 			lines.append(kl)
 	for e in d.get("effects", []):
-		var el := Glossary.effect(e)
+		var el := Glossary.effect_text(e)
 		if el != "":
 			lines.append(el)
 	if not lines.is_empty():
 		v.add_child(HSeparator.new())
 		for line in lines:
 			v.add_child(_explain_label(line))
+
+	# Optional flavor (lore) line, shown dim under the rules when present.
+	var flavor := _text_of(def_id)
+	if flavor != "":
+		v.add_child(HSeparator.new())
+		var fl := Ui.label(flavor, 12, Color(0.62, 0.6, 0.72))
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.custom_minimum_size = Vector2(250, 0)
+		v.add_child(fl)
 
 	# Active statuses on a creature in play, with how long they last.
 	var status := Glossary.status_lines(runtime)

@@ -2,7 +2,7 @@
   {
     "id": "red_undying_borer",
     "name": { "ru": "Неугасимый бур" },
-    "text": { "ru": "Пробитие. Регенерация 1." },
+    "text": { "ru": "" },
     "art": "dynamic close-up of a crimson crystal-light drill-creature's head and shoulders, fierce expression, strong silhouette",
     "type": "creature",
     "color": ["red"],
@@ -13,7 +13,7 @@
   {
     "id": "yellow_beacon_guard",
     "name": { "ru": "Маяк-страж" },
-    "text": { "ru": "Маяк." },
+    "text": { "ru": "" },
     "art": "close-up of a stout yellow crystal-light guardian's head and torso, a single bright beacon-crystal glowing in its chest, calm protective stance",
     "type": "creature",
     "color": ["yellow"],
@@ -24,7 +24,7 @@
   {
     "id": "green_lightroot",
     "name": { "ru": "Светокорень" },
-    "text": { "ru": "Фотосинтез 1." },
+    "text": { "ru": "" },
     "art": "close-up of a green crystal-light root-spirit, a few large emerald facets and a couple of fresh shoots, lively and lush",
     "type": "aura",
     "color": ["green"],
@@ -34,7 +34,7 @@
   {
     "id": "blue_frostmark",
     "name": { "ru": "Стылый росчерк" },
-    "text": { "ru": "Заморозка 2 выбранному существу." },
+    "text": { "ru": "" },
     "art": "close-up of an icy blue crystal-light sigil freezing a target, a few bold frost shards, cold blue glow",
     "type": "spell",
     "color": ["blue"],
@@ -46,7 +46,7 @@
   {
     "id": "violet_phantom_twin",
     "name": { "ru": "Призрачный двойник" },
-    "text": { "ru": "Awaken. Расщепление 2." },
+    "text": { "ru": "" },
     "art": "close-up of a violet crystal-light figure with two faint ghostly duplicates beside it, one solid and the others shimmering, mysterious",
     "type": "creature",
     "color": ["violet"],
@@ -68,7 +68,7 @@
   {
     "id": "red_yellow_prism_ram",
     "name": { "ru": "Призма-Таран" },
-    "text": { "ru": "Щит. Пробитие." },
+    "text": { "ru": "" },
     "art": "a fierce ram-headed crystal-light warrior, a broad shield of red and gold facets raised, charging stance, strong silhouette",
     "type": "creature",
     "color": ["red", "yellow"],
@@ -79,7 +79,7 @@
   {
     "id": "red_green_thorn_reaper",
     "name": { "ru": "Терновый Жнец" },
-    "text": { "ru": "Алый дар. Рост 1." },
+    "text": { "ru": "" },
     "art": "a gaunt reaper of crimson and emerald crystal light, a thorned scythe, a faint life-draining glow, predatory stance",
     "type": "creature",
     "color": ["red", "green"],
@@ -90,7 +90,7 @@
   {
     "id": "red_blue_frost_breach",
     "name": { "ru": "Стужный Пробой" },
-    "text": { "ru": "Нанесите 2 урона и заморозьте существо на 1 ход." },
+    "text": { "ru": "" },
     "art": "a red-hot lance of crystal light shattering into blue frost as it pierces a frozen target, sharp motion",
     "type": "spell",
     "color": ["red", "blue"],
@@ -103,7 +103,7 @@
   {
     "id": "red_violet_scarlet_stalker",
     "name": { "ru": "Алый Лазутчик" },
-    "text": { "ru": "Незримость. Алый дар." },
+    "text": { "ru": "" },
     "art": "a lithe cloaked stalker of red and violet crystal light, half-faded into shadow, a glinting dagger, mysterious",
     "type": "creature",
     "color": ["red", "violet"],
@@ -114,7 +114,7 @@
   {
     "id": "yellow_green_sun_bastion",
     "name": { "ru": "Солнечный Оплот" },
-    "text": { "ru": "Маяк. Фотосинтез 1." },
+    "text": { "ru": "" },
     "art": "a towering serene guardian of yellow and green crystal light, a radiant sun-crystal in its chest, rooted like a tree, protective",
     "type": "creature",
     "color": ["yellow", "green"],
@@ -125,7 +125,7 @@
   {
     "id": "yellow_blue_blinding_rime",
     "name": { "ru": "Слепящий Иней" },
-    "text": { "ru": "Ослепление 1 и заморозка 2 существу." },
+    "text": { "ru": "" },
     "art": "a burst of blinding yellow light freezing into pale blue rime over an enemy's eyes, cold radiance",
     "type": "spell",
     "color": ["yellow", "blue"],
@@ -138,7 +138,7 @@
   {
     "id": "yellow_violet_veiled_aegis",
     "name": { "ru": "Тайный Эгид" },
-    "text": { "ru": "Незримость. Щит." },
+    "text": { "ru": "" },
     "art": "a partly invisible sentinel of yellow and violet crystal light, a shimmering shield flickering in and out of sight, enigmatic",
     "type": "creature",
     "color": ["yellow", "violet"],
@@ -149,7 +149,7 @@
   {
     "id": "green_blue_frost_thicket",
     "name": { "ru": "Ледяная Поросль" },
-    "text": { "ru": "Фотосинтез 1. Стужа 1." },
+    "text": { "ru": "" },
     "art": "a lush thicket of green crystal-light vines glazed with blue frost, glowing softly, calm and lush",
     "type": "aura",
     "color": ["green", "blue"],
@@ -159,7 +159,7 @@
   {
     "id": "green_violet_spore_spectre",
     "name": { "ru": "Споровый Дух" },
-    "text": { "ru": "Споры 1. Морок." },
+    "text": { "ru": "" },
     "art": "a ghostly fungal creature of green and violet crystal light, drifting spores and a faint spectral double beside it, eerie",
     "type": "creature",
     "color": ["green", "violet"],
@@ -170,7 +170,7 @@
   {
     "id": "blue_violet_hazy_shift",
     "name": { "ru": "Зыбкое Смещение" },
-    "text": { "ru": "Верните любое существо в руку." },
+    "text": { "ru": "" },
     "art": "a violet-blue ripple of crystal light bending space, a creature dissolving into drifting mist",
     "type": "spell",
     "color": ["blue", "violet"],
@@ -181,8 +181,8 @@
   },
   {
     "id": "red_searing_lancer",
-    "name": { "ru": "Неистовый Душегуб" },
-    "text": { "ru": "Сквозь строй. Алый дар. Регенерация 1." },
+    "name": { "ru": "Багряный Ловчий" },
+    "text": { "ru": "" },
     "art": "a relentless crimson crystal-light reaver lunging past defenders, a life-draining red glow pulling vitality inward, wounds knitting shut, unstoppable",
     "type": "creature",
     "color": ["red"],
@@ -192,8 +192,8 @@
   },
   {
     "id": "yellow_halo_keeper",
-    "name": { "ru": "Нимбовый Хранитель" },
-    "text": { "ru": "Маяк. Нимб." },
+    "name": { "ru": "Заступник Зари" },
+    "text": { "ru": "" },
     "art": "a steadfast yellow crystal-light sentinel with a bright halo above its head, a wide protective stance drawing every enemy's attention, immovable",
     "type": "creature",
     "color": ["yellow"],
@@ -203,8 +203,8 @@
   },
   {
     "id": "green_living_sprig",
-    "name": { "ru": "Цветущая Матрона" },
-    "text": { "ru": "Проращивание 1. Споры 2." },
+    "name": { "ru": "Лесная Праматерь" },
+    "text": { "ru": "" },
     "art": "a lush green crystal-light matron-creature surrounded by sprouting seedlings, drifting spores and budding shoots, fertile and teeming with life",
     "type": "creature",
     "color": ["green"],
@@ -214,8 +214,8 @@
   },
   {
     "id": "blue_clarion_rift",
-    "name": { "ru": "Ясный Разрыв" },
-    "text": { "ru": "Уничтожьте вражеские ауры. Возьмите карту." },
+    "name": { "ru": "Хрустальное Прозрение" },
+    "text": { "ru": "" },
     "art": "a clear blue crystal-light rift shattering shimmering enchantments while a card of cold light is drawn from the break, lucid and precise",
     "type": "spell",
     "color": ["blue"],
@@ -227,8 +227,8 @@
   },
   {
     "id": "violet_shard_wraith",
-    "name": { "ru": "Незримый Расщеп" },
-    "text": { "ru": "Незримость. Расщепление 2." },
+    "name": { "ru": "Сумрачный Двойник" },
+    "text": { "ru": "" },
     "art": "a half-unseen violet crystal-light wraith splitting into faint mirror-duplicates as it slips through shadow, one solid and two ghostly, elusive",
     "type": "creature",
     "color": ["violet"],

@@ -31,19 +31,21 @@ const KW := {
 	"awaken": "Awaken: эту карту-кристалл можно разбудить за её стоимость.",
 }
 
-# Spell-effect meaning (the inline grammar used by spells/battlecries). "N" is
-# replaced by the effect's value.
+# Spell/battlecry effects, written as the plain imperative rules sentence the
+# card "prints". The rules text is generated from this data (the single source
+# of truth -- cards carry no hand-written rules). "N" is the effect's value; a
+# few read the selector in effect_text() for natural phrasing.
 const EFFECT := {
-	"freeze": "Заморозка N: цель N ход(ов) не атакует, но в защите бьёт в ответ.",
-	"blind": "Ослепление N: цель N ход(ов) не атакует и не наносит боевой урон (даже в ответ).",
-	"flash": "Вспышка N: ослепляет всех врагов на N ход(ов).",
-	"damage": "Урон N: наносит N урона цели.",
-	"damage_all": "Выметание N: наносит N урона всем существам.",
-	"destroy": "Устранение: уничтожает выбранное существо.",
-	"draw": "Добор N: возьмите N карт(ы).",
-	"dispel": "Разрыв: уничтожает вражеские ауры.",
-	"scatter": "Рассеяние: возвращает вражеское существо в руку.",
-	"mirage": "Мираж: создаёт иллюзорную копию существа (1 HP).",
+	"freeze": "Заморозьте существо на N ход(ов).",
+	"blind": "Ослепите существо на N ход(ов).",
+	"flash": "Ослепите всех врагов на N ход(ов).",
+	"damage": "Нанесите N урона существу.",
+	"damage_all": "Нанесите N урона всем существам.",
+	"destroy": "Уничтожьте существо.",
+	"draw": "Возьмите N карт(ы).",
+	"dispel": "Уничтожьте вражеские ауры.",
+	"scatter": "Верните существо в руку.",
+	"mirage": "Создайте иллюзорную копию существа (1 HP).",
 }
 
 
@@ -57,11 +59,24 @@ static func keyword(kw: Dictionary) -> String:
 	return s
 
 
-static func effect(e: Dictionary) -> String:
+# The generated rules sentence for one effect (imperative). A couple of actions
+# read the selector so the target reads naturally (hero vs minion, any vs enemy).
+static func effect_text(e: Dictionary) -> String:
 	var a := String(e.get("action", ""))
 	if not EFFECT.has(a):
 		return ""
+	var sel := String(e.get("selector", ""))
 	var s: String = EFFECT[a]
+	if a == "damage":
+		if sel == "enemy_hero":
+			s = "Нанесите N урона вражескому герою."
+		elif sel == "chosen_enemy_minion":
+			s = "Нанесите N урона вражескому существу."
+	elif a == "scatter":
+		if sel == "chosen_any_minion":
+			s = "Верните любое существо в руку."
+		elif sel == "chosen_enemy_minion":
+			s = "Верните вражеское существо в руку."
 	if e.has("value"):
 		s = s.replace("N", str(int(e["value"])))
 	return s
