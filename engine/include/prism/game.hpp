@@ -89,6 +89,7 @@ struct Player {
   int heroArmor = 0;
   int fatigue = 0;                  // damage of the NEXT empty-deck draw
   bool placedManaThisTurn = false;  // one card -> mana row per turn
+  bool mulliganDone = false;        // has this player finished its mulligan?
   ManaPool mana;
   std::vector<CardInstance> hand;
   std::vector<CardInstance> deck;
@@ -105,8 +106,18 @@ class Game {
   Game(const CardLibrary& lib, const std::vector<std::string>& deck0,
        const std::vector<std::string>& deck1, std::uint32_t seed);
 
-  // Shuffles, deals opening hands, and begins player 0's first turn.
+  // Shuffles and deals opening hands, then enters the mulligan phase. Player
+  // 0's first turn begins once both players have finished their mulligan.
   void start();
+
+  // Mulligan: replace the chosen opening-hand cards (by index) -- they go back
+  // into the deck, it is reshuffled, and the same number is redrawn. Pass an
+  // empty list to keep the hand. Either player may call it, once. When both are
+  // done, play begins. Returns false (no change) if not in the mulligan phase,
+  // already done, or an index is out of range.
+  bool mulligan(int player, const std::vector<int>& indices);
+  bool inMulligan() const { return mulliganPhase_; }
+  bool mulliganDone(int player) const { return players_[player].mulliganDone; }
 
   // --- Legal actions for the player whose turn it is. Each returns false and
   // changes nothing if the action is illegal (so callers can probe safely). ---
@@ -200,6 +211,7 @@ class Game {
   int current_ = 0;
   int turn_ = 0;
   bool over_ = false;
+  bool mulliganPhase_ = false;  // true between dealing and the first turn
   int winner_ = -1;
   EntityId nextId_ = 1;
   std::mt19937 rng_;               // seeded -> deterministic shuffles

@@ -26,8 +26,21 @@ async def main():
     assert v0["current"] == 0
     assert "hand" in v0["players"][0], "own hand should be visible"
     assert "hand" not in v0["players"][1], "enemy hand must be hidden"
-    assert len(v0["players"][0]["hand"]) == 5, v0["players"][0]["hand"]
+    # The game opens in the mulligan phase: p0 holds 4, p1 holds 5, no turn yet.
+    assert v0["mulligan"] is True, v0
+    assert len(v0["players"][0]["hand"]) == 4, v0["players"][0]["hand"]
     assert v0["players"][1]["handCount"] == 5
+
+    # Both players keep their hands; the first turn begins once both are done.
+    await c0.send(json.dumps({"action": "mulligan", "indices": []}))
+    await c0.recv()
+    await c1.recv()
+    await c1.send(json.dumps({"action": "mulligan", "indices": []}))
+    v0m = json.loads(await c0.recv())
+    await c1.recv()
+    assert v0m["mulligan"] is False, v0m
+    # p0 drew its turn-1 card, so the hand is now 5.
+    assert len(v0m["players"][0]["hand"]) == 5, v0m["players"][0]["hand"]
 
     await c0.send(json.dumps({"action": "endTurn"}))
     v0b = json.loads(await c0.recv())

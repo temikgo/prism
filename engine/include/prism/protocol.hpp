@@ -18,6 +18,9 @@ std::string viewJson(const Game& g, int you);
 
 // Apply a client action (JSON) on behalf of `actor`. Returns false if it is not
 // the actor's turn, or the action is malformed or illegal. Action shapes:
+//   {"action":"mulligan","indices":[0,2]}
+//       // replace those opening-hand cards; [] keeps the hand. Either player,
+//       // once, before the first turn (see Game::mulligan).
 //   {"action":"placeMana","handIndex":0,"color":"red"}
 //   {"action":"play","handIndex":2,"target":7,"pos":3}
 //       // target optional (0 = none); pos optional (board slot, -1 = append)

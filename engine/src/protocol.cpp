@@ -55,6 +55,7 @@ static json playerJson(const Player& p, bool self) {
   }
   j["deckCount"] = static_cast<int>(p.deck.size());
   j["graveyardCount"] = static_cast<int>(p.graveyard.size());
+  j["mulliganDone"] = p.mulliganDone;
 
   json board = json::array();
   for (const auto& c : p.board) board.push_back(creatureJson(c));
@@ -71,6 +72,7 @@ std::string viewJson(const Game& g, int you) {
   j["turn"] = g.turn();
   j["current"] = g.current();
   j["you"] = you;
+  j["mulligan"] = g.inMulligan();  // true while both players still mulligan
   j["over"] = g.isOver();
   j["winner"] = g.winner();
   json players = json::array();
@@ -81,7 +83,6 @@ std::string viewJson(const Game& g, int you) {
 }
 
 bool applyAction(Game& g, int actor, const std::string& actionJson) {
-  if (actor != g.current()) return false;  // only the active player may act
   json j;
   try {
     j = json::parse(actionJson);
@@ -89,6 +90,17 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     return false;
   }
   const std::string a = j.value("action", std::string{});
+  // Mulligan precedes the first turn; either player may submit theirs, in any
+  // order, so it is handled before the "active player only" gate below.
+  if (a == "mulligan") {
+    std::vector<int> indices;
+    if (j.contains("indices") && j["indices"].is_array())
+      for (const auto& v : j["indices"])
+        if (v.is_number_integer()) indices.push_back(v.get<int>());
+    return g.mulligan(actor, indices);
+  }
+  if (g.inMulligan()) return false;  // no normal actions until mulligan is over
+  if (actor != g.current()) return false;  // only the active player may act
   if (a == "endTurn") {
     g.endTurn();
     return true;

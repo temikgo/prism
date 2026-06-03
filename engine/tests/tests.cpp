@@ -148,6 +148,14 @@ static int handIndexOf(Game& g, int player, const std::string& id) {
   return -1;
 }
 
+// start() now stops in the mulligan phase; most tests just want play to begin.
+// This deals, keeps both opening hands, and lets player 0's first turn start.
+static void begin(Game& g) {
+  g.start();
+  g.mulligan(0, {});
+  g.mulligan(1, {});
+}
+
 TEST_CASE("mana pool pays colored and generic") {
   ManaPool p;
   p.addCrystal(Color::Red);
@@ -230,7 +238,7 @@ TEST_CASE("hero reaching zero ends the game") {
 TEST_CASE("drawing from an empty deck deals fatigue") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 4), repeat("bear", 30), 5);
-  g.start();
+  begin(g);
   CHECK(g.player(0).fatigue == 1);
   CHECK(g.player(0).heroHp == HeroStartHp - 1);
 }
@@ -295,6 +303,54 @@ TEST_CASE("freeze stops a creature from attacking, then thaws") {
   g.endTurn();
   CHECK(g.attackHero(bear));
   CHECK(g.player(0).heroHp == HeroStartHp - 3);
+}
+
+TEST_CASE("blind suppresses retaliation, unlike freeze") {
+  CardLibrary lib = testLib();
+  // p0 carries an attacker and a blind spell; p1 brings a creature to blind.
+  // Tiny decks so the opening hand is deterministic.
+  Game g(lib, {"bear", "blindspell", "bear", "bear"},
+         {"bear", "bear", "bear", "bear", "bear"}, 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // attacker A enters (sick)
+  EntityId atkId = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // defender B
+  EntityId defId = g.player(1).board[0].id;
+  g.endTurn();  // back to p0; A is no longer sick
+  REQUIRE(g.playCard(handIndexOf(g, 0, "blindspell"), defId));
+  CHECK(g.player(1).board[0].blindTurns == 1);
+  REQUIRE(g.attackCreature(atkId, defId));
+  // A (3/4) deals 3 to B (4 hp -> 1) but takes NO retaliation: B is blinded.
+  CHECK(g.player(1).board[0].hp == 1);
+  CHECK(g.player(0).board[0].hp == 4);
+}
+
+TEST_CASE("mulligan reshuffles the chosen cards and gates the first turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 123);
+  g.start();
+  REQUIRE(g.inMulligan());
+  // No normal action is accepted until both players have mulliganed.
+  CHECK_FALSE(applyAction(g, 0, R"({"action":"play","handIndex":0})"));
+  CHECK(applyAction(g, 0, R"({"action":"mulligan","indices":[0,1]})"));
+  CHECK(g.mulliganDone(0));
+  CHECK(g.player(0).hand.size() == OpeningFirst);  // redrew what it tossed
+  CHECK(g.inMulligan());                           // still waiting on p1
+  CHECK_FALSE(applyAction(g, 0, R"({"action":"mulligan","indices":[]})"));
+  CHECK(applyAction(g, 1, R"({"action":"mulligan","indices":[]})"));
+  CHECK_FALSE(g.inMulligan());  // both done -> play begins
+  CHECK(g.mulliganDone(1));
+  CHECK(applyAction(g, 0, R"({"action":"play","handIndex":0})"));
+}
+
+TEST_CASE("mulligan rejects bad indices and leaves the hand untouched") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 5);
+  g.start();
+  CHECK_FALSE(g.mulligan(0, {0, 99}));  // out of range -> whole call rejected
+  CHECK_FALSE(g.mulliganDone(0));
+  CHECK(g.player(0).hand.size() == OpeningFirst);
 }
 
 TEST_CASE("photosynthesis adds temporary mana at turn start") {
@@ -707,7 +763,7 @@ TEST_CASE("view redacts hidden information per player") {
 TEST_CASE("applyAction dispatches JSON actions and enforces the turn") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 30), repeat("bear", 30), 301);
-  g.start();
+  begin(g);
   CHECK_FALSE(applyAction(g, 1, R"({"action":"endTurn"})"));  // not p1's turn
   CHECK(applyAction(g, 0, R"({"action":"play","handIndex":0})"));
   CHECK(g.player(0).board.size() == 1);

@@ -30,7 +30,35 @@ void Game::start() {
   draw(players_[1], OpeningSecond);
   current_ = 0;
   turn_ = 1;
-  startTurn();
+  mulliganPhase_ = true;  // wait for both mulligans before the first turn
+}
+
+bool Game::mulligan(int player, const std::vector<int>& indices) {
+  if (!mulliganPhase_ || player < 0 || player > 1) return false;
+  Player& p = players_[player];
+  if (p.mulliganDone) return false;
+
+  std::vector<int> idx = indices;
+  std::sort(idx.begin(), idx.end());
+  idx.erase(std::unique(idx.begin(), idx.end()), idx.end());
+  for (int i : idx)
+    if (i < 0 || i >= static_cast<int>(p.hand.size())) return false;
+
+  // Put the chosen cards back, reshuffle, and redraw the same number. Erase
+  // from the back so earlier indices stay valid.
+  for (auto it = idx.rbegin(); it != idx.rend(); ++it) {
+    p.deck.push_back(p.hand[*it]);
+    p.hand.erase(p.hand.begin() + *it);
+  }
+  std::shuffle(p.deck.begin(), p.deck.end(), rng_);
+  draw(p, static_cast<int>(idx.size()));
+
+  p.mulliganDone = true;
+  if (players_[0].mulliganDone && players_[1].mulliganDone) {
+    mulliganPhase_ = false;
+    startTurn();  // player 0's first turn now begins
+  }
+  return true;
 }
 
 // Turn order (DESIGN §1): refill mana -> start triggers -> draw -> main phase.
@@ -246,7 +274,11 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
   int targetHpBefore = b->hp;
   int dealt = damageCreature(*b, a->atk, a);
-  damageCreature(*a, b->atk, b);  // simultaneous retaliation
+  // Blind (Yellow) puts out a creature's combat damage entirely: a blinded
+  // defender cannot land its blow, so it deals no retaliation. Freeze (Blue)
+  // only stops a creature from initiating -- it still hits back when attacked.
+  int retaliation = b->blindTurns > 0 ? 0 : b->atk;
+  damageCreature(*a, retaliation, b);  // simultaneous retaliation
   if (a->def->hasKeyword("pierce")) {
     int overflow = dealt - targetHpBefore;
     if (overflow > 0) dealHeroDamage(opp, overflow);
