@@ -149,6 +149,14 @@ inline Frame parse(const std::string& buf) {
     for (int i = 0; i < 8; ++i) len = (len << 8) | b[pos + i];
     pos += 8;
   }
+  // Our frames are tiny JSON; an absurd length is malformed/hostile. Reject it
+  // (and avoid pos+len overflow in the buffer guard below) by closing.
+  static constexpr uint64_t kMaxFrame = 1u << 20;  // 1 MiB
+  if (len > kMaxFrame) {
+    f.op = Op::Close;
+    f.consumed = buf.size();
+    return f;
+  }
   unsigned char mask[4] = {0, 0, 0, 0};
   if (masked) {
     if (buf.size() < pos + 4) return f;
