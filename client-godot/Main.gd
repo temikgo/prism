@@ -26,6 +26,7 @@ var cards := {}            # card id -> definition (from cards.json)
 var attacker_id := -1      # your selected creature, waiting for an attack target
 var casting_index := -1    # hand index of a targeted spell waiting for a target
 var awaken_index := -1     # mana-row index of a targeted awaken card
+var _picker: Control = null   # open mana-color chooser, if any
 
 var url_edit: LineEdit
 var status_label: Label
@@ -41,6 +42,47 @@ const COLOR_MAP := {
 	"blue": Color(0.32, 0.56, 0.92),
 	"violet": Color(0.62, 0.38, 0.86),
 	"colorless": Color(0.72, 0.72, 0.78),
+}
+
+
+# Plain-language meaning of each keyword, shown in the card tooltip. "N" is
+# replaced by the keyword's value.
+const KW_DESC := {
+	"pierce": "Пробитие: лишний урон по существу переходит вражескому герою.",
+	"bypass": "Сквозь строй: может бить героя даже при наличии защитников.",
+	"lingering": "Неугасимость: раны, нанесённые им, не лечатся.",
+	"regen": "Регенерация N: в начале вашего хода +N HP этому существу.",
+	"self_lifesteal": "Алый дар: его урон лечит его самого на столько же.",
+	"provoke": "Маяк: вражеские существа обязаны атаковать это.",
+	"shield": "Щит: игнорирует следующий источник урона целиком.",
+	"blind": "Ослепление N: не может атаковать N ход(ов).",
+	"flash": "Вспышка N: ослепляет всех врагов на N ход(ов).",
+	"photosynthesis": "Фотосинтез N: в начале вашего хода +N кристалл(ов).",
+	"growth": "Рост N: в начале вашего хода +N/+N этому существу.",
+	"compost": "Компост N: когда ваше существо умирает, +N/+N этому.",
+	"spores": "Споры N: при смерти призывает N ростков 1/1.",
+	"undergrowth": "Подлесок N: +N/+N за каждое другое ваше существо.",
+	"resonance": "Резонанс N: +N/+N за каждый ваш кристалл.",
+	"freeze": "Заморозка N: не атакует N ход(ов); не пробуждается от урона.",
+	"chill": "Стужа N: вражеские существа -N к атаке, пока аура в игре.",
+	"stealth": "Незримость: нельзя выбрать целью, пока это не атакует.",
+	"split": "Расщепление N: при выходе создаёт N иллюзий (1 HP).",
+	"haunt": "Морок: при смерти оставляет иллюзорную копию (1 HP).",
+	"awaken": "Awaken: эту карту-кристалл можно разбудить за её стоимость.",
+}
+
+# Plain-language meaning of each spell-effect action (the inline grammar used by
+# spells/battlecries). "N" is replaced by the effect's value.
+const EFFECT_DESC := {
+	"freeze": "Заморозка N: цель не атакует N ход(ов); не пробуждается от урона.",
+	"blind": "Ослепление N: цель не может атаковать N ход(ов).",
+	"flash": "Вспышка N: ослепляет всех врагов на N ход(ов).",
+	"damage": "Урон N: наносит N урона цели.",
+	"damage_all": "Выметание N: наносит N урона всем существам.",
+	"destroy": "Устранение: уничтожает выбранное существо.",
+	"draw": "Добор N: возьмите N карт(ы).",
+	"scatter": "Рассеяние: возвращает вражеское существо в руку.",
+	"mirage": "Мираж: создаёт иллюзорную копию существа (1 HP).",
 }
 
 
@@ -80,6 +122,7 @@ class UiCard extends PanelContainer:
 	var can_drop_fn: Callable = Callable()
 	var drop_fn: Callable = Callable()
 	var hoverable := false                        # lift + scale on mouse-over
+	var rest_modulate := Color.WHITE              # modulate to restore after a drag
 	var _is_drag_source := false
 
 	func _ready() -> void:
@@ -146,7 +189,7 @@ class UiCard extends PanelContainer:
 		elif what == NOTIFICATION_DRAG_END:
 			active_drag = null
 			_is_drag_source = false
-			modulate = Color.WHITE
+			modulate = rest_modulate
 
 
 # --- lifecycle ---------------------------------------------------------------
@@ -154,10 +197,23 @@ class UiCard extends PanelContainer:
 func _ready() -> void:
 	_load_cards()
 	_build_shell()
+	# Remove the default dark tooltip wrapper window-wide so our custom card
+	# tooltip shows without a panel behind it. The auto-created tooltip popup
+	# resolves its style from the window theme, not from the tooltip control.
+	var th := Theme.new()
+	th.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new())
+	get_window().theme = th
 
 
 func _load_cards() -> void:
-	var f := FileAccess.open("res://cards.json", FileAccess.READ)
+	# Deck cards (mirror of the server's pool) plus client-only token display
+	# data (sprouts and other generated tokens that never sit in a deck).
+	_load_card_file("res://cards.json")
+	_load_card_file("res://tokens.json")
+
+
+func _load_card_file(path: String) -> void:
+	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return
 	var data: Variant = JSON.parse_string(f.get_as_text())
@@ -220,10 +276,10 @@ func _glass(accent: Color, bg_alpha: float) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.07, 0.09, 0.15, bg_alpha)
 	sb.set_corner_radius_all(10)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(accent.r, accent.g, accent.b, 0.6)
-	sb.shadow_size = 10
-	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.28)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.85)
+	sb.shadow_size = 16
+	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.42)
 	sb.set_content_margin_all(8)
 	return sb
 
@@ -312,6 +368,36 @@ func _is_creature(card_id: String) -> bool:
 	return String(cards.get(card_id, {}).get("type", "")) == "creature"
 
 
+# Can the current available mana pay this cost? Colored pips come from their own
+# color; the generic part comes from whatever is left (matches the engine).
+func _can_afford(cost: Dictionary, avail: Dictionary) -> bool:
+	var pool := {}
+	for c in ["red", "yellow", "green", "blue", "violet", "colorless"]:
+		pool[c] = int(avail.get(c, 0))
+	for c in ["red", "yellow", "green", "blue", "violet"]:
+		var need := int(cost.get(c, 0))
+		if pool[c] < need:
+			return false
+		pool[c] -= need
+	var left := 0
+	for c in pool:
+		left += int(pool[c])
+	return left >= int(cost.get("generic", 0))
+
+
+# Playable right now: my turn, affordable, and (for creatures) the board has room.
+func _is_playable(card_id: String) -> bool:
+	if not _my_turn():
+		return false
+	var you := int(view["you"])
+	var me: Dictionary = view["players"][you]
+	if not _can_afford(cards.get(card_id, {}).get("cost", {}), me["mana"].get("available", {})):
+		return false
+	if _is_creature(card_id) and int(me.get("board", []).size()) >= 8:
+		return false
+	return true
+
+
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
@@ -365,7 +451,7 @@ func _banner(you: int) -> Control:
 
 func _enemy_strip(opp: Dictionary) -> Control:
 	var zone := UiCard.new()
-	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.5, 0.2, 0.2)))
+	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.9, 0.32, 0.38)))
 	zone.can_drop_fn = func(data: Variant) -> bool:
 		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "attacker"
 	zone.drop_fn = func(data: Variant) -> void:
@@ -373,17 +459,18 @@ func _enemy_strip(opp: Dictionary) -> Control:
 		_clear_selection()
 	zone.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
 	if attacker_id >= 0:
-		zone.modulate = Color(1.35, 1.35, 1.05)
+		zone.modulate = Color(1.5, 1.4, 1.1)
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 16)
-	var hero: Dictionary = opp["hero"]
-	row.add_child(_info_label("ENEMY HERO   HP %d   ARM %d" % [
-		int(hero["hp"]), int(hero.get("armor", 0))], 16))
-	row.add_child(_info_label("hand %d   deck %d   grave %d" % [
-		int(opp.get("handCount", 0)), int(opp.get("deckCount", 0)),
-		int(opp.get("graveyardCount", 0))], 13))
+	row.add_theme_constant_override("separation", 14)
+	row.add_child(_hero_block(opp["hero"], "ENEMY"))
+	row.add_child(_counts_label(opp))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(spacer)
+	row.add_child(_mana_crystals(opp.get("mana", {})))
 	row.add_child(_manarow_view(opp.get("manaRow", []), false))
 	zone.add_child(row)
 	return zone
@@ -391,24 +478,64 @@ func _enemy_strip(opp: Dictionary) -> Control:
 
 func _me_strip(me: Dictionary) -> Control:
 	var zone := UiCard.new()
-	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.2, 0.35, 0.5)))
+	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.32, 0.6, 0.98)))
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 16)
-	var hero: Dictionary = me["hero"]
-	row.add_child(_info_label("YOU   HP %d   ARM %d" % [
-		int(hero["hp"]), int(hero.get("armor", 0))], 16))
-	row.add_child(_info_label("mana  %s" % _mana_str(me["mana"]), 14))
+	row.add_theme_constant_override("separation", 14)
+	row.add_child(_hero_block(me["hero"], "YOU"))
+	var power := _neon_button("Сила героя", Color(0.72, 0.45, 0.95))
+	power.disabled = true
+	power.tooltip_text = "Сила героя - появится позже"
+	row.add_child(power)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(spacer)
+	row.add_child(_mana_crystals(me.get("mana", {})))
 	row.add_child(_manarow_view(me.get("manaRow", []), true))
 	var auras: Array = me.get("auras", [])
 	if not auras.is_empty():
 		var names := []
 		for a in auras:
 			names.append(_name_of(String(a.get("card", ""))))
-		row.add_child(_info_label("auras: " + ", ".join(names), 12))
+		row.add_child(_info_label("ауры: " + ", ".join(names), 12))
+	row.add_child(_counts_label(me))
 	zone.add_child(row)
 	return zone
+
+
+func _hero_block(hero: Dictionary, title: String) -> Control:
+	var box := HBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 5)
+	var t := Label.new()
+	t.text = title
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	t.add_theme_font_size_override("font_size", 15)
+	box.add_child(t)
+	box.add_child(_icon("heart", 22, Color(0.95, 0.42, 0.46)))
+	box.add_child(_gem(str(int(hero["hp"])), Color(0.95, 0.42, 0.46)))
+	if int(hero.get("armor", 0)) > 0:
+		box.add_child(_icon("shield", 20, Color(0.72, 0.82, 0.98)))
+		var arm := Label.new()
+		arm.text = str(int(hero["armor"]))
+		arm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		arm.add_theme_font_size_override("font_size", 16)
+		arm.add_theme_color_override("font_color", Color(0.72, 0.82, 0.98))
+		box.add_child(arm)
+	return box
+
+
+func _counts_label(p: Dictionary) -> Control:
+	var l := Label.new()
+	l.text = "рука %d   колода %d   сброс %d" % [
+		int(p.get("handCount", 0)), int(p.get("deckCount", 0)),
+		int(p.get("graveyardCount", 0))]
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.add_theme_font_size_override("font_size", 12)
+	l.add_theme_color_override("font_color", Color(0.6, 0.64, 0.74))
+	return l
 
 
 func _info_label(text: String, size: int) -> Label:
@@ -419,15 +546,54 @@ func _info_label(text: String, size: int) -> Label:
 	return l
 
 
-func _mana_str(mana: Dictionary) -> String:
+func _mana_crystals(mana: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 6)
 	var avail: Dictionary = mana.get("available", {})
 	var total: Dictionary = mana.get("crystals", {})
-	var parts := []
+	var any := false
 	for color in ["red", "yellow", "green", "blue", "violet", "colorless"]:
 		var t := int(total.get(color, 0))
-		if t > 0:
-			parts.append("%s %d/%d" % [color, int(avail.get(color, 0)), t])
-	return "  ".join(parts) if not parts.is_empty() else "-"
+		if t <= 0:
+			continue
+		any = true
+		var av := int(avail.get(color, 0))
+		var group := HBoxContainer.new()
+		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		group.add_theme_constant_override("separation", 2)
+		for i in t:
+			group.add_child(_mana_pip(color, i < av))
+		row.add_child(group)
+	if not any:
+		var l := Label.new()
+		l.text = "нет маны"
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		l.add_theme_font_size_override("font_size", 12)
+		l.add_theme_color_override("font_color", Color(0.5, 0.53, 0.62))
+		row.add_child(l)
+	return row
+
+
+# A single mana crystal: bright and glowing when available, dim when spent.
+func _mana_pip(color: String, filled: bool) -> Control:
+	var pip := Panel.new()
+	pip.custom_minimum_size = Vector2(15, 22)
+	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var c := _color_for(color)
+	var sb := StyleBoxFlat.new()
+	sb.set_corner_radius_all(3)
+	sb.set_border_width_all(1)
+	if filled:
+		sb.bg_color = c
+		sb.border_color = c.lightened(0.45)
+		sb.shadow_size = 6
+		sb.shadow_color = Color(c.r, c.g, c.b, 0.65)
+	else:
+		sb.bg_color = Color(c.r, c.g, c.b, 0.10)
+		sb.border_color = Color(c.r, c.g, c.b, 0.5)
+	pip.add_theme_stylebox_override("panel", sb)
+	return pip
 
 
 # --- mana row (face-down backs + peekable awaken cards) ----------------------
@@ -526,6 +692,10 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 		card.can_drop_fn = func(data: Variant) -> bool: return _can_play_here(data)
 		card.drop_fn = func(data: Variant) -> void: _play_payload(data, 0)
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_my_creature(cid))
+		# On your turn, dim creatures that cannot attack so the ready ones glow.
+		if _my_turn() and not can_attack:
+			card.modulate = Color(0.6, 0.62, 0.7, 0.92)
+			card.rest_modulate = Color(0.6, 0.62, 0.7, 0.92)
 	else:
 		# Enemy creature: accept an attacker, or a targeted spell/awaken.
 		card.can_drop_fn = func(data: Variant) -> bool:
@@ -560,12 +730,17 @@ func _hand_row(hand: Array) -> Control:
 	for i in hand.size():
 		var cid: String = hand[i]
 		var card := _make_card(cid, null)
+		var playable := _is_playable(cid)
 		card.payload = {
 			"kind": "hand", "index": int(i), "card_id": cid,
 			"needs_target": _needs_target(cid), "is_creature": _is_creature(cid),
-			"draggable": _my_turn(),
+			"draggable": _my_turn(), "playable": playable,
 		}
 		card.drag_label = _name_of(cid)
+		# Dim cards you cannot play this turn so the playable ones stand out.
+		if not playable:
+			card.modulate = Color(0.62, 0.62, 0.68, 0.92)
+			card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
 		var idx := i
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_hand_card(idx, cid))
 		box.add_child(card)
@@ -602,8 +777,8 @@ func _make_card(def_id: String, runtime) -> UiCard:
 	var glow := StyleBoxFlat.new()
 	glow.bg_color = Color(0, 0, 0, 0)
 	glow.set_corner_radius_all(12)
-	glow.shadow_size = 7
-	glow.shadow_color = Color(col.r, col.g, col.b, 0.5)
+	glow.shadow_size = 10
+	glow.shadow_color = Color(col.r, col.g, col.b, 0.6)
 	card.add_theme_stylebox_override("panel", glow)
 	card.add_child(_card_face(def_id, runtime))
 	# Pretty hover tooltip (built lazily) instead of the plain text one. A
@@ -634,10 +809,6 @@ func _build_tooltip(def_id: String) -> Control:
 	sb.border_color = col
 	sb.set_content_margin_all(11)
 	panel.add_theme_stylebox_override("panel", sb)
-	# Kill Godot's default tooltip wrapper (the dim panel behind ours).
-	var th := Theme.new()
-	th.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new())
-	panel.theme = th
 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 5)
@@ -675,7 +846,52 @@ func _build_tooltip(def_id: String) -> Control:
 		text_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text_l.custom_minimum_size = Vector2(250, 0)
 		v.add_child(text_l)
+
+	# Plain-language explanation of each keyword and each spell effect.
+	var lines := []
+	for kw in d.get("keywords", []):
+		var kl := _keyword_desc(kw)
+		if kl != "":
+			lines.append(kl)
+	for e in d.get("effects", []):
+		var el := _effect_desc(e)
+		if el != "":
+			lines.append(el)
+	if not lines.is_empty():
+		v.add_child(HSeparator.new())
+		for line in lines:
+			v.add_child(_explain_label(line))
 	return panel
+
+
+func _explain_label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 12)
+	l.add_theme_color_override("font_color", Color(0.74, 0.8, 0.64))
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(250, 0)
+	return l
+
+
+func _effect_desc(e: Dictionary) -> String:
+	var a := String(e.get("action", ""))
+	if not EFFECT_DESC.has(a):
+		return ""
+	var s: String = EFFECT_DESC[a]
+	if e.has("value"):
+		s = s.replace("N", str(int(e["value"])))
+	return s
+
+
+func _keyword_desc(kw: Dictionary) -> String:
+	var id := String(kw.get("id", ""))
+	if not KW_DESC.has(id):
+		return ""
+	var s: String = KW_DESC[id]
+	if kw.has("n"):
+		s = s.replace("N", str(int(kw["n"])))
+	return s
 
 
 func _type_label(d: Dictionary) -> String:
@@ -737,10 +953,20 @@ func _card_face(def_id: String, runtime) -> Control:
 		_anchor_inset(sleep, FRAME)
 		face.add_child(sleep)
 
-	# Cost gem (top-left), ring tinted by the card's primary color.
-	var cost_gem := _gem(str(_total_cost(d.get("cost", {}))), _primary_color(d).lightened(0.2))
-	_anchor_corner(cost_gem, 0, 0, FRAME, FRAME)
-	face.add_child(cost_gem)
+	# Cost badge (top-left): generic number plus one colored pip per colored
+	# requirement, so the color cost is visible at a glance.
+	var cost_badge := _cost_badge(d.get("cost", {}))
+	cost_badge.anchor_left = 0
+	cost_badge.anchor_top = 0
+	cost_badge.anchor_right = 0
+	cost_badge.anchor_bottom = 0
+	cost_badge.offset_left = FRAME
+	cost_badge.offset_top = FRAME
+	cost_badge.offset_right = FRAME
+	cost_badge.offset_bottom = FRAME
+	cost_badge.grow_horizontal = Control.GROW_DIRECTION_END
+	cost_badge.grow_vertical = Control.GROW_DIRECTION_END
+	face.add_child(cost_badge)
 
 	# Stat gems (bottom corners) for creatures.
 	var has_stats: bool = d.has("stats") or (typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"))
@@ -873,6 +1099,58 @@ func _total_cost(cost: Dictionary) -> int:
 	return t
 
 
+func _cost_badge(cost: Dictionary) -> Control:
+	var pill := PanelContainer.new()
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.09, 0.9)
+	sb.set_corner_radius_all(9)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0.55, 0.6, 0.75, 0.7)
+	sb.set_content_margin_all(3)
+	pill.add_theme_stylebox_override("panel", sb)
+
+	var box := HBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 3)
+	var gen := int(cost.get("generic", 0))
+	var has_color := false
+	for c in ["red", "yellow", "green", "blue", "violet"]:
+		if int(cost.get(c, 0)) > 0:
+			has_color = true
+	# Show the generic number when there is one, or when the card is free of any
+	# colored pips (so a "0" still appears instead of an empty badge).
+	if gen > 0 or not has_color:
+		var n := Label.new()
+		n.text = str(gen)
+		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		n.add_theme_font_size_override("font_size", 18)
+		n.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
+		box.add_child(n)
+	for c in ["red", "yellow", "green", "blue", "violet"]:
+		for _i in int(cost.get(c, 0)):
+			box.add_child(_cost_pip(c))
+	pill.add_child(box)
+	return pill
+
+
+func _cost_pip(color: String) -> Control:
+	var c := _color_for(color)
+	var pip := Panel.new()
+	pip.custom_minimum_size = Vector2(13, 16)
+	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = c
+	sb.set_corner_radius_all(3)
+	sb.set_border_width_all(1)
+	sb.border_color = c.lightened(0.45)
+	pip.add_theme_stylebox_override("panel", sb)
+	var holder := CenterContainer.new()   # vertical-center the pip beside the number
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(pip)
+	return holder
+
+
 func _status_icons(cr: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -952,6 +1230,9 @@ func _can_play_here(data: Variant) -> bool:
 		return false
 	if not (data.get("kind", "") in ["hand", "awaken"]):
 		return false
+	# An unplayable hand card lights up no board zone (but can still go to mana).
+	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
+		return false
 	# A targeted spell must be dropped on an enemy creature, not on the board.
 	return not bool(data.get("needs_target", false))
 
@@ -969,9 +1250,68 @@ func _play_payload(data: Variant, target: int) -> void:
 func _place_mana(idx: int, card_id: String) -> void:
 	var d: Dictionary = cards.get(card_id, {})
 	var colors: Array = d.get("color", [])
-	var color := "colorless" if colors.is_empty() else String(colors[0])
-	_send({"action": "placeMana", "handIndex": idx, "color": color})
-	_clear_selection()
+	if colors.is_empty():
+		_send({"action": "placeMana", "handIndex": idx, "color": "colorless"})
+		_clear_selection()
+	elif colors.size() == 1:
+		_send({"action": "placeMana", "handIndex": idx, "color": String(colors[0])})
+		_clear_selection()
+	else:
+		# Multicolor card: let the player choose which crystal it becomes.
+		_show_color_picker(idx, colors)
+
+
+func _show_color_picker(idx: int, colors: Array) -> void:
+	# In-scene chooser: a dim full-screen backdrop (click to cancel) with a small
+	# panel of color buttons near the cursor. Avoids the flaky popup window.
+	_close_picker()
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	var backdrop := Button.new()
+	backdrop.flat = true
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.pressed.connect(_close_picker)
+	layer.add_child(backdrop)
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _glass(Color(0.6, 0.62, 0.8), 0.97))
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	var title := Label.new()
+	title.text = "Каким кристаллом положить?"
+	title.add_theme_font_size_override("font_size", 14)
+	vb.add_child(title)
+	for c in colors:
+		var cc := String(c)
+		var b := _neon_button(_color_ru(cc), _color_for(cc))
+		b.pressed.connect(func() -> void:
+			_send({"action": "placeMana", "handIndex": idx, "color": cc})
+			_clear_selection()
+			_close_picker())
+		vb.add_child(b)
+	panel.add_child(vb)
+	layer.add_child(panel)
+	add_child(layer)
+
+	var pos := get_global_mouse_position() - Vector2(20, 20)
+	pos.x = clampf(pos.x, 8.0, size.x - 200.0)
+	pos.y = clampf(pos.y, 8.0, size.y - 180.0)
+	panel.position = pos
+	_picker = layer
+
+
+func _close_picker() -> void:
+	if _picker != null:
+		_picker.queue_free()
+		_picker = null
+
+
+func _color_ru(color: String) -> String:
+	return {
+		"red": "красный", "yellow": "жёлтый", "green": "зелёный",
+		"blue": "синий", "violet": "фиолетовый", "colorless": "бесцветный",
+	}.get(color, color)
 
 
 # --- click fallback ----------------------------------------------------------
