@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -102,7 +103,13 @@ int main(int argc, char** argv) {
     return 1;
   }
   listen(srv, 2);
-  std::printf("Prism server on port %d, waiting for 2 players...\n", port);
+  // Bound to INADDR_ANY: reachable on every interface. The host's own client
+  // connects to ws://127.0.0.1:<port>; a friend on the LAN uses the host's LAN
+  // IP, over the internet a forwarded/tunnelled address.
+  std::printf(
+      "Prism server on port %d (all interfaces). Connect 2 players to "
+      "ws://<host>:%d ...\n",
+      port, port);
   std::fflush(stdout);
 
   int fd[2];
@@ -116,17 +123,24 @@ int main(int argc, char** argv) {
     std::fflush(stdout);
   }
 
+  // Fresh randomness each game: a non-fixed seed (tests still pass explicit
+  // seeds for determinism, but a real match should differ every time).
+  std::random_device rd;
+  std::uint32_t seed = rd();
+
   // Each player gets a random hero (no lobby/picker yet -- DESIGN §6).
   std::vector<std::string> heroes = heroPool(lib);
   std::string h0, h1;
   if (!heroes.empty()) {
-    std::mt19937 pick(std::random_device{}());
+    std::mt19937 pick(rd());
     h0 = heroes[pick() % heroes.size()];
     h1 = heroes[pick() % heroes.size()];
     std::printf("Heroes: P0=%s  P1=%s\n", h0.c_str(), h1.c_str());
     std::fflush(stdout);
   }
-  Game g(lib, demoDeck(lib), demoDeck(lib), 12345, h0, h1);
+  std::printf("Game seed: %u\n", seed);
+  std::fflush(stdout);
+  Game g(lib, demoDeck(lib), demoDeck(lib), seed, h0, h1);
   g.start();
   broadcast(g, fd);
 
