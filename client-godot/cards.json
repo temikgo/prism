@@ -178,5 +178,62 @@
     "effects": [
       { "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }
     ]
+  },
+  {
+    "id": "red_searing_lancer",
+    "name": { "ru": "Неистовый Душегуб" },
+    "text": { "ru": "Сквозь строй. Алый дар. Регенерация 1." },
+    "art": "a relentless crimson crystal-light reaver lunging past defenders, a life-draining red glow pulling vitality inward, wounds knitting shut, unstoppable",
+    "type": "creature",
+    "color": ["red"],
+    "cost": { "generic": 3, "red": 2 },
+    "stats": { "atk": 5, "hp": 4 },
+    "keywords": [{ "id": "bypass" }, { "id": "self_lifesteal" }, { "id": "regen", "n": 1 }]
+  },
+  {
+    "id": "yellow_halo_keeper",
+    "name": { "ru": "Нимбовый Хранитель" },
+    "text": { "ru": "Маяк. Нимб." },
+    "art": "a steadfast yellow crystal-light sentinel with a bright halo above its head, a wide protective stance drawing every enemy's attention, immovable",
+    "type": "creature",
+    "color": ["yellow"],
+    "cost": { "generic": 2, "yellow": 2 },
+    "stats": { "atk": 1, "hp": 6 },
+    "keywords": [{ "id": "provoke" }, { "id": "ward" }]
+  },
+  {
+    "id": "green_living_sprig",
+    "name": { "ru": "Цветущая Матрона" },
+    "text": { "ru": "Проращивание 1. Споры 2." },
+    "art": "a lush green crystal-light matron-creature surrounded by sprouting seedlings, drifting spores and budding shoots, fertile and teeming with life",
+    "type": "creature",
+    "color": ["green"],
+    "cost": { "generic": 1, "green": 2 },
+    "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "germinate", "n": 1 }, { "id": "spores", "n": 2 }]
+  },
+  {
+    "id": "blue_clarion_rift",
+    "name": { "ru": "Ясный Разрыв" },
+    "text": { "ru": "Уничтожьте вражеские ауры. Возьмите карту." },
+    "art": "a clear blue crystal-light rift shattering shimmering enchantments while a card of cold light is drawn from the break, lucid and precise",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 2 },
+    "effects": [
+      { "trigger": "on_play", "action": "dispel" },
+      { "trigger": "on_play", "action": "draw", "value": 1 }
+    ]
+  },
+  {
+    "id": "violet_shard_wraith",
+    "name": { "ru": "Незримый Расщеп" },
+    "text": { "ru": "Незримость. Расщепление 2." },
+    "art": "a half-unseen violet crystal-light wraith splitting into faint mirror-duplicates as it slips through shadow, one solid and two ghostly, elusive",
+    "type": "creature",
+    "color": ["violet"],
+    "cost": { "generic": 2, "violet": 2 },
+    "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "stealth" }, { "id": "split", "n": 2 }]
   }
 ]

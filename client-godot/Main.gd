@@ -428,6 +428,13 @@ func _has_keyword(card_id: String, kw: String) -> bool:
 	return false
 
 
+func _keyword_n(card_id: String, kw: String) -> int:
+	for k in cards.get(card_id, {}).get("keywords", []):
+		if String(k.get("id", "")) == kw:
+			return int(k.get("n", 0))
+	return 0
+
+
 # Does the enemy control a (visible) provoker, forcing attacks onto it?
 func _enemy_has_provoke() -> bool:
 	var you := int(view["you"])
@@ -987,8 +994,51 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 		if await_attack or await_spell:
 			card.modulate = Color(1.45, 1.45, 1.1)
 
+	# Green germinate: an "activate" button on your own creature.
+	if mine and _has_keyword(String(cr["card"]), "germinate"):
+		card.add_child(_germinate_button(cr, cid))
+
 	_card_nodes[cid] = card
 	return card
+
+
+# True if you can use this creature's germinate right now.
+func _can_germinate(cr: Dictionary) -> bool:
+	if not _my_turn() or bool(cr.get("usedActive", false)):
+		return false
+	var you := int(view["you"])
+	var me: Dictionary = view["players"][you]
+	if int(me.get("board", []).size()) >= BOARD_LIMIT:
+		return false
+	var avail: Dictionary = me["mana"].get("available", {})
+	var total := 0
+	for c in ["red", "yellow", "green", "blue", "violet", "colorless"]:
+		total += int(avail.get(c, 0))
+	return total >= 1
+
+
+func _germinate_button(cr: Dictionary, cid: int) -> Button:
+	var acc := Color(0.4, 0.8, 0.46)
+	var ok := _can_germinate(cr)
+	var n := int(_keyword_n(String(cr["card"]), "germinate"))
+	var b := Button.new()
+	b.text = "росток %d/%d" % [n, n]
+	b.add_theme_font_size_override("font_size", 11)
+	b.disabled = not ok
+	b.tooltip_text = "Проращивание: 1 кристалл → росток %d/%d (раз в ход)" % [n, n]
+	b.add_theme_color_override("font_color", acc.lightened(0.5))
+	b.add_theme_color_override("font_disabled_color", Color(0.45, 0.48, 0.55))
+	b.add_theme_stylebox_override("normal", Ui.glass(acc, 0.55))
+	b.add_theme_stylebox_override("hover", Ui.glass(acc, 0.75))
+	var dis := Ui.glass(Color(0.3, 0.32, 0.4), 0.3)
+	dis.shadow_size = 0
+	b.add_theme_stylebox_override("disabled", dis)
+	b.position = Vector2(FRAME + 2, FRAME + 2)
+	b.size = Vector2(CARD_SIZE.x - 2 * (FRAME + 2), 22)
+	b.pressed.connect(func() -> void:
+		_send({"action": "activate", "id": cid})
+		_clear_selection())
+	return b
 
 
 # --- hand --------------------------------------------------------------------
@@ -1373,6 +1423,9 @@ func _status_icons(cr: Dictionary) -> Control:
 		any = true
 	if bool(cr.get("shield", false)):
 		row.add_child(Ui.icon("shield", 20, Color(0.97, 0.88, 0.4)))
+		any = true
+	if bool(cr.get("ward", false)):
+		row.add_child(Ui.icon("halo", 20, Color(0.72, 0.95, 1.0)))
 		any = true
 	if bool(cr.get("stealth", false)):
 		row.add_child(Ui.icon("eye", 20, Color(0.75, 0.55, 0.97)))
