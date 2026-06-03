@@ -110,10 +110,10 @@ func _build_shell() -> void:
 	url_edit.text = DEFAULT_URL
 	url_edit.custom_minimum_size = Vector2(280, 0)
 	bar.add_child(url_edit)
-	var connect_btn := Ui.neon_button("Connect", Color(0.4, 0.8, 1.0))
+	var connect_btn := Ui.neon_button("Подключиться", Color(0.4, 0.8, 1.0))
 	connect_btn.pressed.connect(_on_connect)
 	bar.add_child(connect_btn)
-	status_label = Ui.label("disconnected", 0, Color(0.7, 0.75, 0.85))
+	status_label = Ui.label("нет связи", 0, Color(0.7, 0.75, 0.85))
 	bar.add_child(status_label)
 	root_box.add_child(bar)
 
@@ -158,7 +158,7 @@ func _process(_dt: float) -> void:
 	if st == WebSocketPeer.STATE_OPEN:
 		if not was_open:
 			was_open = true
-			status_label.text = "connected"
+			status_label.text = "на связи"
 		while socket.get_available_packet_count() > 0:
 			var txt := socket.get_packet().get_string_from_utf8()
 			var data: Variant = JSON.parse_string(txt)
@@ -166,7 +166,7 @@ func _process(_dt: float) -> void:
 				_ingest_view(data)
 	elif st == WebSocketPeer.STATE_CLOSED and was_open:
 		was_open = false
-		status_label.text = "closed"
+		status_label.text = "соединение закрыто"
 	_update_board_gap()
 
 
@@ -399,13 +399,44 @@ func _can_afford(cost: Dictionary, avail: Dictionary) -> bool:
 	return left >= int(cost.get("generic", 0))
 
 
+# Affordable if one available crystal may be retuned to a spectrum-adjacent
+# color (Prism spectral_shift). Mirrors the engine's shiftedPool check.
+func _can_afford_with_shift(cost: Dictionary, avail: Dictionary) -> bool:
+	var colors := ["red", "yellow", "green", "blue", "violet"]
+	for xi in range(5):
+		for yi in range(5):
+			if absi(xi - yi) != 1:
+				continue
+			if int(avail.get(colors[yi], 0)) < 1:
+				continue
+			var swapped := avail.duplicate()
+			swapped[colors[yi]] = int(swapped.get(colors[yi], 0)) - 1
+			swapped[colors[xi]] = int(swapped.get(colors[xi], 0)) + 1
+			if _can_afford(cost, swapped):
+				return true
+	return false
+
+
+# Does this player's hero carry the given passive keyword?
+func _hero_has(p: Dictionary, passive_id: String) -> bool:
+	for kw in p.get("hero", {}).get("passive", []):
+		if String(kw.get("id", "")) == passive_id:
+			return true
+	return false
+
+
 # Playable right now: my turn, affordable, and (for creatures) the board has room.
 func _is_playable(card_id: String) -> bool:
 	if not _my_turn():
 		return false
 	var you := int(view["you"])
 	var me: Dictionary = view["players"][you]
-	if not _can_afford(cards.get(card_id, {}).get("cost", {}), me["mana"].get("available", {})):
+	var cost: Dictionary = cards.get(card_id, {}).get("cost", {})
+	var avail: Dictionary = me["mana"].get("available", {})
+	# Prism spectral_shift can pay a foreign pip with a spectrum-neighbour crystal,
+	# once per turn -- so a card unaffordable normally may still be playable.
+	var shift_ready: bool = _hero_has(me, "spectral_shift") and not bool(me.get("shiftUsed", false))
+	if not _can_afford(cost, avail) and not (shift_ready and _can_afford_with_shift(cost, avail)):
 		return false
 	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
 		return false
@@ -502,11 +533,11 @@ func _rebuild() -> void:
 	UiCard.targeting = attacker_id >= 0 or casting_index >= 0 or awaken_index >= 0
 
 	root_box.add_child(_banner(you))
-	root_box.add_child(_enemy_strip(opp))
-	root_box.add_child(_board_row(opp.get("board", []), opp.get("auras", []), false))
+	# Each half is a band: [hero medallion | board (center) | piles]. Heroes get
+	# real presence on the flank; the deck/graveyard/mana live as the right column.
+	root_box.add_child(_player_half(opp, false))
 	root_box.add_child(_separator())
-	root_box.add_child(_board_row(me.get("board", []), me.get("auras", []), true))
-	root_box.add_child(_me_strip(me))
+	root_box.add_child(_player_half(me, true))
 	root_box.add_child(_hand_row(me.get("hand", [])))
 	root_box.add_child(_controls())
 
@@ -709,15 +740,15 @@ func _banner(you: int) -> Control:
 	if bool(view.get("over", false)):
 		var w := int(view.get("winner", -1))
 		var win := w == you
-		banner.text = "GAME OVER - " + ("YOU WIN" if win else "YOU LOSE")
+		banner.text = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
 		banner.add_theme_color_override("font_color",
 			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
 	elif bool(view.get("mulligan", false)):
 		banner.text = "МУЛИГАН"
 		banner.add_theme_color_override("font_color", Color(0.45, 0.85, 1.0))
 	else:
-		var who := "YOUR TURN" if _my_turn() else "OPPONENT'S TURN"
-		banner.text = "%s   -   turn %d" % [who, int(view.get("turn", 0))]
+		var who := "ВАШ ХОД" if _my_turn() else "ХОД СОПЕРНИКА"
+		banner.text = "%s   ·   ход %d" % [who, int(view.get("turn", 0))]
 		banner.add_theme_color_override("font_color",
 			Color(0.45, 0.85, 1.0) if _my_turn() else Color(0.6, 0.62, 0.72))
 	return banner
@@ -725,58 +756,217 @@ func _banner(you: int) -> Control:
 
 # --- hero strips -------------------------------------------------------------
 
-func _enemy_strip(opp: Dictionary) -> Control:
-	var zone := UiCard.new()
-	zone.custom_minimum_size = Vector2(0, 72)  # a fat, easy drop target for face hits
-	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.9, 0.32, 0.38)))
-	# Attack the face: blocked by a provoker unless the attacker has Bypass.
-	zone.can_drop_fn = func(data: Variant) -> bool:
-		if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
-			return false
-		return not _enemy_has_provoke() or bool(data.get("bypass", false))
-	zone.drop_fn = func(data: Variant) -> void:
-		_send({"action": "attackHero", "attacker": int(data["id"])})
-		_clear_selection()
-	zone.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
-	if attacker_id >= 0 and (not _enemy_has_provoke() or _attacker_has_bypass()):
-		zone.modulate = Color(1.5, 1.4, 1.1)
-
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 14)
-	row.add_child(_hero_block(opp["hero"], "ENEMY"))
-	row.add_child(_counts_label(opp))
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
-	row.add_child(_mana_crystals(opp.get("mana", {})))
-	row.add_child(_manarow_view(opp.get("manaRow", []), false))
-	zone.add_child(row)
-	return zone
+const ENEMY_ACCENT := Color(0.92, 0.36, 0.42)
+const ME_ACCENT := Color(0.34, 0.62, 0.98)
 
 
-func _me_strip(me: Dictionary) -> Control:
-	var zone := UiCard.new()
-	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.32, 0.6, 0.98)))
+# One player's band: [hero medallion | board (center, expands) | piles column].
+func _player_half(p: Dictionary, mine: bool) -> Control:
+	var half := HBoxContainer.new()
+	half.add_theme_constant_override("separation", 10)
+	half.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	half.add_child(_hero_medallion(p.get("hero", {}), mine))
+	var board := _board_row(p.get("board", []), p.get("auras", []), mine)
+	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	half.add_child(board)
+	half.add_child(_piles_column(p, mine))
+	return half
 
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 14)
-	row.add_child(_hero_block(me["hero"], "YOU"))
-	var power := Ui.neon_button("Сила героя", Color(0.72, 0.45, 0.95))
-	power.disabled = true
-	power.tooltip_text = "Сила героя - появится позже"
-	row.add_child(power)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
-	row.add_child(_mana_crystals(me.get("mana", {})))
-	row.add_child(_manarow_view(me.get("manaRow", []), true))
-	row.add_child(_counts_label(me))
-	zone.add_child(row)
-	return zone
+
+# The hero as a big framed portrait with HP/armor gems and the passive badge.
+# The enemy medallion doubles as the face-attack drop target.
+func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
+	var accent := ME_ACCENT if mine else ENEMY_ACCENT
+	var card := UiCard.new()
+	card.custom_minimum_size = Vector2(158, 0)
+	card.size_flags_vertical = Control.SIZE_FILL
+	card.add_theme_stylebox_override("panel", Ui.glass(accent, 0.4))
+	if not mine:
+		# Attack the face: blocked by a provoker unless the attacker has Bypass.
+		card.can_drop_fn = func(data: Variant) -> bool:
+			if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
+				return false
+			return not _enemy_has_provoke() or bool(data.get("bypass", false))
+		card.drop_fn = func(data: Variant) -> void:
+			_send({"action": "attackHero", "attacker": int(data["id"])})
+			_clear_selection()
+		card.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
+		if attacker_id >= 0 and (not _enemy_has_provoke() or _attacker_has_bypass()):
+			card.modulate = Color(1.5, 1.4, 1.1)
+
+	var v := VBoxContainer.new()
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_theme_constant_override("separation", 5)
+	var tag := Ui.label("ВЫ" if mine else "СОПЕРНИК", 11, accent.lightened(0.35), true)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(tag)
+	v.add_child(_hero_portrait_with_hp(hero, 124))
+	var nm := Ui.label(String(hero.get("name", "Герой")), 17, null, true)
+	nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(nm)
+	var badge := _hero_passive_badge(hero)
+	if badge != null:
+		var brow := HBoxContainer.new()
+		brow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		brow.alignment = BoxContainer.ALIGNMENT_CENTER
+		brow.add_child(badge)
+		v.add_child(brow)
+	card.add_child(v)
+	return card
+
+
+# Square portrait with the HP gem overhanging the bottom-right (armor bottom-left).
+func _hero_portrait_with_hp(hero: Dictionary, px: float) -> Control:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(px, px)
+	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var portrait := _hero_portrait(String(hero.get("card", "")), px)
+	portrait.set_anchors_preset(Control.PRESET_FULL_RECT)
+	holder.add_child(portrait)
+	var hp := _stat_gem(str(int(hero.get("hp", 0))), Color(0.95, 0.42, 0.46), 44)
+	hp.position = Vector2(px - 40, px - 40)
+	holder.add_child(hp)
+	if int(hero.get("armor", 0)) > 0:
+		var ar := _stat_gem(str(int(hero["armor"])), Color(0.72, 0.82, 0.98), 34)
+		ar.position = Vector2(-6, px - 30)
+		holder.add_child(ar)
+	return holder
+
+
+# A round stat gem (HP / armor) sized to `d`, drawn at an absolute position.
+func _stat_gem(text: String, ring: Color, d: float) -> Control:
+	var g := Panel.new()
+	g.custom_minimum_size = Vector2(d, d)
+	g.size = Vector2(d, d)
+	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.05, 0.08, 0.96)
+	sb.set_corner_radius_all(int(d / 2.0))
+	sb.set_border_width_all(2)
+	sb.border_color = ring
+	sb.shadow_size = 6
+	sb.shadow_color = Color(ring.r, ring.g, ring.b, 0.5)
+	g.add_theme_stylebox_override("panel", sb)
+	var l := Ui.label(text, int(d * 0.42), ring.lightened(0.45), true)
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	g.add_child(l)
+	return g
+
+
+# Right flank: mana, the banked-card peek, deck/graveyard stacks, counts, top card.
+func _piles_column(p: Dictionary, mine: bool) -> Control:
+	var col := VBoxContainer.new()
+	col.custom_minimum_size = Vector2(142, 0)
+	col.size_flags_vertical = Control.SIZE_FILL
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 8)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(_mana_block(p.get("mana", {})))
+	var mr := _manarow_view(p.get("manaRow", []), mine)
+	if mr != null:
+		col.add_child(mr)
+	var piles := HBoxContainer.new()
+	piles.alignment = BoxContainer.ALIGNMENT_CENTER
+	piles.add_theme_constant_override("separation", 12)
+	piles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	piles.add_child(_pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95)))
+	piles.add_child(_pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68)))
+	col.add_child(piles)
+	var info := "рука %d" % int(p.get("handCount", 0))
+	var pending := int(p.get("pendingCount", 0))
+	if pending > 0:
+		info += " · отлож %d" % pending
+	var il := Ui.label(info, 11, Color(0.6, 0.64, 0.74), true)
+	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(il)
+	# Lens clairvoyance: your revealed top card sits by your deck.
+	if mine and p.has("topCard"):
+		col.add_child(_topcard_chip(String(p["topCard"])))
+	return col
+
+
+func _mana_block(mana: Dictionary) -> Control:
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 3)
+	var tag := Ui.label("МАНА", 10, Color(0.62, 0.66, 0.78), true)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(tag)
+	box.add_child(_mana_pips(mana))
+	return box
+
+
+# Mana crystals, grouped by color, wrapping within the flank column width.
+func _mana_pips(mana: Dictionary) -> Control:
+	var flow := HFlowContainer.new()
+	flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flow.alignment = FlowContainer.ALIGNMENT_CENTER
+	flow.add_theme_constant_override("h_separation", 4)
+	flow.add_theme_constant_override("v_separation", 3)
+	flow.custom_minimum_size = Vector2(134, 0)
+	var avail: Dictionary = mana.get("available", {})
+	var total: Dictionary = mana.get("crystals", {})
+	var any := false
+	for color in ["red", "yellow", "green", "blue", "violet", "colorless"]:
+		var t := int(total.get(color, 0))
+		if t <= 0:
+			continue
+		any = true
+		var av := int(avail.get(color, 0))
+		var group := HBoxContainer.new()
+		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		group.add_theme_constant_override("separation", 2)
+		for i in t:
+			group.add_child(Ui.mana_pip(color, i < av))
+		flow.add_child(group)
+	if not any:
+		var l := Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		flow.add_child(l)
+	return flow
+
+
+# A deck/graveyard pile: up to three offset card-backs with the count on top.
+func _pile_stack(count: int, label: String, accent: Color) -> Control:
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 3)
+	var stack := Control.new()
+	stack.custom_minimum_size = Vector2(46, 56)
+	stack.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var depth := maxi(clampi(count, 0, 3), 1)
+	var w := 36.0
+	var h := 48.0
+	for i in range(depth):
+		var back := Panel.new()
+		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		back.size = Vector2(w, h)
+		back.position = Vector2(i * 3, (depth - 1 - i) * 3)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.11, 0.13, 0.18, 0.96) if count > 0 else Color(0.10, 0.11, 0.14, 0.65)
+		sb.set_corner_radius_all(6)
+		sb.set_border_width_all(2)
+		sb.border_color = accent if i == depth - 1 else accent.darkened(0.35)
+		back.add_theme_stylebox_override("panel", sb)
+		stack.add_child(back)
+	var cl := Ui.label(str(count), 18, accent.lightened(0.45), true)
+	cl.size = Vector2(w, h)
+	cl.position = Vector2((depth - 1) * 3, 0)
+	cl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(cl)
+	box.add_child(stack)
+	var ll := Ui.label(label, 10, Color(0.6, 0.64, 0.74), true)
+	ll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(ll)
+	return box
 
 
 func _aura_shelf(auras: Array, mine: bool) -> Control:
@@ -840,88 +1030,185 @@ func _art_thumb(card_id: String, fallback: Color, px: float) -> Control:
 	return ph
 
 
-func _hero_block(hero: Dictionary, title: String) -> Control:
-	var box := HBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 5)
-	var t := Ui.label(title, 15)
-	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(t)
-	box.add_child(Ui.icon("heart", 22, Color(0.95, 0.42, 0.46)))
-	box.add_child(_gem(str(int(hero["hp"])), Color(0.95, 0.42, 0.46)))
-	if int(hero.get("armor", 0)) > 0:
-		box.add_child(Ui.icon("shield", 20, Color(0.72, 0.82, 0.98)))
-		var arm := Ui.label(str(int(hero["armor"])), 16, Color(0.72, 0.82, 0.98))
-		arm.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_child(arm)
-	return box
+const HERO_ACCENT := Color(0.8, 0.72, 0.98)  # heroes are off-color (light violet)
 
 
-func _counts_label(p: Dictionary) -> Control:
-	var txt := "рука %d   колода %d   сброс %d" % [
-		int(p.get("handCount", 0)), int(p.get("deckCount", 0)),
-		int(p.get("graveyardCount", 0))]
-	# Blue delay: how many effects are queued to resolve on this player's turns.
-	var pending := int(p.get("pendingCount", 0))
-	if pending > 0:
-		txt += "   отложено %d" % pending
-	var l := Ui.label(txt, 12, Color(0.6, 0.64, 0.74))
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
+# A large framed hero portrait (rounded, bordered, clipped). Falls back to a
+# tinted placeholder until art/<heroId>.png exists (see ART_HEROES.md).
+func _hero_portrait(card_id: String, px: float) -> Control:
+	var holder := Panel.new()
+	holder.custom_minimum_size = Vector2(px, px)
+	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.09, 0.10, 0.15)
+	sb.set_corner_radius_all(12)
+	sb.set_border_width_all(2)
+	sb.border_color = HERO_ACCENT
+	sb.shadow_size = 8
+	sb.shadow_color = Color(HERO_ACCENT.r, HERO_ACCENT.g, HERO_ACCENT.b, 0.45)
+	holder.add_theme_stylebox_override("panel", sb)
+	holder.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	var art := _art_thumb(card_id, HERO_ACCENT, px)
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	holder.add_child(art)
+	holder.tooltip_text = _name_of(card_id)
+	return holder
 
 
-func _mana_crystals(mana: Dictionary) -> Control:
+# Maps a hero's passive keyword to its tinted icon (icons/<name>.svg).
+func _passive_icon(id: String) -> String:
+	match id:
+		"spectral_shift": return "prism"
+		"umbra": return "eclipse"
+		"clairvoyance": return "lens"
+	return "eye"
+
+
+# A round badge for the hero's passive: its icon, with a styled hover tooltip.
+func _hero_passive_badge(hero: Dictionary) -> Control:
+	var passive: Array = hero.get("passive", [])
+	if passive.is_empty():
+		return null
+	var kw: Dictionary = passive[0]
+	var badge := UiCard.new()
+	badge.custom_minimum_size = Vector2(30, 30)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	badge.add_theme_stylebox_override("panel", _round_style(HERO_ACCENT, false))
+	badge.add_child(Ui.icon(_passive_icon(String(kw.get("id", ""))), 18, HERO_ACCENT.lightened(0.4)))
+	badge.tooltip_text = Glossary.keyword_name(kw)
+	badge.tooltip_builder = func() -> Control: return _hero_passive_tooltip(hero)
+	return badge
+
+
+func _hero_passive_tooltip(hero: Dictionary) -> Control:
+	var passive: Array = hero.get("passive", [])
+	var kw: Dictionary = passive[0] if not passive.is_empty() else {}
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel",
+		Ui.bordered(Color(0.10, 0.11, 0.15, 0.98), 10, 2, HERO_ACCENT, 11))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 5)
+	v.custom_minimum_size = Vector2(240, 0)
+	panel.add_child(v)
+	v.add_child(Ui.label(String(hero.get("name", "Герой")), 16, HERO_ACCENT.lightened(0.4)))
+	v.add_child(Ui.label("Сила героя · пассив", 11, Color(0.6, 0.64, 0.74)))
+	v.add_child(HSeparator.new())
+	# The passive: its icon and bold name, then the plain-language explanation.
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	head.add_child(Ui.icon(_passive_icon(String(kw.get("id", ""))), 20, HERO_ACCENT.lightened(0.3)))
+	head.add_child(Ui.label(Glossary.keyword_name(kw), 15, HERO_ACCENT.lightened(0.3)))
+	v.add_child(head)
+	var full := Glossary.keyword(kw)
+	var ci := full.find(":")
+	v.add_child(_rich(full.substr(ci + 1).strip_edges() if ci > 0 else full,
+		13, Color(0.82, 0.86, 0.92)))
+	# Flavor (the artist's words), if any.
+	var flavor := _text_of(String(hero.get("card", "")))
+	if flavor != "":
+		v.add_child(HSeparator.new())
+		var fl := Ui.label(flavor, 12, Color(0.62, 0.6, 0.72))
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.custom_minimum_size = Vector2(240, 0)
+		v.add_child(fl)
+	return panel
+
+
+# Lens clairvoyance: a small chip showing the revealed top card of your deck.
+func _topcard_chip(card_id: String) -> Control:
+	var col := Palette.primary(_def(card_id))
+	var tile := UiCard.new()
+	tile.custom_minimum_size = Vector2(0, 44)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.09, 0.10, 0.15, 0.92)
+	sb.set_corner_radius_all(8)
+	sb.set_border_width_all(1)
+	sb.border_color = HERO_ACCENT
+	sb.set_content_margin_all(4)
+	tile.add_theme_stylebox_override("panel", sb)
+	tile.tooltip_text = _name_of(card_id)
+	tile.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 6)
-	var avail: Dictionary = mana.get("available", {})
-	var total: Dictionary = mana.get("crystals", {})
-	var any := false
-	for color in ["red", "yellow", "green", "blue", "violet", "colorless"]:
-		var t := int(total.get(color, 0))
-		if t <= 0:
-			continue
-		any = true
-		var av := int(avail.get(color, 0))
-		var group := HBoxContainer.new()
-		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		group.add_theme_constant_override("separation", 2)
-		for i in t:
-			group.add_child(Ui.mana_pip(color, i < av))
-		row.add_child(group)
-	if not any:
-		var l := Ui.label("нет маны", 12, Color(0.5, 0.53, 0.62))
-		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(l)
-	return row
+	row.add_theme_constant_override("separation", 5)
+	row.add_child(Ui.icon("lens", 14, HERO_ACCENT))
+	row.add_child(_art_thumb(card_id, col, 34))
+	var nl := Ui.label(_name_of(card_id), 11)
+	nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nl.custom_minimum_size = Vector2(72, 0)
+	row.add_child(nl)
+	tile.add_child(row)
+	return tile
 
 
-# A single mana crystal: bright and glowing when available, dim when spent.
 # --- mana row (face-down backs + peekable awaken cards) ----------------------
 
 # The banked cards themselves are just hidden mana -- their count already shows
 # as crystals -- so we only surface your own awaken-able cards here.
 func _manarow_view(mana_row: Array, mine: bool) -> Control:
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 3)
-	var tagged := false
+	# Your awaken cards, or (under floodlight) every enemy banked card. Returns
+	# null when there is nothing to show. The list is height-capped and scrolls,
+	# so a full mana row never grows the column and pushes the other board away.
+	var slots := []
 	for i in mana_row.size():
 		var slot: Dictionary = mana_row[i]
-		if not slot.has("card"):  # face-down: only awaken/floodlight reveal a card
-			continue
-		if not tagged:
-			# Yours = awaken-able cards; the enemy's only show under your floodlight.
-			var label := "разбудить:" if mine else "прожектор:"
-			var tag := Ui.label(label, 11, Color(0.95, 0.85, 0.4))
-			tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			row.add_child(tag)
-			tagged = true
-		if mine:
-			row.add_child(_awaken_chip(int(i), slot))
-		else:
-			row.add_child(_revealed_chip(slot))
-	return row
+		if slot.has("card"):
+			slots.append({"i": int(i), "slot": slot})
+	if slots.is_empty():
+		return null
+
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 3)
+	var tag := Ui.label("разбудить:" if mine else "прожектор:", 11, Color(0.95, 0.85, 0.4), true)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(tag)
+
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sc.mouse_filter = Control.MOUSE_FILTER_PASS
+	var cap_h := 0.0
+	if mine:
+		# Your awaken cards stay full interactive chips (usually few); cap ~2 tall.
+		var inner := VBoxContainer.new()
+		inner.add_theme_constant_override("separation", 3)
+		for c in slots:
+			inner.add_child(_awaken_chip(int(c["i"]), c["slot"]))
+		sc.add_child(inner)
+		cap_h = mini(slots.size(), 2) * 57.0
+	else:
+		# Floodlight can reveal many crystals -> compact art thumbnails that wrap.
+		var flow := HFlowContainer.new()
+		flow.custom_minimum_size = Vector2(136, 0)
+		flow.add_theme_constant_override("h_separation", 3)
+		flow.add_theme_constant_override("v_separation", 3)
+		for c in slots:
+			var s: Dictionary = c["slot"]
+			flow.add_child(_revealed_thumb(String(s["card"]), String(s.get("color", "colorless"))))
+		sc.add_child(flow)
+		var rows := (slots.size() + 2) / 3  # 3 thumbnails per row
+		cap_h = mini(rows, 2) * 39.0  # show up to 2 rows, scroll the rest
+	sc.custom_minimum_size = Vector2(138, cap_h)
+	box.add_child(sc)
+	return box
+
+
+# A compact peek thumbnail (floodlight): art only, with the full hover tooltip.
+func _revealed_thumb(card_id: String, color: String) -> Control:
+	var t := UiCard.new()
+	t.custom_minimum_size = Vector2(36, 36)
+	t.add_theme_stylebox_override("panel",
+		Ui.bordered(Color(0.09, 0.10, 0.15, 0.92), 6, 1, Color(0.7, 0.62, 0.32), 2))
+	t.tooltip_text = _name_of(card_id)
+	t.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
+	t.hoverable = true
+	t.add_child(_art_thumb(card_id, Palette.color_for(color), 30))
+	return t
 
 
 # A peekable awaken card sitting in your mana row: a mini-card (art + name + a
@@ -936,7 +1223,7 @@ func _awaken_chip(idx: int, slot: Dictionary) -> Control:
 	var gold := Color(0.95, 0.85, 0.3)
 	var affordable := _can_awaken(card_id, color, age)
 	var chip := UiCard.new()
-	chip.custom_minimum_size = Vector2(150, 54)
+	chip.custom_minimum_size = Vector2(132, 54)
 	var sb := Ui.bordered(Color(0.09, 0.10, 0.15, 0.94), 8, 2,
 		gold if affordable else gold.darkened(0.4), 5)
 	if affordable:
@@ -966,37 +1253,13 @@ func _awaken_chip(idx: int, slot: Dictionary) -> Control:
 	var name_l := Ui.label(_name_of(card_id), 12)
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_l.custom_minimum_size = Vector2(80, 0)
+	name_l.custom_minimum_size = Vector2(64, 0)
 	col.add_child(name_l)
 	var tag_txt := "бесплатно!" if free else "разбудить"
 	var tag := Ui.label(tag_txt, 9, gold if affordable else gold.darkened(0.25))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(tag)
 	row.add_child(col)
-	chip.add_child(row)
-	return chip
-
-
-# A read-only peek at an enemy's banked card, revealed by your floodlight aura.
-func _revealed_chip(slot: Dictionary) -> Control:
-	var card_id := String(slot["card"])
-	var color := String(slot.get("color", "colorless"))
-	var chip := UiCard.new()
-	chip.custom_minimum_size = Vector2(124, 46)
-	chip.add_theme_stylebox_override("panel",
-		Ui.bordered(Color(0.09, 0.10, 0.15, 0.9), 7, 1, Color(0.7, 0.62, 0.32)))
-	chip.tooltip_text = _name_of(card_id)
-	chip.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
-	chip.hoverable = true
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 5)
-	row.add_child(_art_thumb(card_id, Palette.color_for(color), 36))
-	var name_l := Ui.label(_name_of(card_id), 11)
-	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_l.custom_minimum_size = Vector2(72, 0)
-	row.add_child(name_l)
 	chip.add_child(row)
 	return chip
 
@@ -1051,7 +1314,19 @@ func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 	# (mouse_filter STOP) still receive their own input regardless.
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 6)
+	# Creatures overlap (like the hand fan) when too many to lay out side by side,
+	# so a full board never runs off the right edge. Account for both flanks.
+	var n := board.size()
+	var sep := 6
+	if n > 1:
+		var avail := size.x - 158 - 142 - 60  # medallion + piles + separations/margins
+		if not auras.is_empty():
+			avail -= 150
+		var needed := n * CARD_SIZE.x + (n - 1) * 6
+		if float(needed) > avail:
+			sep = int((avail - n * CARD_SIZE.x) / float(n - 1))
+			sep = maxi(sep, -int(CARD_SIZE.x * 0.6))
+	row.add_theme_constant_override("separation", sep)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for cr in board:
 		row.add_child(_creature_card(cr, mine))
@@ -1280,14 +1555,13 @@ func _hand_row(hand: Array) -> Control:
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_child(_mana_zone())
 
 	# Cards overlap (fan) when there are too many to lay out side by side.
 	var cards_box := HBoxContainer.new()
 	var n := hand.size()
 	var sep := 8
 	if n > 1:
-		var avail := size.x - 40 - 84 - 48  # window margins, mana zone, padding
+		var avail := size.x - 40 - 48  # window margins + padding
 		var needed := n * CARD_SIZE.x + (n - 1) * 8
 		if float(needed) > avail:
 			sep = int((avail - n * CARD_SIZE.x) / float(n - 1))
@@ -1311,24 +1585,10 @@ func _hand_row(hand: Array) -> Control:
 			card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
 		var idx := i
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_hand_card(idx, cid))
+		card.double_clicked.connect(func(_p: Dictionary) -> void: _on_hand_double(idx, cid))
 		cards_box.add_child(card)
 	box.add_child(cards_box)
 	return box
-
-
-func _mana_zone() -> Control:
-	var zone := UiCard.new()
-	zone.custom_minimum_size = Vector2(84, CARD_SIZE.y)
-	zone.add_theme_stylebox_override("panel", Ui.glass(Color(0.55, 0.55, 0.7), 0.32))
-	zone.can_drop_fn = func(data: Variant) -> bool:
-		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "hand"
-	zone.drop_fn = func(data: Variant) -> void:
-		_place_mana(int(data["index"]), String(data["card_id"]))
-	var l := Ui.label("TO\nMANA", 0, null, true)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	zone.add_child(l)
-	return zone
 
 
 # --- card visual -------------------------------------------------------------
@@ -1425,14 +1685,29 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 
 	# Detailed keyword explanations (the bold name, then its meaning).
 	var details := []
+	var shown := {}
 	for kw in d.get("keywords", []):
 		if fold_delay and String(kw.get("id", "")) == "delay":
 			continue
 		var full := Glossary.keyword(kw)
 		if full == "":
 			continue
+		shown[String(kw.get("id", ""))] = true
 		var ci := full.find(":")
 		details.append("[b]%s[/b]%s" % [full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
+	# Effects that apply a named status (freeze/blind/flash) explain that status
+	# too, even when the card carries no matching keyword -- e.g. a spell that
+	# just freezes still tells you what "заморожен" means.
+	for e in d.get("effects", []):
+		if String(e.get("trigger", "")) != "on_play":
+			continue
+		var act := String(e.get("action", ""))
+		if act == "" or shown.has(act) or not Glossary.KW.has(act):
+			continue
+		shown[act] = true
+		var fx: String = Glossary.keyword({"id": act, "n": int(e.get("value", 0))})
+		var cix := fx.find(":")
+		details.append("[b]%s[/b]%s" % [fx.substr(0, cix), fx.substr(cix)] if cix > 0 else fx)
 	if not details.is_empty():
 		for dline in details:
 			v.add_child(_rich(dline, 12, Color(0.74, 0.8, 0.64)))
@@ -1730,10 +2005,6 @@ func _status_icons(cr: Dictionary) -> Control:
 
 # --- styles ------------------------------------------------------------------
 
-func _hero_style(tint: Color) -> StyleBoxFlat:
-	return Ui.glass(tint, 0.4)
-
-
 func _zone_style(mine: bool) -> StyleBoxFlat:
 	var accent := Color(0.3, 0.75, 0.6) if mine else Color(0.75, 0.35, 0.4)
 	var sb := Ui.glass(accent, 0.22)
@@ -1746,7 +2017,7 @@ func _zone_style(mine: bool) -> StyleBoxFlat:
 func _controls() -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
-	var end_btn := Ui.neon_button("End Turn", Color(1.0, 0.62, 0.3))
+	var end_btn := Ui.neon_button("Завершить ход", Color(1.0, 0.62, 0.3))
 	end_btn.disabled = not _my_turn()
 	end_btn.pressed.connect(func() -> void:
 		_clear_selection()
@@ -1756,11 +2027,11 @@ func _controls() -> Control:
 	var hint := Ui.label("", 0, Color(0.62, 0.66, 0.78))
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if casting_index >= 0 or awaken_index >= 0:
-		hint.text = "pick an enemy creature as the target (click the card again to cancel)"
+		hint.text = "выберите цель (клик по карте ещё раз — отмена)"
 	elif attacker_id >= 0:
-		hint.text = "pick an enemy creature or the enemy hero to attack"
+		hint.text = "выберите вражеское существо или героя для атаки"
 	else:
-		hint.text = "drag a card to your board or the MANA zone, or drag a creature onto a target to attack"
+		hint.text = "тащите карту на стол — разыграть · двойной тап — в ману · клик по заклинанию — прицел · существо — на цель для атаки"
 	row.add_child(hint)
 	return row
 
@@ -1848,12 +2119,16 @@ func _place_mana(idx: int, card_id: String) -> void:
 
 
 func _show_color_picker(idx: int, colors: Array) -> void:
-	# In-scene chooser: a dim full-screen backdrop (click to cancel) with a small
-	# panel of color buttons near the cursor. Avoids the flaky popup window.
+	# In-scene chooser: a dim full-screen backdrop (click to cancel) with a radial
+	# color wheel near the cursor -- one sector per color, fixed footprint for any
+	# number of colors. The center hole cancels.
 	_close_picker()
 	var layer := Control.new()
 	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	# Force it above everything (hovered cards lift to z_index 20).
+	layer.z_as_relative = false
+	layer.z_index = 4096
 	var backdrop := Button.new()
 	backdrop.flat = true
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -1864,22 +2139,26 @@ func _show_color_picker(idx: int, colors: Array) -> void:
 	panel.add_theme_stylebox_override("panel", Ui.glass(Color(0.6, 0.62, 0.8), 0.97))
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 6)
-	vb.add_child(Ui.label("Каким кристаллом положить?", 14))
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(Ui.label("Каким кристаллом?", 13, null, true))
+	var wheel := RadialPicker.new()
+	var ids := PackedStringArray()
 	for c in colors:
-		var cc := String(c)
-		var b := Ui.neon_button(Palette.ru(cc), Palette.color_for(cc))
-		b.pressed.connect(func() -> void:
-			_send({"action": "placeMana", "handIndex": idx, "color": cc})
-			_clear_selection()
-			_close_picker())
-		vb.add_child(b)
+		ids.append(String(c))
+	wheel.colors = ids
+	wheel.picked.connect(func(cid: String) -> void:
+		_send({"action": "placeMana", "handIndex": idx, "color": cid})
+		_clear_selection()
+		_close_picker())
+	wheel.cancelled.connect(_close_picker)
+	vb.add_child(wheel)
 	panel.add_child(vb)
 	layer.add_child(panel)
 	add_child(layer)
 
-	var pos := get_global_mouse_position() - Vector2(20, 20)
-	pos.x = clampf(pos.x, 8.0, size.x - 200.0)
-	pos.y = clampf(pos.y, 8.0, size.y - 180.0)
+	var pos := get_global_mouse_position() - Vector2(110, 110)
+	pos.x = clampf(pos.x, 8.0, size.x - 210.0)
+	pos.y = clampf(pos.y, 8.0, size.y - 230.0)
 	panel.position = pos
 	_picker = layer
 
@@ -1895,6 +2174,9 @@ func _close_picker() -> void:
 func _on_hand_card(idx: int, card_id: String) -> void:
 	if not _my_turn():
 		return
+	# Single tap: a targeted spell arms targeting (tap again to cancel); other
+	# cards do nothing here -- they are played by dragging onto the board, and
+	# double-tapped to bank as mana (see _on_hand_double).
 	if casting_index == idx:
 		casting_index = -1
 		_rebuild()
@@ -1904,9 +2186,14 @@ func _on_hand_card(idx: int, card_id: String) -> void:
 		casting_index = idx
 		pending_side = _target_side(card_id)
 		_rebuild()
-	else:
-		_clear_selection()
-		_send({"action": "play", "handIndex": idx})
+
+
+# Double-tap a hand card to bank it as mana (color picker for multicolor).
+func _on_hand_double(idx: int, card_id: String) -> void:
+	if not _my_turn():
+		return
+	_clear_selection()
+	_place_mana(idx, card_id)
 
 
 func _on_awaken_clicked(p: Dictionary) -> void:

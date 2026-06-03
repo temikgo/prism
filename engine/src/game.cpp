@@ -5,10 +5,13 @@
 namespace prism {
 
 Game::Game(const CardLibrary& lib, const std::vector<std::string>& deck0,
-           const std::vector<std::string>& deck1, std::uint32_t seed)
+           const std::vector<std::string>& deck1, std::uint32_t seed,
+           const std::string& hero0, const std::string& hero1)
     : lib_(lib), rng_(seed) {
   players_[0].index = 0;
   players_[1].index = 1;
+  players_[0].hero = lib_.find(hero0);  // null if empty/unknown -> no passive
+  players_[1].hero = lib_.find(hero1);
   // Each listed ID becomes one card instance with a unique EntityId. Unknown
   // IDs are skipped (deck validation is the caller's job for now).
   auto build = [&](Player& p, const std::vector<std::string>& ids) {
@@ -66,6 +69,7 @@ void Game::startTurn() {
   Player& p = players_[current_];
   p.mana.refill();
   p.placedManaThisTurn = false;
+  p.shiftUsed = false;  // Prism: the spectral-shift swap recharges each turn
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
@@ -166,6 +170,14 @@ void Game::draw(Player& p, int n) {
   }
 }
 
+// Eclipse umbra softens a creature's attack on the enemy hero by 1 (floor 0).
+// Applies to a direct face hit and to pierce overflow alike, so pierce does not
+// slip past the passive.
+int Game::heroHitDamage(const Player& opp, int raw) const {
+  if (opp.hero && opp.hero->hasKeyword("umbra")) return raw > 1 ? raw - 1 : 0;
+  return raw;
+}
+
 void Game::dealHeroDamage(Player& p, int amount) {
   int remaining = amount;
   int absorbed = remaining < p.heroArmor ? remaining : p.heroArmor;
@@ -203,6 +215,27 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   return true;
 }
 
+// Prism `spectral_shift`: retune one available crystal to a spectrum-adjacent
+// color (R-Y-G-B-V are enum 0..4 contiguous; Colorless 5 has no neighbour).
+// Returns the swapped pool (canPay then holds) only when the swap is what makes
+// the cost affordable -- the caller has already checked it is unpayable
+// plainly.
+std::optional<ManaPool> Game::shiftedPool(const ManaPool& pool,
+                                          const Cost& cost) const {
+  for (int x = 0; x < 5; ++x) {    // the color a pip is short of
+    for (int y = 0; y < 5; ++y) {  // a neighbour crystal we retune into it
+      int d = x - y;
+      if (d != 1 && d != -1) continue;
+      if (pool.available[y] < 1) continue;
+      ManaPool sim = pool;
+      sim.available[y] -= 1;
+      sim.available[x] += 1;
+      if (sim.canPay(cost)) return sim;
+    }
+  }
+  return std::nullopt;
+}
+
 bool Game::playCard(int handIndex, EntityId target, int pos) {
   if (over_) return false;
   Player& p = players_[current_];
@@ -210,13 +243,26 @@ bool Game::playCard(int handIndex, EntityId target, int pos) {
     return false;
   CardInstance ci = p.hand[handIndex];
   const CardDef* def = ci.def;
-  if (!p.mana.canPay(def->cost)) return false;
+  // Affordable normally, or via the Prism hero's once-per-turn spectral shift?
+  bool normal = p.mana.canPay(def->cost);
+  std::optional<ManaPool> shifted;
+  if (!normal && p.hero && p.hero->hasKeyword("spectral_shift") && !p.shiftUsed)
+    shifted = shiftedPool(p.mana, def->cost);
+  if (!normal && !shifted) return false;
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
   if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
   if (!playTargetLegal(def, p, target)) return false;
-  p.mana.pay(def->cost);
+  // Pay last, after every legality check, so a rejected play never spends mana.
+  if (normal) {
+    p.mana.pay(def->cost);
+  } else {
+    ManaPool np = *shifted;
+    np.pay(def->cost);
+    p.mana = np;
+    p.shiftUsed = true;  // the spectral shift is spent for this turn
+  }
   p.hand.erase(p.hand.begin() + handIndex);
   playResolved(p, ci, target, pos);
   return true;
@@ -371,7 +417,9 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   damageCreature(*a, retaliation, b);  // simultaneous retaliation
   if (a->def->hasKeyword("pierce")) {
     int overflow = dealt - targetHpBefore;
-    if (overflow > 0) dealHeroDamage(opp, overflow);
+    // Eclipse umbra softens this face damage too -- pierce does not slip past
+    // it.
+    if (overflow > 0) dealHeroDamage(opp, heroHitDamage(opp, overflow));
   }
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt);
   a->stealthed = false;  // attacking reveals a stealthed creature
@@ -388,8 +436,9 @@ bool Game::attackHero(EntityId attacker) {
   if (!a || !a->canAttack()) return false;
   // Provoke blocks the face unless the attacker has Bypass (Red).
   if (enemyHasProvoke(opp) && !a->def->hasKeyword("bypass")) return false;
-  dealHeroDamage(opp, a->atk);
-  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, a->atk);
+  int dmg = heroHitDamage(opp, a->atk);  // Eclipse umbra softens it by 1
+  dealHeroDamage(opp, dmg);
+  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg);
   a->stealthed = false;
   a->attacked = true;
   return true;

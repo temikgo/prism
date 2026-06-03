@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -49,14 +50,24 @@ bool doHandshake(int fd) {
   return true;
 }
 
-// A 30-card demo deck cycling through every card the library knows.
+// A 30-card demo deck cycling through every playable card the library knows
+// (heroes are not deck cards, so they are excluded).
 std::vector<std::string> demoDeck(const CardLibrary& lib) {
   std::vector<std::string> ids;
-  for (const auto& d : lib.all()) ids.push_back(d.id);
+  for (const auto& d : lib.all())
+    if (d.type != CardType::Hero) ids.push_back(d.id);
   std::vector<std::string> deck;
   if (ids.empty()) return deck;
   for (int i = 0; i < 30; ++i) deck.push_back(ids[i % ids.size()]);
   return deck;
+}
+
+// Every hero ID the library knows (cards of type Hero), for the random pick.
+std::vector<std::string> heroPool(const CardLibrary& lib) {
+  std::vector<std::string> ids;
+  for (const auto& d : lib.all())
+    if (d.type == CardType::Hero) ids.push_back(d.id);
+  return ids;
 }
 
 void broadcast(const Game& g, const int fd[2]) {
@@ -105,7 +116,17 @@ int main(int argc, char** argv) {
     std::fflush(stdout);
   }
 
-  Game g(lib, demoDeck(lib), demoDeck(lib), 12345);
+  // Each player gets a random hero (no lobby/picker yet -- DESIGN §6).
+  std::vector<std::string> heroes = heroPool(lib);
+  std::string h0, h1;
+  if (!heroes.empty()) {
+    std::mt19937 pick(std::random_device{}());
+    h0 = heroes[pick() % heroes.size()];
+    h1 = heroes[pick() % heroes.size()];
+    std::printf("Heroes: P0=%s  P1=%s\n", h0.c_str(), h1.c_str());
+    std::fflush(stdout);
+  }
+  Game g(lib, demoDeck(lib), demoDeck(lib), 12345, h0, h1);
   g.start();
   broadcast(g, fd);
 

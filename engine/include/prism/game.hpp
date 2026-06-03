@@ -98,9 +98,11 @@ struct Player {
   int index = 0;
   int heroHp = HeroStartHp;
   int heroArmor = 0;
+  const CardDef* hero = nullptr;    // the chosen hero (its passive = a keyword)
   int fatigue = 0;                  // damage of the NEXT empty-deck draw
   bool placedManaThisTurn = false;  // one card -> mana row per turn
-  bool mulliganDone = false;        // has this player finished its mulligan?
+  bool shiftUsed = false;  // Prism spectral_shift: spent its once-per-turn swap
+  bool mulliganDone = false;  // has this player finished its mulligan?
   ManaPool mana;
   std::vector<CardInstance> hand;
   std::vector<CardInstance> deck;
@@ -115,9 +117,14 @@ struct Player {
 class Game {
  public:
   // Builds both decks from card IDs (resolved against `lib`). Nothing is dealt
-  // until start(). `lib` must outlive the Game.
+  // until start(). `lib` must outlive the Game. `hero0`/`hero1` are the
+  // players' chosen hero IDs (resolved against `lib`); empty/unknown means no
+  // hero (the game just runs without a passive). Picking the heroes is the
+  // caller's job (the server randomizes them), so the engine stays
+  // deterministic.
   Game(const CardLibrary& lib, const std::vector<std::string>& deck0,
-       const std::vector<std::string>& deck1, std::uint32_t seed);
+       const std::vector<std::string>& deck1, std::uint32_t seed,
+       const std::string& hero0 = "", const std::string& hero1 = "");
 
   // Shuffles and deals opening hands, then enters the mulligan phase. Player
   // 0's first turn begins once both players have finished their mulligan.
@@ -182,6 +189,8 @@ class Game {
   void startTurn();  // refill mana, unsick creatures, start triggers, draw one
   void draw(Player& p, int n);
   void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
+  // Eclipse umbra: reduce a creature's hit on the enemy hero by 1 (floor 0).
+  int heroHitDamage(const Player& opp, int raw) const;
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
   // Resolve a targeted effect's creature based on its selector side:
@@ -208,6 +217,13 @@ class Game {
   // playCard (from hand) and awaken (from the mana row).
   void playResolved(Player& p, const CardInstance& ci, EntityId target,
                     int pos);
+
+  // Prism `spectral_shift`: if `cost` is unpayable normally but becomes payable
+  // by retuning ONE available crystal to a spectrum-adjacent color (R-Y-G-B-V),
+  // return the swapped pool (canPay is then true). Empty otherwise. The caller
+  // pays from it and marks shiftUsed.
+  std::optional<ManaPool> shiftedPool(const ManaPool& pool,
+                                      const Cost& cost) const;
 
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,

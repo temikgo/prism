@@ -7,6 +7,8 @@ extends PanelContainer
 # hooks below (can_drop_fn / drop_fn / tooltip_builder / preview_builder).
 
 signal clicked(payload: Dictionary)
+signal double_clicked(payload: Dictionary)
+var _swallow_click := false   # the release after a double-click is not a click
 # Shared across all cards: the payload of the drag currently in flight, so
 # any card can decide whether to light up as a legal drop target.
 static var active_drag = null
@@ -59,9 +61,18 @@ func _make_custom_tooltip(_for_text: String) -> Object:
 func _gui_input(event: InputEvent) -> void:
 	# Fire on release, not press: a press that turns into a drag is consumed
 	# by the drag system, so a real click never collides with dragging.
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and not event.pressed:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	# Native double-click (fires on the second press): emit it, and swallow the
+	# release that follows so it is not also read as a single click.
+	if event.pressed and event.double_click:
+		_swallow_click = true
+		double_clicked.emit(payload)
+		return
+	if not event.pressed:
+		if _swallow_click:
+			_swallow_click = false
+			return
 		clicked.emit(payload)
 
 func _get_drag_data(_at: Vector2) -> Variant:

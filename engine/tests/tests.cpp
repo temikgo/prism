@@ -151,7 +151,17 @@ static const char* kTestCards = R"json([
   { "id": "anyfreeze", "name": { "ru": "Обще-лёд" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_any_minion",
-                  "action": "freeze", "value": 2 }] }
+                  "action": "freeze", "value": 2 }] },
+  { "id": "yellowbody", "name": { "ru": "Жёлтое тело" }, "type": "creature",
+    "color": ["yellow"], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 } },
+  { "id": "redonly", "name": { "ru": "Алый зов" }, "type": "creature",
+    "color": ["red"], "cost": { "red": 1 }, "stats": { "atk": 2, "hp": 2 } },
+  { "id": "hero_prism", "name": { "ru": "Ирида" }, "type": "hero",
+    "keywords": [{ "id": "spectral_shift" }] },
+  { "id": "hero_eclipse", "name": { "ru": "Эреб" }, "type": "hero",
+    "keywords": [{ "id": "umbra" }] },
+  { "id": "hero_lens", "name": { "ru": "Кьяра" }, "type": "hero",
+    "keywords": [{ "id": "clairvoyance" }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -927,6 +937,106 @@ TEST_CASE("applyAction dispatches JSON actions and enforces the turn") {
   CHECK(applyAction(
       g, 1, R"({"action":"placeMana","handIndex":0,"color":"colorless"})"));
   CHECK(g.player(1).mana.crystals[idx(Color::Colorless)] == 1);
+}
+
+// --- Heroes (passive powers, DESIGN §6) --------------------------------------
+
+TEST_CASE("hero identity and passive are public in both players' views") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 3, "hero_prism",
+         "hero_eclipse");
+  begin(g);
+  nlohmann::json v = nlohmann::json::parse(viewJson(g, 0));
+  CHECK(v["players"][0]["hero"]["card"] == "hero_prism");
+  CHECK(v["players"][0]["hero"]["passive"][0]["id"] == "spectral_shift");
+  // The opponent's hero is public too, so you can read their passive.
+  CHECK(v["players"][1]["hero"]["card"] == "hero_eclipse");
+  CHECK(v["players"][1]["hero"]["passive"][0]["id"] == "umbra");
+}
+
+TEST_CASE("Prism spectral_shift pays a foreign pip with a neighbour crystal") {
+  CardLibrary lib = testLib();
+  // A red pip with only a yellow crystal: Yellow is adjacent to Red on the
+  // spectrum, so the Prism can retune it. Without the Prism it stays unpayable.
+  Game prism(lib, {"yellowbody", "redonly", "yellowbody", "yellowbody"},
+             repeat("bear", 30), 7, "hero_prism", "");
+  begin(prism);
+  CHECK(prism.placeCardToMana(handIndexOf(prism, 0, "yellowbody"),
+                              Color::Yellow));
+  CHECK(prism.playCard(handIndexOf(prism, 0, "redonly")));  // shifted Y->R
+  CHECK(prism.player(0).board.size() == 1);
+
+  Game plain(lib, {"yellowbody", "redonly", "yellowbody", "yellowbody"},
+             repeat("bear", 30), 7);  // no hero
+  begin(plain);
+  CHECK(plain.placeCardToMana(handIndexOf(plain, 0, "yellowbody"),
+                              Color::Yellow));
+  CHECK_FALSE(plain.playCard(handIndexOf(plain, 0, "redonly")));  // no shift
+  CHECK(plain.player(0).board.empty());
+}
+
+TEST_CASE("Prism spectral_shift is spent once per turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"redonly", "redonly", "yellowbody", "yellowbody"},
+         repeat("bear", 30), 7, "hero_prism", "");
+  begin(g);
+  // Turn 1: bank one yellow crystal, pass.
+  CHECK(g.placeCardToMana(handIndexOf(g, 0, "yellowbody"), Color::Yellow));
+  g.endTurn();  // -> P1
+  g.endTurn();  // -> P0, turn 2; shift recharges
+  // Turn 2: bank a second yellow crystal -> two yellow available.
+  CHECK(g.placeCardToMana(handIndexOf(g, 0, "yellowbody"), Color::Yellow));
+  CHECK(g.playCard(handIndexOf(g, 0, "redonly")));  // first uses the shift
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "redonly")));  // shift already spent
+  CHECK(g.player(0).board.size() == 1);
+}
+
+TEST_CASE("Eclipse umbra softens creature attacks on the hero by 1") {
+  CardLibrary lib = testLib();
+  auto faceDamage = [&](const std::string& defenderHero) {
+    Game g(lib, repeat("bear", 30), repeat("bear", 30), 5, "", defenderHero);
+    begin(g);
+    CHECK(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4, summoning sick
+    EntityId bear = g.player(0).board[0].id;
+    g.endTurn();  // -> P1
+    g.endTurn();  // -> P0, the bear is awake now
+    CHECK(g.attackHero(bear));
+    return HeroStartHp - g.player(1).heroHp;
+  };
+  CHECK(faceDamage("hero_eclipse") == 2);  // 3 atk - 1 umbra
+  CHECK(faceDamage("") == 3);              // no hero: full 3
+}
+
+TEST_CASE("Eclipse umbra also softens pierce overflow to the hero") {
+  CardLibrary lib = testLib();
+  auto overflowDamage = [&](const std::string& defenderHero) {
+    Game g(lib, repeat("piercer", 30), repeat("smallwall", 30), 22, "",
+           defenderHero);
+    begin(g);
+    CHECK(g.playCard(handIndexOf(g, 0, "piercer")));  // 5/5 pierce
+    EntityId p = g.player(0).board[0].id;
+    g.endTurn();                                        // -> P1
+    CHECK(g.playCard(handIndexOf(g, 1, "smallwall")));  // 0/2 blocker
+    EntityId wall = g.player(1).board[0].id;
+    g.endTurn();  // -> P0, piercer awake
+    CHECK(g.attackCreature(p, wall));
+    return HeroStartHp - g.player(1).heroHp;
+  };
+  CHECK(overflowDamage("hero_eclipse") == 2);  // (5-2 overflow) - 1 umbra
+  CHECK(overflowDamage("") == 3);              // no hero: full overflow
+}
+
+TEST_CASE("Lens clairvoyance reveals only your own top card") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 9, "hero_lens", "");
+  begin(g);
+  nlohmann::json v0 = nlohmann::json::parse(viewJson(g, 0));
+  REQUIRE(v0["players"][0].contains("topCard"));
+  CHECK(v0["players"][0]["topCard"] == g.player(0).deck.back().def->id);
+  CHECK_FALSE(v0["players"][1].contains("topCard"));  // can't see enemy's top
+  // The non-Lens opponent never sees a top card, even of their own deck.
+  nlohmann::json v1 = nlohmann::json::parse(viewJson(g, 1));
+  CHECK_FALSE(v1["players"][1].contains("topCard"));
 }
 
 #ifdef PRISM_SAMPLE

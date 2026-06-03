@@ -37,7 +37,21 @@ static json creatureJson(const Creature& c) {
 // banked mana-card identities are exposed even though it is the opponent.
 static json playerJson(const Player& p, bool self, bool revealMana) {
   json j;
-  j["hero"] = {{"hp", p.heroHp}, {"armor", p.heroArmor}};
+  json hero = {{"hp", p.heroHp}, {"armor", p.heroArmor}};
+  // The chosen hero is public to both players: its id, name, and passive
+  // keyword(s) so each side can read the other's hero power.
+  if (p.hero) {
+    hero["card"] = p.hero->id;
+    hero["name"] = p.hero->nameRu;
+    json passive = json::array();
+    for (const auto& k : p.hero->keywords) {
+      json kj = {{"id", k.id}};
+      if (k.n) kj["n"] = *k.n;
+      passive.push_back(kj);
+    }
+    hero["passive"] = passive;
+  }
+  j["hero"] = hero;
   j["mana"] = {{"crystals", manaObj(p.mana.crystals)},
                {"available", manaObj(p.mana.available)}};
 
@@ -58,7 +72,11 @@ static json playerJson(const Player& p, bool self, bool revealMana) {
     for (const auto& ci : p.hand) hand.push_back(ci.def->id);
     j["hand"] = hand;  // opponent's hand is intentionally omitted (count only)
   }
+  if (self) j["shiftUsed"] = p.shiftUsed;  // Prism: spent its swap this turn?
   j["deckCount"] = static_cast<int>(p.deck.size());
+  // Lens clairvoyance: you always see the identity of your own top card.
+  if (self && p.hero && p.hero->hasKeyword("clairvoyance") && !p.deck.empty())
+    j["topCard"] = p.deck.back().def->id;  // deck back == top of deck
   j["graveyardCount"] = static_cast<int>(p.graveyard.size());
   j["pendingCount"] = static_cast<int>(p.pending.size());  // delayed effects
   j["mulliganDone"] = p.mulliganDone;

@@ -30,18 +30,12 @@ func _arrow(a: Vector2, b: Vector2) -> void:
 	var perp := Vector2(-tip_dir.y, tip_dir.x)
 	var head := minf(34.0, dist * 0.45)
 	var core: Color = UiCard.aim_color
-	var glow := Color(core.r, core.g, core.b, 0.22)
-	# Tapered ribbon (glow underlay, then bright core), trimmed by the head
-	# length so it meets the arrowhead with no gap.
-	_ribbon(pts, 12.0, 4.0, head, glow, 6.0)
-	_ribbon(pts, 7.0, 2.5, head, core, 0.0)
-	# Arrowhead (glow, then core).
+	# A single clean tapered ribbon (no glow underlay -- it read as a pale double
+	# line), trimmed by the head length so it meets the arrowhead with no gap.
+	_ribbon(pts, 8.0, 3.0, head, core, 0.0)
 	draw_colored_polygon(PackedVector2Array([
-		tip + tip_dir * 4.0, tip - tip_dir * head + perp * 21.0,
-		tip - tip_dir * head - perp * 21.0]), glow)
-	draw_colored_polygon(PackedVector2Array([
-		tip + tip_dir * 2.0, tip - tip_dir * head + perp * 14.0,
-		tip - tip_dir * head - perp * 14.0]), core)
+		tip + tip_dir * 2.0, tip - tip_dir * head + perp * 15.0,
+		tip - tip_dir * head - perp * 15.0]), core)
 
 func _ribbon(pts: PackedVector2Array, w0: float, w1: float, trim_len: float,
 		c: Color, pad: float) -> void:

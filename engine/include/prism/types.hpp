@@ -48,13 +48,15 @@ inline std::string_view colorName(Color c) {
 }
 
 // Card supertypes (DESIGN §5). Only Creature fights; Spell resolves once,
-// Aura stays in play. In Phase 1 Spell/Aura have no executed effect yet.
-enum class CardType { Creature, Spell, Aura };
+// Aura stays in play. Hero is never in a deck: it is a player's chosen
+// character, carrying a passive keyword (its hero power, DESIGN §6).
+enum class CardType { Creature, Spell, Aura, Hero };
 
 inline std::optional<CardType> cardTypeFromString(std::string_view s) {
   if (s == "creature") return CardType::Creature;
   if (s == "spell") return CardType::Spell;
   if (s == "aura") return CardType::Aura;
+  if (s == "hero") return CardType::Hero;
   return std::nullopt;
 }
 
