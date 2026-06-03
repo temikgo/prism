@@ -39,6 +39,7 @@ var _my_creatures_row: Control = null  # the HBox holding your board creatures
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
 var _board_gap: Control = null         # slot opened while dragging a creature in
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
+var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 
 var url_edit: LineEdit
 var status_label: Label
@@ -499,6 +500,8 @@ func _rebuild() -> void:
 		_overlay.add_child(_game_over_panel(you))
 	elif bool(view.get("mulligan", false)):
 		_overlay.add_child(_mulligan_panel(me))
+	elif view.has("scry"):
+		_overlay.add_child(_scry_panel(view["scry"]))
 
 
 func _separator() -> Control:
@@ -612,6 +615,77 @@ func _send_mulligan() -> void:
 	indices.sort()
 	_send({"action": "mulligan", "indices": indices})
 	_mull_sel.clear()
+
+
+# Blue scry: the peeked top cards (top first), tap any to send it to the bottom,
+# then confirm. The unmarked ones stay on top in order.
+func _scry_panel(peek: Array) -> Control:
+	var accent := Color(0.45, 0.7, 1.0)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.62)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.92))
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 14)
+	panel.add_child(vb)
+	center.add_child(panel)
+
+	vb.add_child(Ui.label("Прозрение", 30, accent.lightened(0.3), true))
+	vb.add_child(Ui.label("Верх колоды слева. Отметьте карты, которые уберёте ВНИЗ; остальные останутся сверху.",
+		14, Color(0.75, 0.78, 0.86), true))
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	for i in peek.size():
+		var cid: String = peek[i]
+		var marked: bool = _scry_sel.has(i)
+		var wrap := Control.new()
+		wrap.custom_minimum_size = CARD_SIZE
+		var card := _make_card(cid, null)
+		if marked:
+			card.modulate = Color(0.6, 0.7, 1.0, 0.6)
+			card.rest_modulate = card.modulate
+		var idx := i
+		card.clicked.connect(func(_p: Dictionary) -> void: _toggle_scry(idx))
+		wrap.add_child(card)
+		var pos_l := Ui.label("ВНИЗ" if marked else "верх %d" % (i + 1), 14,
+			Color(0.7, 0.8, 1.0) if marked else Color(0.7, 0.73, 0.82), true)
+		pos_l.position = Vector2(0, CARD_SIZE.y / 2.0 - 12)
+		pos_l.size = Vector2(CARD_SIZE.x, 24)
+		pos_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wrap.add_child(pos_l)
+		row.add_child(wrap)
+	vb.add_child(row)
+
+	var n := _scry_sel.size()
+	var btn := Ui.neon_button("Убрать вниз: %d" % n if n > 0 else "Оставить всё сверху", accent)
+	btn.custom_minimum_size = Vector2(0, 40)
+	btn.pressed.connect(_send_scry)
+	vb.add_child(btn)
+	return dim
+
+
+func _toggle_scry(index: int) -> void:
+	if _scry_sel.has(index):
+		_scry_sel.erase(index)
+	else:
+		_scry_sel[index] = true
+	_rebuild()
+
+
+func _send_scry() -> void:
+	var bottom: Array = _scry_sel.keys()
+	bottom.sort()
+	_send({"action": "scryResolve", "bottom": bottom})
+	_scry_sel.clear()
 
 
 func _banner(you: int) -> Control:
@@ -768,9 +842,14 @@ func _hero_block(hero: Dictionary, title: String) -> Control:
 
 
 func _counts_label(p: Dictionary) -> Control:
-	var l := Ui.label("рука %d   колода %d   сброс %d" % [
+	var txt := "рука %d   колода %d   сброс %d" % [
 		int(p.get("handCount", 0)), int(p.get("deckCount", 0)),
-		int(p.get("graveyardCount", 0))], 12, Color(0.6, 0.64, 0.74))
+		int(p.get("graveyardCount", 0))]
+	# Blue delay: how many effects are queued to resolve on this player's turns.
+	var pending := int(p.get("pendingCount", 0))
+	if pending > 0:
+		txt += "   отложено %d" % pending
+	var l := Ui.label(txt, 12, Color(0.6, 0.64, 0.74))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
@@ -810,28 +889,36 @@ func _manarow_view(mana_row: Array, mine: bool) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 3)
-	if not mine:
-		return row
-	var any := false
+	var tagged := false
 	for i in mana_row.size():
 		var slot: Dictionary = mana_row[i]
-		if not slot.has("card"):
+		if not slot.has("card"):  # face-down: only awaken/floodlight reveal a card
 			continue
-		if not any:
-			var tag := Ui.label("разбудить:", 11, Color(0.95, 0.85, 0.4))
+		if not tagged:
+			# Yours = awaken-able cards; the enemy's only show under your floodlight.
+			var label := "разбудить:" if mine else "прожектор:"
+			var tag := Ui.label(label, 11, Color(0.95, 0.85, 0.4))
 			tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			row.add_child(tag)
-			any = true
-		row.add_child(_awaken_chip(int(i), String(slot["card"]), String(slot.get("color", "colorless"))))
+			tagged = true
+		if mine:
+			row.add_child(_awaken_chip(int(i), slot))
+		else:
+			row.add_child(_revealed_chip(slot))
 	return row
 
 
-# A peekable awaken card sitting in your mana row: a mini-card (art + name +
-# "разбудить" tag) with a gold frame. It brightens and glows once you can pay
-# for it this turn; otherwise it is dimmed like an unaffordable hand card.
-func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
+# A peekable awaken card sitting in your mana row: a mini-card (art + name + a
+# tag) with a gold frame. It brightens and glows once you can pay for it this
+# turn; otherwise it is dimmed like an unaffordable hand card. A decoy that has
+# aged enough awakens for free and is tagged accordingly.
+func _awaken_chip(idx: int, slot: Dictionary) -> Control:
+	var card_id := String(slot["card"])
+	var color := String(slot.get("color", "colorless"))
+	var age := int(slot.get("age", 0))
+	var free := _has_keyword(card_id, "decoy") and age >= _keyword_n(card_id, "decoy")
 	var gold := Color(0.95, 0.85, 0.3)
-	var affordable := _can_awaken(card_id, color)
+	var affordable := _can_awaken(card_id, color, age)
 	var chip := UiCard.new()
 	chip.custom_minimum_size = Vector2(150, 54)
 	var sb := Ui.bordered(Color(0.09, 0.10, 0.15, 0.94), 8, 2,
@@ -865,7 +952,8 @@ func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_l.custom_minimum_size = Vector2(80, 0)
 	col.add_child(name_l)
-	var tag := Ui.label("разбудить", 9, gold if affordable else gold.darkened(0.25))
+	var tag_txt := "бесплатно!" if free else "разбудить"
+	var tag := Ui.label(tag_txt, 9, gold if affordable else gold.darkened(0.25))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(tag)
 	row.add_child(col)
@@ -873,10 +961,34 @@ func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 	return chip
 
 
+# A read-only peek at an enemy's banked card, revealed by your floodlight aura.
+func _revealed_chip(slot: Dictionary) -> Control:
+	var card_id := String(slot["card"])
+	var color := String(slot.get("color", "colorless"))
+	var chip := UiCard.new()
+	chip.custom_minimum_size = Vector2(124, 46)
+	chip.add_theme_stylebox_override("panel",
+		Ui.bordered(Color(0.09, 0.10, 0.15, 0.9), 7, 1, Color(0.7, 0.62, 0.32)))
+	chip.tooltip_text = _name_of(card_id)
+	chip.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
+	chip.hoverable = true
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 5)
+	row.add_child(_art_thumb(card_id, Palette.color_for(color), 36))
+	var name_l := Ui.label(_name_of(card_id), 11)
+	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_l.custom_minimum_size = Vector2(72, 0)
+	row.add_child(name_l)
+	chip.add_child(row)
+	return chip
+
+
 # Can you awaken this banked card right now? Mirrors Game::awaken: its own
 # crystal must be unspent and pays 1 of the cost in its color (else 1 generic);
-# the remainder must be affordable from the rest of your pool.
-func _can_awaken(card_id: String, color: String) -> bool:
+# the remainder must be affordable. A decoy aged >= N awakens for free.
+func _can_awaken(card_id: String, color: String, age: int) -> bool:
 	if not _my_turn():
 		return false
 	var you := int(view["you"])
@@ -886,6 +998,8 @@ func _can_awaken(card_id: String, color: String) -> bool:
 		return false  # the banked crystal itself must still be available
 	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
 		return false
+	if _has_keyword(card_id, "decoy") and age >= _keyword_n(card_id, "decoy"):
+		return true  # aged decoy: only the banked crystal is spent
 	var cost: Dictionary = (cards.get(card_id, {}).get("cost", {})).duplicate(true)
 	if int(cost.get(color, 0)) > 0:
 		cost[color] = int(cost[color]) - 1
