@@ -28,6 +28,7 @@ var casting_index := -1    # hand index of a targeted spell waiting for a target
 var awaken_index := -1     # mana-row index of a targeted awaken card
 var pending_side := ""     # side a pending targeted spell can hit: enemy/friendly/any
 var _picker: Control = null   # open mana-color chooser, if any
+var _overlay: Control = null  # full-screen overlay layer (game-over screen)
 
 var url_edit: LineEdit
 var status_label: Label
@@ -116,6 +117,9 @@ class UiCard extends PanelContainer:
 	# Shared across all cards: the payload of the drag currently in flight, so
 	# any card can decide whether to light up as a legal drop target.
 	static var active_drag = null
+	# While an attacker is being dragged: viewport position to draw the attack
+	# arrow from (Vector2.INF when no attacker drag is in flight).
+	static var attack_drag_from := Vector2.INF
 	var payload: Dictionary = {}        # non-empty + draggable=true => can drag
 	var drag_label: String = ""
 	var preview_builder: Callable = Callable()   # returns the drag-preview Control
@@ -165,7 +169,14 @@ class UiCard extends PanelContainer:
 			return null
 		active_drag = payload
 		_is_drag_source = true
-		if preview_builder.is_valid():
+		if payload.get("kind", "") == "attacker":
+			# Attacks show an arrow, not a floating card: use a tiny invisible
+			# preview and record where the arrow starts.
+			attack_drag_from = global_position + size * 0.5
+			var dot := Control.new()
+			dot.custom_minimum_size = Vector2(2, 2)
+			set_drag_preview(dot)
+		elif preview_builder.is_valid():
 			set_drag_preview(preview_builder.call())
 		else:
 			var ghost := Label.new()
@@ -194,8 +205,32 @@ class UiCard extends PanelContainer:
 					modulate = Color(1.45, 1.45, 1.1)
 		elif what == NOTIFICATION_DRAG_END:
 			active_drag = null
+			attack_drag_from = Vector2.INF
 			_is_drag_source = false
 			modulate = rest_modulate
+
+
+# Top overlay that draws the attack arrow while a creature is being dragged.
+class FxLayer extends Control:
+	func _process(_dt: float) -> void:
+		if UiCard.attack_drag_from != Vector2.INF:
+			queue_redraw()
+
+	func _draw() -> void:
+		if UiCard.attack_drag_from == Vector2.INF:
+			return
+		var from: Vector2 = UiCard.attack_drag_from
+		var to := get_global_mouse_position()
+		var col := Color(1.0, 0.82, 0.3, 0.92)
+		draw_line(from, to, col, 4.0, true)
+		var dir := to - from
+		if dir.length() < 4.0:
+			return
+		dir = dir.normalized()
+		var perp := Vector2(-dir.y, dir.x)
+		draw_colored_polygon(
+			PackedVector2Array([to, to - dir * 18 + perp * 9, to - dir * 18 - perp * 9]),
+			col)
 
 
 # --- lifecycle ---------------------------------------------------------------
@@ -262,6 +297,18 @@ func _build_shell() -> void:
 	status_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
 	bar.add_child(status_label)
 	root_box.add_child(bar)
+
+	# Full-screen overlay (game-over screen), populated on rebuild.
+	_overlay = Control.new()
+	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_overlay)
+
+	# Effects overlay on top of everything (attack arrow, etc.).
+	var fx := FxLayer.new()
+	fx.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fx)
 
 
 func _bg_texture() -> Texture2D:
@@ -507,11 +554,50 @@ func _rebuild() -> void:
 	root_box.add_child(_hand_row(me.get("hand", [])))
 	root_box.add_child(_controls())
 
+	for c in _overlay.get_children():
+		c.queue_free()
+	if bool(view.get("over", false)):
+		_overlay.add_child(_game_over_panel(you))
+
 
 func _separator() -> Control:
 	var line := HSeparator.new()
 	line.add_theme_constant_override("separation", 6)
 	return line
+
+
+func _game_over_panel(you: int) -> Control:
+	var win := int(view.get("winner", -1)) == you
+	var accent := Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.6)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # swallow clicks underneath
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dim.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _glass(accent, 0.9))
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 10)
+	var l := Label.new()
+	l.text = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 48)
+	l.add_theme_color_override("font_color", accent.lightened(0.3))
+	vb.add_child(l)
+	var sub := Label.new()
+	sub.text = "Перезапустите сервер для новой партии"
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 14)
+	sub.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
+	vb.add_child(sub)
+	panel.add_child(vb)
+	center.add_child(panel)
+	return dim
 
 
 func _banner(you: int) -> Control:
@@ -899,13 +985,23 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 
 func _hand_row(hand: Array) -> Control:
 	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
+	box.add_theme_constant_override("separation", 12)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(_mana_zone())
 
-	var mana_zone := _mana_zone()
-	box.add_child(mana_zone)
+	# Cards overlap (fan) when there are too many to lay out side by side.
+	var cards_box := HBoxContainer.new()
+	var n := hand.size()
+	var sep := 8
+	if n > 1:
+		var avail := size.x - 40 - 84 - 48  # window margins, mana zone, padding
+		var needed := n * CARD_SIZE.x + (n - 1) * 8
+		if float(needed) > avail:
+			sep = int((avail - n * CARD_SIZE.x) / float(n - 1))
+			sep = maxi(sep, -int(CARD_SIZE.x * 0.5))
+	cards_box.add_theme_constant_override("separation", sep)
 
-	for i in hand.size():
+	for i in n:
 		var cid: String = hand[i]
 		var card := _make_card(cid, null)
 		var playable := _is_playable(cid)
@@ -922,7 +1018,8 @@ func _hand_row(hand: Array) -> Control:
 			card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
 		var idx := i
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_hand_card(idx, cid))
-		box.add_child(card)
+		cards_box.add_child(card)
+	box.add_child(cards_box)
 	return box
 
 
