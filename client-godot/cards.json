@@ -170,25 +170,13 @@
   {
     "id": "blue_violet_hazy_shift",
     "name": { "ru": "Зыбкое Смещение" },
-    "text": { "ru": "Верните вражеское существо в руку." },
-    "art": "a violet-blue ripple of crystal light bending space, an enemy creature dissolving into drifting mist",
+    "text": { "ru": "Верните любое существо в руку." },
+    "art": "a violet-blue ripple of crystal light bending space, a creature dissolving into drifting mist",
     "type": "spell",
     "color": ["blue", "violet"],
     "cost": { "generic": 1, "blue": 1, "violet": 1 },
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }
-    ]
-  },
-  {
-    "id": "violet_mirror_image",
-    "name": { "ru": "Зеркальный Образ" },
-    "text": { "ru": "Создайте иллюзорную копию любого существа (1 HP)." },
-    "art": "a violet crystal-light spell conjuring a shimmering ghostly illusory double of a chosen creature, mysterious",
-    "type": "spell",
-    "color": ["violet"],
-    "cost": { "generic": 2, "violet": 1 },
-    "effects": [
-      { "trigger": "on_play", "selector": "chosen_any_minion", "action": "mirage", "value": 0 }
+      { "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }
     ]
   }
 ]
