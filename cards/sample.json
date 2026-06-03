@@ -64,5 +64,119 @@
     "cost": { "generic": 3 },
     "stats": { "atk": 3, "hp": 4 },
     "keywords": []
+  },
+  {
+    "id": "red_yellow_prism_ram",
+    "name": { "ru": "Призма-Таран" },
+    "text": { "ru": "Щит. Пробитие." },
+    "art": "a fierce ram-headed crystal-light warrior, a broad shield of red and gold facets raised, charging stance, strong silhouette",
+    "type": "creature",
+    "color": ["red", "yellow"],
+    "cost": { "generic": 1, "red": 1, "yellow": 1 },
+    "stats": { "atk": 4, "hp": 3 },
+    "keywords": [{ "id": "shield" }, { "id": "pierce" }]
+  },
+  {
+    "id": "red_green_thorn_reaper",
+    "name": { "ru": "Терновый Жнец" },
+    "text": { "ru": "Алый дар. Рост 1." },
+    "art": "a gaunt reaper of crimson and emerald crystal light, a thorned scythe, a faint life-draining glow, predatory stance",
+    "type": "creature",
+    "color": ["red", "green"],
+    "cost": { "generic": 2, "red": 1, "green": 1 },
+    "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "self_lifesteal" }, { "id": "growth", "n": 1 }]
+  },
+  {
+    "id": "red_blue_frost_breach",
+    "name": { "ru": "Стужный Пробой" },
+    "text": { "ru": "Нанесите 2 урона и заморозьте существо на 1 ход." },
+    "art": "a red-hot lance of crystal light shattering into blue frost as it pierces a frozen target, sharp motion",
+    "type": "spell",
+    "color": ["red", "blue"],
+    "cost": { "generic": 2, "red": 1, "blue": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 },
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+    ]
+  },
+  {
+    "id": "red_violet_scarlet_stalker",
+    "name": { "ru": "Алый Лазутчик" },
+    "text": { "ru": "Незримость. Алый дар." },
+    "art": "a lithe cloaked stalker of red and violet crystal light, half-faded into shadow, a glinting dagger, mysterious",
+    "type": "creature",
+    "color": ["red", "violet"],
+    "cost": { "generic": 2, "red": 1, "violet": 1 },
+    "stats": { "atk": 3, "hp": 3 },
+    "keywords": [{ "id": "stealth" }, { "id": "self_lifesteal" }]
+  },
+  {
+    "id": "yellow_green_sun_bastion",
+    "name": { "ru": "Солнечный Оплот" },
+    "text": { "ru": "Маяк. Фотосинтез 1." },
+    "art": "a towering serene guardian of yellow and green crystal light, a radiant sun-crystal in its chest, rooted like a tree, protective",
+    "type": "creature",
+    "color": ["yellow", "green"],
+    "cost": { "generic": 2, "yellow": 1, "green": 1 },
+    "stats": { "atk": 1, "hp": 6 },
+    "keywords": [{ "id": "provoke" }, { "id": "photosynthesis", "n": 1 }]
+  },
+  {
+    "id": "yellow_blue_blinding_rime",
+    "name": { "ru": "Слепящий Иней" },
+    "text": { "ru": "Ослепление 2 и заморозка 1 существу." },
+    "art": "a burst of blinding yellow light freezing into pale blue rime over an enemy's eyes, cold radiance",
+    "type": "spell",
+    "color": ["yellow", "blue"],
+    "cost": { "generic": 2, "yellow": 1, "blue": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 2 },
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+    ]
+  },
+  {
+    "id": "yellow_violet_veiled_aegis",
+    "name": { "ru": "Тайный Эгид" },
+    "text": { "ru": "Незримость. Щит." },
+    "art": "a partly invisible sentinel of yellow and violet crystal light, a shimmering shield flickering in and out of sight, enigmatic",
+    "type": "creature",
+    "color": ["yellow", "violet"],
+    "cost": { "generic": 2, "yellow": 1, "violet": 1 },
+    "stats": { "atk": 3, "hp": 3 },
+    "keywords": [{ "id": "stealth" }, { "id": "shield" }]
+  },
+  {
+    "id": "green_blue_frost_thicket",
+    "name": { "ru": "Ледяная Поросль" },
+    "text": { "ru": "Фотосинтез 1. Стужа 1." },
+    "art": "a lush thicket of green crystal-light vines glazed with blue frost, glowing softly, calm and lush",
+    "type": "aura",
+    "color": ["green", "blue"],
+    "cost": { "generic": 2, "green": 1, "blue": 1 },
+    "keywords": [{ "id": "photosynthesis", "n": 1 }, { "id": "chill", "n": 1 }]
+  },
+  {
+    "id": "green_violet_spore_spectre",
+    "name": { "ru": "Споровый Дух" },
+    "text": { "ru": "Споры 1. Морок." },
+    "art": "a ghostly fungal creature of green and violet crystal light, drifting spores and a faint spectral double beside it, eerie",
+    "type": "creature",
+    "color": ["green", "violet"],
+    "cost": { "generic": 2, "green": 1, "violet": 1 },
+    "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "spores", "n": 1 }, { "id": "haunt" }]
+  },
+  {
+    "id": "blue_violet_hazy_shift",
+    "name": { "ru": "Зыбкое Смещение" },
+    "text": { "ru": "Верните вражеское существо в руку." },
+    "art": "a violet-blue ripple of crystal light bending space, an enemy creature dissolving into drifting mist",
+    "type": "spell",
+    "color": ["blue", "violet"],
+    "cost": { "generic": 1, "blue": 1, "violet": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }
+    ]
   }
 ]
