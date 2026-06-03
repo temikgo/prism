@@ -47,6 +47,15 @@ static const char* kTestCards = R"json([
   { "id": "shielded", "name": { "ru": "Светощит" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "shield" }] },
+  { "id": "warded", "name": { "ru": "Нимбоносец" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "ward" }] },
+  { "id": "germinator", "name": { "ru": "Прорастатель" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 3 },
+    "keywords": [{ "id": "germinate", "n": 2 }] },
+  { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 0 }] },
   { "id": "lingerer", "name": { "ru": "Неугас" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "lingering" }] },
@@ -327,6 +336,52 @@ TEST_CASE("blind suppresses retaliation, unlike freeze") {
   // A (3/4) deals 3 to B (4 hp -> 1) but takes NO retaliation: B is blinded.
   CHECK(g.player(1).board[0].hp == 1);
   CHECK(g.player(0).board[0].hp == 4);
+}
+
+TEST_CASE("ward absorbs the next harmful targeted effect, then is spent") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"warded", "bear", "bear", "bear"},
+         {"destroyspell", "frost1", "bear", "bear", "bear"}, 13);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "warded")));
+  EntityId w = g.player(0).board[0].id;
+  CHECK(g.player(0).board[0].warded);
+  g.endTurn();  // p1's turn
+  REQUIRE(g.playCard(handIndexOf(g, 1, "destroyspell"), w));
+  REQUIRE(g.player(0).board.size() == 1);    // the ward ate the destroy
+  CHECK_FALSE(g.player(0).board[0].warded);  // ...and is now spent
+  REQUIRE(g.playCard(handIndexOf(g, 1, "frost1"), w));
+  CHECK(g.player(0).board[0].frozenTurns == 1);  // the next effect lands
+}
+
+TEST_CASE("dispel strips the opponent's auras") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"photoaura", "bear", "bear", "bear"},
+         {"dispelspell", "bear", "bear", "bear", "bear"}, 21);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "photoaura")));
+  REQUIRE(g.player(0).auras.size() == 1);
+  g.endTurn();  // p1's turn
+  REQUIRE(g.playCard(handIndexOf(g, 1, "dispelspell")));
+  CHECK(g.player(0).auras.empty());
+  CHECK(g.player(0).graveyard.size() == 1);
+}
+
+TEST_CASE("germinate spends a crystal for an N/N sprout, once per turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"germinator", "bear", "bear", "bear"}, repeat("bear", 30), 22);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "germinator")));
+  EntityId gid = g.player(0).board[0].id;
+  REQUIRE(g.activate(gid));
+  REQUIRE(g.player(0).board.size() == 2);  // germinator + sprout
+  const Creature& sprout = g.player(0).board[1];
+  CHECK(sprout.token);
+  CHECK(sprout.atk == 2);
+  CHECK(sprout.hp == 2);
+  CHECK(g.player(0).mana.totalAvailable() == 0);  // the crystal was spent
+  CHECK_FALSE(g.activate(gid));                   // only once per turn
 }
 
 TEST_CASE("mulligan reshuffles the chosen cards and gates the first turn") {

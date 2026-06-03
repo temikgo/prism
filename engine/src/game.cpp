@@ -69,6 +69,7 @@ void Game::startTurn() {
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
+    c.usedActive = false;
   }
   applyTurnStartTriggers(p);
   recomputeContinuous();  // growth changed bases; refresh the live layer
@@ -270,6 +271,26 @@ bool Game::hasAura(const Player& p, const std::string& id) const {
 // provoker; Pierce sends lethal excess to the enemy hero; Stealth hides a
 // creature from being targeted; lifesteal heals the attacker for the damage it
 // dealt.
+bool Game::activate(EntityId id) {
+  if (over_) return false;
+  Player& p = players_[current_];
+  Creature* c = findCreature(p, id);
+  if (!c) return false;
+  int n = c->def->keywordN("germinate");
+  if (n <= 0 || c->usedActive) return false;
+  if (static_cast<int>(p.board.size()) >= BoardLimit) return false;
+  Cost one;
+  one.generic = 1;  // costs 1 crystal of any color
+  if (!p.mana.canPay(one)) return false;
+  p.mana.pay(one);
+  c->usedActive = true;
+  const CardDef* sprout =
+      internToken("sprout" + std::to_string(n), Stats{n, n});
+  summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1);
+  recomputeContinuous();  // the new body shifts undergrowth totals
+  return true;
+}
+
 bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (over_) return false;
   Player& me = players_[current_];
@@ -389,8 +410,15 @@ Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
   // Illusions reference the original card, so they inherit its keywords -- that
   // is the point of illusions. (Sprouts use a vanilla token def, so none.)
   c.shield = def->hasKeyword("shield");
+  c.warded = def->hasKeyword("ward");
   c.stealthed = def->hasKeyword("stealth");
   return c;
+}
+
+bool Game::absorbWard(Creature& t) {
+  if (!t.warded) return false;
+  t.warded = false;  // the halo flares once and is spent
+  return true;
 }
 
 int Game::damageCreature(Creature& target, int amount, const Creature* source) {
@@ -516,27 +544,35 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
   const std::string& a = e.action;
   if (a == "freeze") {
     if (Creature* t = findSelected(e.selector, owner, target))
-      t->frozenTurns = e.value;
+      if (!absorbWard(*t)) t->frozenTurns = e.value;
   } else if (a == "blind") {
     if (Creature* t = findSelected(e.selector, owner, target))
-      t->blindTurns = e.value;
+      if (!absorbWard(*t)) t->blindTurns = e.value;
   } else if (a == "flash") {
     for (auto& c : opp.board) c.blindTurns = e.value;  // blind every enemy
   } else if (a == "damage") {
     if (e.selector == "enemy_hero")
       dealHeroDamage(opp, e.value);
     else if (Creature* t = findSelected(e.selector, owner, target))
-      damageCreature(*t, e.value, nullptr);
+      if (!absorbWard(*t)) damageCreature(*t, e.value, nullptr);
   } else if (a == "damage_all") {
     for (auto& pl : players_)
       for (auto& c : pl.board) damageCreature(c, e.value, nullptr);
   } else if (a == "destroy") {
     if (Creature* t = findSelected(e.selector, owner, target))
-      t->hp = 0;  // checkDeaths reaps
+      if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps
   } else if (a == "draw") {
     draw(owner, e.value);
+  } else if (a == "dispel") {
+    // Blue dispel: strip the opponent's auras (they are unique per player, so
+    // this is usually the one they control). The cards go to their graveyard.
+    for (const auto* aura : opp.auras) opp.graveyard.push_back(aura);
+    opp.auras.clear();
+    recomputeContinuous();  // a removed chill aura un-shrinks enemy attack
   } else if (a == "scatter") {
-    bounceCreature(target);
+    Creature* t = findCreature(owner, target);
+    if (!t) t = findCreature(opp, target);
+    if (t && !absorbWard(*t)) bounceCreature(target);
   } else if (a == "mirage") {
     makeMirage(owner, target);
   }

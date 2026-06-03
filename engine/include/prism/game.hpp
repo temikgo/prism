@@ -51,10 +51,12 @@ struct Creature {
   int maxHp;
   bool sick = true;
   bool attacked = false;
-  int frozenTurns = 0;     // Blue freeze: ticks down at the owner's turn end
-  int blindTurns = 0;      // Yellow blind: cannot attack while > 0
-  bool token = false;      // created by an ability (e.g. illusions), not a deck
-  bool shield = false;     // Yellow shield: absorbs the next instance of damage
+  bool usedActive = false;  // spent its activated ability (germinate) this turn
+  int frozenTurns = 0;      // Blue freeze: ticks down at the owner's turn end
+  int blindTurns = 0;       // Yellow blind: cannot attack while > 0
+  bool token = false;   // created by an ability (e.g. illusions), not a deck
+  bool shield = false;  // Yellow shield: absorbs the next instance of damage
+  bool warded = false;  // Yellow ward: absorbs the next harmful targeted effect
   bool stealthed = false;  // Violet stealth: untargetable until it attacks
   int unhealable = 0;      // Red lingering wounds that healing cannot restore
 
@@ -138,6 +140,11 @@ class Game {
   // that crystal/slot is consumed. Only cards carrying the `awaken` keyword
   // qualify.
   bool awaken(int manaRowIndex, EntityId target = 0, int pos = -1);
+  // Green germinate: a creature's activated ability. Spend 1 crystal (any
+  // color) to summon an N/N sprout, once per turn. False if the creature has no
+  // germinate, already used it this turn, you have no spare crystal, or the
+  // board is full.
+  bool activate(EntityId id);
   // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes do not fight back).
@@ -184,6 +191,9 @@ class Game {
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,
                         int hpOverride);
+  // Yellow ward: if `t` is warded, spend the ward and return true (the harmful
+  // targeted effect is absorbed); otherwise return false.
+  bool absorbWard(Creature& t);
   // Apply `amount` damage to a creature, honouring shield (absorbs the
   // instance) and lingering (the wound becomes unhealable). Returns damage
   // dealt to hp.

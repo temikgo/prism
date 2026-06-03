@@ -23,9 +23,11 @@ static json creatureJson(const Creature& c) {
               {"maxHp", c.maxHp},
               {"sick", c.sick},
               {"attacked", c.attacked},
+              {"usedActive", c.usedActive},
               {"frozen", c.frozenTurns},
               {"blind", c.blindTurns},
               {"shield", c.shield},
+              {"ward", c.warded},
               {"stealth", c.stealthed},
               {"token", c.token}};
 }
@@ -116,6 +118,7 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
   if (a == "awaken")
     return g.awaken(j.value("manaRowIndex", -1), j.value("target", 0),
                     j.value("pos", -1));
+  if (a == "activate") return g.activate(j.value("id", 0));
   if (a == "attackCreature")
     return g.attackCreature(j.value("attacker", 0), j.value("target", 0));
   if (a == "attackHero") return g.attackHero(j.value("attacker", 0));
