@@ -118,7 +118,15 @@ static const char* kTestCards = R"json([
     "keywords": [{ "id": "spores", "n": 2 }] },
   { "id": "sleeper", "name": { "ru": "Спящий-фантом" }, "type": "creature",
     "color": [], "cost": { "generic": 2 }, "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "awaken" }] }
+    "keywords": [{ "id": "awaken" }] },
+  { "id": "selffreeze", "name": { "ru": "Само-лёд" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "action": "freeze", "value": 2 }] },
+  { "id": "anyfreeze", "name": { "ru": "Обще-лёд" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_any_minion",
+                  "action": "freeze", "value": 2 }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -129,6 +137,15 @@ static CardLibrary testLib() {
 
 static std::vector<std::string> repeat(const std::string& id, int n) {
   return std::vector<std::string>(n, id);
+}
+
+// Index of the first hand card with the given id (the deck is shuffled, so we
+// locate cards by id rather than by position).
+static int handIndexOf(Game& g, int player, const std::string& id) {
+  const auto& h = g.player(player).hand;
+  for (std::size_t i = 0; i < h.size(); ++i)
+    if (h[i].def->id == id) return static_cast<int>(i);
+  return -1;
 }
 
 TEST_CASE("mana pool pays colored and generic") {
@@ -705,7 +722,7 @@ TEST_CASE("applyAction dispatches JSON actions and enforces the turn") {
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
   lib.loadFile(PRISM_SAMPLE);
-  CHECK(lib.size() == 6);
+  CHECK(lib.size() >= 6);  // 6 originals plus bicolor cards and tokens
   const CardDef* borer = lib.find("red_undying_borer");
   REQUIRE(borer != nullptr);
   CHECK(borer->type == CardType::Creature);
@@ -724,5 +741,59 @@ TEST_CASE("sample.json loads with expected schema") {
   CHECK(twin->colors.size() == 1);
   CHECK(twin->colors[0] == Color::Violet);
   CHECK(twin->cost.pips[idx(Color::Violet)] == 1);
+
+  const CardDef* ram = lib.find("red_yellow_prism_ram");
+  REQUIRE(ram != nullptr);
+  CHECK(ram->colors.size() == 2);
+  CHECK(ram->cost.generic == 1);
+  CHECK(ram->cost.pips[idx(Color::Red)] == 1);
+  CHECK(ram->cost.pips[idx(Color::Yellow)] == 1);
+}
+
+TEST_CASE("a duplicate aura cannot be played") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("photoaura", 30), repeat("bear", 30), 7);
+  g.start();
+  CHECK(g.playCard(0));  // first aura enters play
+  CHECK(g.player(0).auras.size() == 1);
+  CHECK_FALSE(g.playCard(0));  // an identical aura is rejected
+  CHECK(g.player(0).auras.size() == 1);
+}
+
+TEST_CASE("a friendly-target spell freezes your own creature") {
+  CardLibrary lib = testLib();
+  // A 4-card deck means the opening hand of 4 is the whole deck, so both the
+  // bear and the spell are in hand regardless of the shuffle.
+  Game g(lib, {"bear", "bear", "selffreeze", "selffreeze"}, repeat("bear", 30),
+         11);
+  g.start();
+  CHECK(g.playCard(handIndexOf(g, 0, "bear")));  // play a bear
+  EntityId mine = g.player(0).board[0].id;
+  CHECK(g.playCard(handIndexOf(g, 0, "selffreeze"), mine));  // freeze your own
+  CHECK(g.player(0).board[0].frozenTurns == 2);
+  // A friendly-target spell with no such friendly creature is illegal.
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "selffreeze"), 9999));
+}
+
+TEST_CASE("an any-target spell can hit your own creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "bear", "anyfreeze", "anyfreeze"}, repeat("bear", 30),
+         13);
+  g.start();
+  CHECK(g.playCard(handIndexOf(g, 0, "bear")));
+  EntityId mine = g.player(0).board[0].id;
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "anyfreeze"), mine));  // friendly is allowed
+  CHECK(g.player(0).board[0].frozenTurns == 2);
+}
+
+TEST_CASE("an enemy-target spell cannot hit your own creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "bear", "frost1", "frost1"}, repeat("bear", 30), 17);
+  g.start();
+  CHECK(g.playCard(handIndexOf(g, 0, "bear")));
+  EntityId mine = g.player(0).board[0].id;
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "frost1"), mine));  // enemy-only
+  CHECK(g.player(0).board[0].frozenTurns == 0);
 }
 #endif

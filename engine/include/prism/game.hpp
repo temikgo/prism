@@ -144,12 +144,19 @@ class Game {
   void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
+  // Resolve a targeted effect's creature based on its selector side:
+  // chosen_friendly_minion -> owner, chosen_any_minion -> either,
+  // anything else (chosen_enemy_minion) -> the opponent.
+  Creature* findSelected(const std::string& selector, Player& owner,
+                         EntityId target);
 
   // Phase 2: keyword/effect execution.
   void applyTurnStartTriggers(Player& p);  // regen heal, growth, photosynthesis
   void tickStatuses(Player& p);  // decrement freeze/blind at the turn's end
   bool enemyHasProvoke(
       const Player& opp) const;  // taunt: must be attacked first
+  bool hasAura(const Player& p,
+               const std::string& id) const;  // already controls this aura?
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target);
   // True if `target` is a legal target for the card's on_play effects (a

@@ -136,6 +136,7 @@ bool Game::playCard(int handIndex, EntityId target) {
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
+  if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
   if (!playTargetLegal(def, p, target)) return false;
   p.mana.pay(def->cost);
   p.hand.erase(p.hand.begin() + handIndex);
@@ -196,6 +197,7 @@ bool Game::awaken(int manaRowIndex, EntityId target) {
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
+  if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
   if (!playTargetLegal(def, p, target)) return false;
   Cost eff = def->cost;
   eff.generic = eff.generic > 0 ? eff.generic - 1 : 0;
@@ -212,6 +214,12 @@ bool Game::awaken(int manaRowIndex, EntityId target) {
 bool Game::enemyHasProvoke(const Player& opp) const {
   for (const auto& c : opp.board)
     if (c.def->hasKeyword("provoke")) return true;
+  return false;
+}
+
+bool Game::hasAura(const Player& p, const std::string& id) const {
+  for (const auto* a : p.auras)
+    if (a->id == id) return true;
   return false;
 }
 
@@ -436,7 +444,13 @@ bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
     if (e.trigger != "on_play") continue;
     if (e.selector == "chosen_enemy_minion") {
       Creature* t = findCreature(opp, target);
-      if (!t || t->stealthed) return false;
+      if (!t || t->stealthed) return false;  // a hidden enemy cannot be chosen
+    } else if (e.selector == "chosen_friendly_minion") {
+      if (!findCreature(owner, target)) return false;
+    } else if (e.selector == "chosen_any_minion") {
+      Creature* f = findCreature(owner, target);
+      Creature* o = findCreature(opp, target);
+      if (!f && (!o || o->stealthed)) return false;
     }
   }
   return true;
@@ -455,21 +469,23 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
   Player& opp = players_[1 - owner.index];
   const std::string& a = e.action;
   if (a == "freeze") {
-    if (Creature* t = findCreature(opp, target)) t->frozenTurns = e.value;
+    if (Creature* t = findSelected(e.selector, owner, target))
+      t->frozenTurns = e.value;
   } else if (a == "blind") {
-    if (Creature* t = findCreature(opp, target)) t->blindTurns = e.value;
+    if (Creature* t = findSelected(e.selector, owner, target))
+      t->blindTurns = e.value;
   } else if (a == "flash") {
     for (auto& c : opp.board) c.blindTurns = e.value;  // blind every enemy
   } else if (a == "damage") {
     if (e.selector == "enemy_hero")
       dealHeroDamage(opp, e.value);
-    else if (Creature* t = findCreature(opp, target))
+    else if (Creature* t = findSelected(e.selector, owner, target))
       damageCreature(*t, e.value, nullptr);
   } else if (a == "damage_all") {
     for (auto& pl : players_)
       for (auto& c : pl.board) damageCreature(c, e.value, nullptr);
   } else if (a == "destroy") {
-    if (Creature* t = findCreature(opp, target))
+    if (Creature* t = findSelected(e.selector, owner, target))
       t->hp = 0;  // checkDeaths reaps
   } else if (a == "draw") {
     draw(owner, e.value);
@@ -484,6 +500,17 @@ Creature* Game::findCreature(Player& p, EntityId id) {
   for (auto& c : p.board)
     if (c.id == id) return &c;
   return nullptr;
+}
+
+Creature* Game::findSelected(const std::string& selector, Player& owner,
+                             EntityId target) {
+  Player& opp = players_[1 - owner.index];
+  if (selector == "chosen_friendly_minion") return findCreature(owner, target);
+  if (selector == "chosen_any_minion") {
+    Creature* c = findCreature(owner, target);
+    return c ? c : findCreature(opp, target);
+  }
+  return findCreature(opp, target);  // chosen_enemy_minion / default
 }
 
 void Game::endTurn() {
