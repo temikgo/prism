@@ -500,15 +500,9 @@ func _rebuild() -> void:
 
 	root_box.add_child(_banner(you))
 	root_box.add_child(_enemy_strip(opp))
-	var opp_auras: Array = opp.get("auras", [])
-	if not opp_auras.is_empty():
-		root_box.add_child(_aura_row(opp_auras, false))
-	root_box.add_child(_board_row(opp.get("board", []), false))
+	root_box.add_child(_board_row(opp.get("board", []), opp.get("auras", []), false))
 	root_box.add_child(_separator())
-	root_box.add_child(_board_row(me.get("board", []), true))
-	var my_auras: Array = me.get("auras", [])
-	if not my_auras.is_empty():
-		root_box.add_child(_aura_row(my_auras, true))
+	root_box.add_child(_board_row(me.get("board", []), me.get("auras", []), true))
 	root_box.add_child(_me_strip(me))
 	root_box.add_child(_hand_row(me.get("hand", [])))
 	root_box.add_child(_controls())
@@ -594,14 +588,15 @@ func _me_strip(me: Dictionary) -> Control:
 	return zone
 
 
-func _aura_row(auras: Array, mine: bool) -> Control:
-	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
+func _aura_shelf(auras: Array, mine: bool) -> Control:
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 4)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	var tag := Label.new()
 	tag.text = "ВАШИ АУРЫ" if mine else "АУРЫ ВРАГА"
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tag.add_theme_font_size_override("font_size", 11)
+	tag.add_theme_font_size_override("font_size", 10)
 	tag.add_theme_color_override("font_color", Color(0.6, 0.64, 0.74))
 	box.add_child(tag)
 	for a in auras:
@@ -808,9 +803,10 @@ func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 
 # --- board rows --------------------------------------------------------------
 
-func _board_row(board: Array, mine: bool) -> Control:
+func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 	# The whole row is a drop zone: dropping a playable hand/awaken card here
-	# plays it (creatures land on your own side).
+	# plays it (creatures land on your own side). Auras sit on a side shelf so
+	# they take horizontal, not vertical, space.
 	var zone := UiCard.new()
 	zone.custom_minimum_size = Vector2(0, CARD_SIZE.y + 12)
 	zone.add_theme_stylebox_override("panel", _zone_style(mine))
@@ -818,15 +814,23 @@ func _board_row(board: Array, mine: bool) -> Control:
 		zone.can_drop_fn = func(data: Variant) -> bool: return _can_play_here(data)
 		zone.drop_fn = func(data: Variant) -> void: _play_payload(data, 0)
 
+	var outer := HBoxContainer.new()
+	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	outer.add_theme_constant_override("separation", 10)
+	if not auras.is_empty():
+		outer.add_child(_aura_shelf(auras, mine))
+
 	var row := HBoxContainer.new()
 	# IGNORE so drops in the gaps fall through to the zone; the creature cards
 	# (mouse_filter STOP) still receive their own input regardless.
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 6)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for cr in board:
 		row.add_child(_creature_card(cr, mine))
-	zone.add_child(row)
+	outer.add_child(row)
+	zone.add_child(outer)
 	return zone
 
 
