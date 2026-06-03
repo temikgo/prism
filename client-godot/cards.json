@@ -235,5 +235,64 @@
     "cost": { "generic": 2, "violet": 2 },
     "stats": { "atk": 3, "hp": 4 },
     "keywords": [{ "id": "stealth" }, { "id": "split", "n": 2 }]
+  },
+  {
+    "id": "red_sunset_colossus",
+    "name": { "ru": "Закатный Исполин" },
+    "text": { "ru": "" },
+    "art": "a towering crimson crystal-light colossus wreathed in a life-draining glow, vast and merciless, looming over a ruined field, overwhelming",
+    "type": "creature",
+    "color": ["red"],
+    "cost": { "generic": 5, "red": 2 },
+    "stats": { "atk": 8, "hp": 7 },
+    "keywords": [{ "id": "pierce" }, { "id": "self_lifesteal" }]
+  },
+  {
+    "id": "yellow_vigil_titan",
+    "name": { "ru": "Недремлющий Титан" },
+    "text": { "ru": "" },
+    "art": "a colossal yellow crystal-light titan-sentinel crowned with a halo and ever-open watching eyes, immovable, sweeping vigilant beams over the field",
+    "type": "creature",
+    "color": ["yellow"],
+    "cost": { "generic": 5, "yellow": 2 },
+    "stats": { "atk": 4, "hp": 9 },
+    "keywords": [{ "id": "provoke" }, { "id": "ward" }, { "id": "floodlight" }]
+  },
+  {
+    "id": "green_bounty_tree",
+    "name": { "ru": "Древо Изобилия" },
+    "text": { "ru": "" },
+    "art": "an enormous green crystal-light world-tree teeming with sprouts and drifting spores, ever-growing, lush and abundant, towering",
+    "type": "creature",
+    "color": ["green"],
+    "cost": { "generic": 6, "green": 2 },
+    "stats": { "atk": 6, "hp": 9 },
+    "keywords": [{ "id": "germinate", "n": 2 }, { "id": "spores", "n": 2 }]
+  },
+  {
+    "id": "blue_deep_oracle",
+    "name": { "ru": "Глубинный Оракул" },
+    "text": { "ru": "" },
+    "art": "a vast blue crystal-light oracle-being of deep ice and starlight, lenses of foresight orbiting its head, cold and ancient, immense",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 5, "blue": 2 },
+    "stats": { "atk": 6, "hp": 8 },
+    "keywords": [{ "id": "delay", "n": 1 }],
+    "effects": [
+      { "trigger": "on_play", "action": "dispel" },
+      { "trigger": "on_play", "action": "scry", "value": 2 }
+    ]
+  },
+  {
+    "id": "violet_patient_sleeper",
+    "name": { "ru": "Терпеливый Морок" },
+    "text": { "ru": "" },
+    "art": "a giant violet crystal-light shade biding its time among banked crystals, patient and quietly menacing, half-dissolved into shadow",
+    "type": "creature",
+    "color": ["violet"],
+    "cost": { "generic": 4, "violet": 2 },
+    "stats": { "atk": 6, "hp": 7 },
+    "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }]
   }
 ]
