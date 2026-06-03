@@ -26,6 +26,7 @@ var cards := {}            # card id -> definition (from cards.json)
 var attacker_id := -1      # your selected creature, waiting for an attack target
 var casting_index := -1    # hand index of a targeted spell waiting for a target
 var awaken_index := -1     # mana-row index of a targeted awaken card
+var pending_side := ""     # side a pending targeted spell can hit: enemy/friendly/any
 var _picker: Control = null   # open mana-color chooser, if any
 
 var url_edit: LineEdit
@@ -336,6 +337,7 @@ func _clear_selection() -> void:
 	attacker_id = -1
 	casting_index = -1
 	awaken_index = -1
+	pending_side = ""
 
 
 # --- view queries ------------------------------------------------------------
@@ -357,11 +359,21 @@ func _my_turn() -> bool:
 
 
 func _needs_target(card_id: String) -> bool:
+	return _target_side(card_id) != ""
+
+
+# Which side a targeted spell can hit: "enemy", "friendly", "any", or "" (none).
+func _target_side(card_id: String) -> String:
 	var d: Dictionary = cards.get(card_id, {})
 	for e in d.get("effects", []):
-		if String(e.get("selector", "")) == "chosen_enemy_minion":
-			return true
-	return false
+		match String(e.get("selector", "")):
+			"chosen_enemy_minion":
+				return "enemy"
+			"chosen_friendly_minion":
+				return "friendly"
+			"chosen_any_minion":
+				return "any"
+	return ""
 
 
 func _is_creature(card_id: String) -> bool:
@@ -394,6 +406,35 @@ func _is_playable(card_id: String) -> bool:
 	if not _can_afford(cards.get(card_id, {}).get("cost", {}), me["mana"].get("available", {})):
 		return false
 	if _is_creature(card_id) and int(me.get("board", []).size()) >= 8:
+		return false
+	return true
+
+
+func _has_keyword(card_id: String, kw: String) -> bool:
+	for k in cards.get(card_id, {}).get("keywords", []):
+		if String(k.get("id", "")) == kw:
+			return true
+	return false
+
+
+# Does the enemy control a (visible) provoker, forcing attacks onto it?
+func _enemy_has_provoke() -> bool:
+	var you := int(view["you"])
+	var opp: Dictionary = view["players"][1 - you]
+	for c in opp.get("board", []):
+		if bool(c.get("stealth", false)):
+			continue
+		if _has_keyword(String(c["card"]), "provoke"):
+			return true
+	return false
+
+
+# A legal attack target: not hidden, and if a provoker exists you may only hit
+# a provoker.
+func _valid_attack_target(cr: Dictionary) -> bool:
+	if bool(cr.get("stealth", false)):
+		return false
+	if _enemy_has_provoke() and not _has_keyword(String(cr["card"]), "provoke"):
 		return false
 	return true
 
@@ -453,12 +494,13 @@ func _enemy_strip(opp: Dictionary) -> Control:
 	var zone := UiCard.new()
 	zone.add_theme_stylebox_override("panel", _hero_style(Color(0.9, 0.32, 0.38)))
 	zone.can_drop_fn = func(data: Variant) -> bool:
-		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "attacker"
+		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "attacker" \
+			and not _enemy_has_provoke()
 	zone.drop_fn = func(data: Variant) -> void:
 		_send({"action": "attackHero", "attacker": int(data["id"])})
 		_clear_selection()
 	zone.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
-	if attacker_id >= 0:
+	if attacker_id >= 0 and not _enemy_has_provoke():
 		zone.modulate = Color(1.5, 1.4, 1.1)
 
 	var row := HBoxContainer.new()
@@ -644,6 +686,7 @@ func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 	chip.payload = {
 		"kind": "awaken", "manaRowIndex": idx, "card_id": card_id,
 		"needs_target": _needs_target(card_id), "draggable": draggable,
+		"target_side": _target_side(card_id),
 	}
 	chip.drag_label = "awaken: " + _name_of(card_id)
 	chip.clicked.connect(func(p: Dictionary) -> void: _on_awaken_clicked(p))
@@ -684,26 +727,38 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 	var card := _make_card(String(cr["card"]), cr)
 	var cid := int(cr["id"])
 	if mine:
-		# Your creature: drag to attack, and also accept play-drops landing on it.
-		var can_attack := _my_turn() and int(cr.get("frozen", 0)) == 0 \
+		# Your creature: drag to attack; also a drop target for playing a creature
+		# here or casting a friendly/any-target spell on it.
+		var can_attack := _my_turn() and int(cr.get("atk", 0)) > 0 \
+			and int(cr.get("frozen", 0)) == 0 \
 			and not bool(cr.get("sick", false)) and not bool(cr.get("attacked", false))
 		card.payload = {"kind": "attacker", "id": cid, "draggable": can_attack}
 		card.drag_label = _name_of(String(cr["card"]))
-		card.can_drop_fn = func(data: Variant) -> bool: return _can_play_here(data)
-		card.drop_fn = func(data: Variant) -> void: _play_payload(data, 0)
+		card.can_drop_fn = func(data: Variant) -> bool:
+			return _can_play_here(data) or _can_cast_on(data, "friendly")
+		card.drop_fn = func(data: Variant) -> void:
+			if _can_cast_on(data, "friendly"):
+				_play_payload(data, cid)
+			else:
+				_play_payload(data, 0)
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_my_creature(cid))
 		# On your turn, dim creatures that cannot attack so the ready ones glow.
 		if _my_turn() and not can_attack:
 			card.modulate = Color(0.6, 0.62, 0.7, 0.92)
 			card.rest_modulate = Color(0.6, 0.62, 0.7, 0.92)
+		# A friendly/any spell awaiting a target lights up your creatures.
+		if (casting_index >= 0 or awaken_index >= 0) and pending_side in ["friendly", "any"]:
+			card.modulate = Color(1.45, 1.45, 1.1)
+			card.rest_modulate = Color(1.45, 1.45, 1.1)
 	else:
-		# Enemy creature: accept an attacker, or a targeted spell/awaken.
+		# Enemy creature: accept an attacker (subject to provoke/stealth), or an
+		# enemy/any-target spell (not on a hidden creature).
 		card.can_drop_fn = func(data: Variant) -> bool:
 			if typeof(data) != TYPE_DICTIONARY:
 				return false
 			if data.get("kind", "") == "attacker":
-				return true
-			return data.get("kind", "") in ["hand", "awaken"] and bool(data.get("needs_target", false))
+				return _valid_attack_target(cr)
+			return _can_cast_on(data, "enemy") and not bool(cr.get("stealth", false))
 		card.drop_fn = func(data: Variant) -> void:
 			if data.get("kind", "") == "attacker":
 				_send({"action": "attackCreature", "attacker": int(data["id"]), "target": cid})
@@ -711,8 +766,12 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			else:
 				_play_payload(data, cid)
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_creature(cid))
-		# Click-fallback: light up enemy creatures while a target is awaited.
-		if attacker_id >= 0 or casting_index >= 0 or awaken_index >= 0:
+		# Light up only valid targets: attackable ones (respecting provoke/stealth)
+		# while attacking, castable ones while a spell awaits a target.
+		var await_attack := attacker_id >= 0 and _valid_attack_target(cr)
+		var await_spell := (casting_index >= 0 or awaken_index >= 0) \
+			and pending_side in ["enemy", "any"] and not bool(cr.get("stealth", false))
+		if await_attack or await_spell:
 			card.modulate = Color(1.45, 1.45, 1.1)
 	return card
 
@@ -735,6 +794,7 @@ func _hand_row(hand: Array) -> Control:
 			"kind": "hand", "index": int(i), "card_id": cid,
 			"needs_target": _needs_target(cid), "is_creature": _is_creature(cid),
 			"draggable": _my_turn(), "playable": playable,
+			"target_side": _target_side(cid),
 		}
 		card.drag_label = _name_of(cid)
 		# Dim cards you cannot play this turn so the playable ones stand out.
@@ -1233,8 +1293,26 @@ func _can_play_here(data: Variant) -> bool:
 	# An unplayable hand card lights up no board zone (but can still go to mana).
 	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
 		return false
-	# A targeted spell must be dropped on an enemy creature, not on the board.
+	# A targeted spell must be dropped on a creature, not on the board.
 	return not bool(data.get("needs_target", false))
+
+
+# True if the dragged targeted spell/awaken may be cast on a creature of the
+# given side ("friendly" or "enemy"). An "any" spell hits either side.
+func _can_cast_on(data: Variant, want_side: String) -> bool:
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	if not (data.get("kind", "") in ["hand", "awaken"]):
+		return false
+	if not bool(data.get("needs_target", false)):
+		return false
+	var side := String(data.get("target_side", ""))
+	if side != "any" and side != want_side:
+		return false
+	# Hand cards must be affordable; awaken legality is checked by the server.
+	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
+		return false
+	return true
 
 
 func _play_payload(data: Variant, target: int) -> void:
@@ -1326,6 +1404,7 @@ func _on_hand_card(idx: int, card_id: String) -> void:
 	if _needs_target(card_id):
 		_clear_selection()
 		casting_index = idx
+		pending_side = _target_side(card_id)
 		_rebuild()
 	else:
 		_clear_selection()
@@ -1343,6 +1422,7 @@ func _on_awaken_clicked(p: Dictionary) -> void:
 	if bool(p.get("needs_target", false)):
 		_clear_selection()
 		awaken_index = idx
+		pending_side = _target_side(String(p.get("card_id", "")))
 		_rebuild()
 	else:
 		_clear_selection()
@@ -1350,16 +1430,25 @@ func _on_awaken_clicked(p: Dictionary) -> void:
 
 
 func _on_my_creature(cid: int) -> void:
+	# Cast a pending friendly/any spell on this creature, else select it to attack.
+	if casting_index >= 0 and pending_side in ["friendly", "any"]:
+		_send({"action": "play", "handIndex": casting_index, "target": cid})
+		_clear_selection()
+		return
+	if awaken_index >= 0 and pending_side in ["friendly", "any"]:
+		_send({"action": "awaken", "manaRowIndex": awaken_index, "target": cid})
+		_clear_selection()
+		return
 	_clear_selection()
 	attacker_id = cid
 	_rebuild()
 
 
 func _on_enemy_creature(cid: int) -> void:
-	if casting_index >= 0:
+	if casting_index >= 0 and pending_side in ["enemy", "any"]:
 		_send({"action": "play", "handIndex": casting_index, "target": cid})
 		_clear_selection()
-	elif awaken_index >= 0:
+	elif awaken_index >= 0 and pending_side in ["enemy", "any"]:
 		_send({"action": "awaken", "manaRowIndex": awaken_index, "target": cid})
 		_clear_selection()
 	elif attacker_id >= 0:
