@@ -183,9 +183,7 @@ func _build_shell() -> void:
 	var connect_btn := _neon_button("Connect", Color(0.4, 0.8, 1.0))
 	connect_btn.pressed.connect(_on_connect)
 	bar.add_child(connect_btn)
-	status_label = Label.new()
-	status_label.text = "disconnected"
-	status_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85))
+	status_label = _label("disconnected", 0, Color(0.7, 0.75, 0.85))
 	bar.add_child(status_label)
 	root_box.add_child(bar)
 
@@ -216,6 +214,19 @@ func _bg_texture() -> Texture2D:
 	return tex
 
 
+# A plain rounded panel with a solid border (no shadow). Covers the small
+# bordered chips/tiles/pills; overlay panels use _glass instead.
+func _bordered(bg: Color, radius: int, border_w: int, border_c: Color, margin: int = 0) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.set_corner_radius_all(radius)
+	sb.set_border_width_all(border_w)
+	sb.border_color = border_c
+	if margin > 0:
+		sb.set_content_margin_all(margin)
+	return sb
+
+
 # Translucent dark "glass" with a neon accent border and a soft accent glow.
 func _glass(accent: Color, bg_alpha: float) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -227,6 +238,22 @@ func _glass(accent: Color, bg_alpha: float) -> StyleBoxFlat:
 	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.42)
 	sb.set_content_margin_all(8)
 	return sb
+
+
+# One-liner Label builder. Only the arguments you pass are applied, so it is a
+# drop-in for the many `Label.new(); font_size; font_color; alignment` blocks
+# without changing any site's look. Pass size <= 0 / color = null to inherit the
+# theme default; set `center` for horizontally centered text.
+func _label(text: String, size: int = 0, color: Variant = null, center: bool = false) -> Label:
+	var l := Label.new()
+	l.text = text
+	if size > 0:
+		l.add_theme_font_size_override("font_size", size)
+	if color != null:
+		l.add_theme_color_override("font_color", color)
+	if center:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return l
 
 
 func _neon_button(text: String, accent: Color) -> Button:
@@ -402,10 +429,7 @@ func _fade_out_dead(node: Control) -> void:
 
 
 func _spawn_float_number(pos: Vector2, amount: int) -> void:
-	var lbl := Label.new()
-	lbl.text = "-%d" % amount
-	lbl.add_theme_font_size_override("font_size", 32)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	var lbl := _label("-%d" % amount, 32, Color(1.0, 0.4, 0.4))
 	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	lbl.add_theme_constant_override("outline_size", 6)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -623,18 +647,9 @@ func _game_over_panel(you: int) -> Control:
 	panel.add_theme_stylebox_override("panel", _glass(accent, 0.9))
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 10)
-	var l := Label.new()
-	l.text = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 48)
-	l.add_theme_color_override("font_color", accent.lightened(0.3))
-	vb.add_child(l)
-	var sub := Label.new()
-	sub.text = "Перезапустите сервер для новой партии"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 14)
-	sub.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
-	vb.add_child(sub)
+	vb.add_child(_label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 48, accent.lightened(0.3), true))
+	vb.add_child(_label("Перезапустите сервер для новой партии", 14,
+		Color(0.75, 0.78, 0.86), true))
 	panel.add_child(vb)
 	center.add_child(panel)
 	return dim
@@ -660,29 +675,18 @@ func _mulligan_panel(me: Dictionary) -> Control:
 	panel.add_child(vb)
 	center.add_child(panel)
 
-	var title := Label.new()
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", accent.lightened(0.3))
+	var title := _label("", 30, accent.lightened(0.3), true)
 	vb.add_child(title)
 
 	# Once you have confirmed, just wait for the opponent.
 	if bool(me.get("mulliganDone", false)):
 		title.text = "Ждём соперника…"
-		var hint := Label.new()
-		hint.text = "Ваш мулиган принят."
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hint.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
-		vb.add_child(hint)
+		vb.add_child(_label("Ваш мулиган принят.", 0, Color(0.75, 0.78, 0.86), true))
 		return dim
 
 	title.text = "Мулиган"
-	var sub := Label.new()
-	sub.text = "Нажмите на карты, которые хотите заменить, затем подтвердите."
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 14)
-	sub.add_theme_color_override("font_color", Color(0.75, 0.78, 0.86))
-	vb.add_child(sub)
+	vb.add_child(_label("Нажмите на карты, которые хотите заменить, затем подтвердите.",
+		14, Color(0.75, 0.78, 0.86), true))
 
 	var hand: Array = me.get("hand", [])
 	var row := HBoxContainer.new()
@@ -702,11 +706,7 @@ func _mulligan_panel(me: Dictionary) -> Control:
 		card.clicked.connect(func(_p: Dictionary) -> void: _toggle_mulligan(idx))
 		wrap.add_child(card)
 		if marked:
-			var badge := Label.new()
-			badge.text = "ЗАМЕНА"
-			badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			badge.add_theme_font_size_override("font_size", 16)
-			badge.add_theme_color_override("font_color", Color(1.0, 0.7, 0.7))
+			var badge := _label("ЗАМЕНА", 16, Color(1.0, 0.7, 0.7), true)
 			badge.position = Vector2(0, CARD_SIZE.y / 2.0 - 12)
 			badge.size = Vector2(CARD_SIZE.x, 24)
 			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -738,9 +738,7 @@ func _send_mulligan() -> void:
 
 
 func _banner(you: int) -> Control:
-	var banner := Label.new()
-	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	banner.add_theme_font_size_override("font_size", 22)
+	var banner := _label("", 22, null, true)
 	if bool(view.get("over", false)):
 		var w := int(view.get("winner", -1))
 		var win := w == you
@@ -819,11 +817,8 @@ func _aura_shelf(auras: Array, mine: bool) -> Control:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 4)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	var tag := Label.new()
-	tag.text = "ВАШИ АУРЫ" if mine else "АУРЫ ВРАГА"
+	var tag := _label("ВАШИ АУРЫ" if mine else "АУРЫ ВРАГА", 10, Color(0.6, 0.64, 0.74))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tag.add_theme_font_size_override("font_size", 10)
-	tag.add_theme_color_override("font_color", Color(0.6, 0.64, 0.74))
 	box.add_child(tag)
 	for a in auras:
 		box.add_child(_aura_tile(String(a.get("card", ""))))
@@ -864,10 +859,8 @@ func _aura_tile(card_id: String) -> Control:
 		ph.custom_minimum_size = Vector2(46, 46)
 		ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(ph)
-	var name_l := Label.new()
-	name_l.text = _name_of(card_id)
+	var name_l := _label(_name_of(card_id), 12)
 	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_l.add_theme_font_size_override("font_size", 12)
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_l.custom_minimum_size = Vector2(66, 0)
 	row.add_child(name_l)
@@ -879,32 +872,24 @@ func _hero_block(hero: Dictionary, title: String) -> Control:
 	var box := HBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 5)
-	var t := Label.new()
-	t.text = title
+	var t := _label(title, 15)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	t.add_theme_font_size_override("font_size", 15)
 	box.add_child(t)
 	box.add_child(_icon("heart", 22, Color(0.95, 0.42, 0.46)))
 	box.add_child(_gem(str(int(hero["hp"])), Color(0.95, 0.42, 0.46)))
 	if int(hero.get("armor", 0)) > 0:
 		box.add_child(_icon("shield", 20, Color(0.72, 0.82, 0.98)))
-		var arm := Label.new()
-		arm.text = str(int(hero["armor"]))
+		var arm := _label(str(int(hero["armor"])), 16, Color(0.72, 0.82, 0.98))
 		arm.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		arm.add_theme_font_size_override("font_size", 16)
-		arm.add_theme_color_override("font_color", Color(0.72, 0.82, 0.98))
 		box.add_child(arm)
 	return box
 
 
 func _counts_label(p: Dictionary) -> Control:
-	var l := Label.new()
-	l.text = "рука %d   колода %d   сброс %d" % [
+	var l := _label("рука %d   колода %d   сброс %d" % [
 		int(p.get("handCount", 0)), int(p.get("deckCount", 0)),
-		int(p.get("graveyardCount", 0))]
+		int(p.get("graveyardCount", 0))], 12, Color(0.6, 0.64, 0.74))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.add_theme_font_size_override("font_size", 12)
-	l.add_theme_color_override("font_color", Color(0.6, 0.64, 0.74))
 	return l
 
 
@@ -928,11 +913,8 @@ func _mana_crystals(mana: Dictionary) -> Control:
 			group.add_child(_mana_pip(color, i < av))
 		row.add_child(group)
 	if not any:
-		var l := Label.new()
-		l.text = "нет маны"
+		var l := _label("нет маны", 12, Color(0.5, 0.53, 0.62))
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		l.add_theme_font_size_override("font_size", 12)
-		l.add_theme_color_override("font_color", Color(0.5, 0.53, 0.62))
 		row.add_child(l)
 	return row
 
@@ -991,11 +973,8 @@ func _manarow_view(mana_row: Array, mine: bool) -> Control:
 		if not slot.has("card"):
 			continue
 		if not any:
-			var tag := Label.new()
-			tag.text = "разбудить:"
+			var tag := _label("разбудить:", 11, Color(0.95, 0.85, 0.4))
 			tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			tag.add_theme_font_size_override("font_size", 11)
-			tag.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
 			row.add_child(tag)
 			any = true
 		row.add_child(_awaken_chip(int(i), String(slot["card"]), String(slot.get("color", "colorless"))))
@@ -1005,12 +984,9 @@ func _manarow_view(mana_row: Array, mine: bool) -> Control:
 func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 	var chip := UiCard.new()
 	chip.custom_minimum_size = Vector2(26, 28)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = _color_for(color).darkened(0.2)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.95, 0.85, 0.3)   # gold = peekable awaken
-	sb.set_corner_radius_all(3)
-	chip.add_theme_stylebox_override("panel", sb)
+	# gold border = peekable awaken
+	chip.add_theme_stylebox_override("panel",
+		_bordered(_color_for(color).darkened(0.2), 3, 2, Color(0.95, 0.85, 0.3)))
 	chip.tooltip_text = "%s - awaken" % _name_of(card_id)
 	var draggable := _my_turn()
 	chip.payload = {
@@ -1020,11 +996,8 @@ func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
 	}
 	chip.drag_label = "awaken: " + _name_of(card_id)
 	chip.clicked.connect(func(p: Dictionary) -> void: _on_awaken_clicked(p))
-	var star := Label.new()
-	star.text = "AW"
+	var star := _label("AW", 11, null, true)
 	star.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	star.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	star.add_theme_font_size_override("font_size", 11)
 	chip.add_child(star)
 	return chip
 
@@ -1181,10 +1154,8 @@ func _mana_zone() -> Control:
 		return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "hand"
 	zone.drop_fn = func(data: Variant) -> void:
 		_place_mana(int(data["index"]), String(data["card_id"]))
-	var l := Label.new()
-	l.text = "TO\nMANA"
+	var l := _label("TO\nMANA", 0, null, true)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	zone.add_child(l)
 	return zone
@@ -1228,13 +1199,8 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 	var col := _primary_color(d)
 
 	var panel := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.10, 0.11, 0.15, 0.98)
-	sb.set_corner_radius_all(10)
-	sb.set_border_width_all(2)
-	sb.border_color = col
-	sb.set_content_margin_all(11)
-	panel.add_theme_stylebox_override("panel", sb)
+	panel.add_theme_stylebox_override("panel",
+		_bordered(Color(0.10, 0.11, 0.15, 0.98), 10, 2, col, 11))
 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 5)
@@ -1242,33 +1208,19 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 	panel.add_child(v)
 
 	var header := HBoxContainer.new()
-	var name_l := Label.new()
-	name_l.text = _name_of(def_id)
-	name_l.add_theme_font_size_override("font_size", 18)
-	name_l.add_theme_color_override("font_color", col.lightened(0.4))
-	header.add_child(name_l)
+	header.add_child(_label(_name_of(def_id), 18, col.lightened(0.4)))
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(sp)
-	var cost_l := Label.new()
-	cost_l.text = "%d" % _total_cost(d.get("cost", {}))
-	cost_l.add_theme_font_size_override("font_size", 18)
-	cost_l.add_theme_color_override("font_color", Color(0.85, 0.88, 0.98))
-	header.add_child(cost_l)
+	header.add_child(_label("%d" % _total_cost(d.get("cost", {})), 18, Color(0.85, 0.88, 0.98)))
 	v.add_child(header)
 
-	var type_l := Label.new()
-	type_l.text = _type_label(d)
-	type_l.add_theme_font_size_override("font_size", 12)
-	type_l.add_theme_color_override("font_color", Color(0.6, 0.65, 0.75))
-	v.add_child(type_l)
+	v.add_child(_label(_type_label(d), 12, Color(0.6, 0.65, 0.75)))
 
 	var txt := _text_of(def_id)
 	if txt != "":
 		v.add_child(HSeparator.new())
-		var text_l := Label.new()
-		text_l.text = txt
-		text_l.add_theme_font_size_override("font_size", 14)
+		var text_l := _label(txt, 14)
 		text_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text_l.custom_minimum_size = Vector2(250, 0)
 		v.add_child(text_l)
@@ -1293,10 +1245,7 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 	if not status.is_empty():
 		v.add_child(HSeparator.new())
 		for s in status:
-			var sl := Label.new()
-			sl.text = s
-			sl.add_theme_font_size_override("font_size", 12)
-			sl.add_theme_color_override("font_color", Color(0.55, 0.82, 1.0))
+			var sl := _label(s, 12, Color(0.55, 0.82, 1.0))
 			sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			sl.custom_minimum_size = Vector2(250, 0)
 			v.add_child(sl)
@@ -1323,10 +1272,7 @@ func _status_lines(runtime) -> Array:
 
 
 func _explain_label(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_font_size_override("font_size", 12)
-	l.add_theme_color_override("font_color", Color(0.74, 0.8, 0.64))
+	var l := _label(text, 12, Color(0.74, 0.8, 0.64))
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size = Vector2(250, 0)
 	return l
@@ -1490,13 +1436,9 @@ func _gem(text: String, ring: Color) -> Control:
 	sb.set_border_width_all(2)
 	sb.border_color = ring
 	g.add_theme_stylebox_override("panel", sb)
-	var l := Label.new()
-	l.text = text
+	var l := _label(text, 17, ring.lightened(0.4), true)
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 17)
-	l.add_theme_color_override("font_color", ring.lightened(0.4))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g.add_child(l)
 	return g
@@ -1575,11 +1517,8 @@ func _cost_badge(cost: Dictionary) -> Control:
 	# Show the generic number when there is one, or when the card is free of any
 	# colored pips (so a "0" still appears instead of an empty badge).
 	if gen > 0 or not has_color:
-		var n := Label.new()
-		n.text = str(gen)
+		var n := _label(str(gen), 18, Color(0.95, 0.96, 1.0))
 		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		n.add_theme_font_size_override("font_size", 18)
-		n.add_theme_color_override("font_color", Color(0.95, 0.96, 1.0))
 		box.add_child(n)
 	for c in ["red", "yellow", "green", "blue", "violet"]:
 		for _i in int(cost.get(c, 0)):
@@ -1593,12 +1532,7 @@ func _cost_pip(color: String) -> Control:
 	var pip := Panel.new()
 	pip.custom_minimum_size = Vector2(13, 16)
 	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = c
-	sb.set_corner_radius_all(3)
-	sb.set_border_width_all(1)
-	sb.border_color = c.lightened(0.45)
-	pip.add_theme_stylebox_override("panel", sb)
+	pip.add_theme_stylebox_override("panel", _bordered(c, 3, 1, c.lightened(0.45)))
 	var holder := CenterContainer.new()   # vertical-center the pip beside the number
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(pip)
@@ -1664,9 +1598,8 @@ func _controls() -> Control:
 		_send({"action": "endTurn"}))
 	row.add_child(end_btn)
 
-	var hint := Label.new()
+	var hint := _label("", 0, Color(0.62, 0.66, 0.78))
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hint.add_theme_color_override("font_color", Color(0.62, 0.66, 0.78))
 	if casting_index >= 0 or awaken_index >= 0:
 		hint.text = "pick an enemy creature as the target (click the card again to cancel)"
 	elif attacker_id >= 0:
@@ -1776,10 +1709,7 @@ func _show_color_picker(idx: int, colors: Array) -> void:
 	panel.add_theme_stylebox_override("panel", _glass(Color(0.6, 0.62, 0.8), 0.97))
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 6)
-	var title := Label.new()
-	title.text = "Каким кристаллом положить?"
-	title.add_theme_font_size_override("font_size", 14)
-	vb.add_child(title)
+	vb.add_child(_label("Каким кристаллом положить?", 14))
 	for c in colors:
 		var cc := String(c)
 		var b := _neon_button(_color_ru(cc), _color_for(cc))
