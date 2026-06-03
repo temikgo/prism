@@ -178,5 +178,17 @@
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }
     ]
+  },
+  {
+    "id": "violet_mirror_image",
+    "name": { "ru": "Зеркальный Образ" },
+    "text": { "ru": "Создайте иллюзорную копию любого существа (1 HP)." },
+    "art": "a violet crystal-light spell conjuring a shimmering ghostly illusory double of a chosen creature, mysterious",
+    "type": "spell",
+    "color": ["violet"],
+    "cost": { "generic": 2, "violet": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_any_minion", "action": "mirage", "value": 0 }
+    ]
   }
 ]
