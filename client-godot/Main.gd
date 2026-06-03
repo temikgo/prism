@@ -14,8 +14,9 @@ extends Control
 
 const DEFAULT_URL := "ws://127.0.0.1:8080"
 const CARD_SIZE := Vector2(150, 210)
-const FRAME := 5.0     # colored-gradient frame thickness around the art
-const GEM := 34.0      # diameter of the cost / atk / hp corner gems
+const FRAME := 5.0      # colored-gradient frame thickness around the art
+const GEM := 34.0       # diameter of the cost / atk / hp corner gems
+const BOARD_LIMIT := 8  # max creatures per side (mirrors the engine)
 
 var socket := WebSocketPeer.new()
 var was_open := false
@@ -34,6 +35,9 @@ var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
 var _card_nodes := {}          # creature id -> its card node this rebuild
 var _dmg := {}                 # creature id -> damage taken since the last view
 var _summoned := {}            # creature id -> true if newly on the board
+var _my_creatures_row: Control = null  # the HBox holding your board creatures
+var _my_board_zone: Control = null     # your board drop zone (for hover test)
+var _board_gap: Control = null         # slot opened while dragging a creature in
 
 var url_edit: LineEdit
 var status_label: Label
@@ -124,7 +128,11 @@ class UiCard extends PanelContainer:
 	static var active_drag = null
 	# While an attacker is being dragged: viewport position to draw the attack
 	# arrow from (Vector2.INF when no attacker drag is in flight).
-	static var attack_drag_from := Vector2.INF
+	static var aim_from := Vector2.INF
+	static var aim_color := Color(0.5, 0.95, 1.0)  # arrow color: attack vs spell
+	# True while a target is being chosen (attacker/spell): cards must not lift on
+	# hover so only the legal-target glow reads as interactive.
+	static var targeting := false
 	var payload: Dictionary = {}        # non-empty + draggable=true => can drag
 	var drag_label: String = ""
 	var preview_builder: Callable = Callable()   # returns the drag-preview Control
@@ -137,6 +145,7 @@ class UiCard extends PanelContainer:
 	var highlight_check: Callable = Callable()
 	var hoverable := false                        # lift + scale on mouse-over
 	var rest_modulate := Color.WHITE              # modulate to restore after a drag
+	var glow_self := false                        # glow own panel only (drop zones)
 	var _is_drag_source := false
 
 	func _ready() -> void:
@@ -144,7 +153,9 @@ class UiCard extends PanelContainer:
 		mouse_exited.connect(_on_hover_out)
 
 	func _on_hover_in() -> void:
-		if not hoverable:
+		# Don't lift while dragging or aiming at a target: only the legal-target
+		# glow should read as interactive then.
+		if not hoverable or active_drag != null or targeting:
 			return
 		pivot_offset = size / 2.0
 		z_index = 20
@@ -174,10 +185,15 @@ class UiCard extends PanelContainer:
 			return null
 		active_drag = payload
 		_is_drag_source = true
-		if payload.get("kind", "") == "attacker":
-			# Attacks show an arrow, not a floating card: use a tiny invisible
-			# preview and record where the arrow starts.
-			attack_drag_from = global_position + size * 0.5
+		# Drop the hover lift so the source never overlaps the drag preview.
+		z_index = 0
+		scale = Vector2.ONE
+		if payload.get("kind", "") == "attacker" or bool(payload.get("needs_target", false)):
+			# Attacks and targeted spells show an aiming arrow, not a floating
+			# card: use a tiny invisible preview and record where the arrow starts.
+			aim_from = global_position + size * 0.5
+			aim_color = Color(0.5, 0.95, 1.0) if payload.get("kind", "") == "attacker" \
+				else Color(0.82, 0.55, 1.0)
 			var dot := Control.new()
 			dot.custom_minimum_size = Vector2(2, 2)
 			set_drag_preview(dot)
@@ -207,35 +223,87 @@ class UiCard extends PanelContainer:
 			elif active_drag != null:
 				var check := highlight_check if highlight_check.is_valid() else can_drop_fn
 				if check.is_valid() and bool(check.call(active_drag)):
-					modulate = Color(1.45, 1.45, 1.1)
+					# self_modulate glows only this node's own panel, not its
+					# children, so a drop ZONE lights up without brightening the
+					# cards/auras sitting inside it.
+					if glow_self:
+						self_modulate = Color(1.45, 1.45, 1.1)
+					else:
+						modulate = Color(1.45, 1.45, 1.1)
 		elif what == NOTIFICATION_DRAG_END:
 			active_drag = null
-			attack_drag_from = Vector2.INF
+			aim_from = Vector2.INF
 			_is_drag_source = false
 			modulate = rest_modulate
+			self_modulate = Color.WHITE
 
 
-# Top overlay that draws the attack arrow while a creature is being dragged.
+# Top overlay that draws the aiming arrow while a creature/spell is being dragged.
 class FxLayer extends Control:
 	func _process(_dt: float) -> void:
-		if UiCard.attack_drag_from != Vector2.INF:
-			queue_redraw()
+		queue_redraw()  # redraw every frame so the arrow also clears on release
 
 	func _draw() -> void:
-		if UiCard.attack_drag_from == Vector2.INF:
+		if UiCard.aim_from == Vector2.INF:
 			return
-		var from: Vector2 = UiCard.attack_drag_from
-		var to := get_global_mouse_position()
-		var col := Color(1.0, 0.82, 0.3, 0.92)
-		draw_line(from, to, col, 4.0, true)
-		var dir := to - from
-		if dir.length() < 4.0:
+		_arrow(UiCard.aim_from, get_global_mouse_position())
+
+	func _arrow(a: Vector2, b: Vector2) -> void:
+		var d := b - a
+		var dist := d.length()
+		if dist < 14.0:
 			return
-		dir = dir.normalized()
-		var perp := Vector2(-dir.y, dir.x)
-		draw_colored_polygon(
-			PackedVector2Array([to, to - dir * 18 + perp * 9, to - dir * 18 - perp * 9]),
-			col)
+		# Sample a gently arced bezier from source to cursor.
+		var ctrl := (a + b) * 0.5 + Vector2(0, -minf(dist * 0.28, 130.0))
+		var steps := 26
+		var pts := PackedVector2Array()
+		for i in steps + 1:
+			var t := float(i) / steps
+			pts.append(a.lerp(ctrl, t).lerp(ctrl.lerp(b, t), t))
+		var tip: Vector2 = pts[steps]
+		var tip_dir := (tip - pts[steps - 1]).normalized()
+		var perp := Vector2(-tip_dir.y, tip_dir.x)
+		var head := minf(34.0, dist * 0.45)
+		var core: Color = UiCard.aim_color
+		var glow := Color(core.r, core.g, core.b, 0.22)
+		# Tapered ribbon (glow underlay, then bright core), trimmed by the head
+		# length so it meets the arrowhead with no gap.
+		_ribbon(pts, 12.0, 4.0, head, glow, 6.0)
+		_ribbon(pts, 7.0, 2.5, head, core, 0.0)
+		# Arrowhead (glow, then core).
+		draw_colored_polygon(PackedVector2Array([
+			tip + tip_dir * 4.0, tip - tip_dir * head + perp * 21.0,
+			tip - tip_dir * head - perp * 21.0]), glow)
+		draw_colored_polygon(PackedVector2Array([
+			tip + tip_dir * 2.0, tip - tip_dir * head + perp * 14.0,
+			tip - tip_dir * head - perp * 14.0]), core)
+
+	func _ribbon(pts: PackedVector2Array, w0: float, w1: float, trim_len: float,
+			c: Color, pad: float) -> void:
+		var last := pts.size() - 1
+		var total := 0.0
+		for i in range(1, pts.size()):
+			total += pts[i].distance_to(pts[i - 1])
+		if total < 1.0:
+			return
+		var left := PackedVector2Array()
+		var right := PackedVector2Array()
+		var acc := 0.0
+		for i in pts.size():
+			if i > 0:
+				acc += pts[i].distance_to(pts[i - 1])
+			if total - acc < trim_len:
+				break  # stop where the arrowhead begins -> no gap
+			var t := acc / total
+			var w := lerpf(w0, w1, t) + pad
+			var tan := (pts[mini(i + 1, last)] - pts[maxi(i - 1, 0)]).normalized()
+			var pp := Vector2(-tan.y, tan.x)
+			left.append(pts[i] + pp * w * 0.5)
+			right.append(pts[i] - pp * w * 0.5)
+		if left.size() < 2:
+			return
+		right.reverse()
+		draw_colored_polygon(left + right, c)
 
 
 # --- lifecycle ---------------------------------------------------------------
@@ -313,6 +381,7 @@ func _build_shell() -> void:
 	_fx = FxLayer.new()
 	_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fx.z_index = 100  # above hovered cards (which raise their own z_index)
 	add_child(_fx)
 
 
@@ -382,6 +451,43 @@ func _process(_dt: float) -> void:
 	elif st == WebSocketPeer.STATE_CLOSED and was_open:
 		was_open = false
 		status_label.text = "closed"
+	_update_board_gap()
+
+
+# While dragging a creature over your board, open an empty slot at the spot it
+# would land, so the board reflows before you drop.
+func _update_board_gap() -> void:
+	var d = UiCard.active_drag
+	var ok: bool = d != null and typeof(d) == TYPE_DICTIONARY \
+		and d.get("kind", "") == "hand" and bool(d.get("is_creature", false)) \
+		and not bool(d.get("needs_target", false)) and bool(d.get("playable", true)) \
+		and _my_creatures_row != null and is_instance_valid(_my_creatures_row) \
+		and _my_board_zone != null and is_instance_valid(_my_board_zone) \
+		and _my_board_zone.get_global_rect().has_point(get_global_mouse_position())
+	if not ok:
+		_remove_board_gap()
+		return
+	if _board_gap == null or not is_instance_valid(_board_gap):
+		_board_gap = Panel.new()
+		_board_gap.custom_minimum_size = CARD_SIZE
+		_board_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.4, 0.9, 1.0, 0.08)
+		sb.set_border_width_all(2)
+		sb.border_color = Color(0.4, 0.9, 1.0, 0.5)
+		sb.set_corner_radius_all(10)
+		_board_gap.add_theme_stylebox_override("panel", sb)
+		_my_creatures_row.add_child(_board_gap)
+	elif _board_gap.get_parent() != _my_creatures_row:
+		_board_gap.get_parent().remove_child(_board_gap)
+		_my_creatures_row.add_child(_board_gap)
+	_my_creatures_row.move_child(_board_gap, _drop_insert_index())
+
+
+func _remove_board_gap() -> void:
+	if _board_gap != null and is_instance_valid(_board_gap):
+		_board_gap.queue_free()
+	_board_gap = null
 
 
 func _send(obj: Dictionary) -> void:
@@ -392,6 +498,10 @@ func _send(obj: Dictionary) -> void:
 # Apply a fresh view: diff creature HP against the last one to drive damage,
 # death and summon animations, then rebuild.
 func _ingest_view(new_view: Dictionary) -> void:
+	# A new view means the board changed: a pending click-selection or open mana
+	# picker would point at now-stale indices, so drop them.
+	_clear_selection()
+	_close_picker()
 	_dmg = {}
 	_summoned = {}
 	var new_hp := {}
@@ -411,26 +521,48 @@ func _ingest_view(new_view: Dictionary) -> void:
 
 	view = new_view
 	_card_nodes = {}
-	_rebuild()  # _creature_card consumes _dmg/_summoned and refills _card_nodes
+	_rebuild()  # refills _card_nodes
 	_prev_hp = new_hp
-	var dmg_copy := _dmg.duplicate()
+	_animate_changes(_dmg.duplicate(), _summoned.duplicate())
 	_dmg = {}
 	_summoned = {}
-	if not dmg_copy.is_empty():
-		_spawn_damage_numbers(dmg_copy)
+
+
+# Apply damage / death / summon effects once the new board has laid out.
+func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
+	await get_tree().process_frame
+	for id in summoned:
+		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
+			_pop_in(_card_nodes[id])
+	for id in dmg:
+		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
+			var nd: Control = _card_nodes[id]
+			_flash_card(nd)
+			_spawn_float_number(
+				nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.18), int(dmg[id]))
 
 
 func _flash_card(card: Control) -> void:
+	card.pivot_offset = card.size * 0.5
 	var rest: Color = card.rest_modulate
 	var t := create_tween()
-	t.tween_property(card, "modulate", Color(1.7, 0.5, 0.5), 0.07)
+	t.tween_property(card, "modulate", Color(2.2, 0.5, 0.5), 0.06)
+	t.parallel().tween_property(card, "scale", Vector2(1.14, 1.14), 0.06)
 	t.tween_property(card, "modulate", rest, 0.3)
+	t.parallel().tween_property(card, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _pop_in(card: Control) -> void:
+	card.pivot_offset = card.size * 0.5
 	var rest: Color = card.rest_modulate
-	card.modulate = Color(rest.r, rest.g, rest.b, 0.0)
-	create_tween().tween_property(card, "modulate", rest, 0.22)
+	card.scale = Vector2(0.45, 0.45)
+	card.modulate = Color(1.6, 1.6, 1.6, 0.0)
+	var t := create_tween()
+	t.set_parallel(true)
+	t.tween_property(card, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(card, "modulate", rest, 0.26)
 
 
 func _fade_out_dead(node: Control) -> void:
@@ -443,31 +575,31 @@ func _fade_out_dead(node: Control) -> void:
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.pivot_offset = node.size * 0.5
 	var t := create_tween()
-	t.set_parallel(true)
-	t.tween_property(node, "modulate", Color(1, 1, 1, 0), 0.35)
-	t.tween_property(node, "scale", Vector2(0.7, 0.7), 0.35)
+	t.tween_property(node, "modulate", Color(2.2, 0.4, 0.4), 0.08)  # death flash
+	t.tween_property(node, "modulate", Color(1.4, 0.3, 0.3, 0.0), 0.4)
+	t.parallel().tween_property(node, "scale", Vector2(0.55, 0.55), 0.4)
+	t.parallel().tween_property(node, "rotation", deg_to_rad(18.0), 0.4)
+	t.parallel().tween_property(node, "position", node.position + Vector2(0, 36), 0.4)
 	t.chain().tween_callback(node.queue_free)
-
-
-func _spawn_damage_numbers(dmg: Dictionary) -> void:
-	await get_tree().process_frame  # let the new board lay out before reading positions
-	for id in dmg:
-		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
-			var nd: Control = _card_nodes[id]
-			_spawn_float_number(nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.25), int(dmg[id]))
 
 
 func _spawn_float_number(pos: Vector2, amount: int) -> void:
 	var lbl := Label.new()
 	lbl.text = "-%d" % amount
-	lbl.add_theme_font_size_override("font_size", 24)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.42, 0.42))
+	lbl.add_theme_font_size_override("font_size", 32)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	lbl.add_theme_constant_override("outline_size", 6)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.pivot_offset = Vector2(14, 18)
 	lbl.position = pos
+	lbl.scale = Vector2(0.6, 0.6)
 	_fx.add_child(lbl)
 	var t := create_tween()
 	t.set_parallel(true)
-	t.tween_property(lbl, "position", pos + Vector2(0, -42), 0.7)
+	t.tween_property(lbl, "position", pos + Vector2(0, -58), 0.7)
+	t.tween_property(lbl, "scale", Vector2(1.15, 1.15), 0.14) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(lbl, "modulate", Color(1, 1, 1, 0), 0.7)
 	t.chain().tween_callback(lbl.queue_free)
 
@@ -546,7 +678,7 @@ func _is_playable(card_id: String) -> bool:
 	var me: Dictionary = view["players"][you]
 	if not _can_afford(cards.get(card_id, {}).get("cost", {}), me["mana"].get("available", {})):
 		return false
-	if _is_creature(card_id) and int(me.get("board", []).size()) >= 8:
+	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
 		return false
 	# Cannot play an aura you already control (matches the engine rule).
 	if String(cards.get(card_id, {}).get("type", "")) == "aura":
@@ -631,6 +763,7 @@ func _rebuild() -> void:
 	var you := int(view["you"])
 	var me: Dictionary = view["players"][you]
 	var opp: Dictionary = view["players"][1 - you]
+	UiCard.targeting = attacker_id >= 0 or casting_index >= 0 or awaken_index >= 0
 
 	root_box.add_child(_banner(you))
 	root_box.add_child(_enemy_strip(opp))
@@ -855,14 +988,6 @@ func _counts_label(p: Dictionary) -> Control:
 	return l
 
 
-func _info_label(text: String, size: int) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	l.add_theme_font_size_override("font_size", size)
-	return l
-
-
 func _mana_crystals(mana: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -894,57 +1019,67 @@ func _mana_crystals(mana: Dictionary) -> Control:
 
 # A single mana crystal: bright and glowing when available, dim when spent.
 func _mana_pip(color: String, filled: bool) -> Control:
-	var pip := Panel.new()
-	pip.custom_minimum_size = Vector2(15, 22)
-	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var c := _color_for(color)
+	var is_neutral := color == "colorless"
+	var c := Color(0.9, 0.92, 1.0) if is_neutral else _color_for(color)
 	var sb := StyleBoxFlat.new()
-	sb.set_corner_radius_all(3)
+	sb.set_corner_radius_all(2 if is_neutral else 3)
 	sb.set_border_width_all(1)
 	if filled:
 		sb.bg_color = c
-		sb.border_color = c.lightened(0.45)
+		sb.border_color = Color.WHITE if is_neutral else c.lightened(0.45)
 		sb.shadow_size = 6
-		sb.shadow_color = Color(c.r, c.g, c.b, 0.65)
+		sb.shadow_color = Color(c.r, c.g, c.b, 0.6)
 	else:
-		sb.bg_color = Color(c.r, c.g, c.b, 0.10)
+		sb.bg_color = Color(c.r, c.g, c.b, 0.12)
 		sb.border_color = Color(c.r, c.g, c.b, 0.5)
+
+	if is_neutral:
+		# A rotated square reads as "any color" -- a prism/diamond.
+		var holder := Control.new()
+		holder.custom_minimum_size = Vector2(17, 22)
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var dia := Panel.new()
+		dia.size = Vector2(12, 12)
+		dia.position = Vector2(2.5, 5)
+		dia.pivot_offset = Vector2(6, 6)
+		dia.rotation = deg_to_rad(45)
+		dia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dia.add_theme_stylebox_override("panel", sb)
+		holder.add_child(dia)
+		return holder
+
+	var pip := Panel.new()
+	pip.custom_minimum_size = Vector2(15, 22)
+	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pip.add_theme_stylebox_override("panel", sb)
 	return pip
 
 
 # --- mana row (face-down backs + peekable awaken cards) ----------------------
 
+# The banked cards themselves are just hidden mana -- their count already shows
+# as crystals -- so we only surface your own awaken-able cards here.
 func _manarow_view(mana_row: Array, mine: bool) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 3)
-	var tag := Label.new()
-	tag.text = "mana row:"
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tag.add_theme_font_size_override("font_size", 11)
-	row.add_child(tag)
+	if not mine:
+		return row
+	var any := false
 	for i in mana_row.size():
 		var slot: Dictionary = mana_row[i]
-		var color := String(slot.get("color", "colorless"))
-		if mine and slot.has("card"):
-			row.add_child(_awaken_chip(int(i), String(slot["card"]), color))
-		else:
-			row.add_child(_mana_back(color))
+		if not slot.has("card"):
+			continue
+		if not any:
+			var tag := Label.new()
+			tag.text = "разбудить:"
+			tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tag.add_theme_font_size_override("font_size", 11)
+			tag.add_theme_color_override("font_color", Color(0.95, 0.85, 0.4))
+			row.add_child(tag)
+			any = true
+		row.add_child(_awaken_chip(int(i), String(slot["card"]), String(slot.get("color", "colorless"))))
 	return row
-
-
-func _mana_back(color: String) -> Control:
-	var chip := Panel.new()
-	chip.custom_minimum_size = Vector2(20, 28)
-	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = _color_for(color).darkened(0.45)
-	sb.set_border_width_all(1)
-	sb.border_color = _color_for(color)
-	sb.set_corner_radius_all(3)
-	chip.add_theme_stylebox_override("panel", sb)
-	return chip
 
 
 func _awaken_chip(idx: int, card_id: String, color: String) -> Control:
@@ -984,8 +1119,9 @@ func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 	zone.custom_minimum_size = Vector2(0, CARD_SIZE.y + 12)
 	zone.add_theme_stylebox_override("panel", _zone_style(mine))
 	if mine:
+		zone.glow_self = true  # glow the zone border, not the creatures/auras in it
 		zone.can_drop_fn = func(data: Variant) -> bool: return _can_play_here(data)
-		zone.drop_fn = func(data: Variant) -> void: _play_payload(data, 0)
+		zone.drop_fn = func(data: Variant) -> void: _play_at_drop(data)
 
 	var outer := HBoxContainer.new()
 	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1004,6 +1140,11 @@ func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 		row.add_child(_creature_card(cr, mine))
 	outer.add_child(row)
 	zone.add_child(outer)
+	if mine:
+		# Remember the row/zone so a drag can open a slot for the incoming creature.
+		_my_creatures_row = row
+		_my_board_zone = zone
+		_board_gap = null  # the old gap (if any) was freed with the old row
 	return zone
 
 
@@ -1032,7 +1173,7 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			if _can_cast_on(data, "friendly"):
 				_play_payload(data, cid)
 			else:
-				_play_payload(data, 0)
+				_play_at_drop(data)
 		card.clicked.connect(func(_p: Dictionary) -> void: _on_my_creature(cid))
 		# On your turn, dim creatures that cannot attack so the ready ones glow.
 		if _my_turn() and not can_attack:
@@ -1067,10 +1208,6 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			card.modulate = Color(1.45, 1.45, 1.1)
 
 	_card_nodes[cid] = card
-	if _dmg.has(cid):
-		_flash_card(card)
-	elif _summoned.has(cid):
-		_pop_in(card)
 	return card
 
 
@@ -1301,13 +1438,9 @@ func _type_label(d: Dictionary) -> String:
 	var colors: Array = d.get("color", [])
 	if colors.is_empty():
 		return line + " - нейтральная"
-	var ru_color := {
-		"red": "красный", "yellow": "жёлтый", "green": "зелёный",
-		"blue": "синий", "violet": "фиолетовый",
-	}
 	var names := []
 	for c in colors:
-		names.append(ru_color.get(String(c), String(c)))
+		names.append(_color_ru(String(c)))
 	return line + " - " + ", ".join(names)
 
 
@@ -1666,6 +1799,32 @@ func _play_payload(data: Variant, target: int) -> void:
 	_clear_selection()
 
 
+# Play a creature onto your board at the slot the cursor dropped it.
+func _play_at_drop(data: Variant) -> void:
+	if typeof(data) != TYPE_DICTIONARY:
+		return
+	var pos := _drop_insert_index()
+	if data.get("kind", "") == "awaken":
+		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": 0, "pos": pos})
+	else:
+		_send({"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
+	_clear_selection()
+
+
+# How many of your creatures sit left of the drop point -> the insertion slot.
+func _drop_insert_index() -> int:
+	var you := int(view["you"])
+	var mx := get_global_mouse_position().x
+	var n := 0
+	for cr in view["players"][you].get("board", []):
+		var id := int(cr["id"])
+		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
+			var nd: Control = _card_nodes[id]
+			if nd.global_position.x + nd.size.x * 0.5 < mx:
+				n += 1
+	return n
+
+
 func _place_mana(idx: int, card_id: String) -> void:
 	var d: Dictionary = cards.get(card_id, {})
 	var colors: Array = d.get("color", [])
@@ -1771,6 +1930,8 @@ func _on_awaken_clicked(p: Dictionary) -> void:
 
 
 func _on_my_creature(cid: int) -> void:
+	if not _my_turn():
+		return
 	# Cast a pending friendly/any spell on this creature, else select it to attack.
 	if casting_index >= 0 and pending_side in ["friendly", "any"]:
 		_send({"action": "play", "handIndex": casting_index, "target": cid})
@@ -1786,6 +1947,8 @@ func _on_my_creature(cid: int) -> void:
 
 
 func _on_enemy_creature(cid: int) -> void:
+	if not _my_turn():
+		return
 	if casting_index >= 0 and pending_side in ["enemy", "any"]:
 		_send({"action": "play", "handIndex": casting_index, "target": cid})
 		_clear_selection()
@@ -1798,6 +1961,8 @@ func _on_enemy_creature(cid: int) -> void:
 
 
 func _on_enemy_hero() -> void:
+	if not _my_turn():
+		return
 	if attacker_id >= 0:
 		_send({"action": "attackHero", "attacker": attacker_id})
 		_clear_selection()
