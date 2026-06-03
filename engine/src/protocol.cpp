@@ -99,9 +99,11 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     return g.placeCardToMana(j.value("handIndex", -1), *col);
   }
   if (a == "play")
-    return g.playCard(j.value("handIndex", -1), j.value("target", 0));
+    return g.playCard(j.value("handIndex", -1), j.value("target", 0),
+                      j.value("pos", -1));
   if (a == "awaken")
-    return g.awaken(j.value("manaRowIndex", -1), j.value("target", 0));
+    return g.awaken(j.value("manaRowIndex", -1), j.value("target", 0),
+                    j.value("pos", -1));
   if (a == "attackCreature")
     return g.attackCreature(j.value("attacker", 0), j.value("target", 0));
   if (a == "attackHero") return g.attackHero(j.value("attacker", 0));

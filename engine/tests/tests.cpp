@@ -787,6 +787,41 @@ TEST_CASE("an any-target spell can hit your own creature") {
   CHECK(g.player(0).board[0].frozenTurns == 2);
 }
 
+TEST_CASE("a creature can be placed at a chosen board slot") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 5);
+  g.start();
+  CHECK(g.playCard(0));
+  EntityId a = g.player(0).board[0].id;
+  CHECK(g.playCard(0));  // appended to the right by default
+  EntityId b = g.player(0).board[1].id;
+  CHECK(g.playCard(0, 0, 1));  // insert between a and b
+  REQUIRE(g.player(0).board.size() == 3);
+  EntityId c = g.player(0).board[1].id;
+  CHECK(g.player(0).board[0].id == a);
+  CHECK(g.player(0).board[2].id == b);
+  CHECK(c != a);
+  CHECK(c != b);
+  // An out-of-range slot simply appends.
+  CHECK(g.playCard(0, 0, 99));
+  CHECK(g.player(0).board.size() == 4);
+}
+
+TEST_CASE("a positioned summon inserts there; its split tokens append") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "bear", "splitter", "splitter"}, repeat("bear", 30), 3);
+  g.start();
+  CHECK(g.playCard(handIndexOf(g, 0, "bear")));
+  EntityId bear0 = g.player(0).board[0].id;
+  // splitter carries split:2; play it at the front (slot 0).
+  CHECK(g.playCard(handIndexOf(g, 0, "splitter"), 0, 0));
+  REQUIRE(g.player(0).board.size() == 4);  // splitter + bear + 2 illusions
+  CHECK(g.player(0).board[0].def->id == "splitter");  // inserted at the front
+  CHECK(g.player(0).board[1].id == bear0);
+  CHECK(g.player(0).board[2].token);  // split tokens appended after
+  CHECK(g.player(0).board[3].token);
+}
+
 TEST_CASE("an enemy-target spell cannot hit your own creature") {
   CardLibrary lib = testLib();
   Game g(lib, {"bear", "bear", "frost1", "frost1"}, repeat("bear", 30), 17);

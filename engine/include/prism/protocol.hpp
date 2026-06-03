@@ -19,9 +19,9 @@ std::string viewJson(const Game& g, int you);
 // Apply a client action (JSON) on behalf of `actor`. Returns false if it is not
 // the actor's turn, or the action is malformed or illegal. Action shapes:
 //   {"action":"placeMana","handIndex":0,"color":"red"}
-//   {"action":"play","handIndex":2,"target":7}      // target optional (0 =
-//   none)
-//   {"action":"awaken","manaRowIndex":0,"target":0}
+//   {"action":"play","handIndex":2,"target":7,"pos":3}
+//       // target optional (0 = none); pos optional (board slot, -1 = append)
+//   {"action":"awaken","manaRowIndex":0,"target":0,"pos":-1}
 //   {"action":"attackCreature","attacker":5,"target":9}
 //   {"action":"attackHero","attacker":5}
 //   {"action":"endTurn"}

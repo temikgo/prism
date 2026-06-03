@@ -125,7 +125,7 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   return true;
 }
 
-bool Game::playCard(int handIndex, EntityId target) {
+bool Game::playCard(int handIndex, EntityId target, int pos) {
   if (over_) return false;
   Player& p = players_[current_];
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
@@ -140,30 +140,36 @@ bool Game::playCard(int handIndex, EntityId target) {
   if (!playTargetLegal(def, p, target)) return false;
   p.mana.pay(def->cost);
   p.hand.erase(p.hand.begin() + handIndex);
-  playResolved(p, ci, target);
+  playResolved(p, ci, target, pos);
   return true;
 }
 
 // Put an already-paid-for card into play. Creatures enter summoning sick;
 // auras stay in play; spells resolve and go to the graveyard. Any on_play
 // effect runs against `target`.
-void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
+void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
+                        int pos) {
   const CardDef* def = ci.def;
   if (def->type == CardType::Creature) {
-    p.board.push_back(makeCreature(ci.id, def, /*sick=*/true, /*token=*/false,
-                                   /*hpOverride=*/-1));
+    Creature nc =
+        makeCreature(ci.id, def, /*sick=*/true, /*token=*/false, /*hp=*/-1);
     // Snapshot the HP part of undergrowth/resonance at summon. Only atk is
     // continuous (recomputed live); HP is baked once to avoid shrinking HP and
     // cascade deaths. (Continuous HP is a later upgrade -- see README.)
-    int allies = static_cast<int>(p.board.size()) - 1;
+    int allies = static_cast<int>(p.board.size());  // the other creatures
     int crystals = 0;
     for (int v : p.mana.crystals) crystals += v;
     int hpBonus = def->keywordN("undergrowth") * allies +
                   def->keywordN("resonance") * crystals;
     if (hpBonus > 0) {
-      p.board.back().maxHp += hpBonus;
-      p.board.back().hp += hpBonus;
+      nc.maxHp += hpBonus;
+      nc.hp += hpBonus;
     }
+    // Insert at the chosen slot (default: append to the right).
+    int at = (pos >= 0 && pos <= static_cast<int>(p.board.size()))
+                 ? pos
+                 : static_cast<int>(p.board.size());
+    p.board.insert(p.board.begin() + at, nc);
     // Violet split: spawn N permanent illusion copies of this card -- same atk
     // and keywords but 1 HP, normal summoning sickness. summonToken does not
     // run on_play/split, so they never re-trigger. Their only weakness is
@@ -184,7 +190,7 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target) {
 // consumed -- it pays 1 generic toward the cost, and the remainder is paid from
 // the player's other available crystals. Net cost: (cost - 1) plus the lost
 // slot.
-bool Game::awaken(int manaRowIndex, EntityId target) {
+bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   if (over_) return false;
   Player& p = players_[current_];
   if (manaRowIndex < 0 || manaRowIndex >= static_cast<int>(p.manaRow.size()))
@@ -207,7 +213,7 @@ bool Game::awaken(int manaRowIndex, EntityId target) {
   if (!sim.pay(eff)) return false;  // remainder unaffordable -> nothing changes
   p.mana = sim;
   p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
-  playResolved(p, mc.card, target);
+  playResolved(p, mc.card, target, pos);
   return true;
 }
 

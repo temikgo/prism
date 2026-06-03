@@ -118,12 +118,14 @@ class Game {
   // sick), auras stay in play, spells resolve and go to the graveyard. Any
   // on_play effect runs against `target` (e.g. the enemy creature to freeze);
   // pass 0 for cards that need no target.
-  bool playCard(int handIndex, EntityId target = 0);
+  // `pos` is where a creature is inserted on the board (0..board size); -1 (the
+  // default) appends to the right.
+  bool playCard(int handIndex, EntityId target = 0, int pos = -1);
   // Violet awaken: play a card straight from the mana row. The banked crystal
   // counts as 1 generic toward the cost; the remainder is paid from your other
   // available crystals, and that crystal/slot is consumed. Only cards carrying
   // the `awaken` keyword qualify.
-  bool awaken(int manaRowIndex, EntityId target = 0);
+  bool awaken(int manaRowIndex, EntityId target = 0, int pos = -1);
   // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes do not fight back).
@@ -164,7 +166,8 @@ class Game {
   bool playTargetLegal(const CardDef* def, Player& owner, EntityId target);
   // Put an already-paid-for card into play and run its effects. Shared by
   // playCard (from hand) and awaken (from the mana row).
-  void playResolved(Player& p, const CardInstance& ci, EntityId target);
+  void playResolved(Player& p, const CardInstance& ci, EntityId target,
+                    int pos);
 
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,
