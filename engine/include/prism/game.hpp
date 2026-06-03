@@ -33,9 +33,18 @@ struct CardInstance {
 
 // A card sacrificed into the mana row. It became a crystal of `color`, but its
 // identity is kept face-down so Violet `awaken` can later wake it from there.
+// `age` counts the owner's turns it has waited (for Violet `decoy`).
 struct ManaCard {
   CardInstance card;
   Color color;
+  int age = 0;
+};
+
+// An effect waiting to resolve at the start of the owner's turn (Blue `delay`).
+// turnsLeft ticks down each of the owner's turns; it fires at zero.
+struct DelayedEffect {
+  EffectDef effect;
+  int turnsLeft;
 };
 
 // A creature in play. atk/hp are the live (buffable, woundable) values; they
@@ -99,6 +108,8 @@ struct Player {
   std::vector<Creature> board;
   std::vector<const CardDef*> auras;
   std::vector<const CardDef*> graveyard;
+  std::vector<DelayedEffect>
+      pending;  // Blue delay: effects awaiting their turn
 };
 
 class Game {
@@ -120,6 +131,14 @@ class Game {
   bool mulligan(int player, const std::vector<int>& indices);
   bool inMulligan() const { return mulliganPhase_; }
   bool mulliganDone(int player) const { return players_[player].mulliganDone; }
+
+  // Blue scry: after a scry effect, the top cards are peeked and held here
+  // until the player chooses (by index) which to send to the bottom; the rest
+  // return to the top in order. No other action is legal until it is resolved.
+  bool resolveScry(int player, const std::vector<int>& toBottom);
+  bool inScry() const { return scryPlayer_ >= 0; }
+  int scryPlayer() const { return scryPlayer_; }
+  const std::vector<CardInstance>& scryPeek() const { return scryPeek_; }
 
   // --- Legal actions for the player whose turn it is. Each returns false and
   // changes nothing if the action is illegal (so callers can probe safely). ---
@@ -173,7 +192,9 @@ class Game {
 
   // Phase 2: keyword/effect execution.
   void applyTurnStartTriggers(Player& p);  // regen heal, growth, photosynthesis
-  void tickStatuses(Player& p);  // decrement freeze/blind at the turn's end
+  void processDelayed(Player& p);    // fire Blue delay effects that are due
+  void startScry(Player& p, int n);  // peek the top n cards, await a choice
+  void tickStatuses(Player& p);      // decrement freeze/blind at the turn's end
   bool enemyHasProvoke(
       const Player& opp) const;  // taunt: must be attacked first
   bool hasAura(const Player& p,
@@ -223,6 +244,8 @@ class Game {
   int turn_ = 0;
   bool over_ = false;
   bool mulliganPhase_ = false;  // true between dealing and the first turn
+  int scryPlayer_ = -1;         // who is mid-scry (-1 = nobody)
+  std::vector<CardInstance> scryPeek_;  // top cards peeked, awaiting a choice
   int winner_ = -1;
   EntityId nextId_ = 1;
   std::mt19937 rng_;               // seeded -> deterministic shuffles

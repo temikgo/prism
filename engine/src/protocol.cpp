@@ -33,7 +33,9 @@ static json creatureJson(const Creature& c) {
 }
 
 // `self` = this is the viewing player's own side, so private info is included.
-static json playerJson(const Player& p, bool self) {
+// `revealMana` = the viewer controls a Yellow floodlight aura, so this player's
+// banked mana-card identities are exposed even though it is the opponent.
+static json playerJson(const Player& p, bool self, bool revealMana) {
   json j;
   j["hero"] = {{"hp", p.heroHp}, {"armor", p.heroArmor}};
   j["mana"] = {{"crystals", manaObj(p.mana.crystals)},
@@ -42,9 +44,10 @@ static json playerJson(const Player& p, bool self) {
   json row = json::array();
   for (const auto& mc : p.manaRow) {
     json slot = {{"color", std::string(colorName(mc.color))}};
-    // You may peek your own awaken cards; everything else stays face-down.
-    if (self && mc.card.def->hasKeyword("awaken"))
+    // You may peek your own awaken cards; floodlight reveals all of an enemy's.
+    if ((self && mc.card.def->hasKeyword("awaken")) || revealMana)
       slot["card"] = mc.card.def->id;
+    if (self) slot["age"] = mc.age;  // turns banked, for the decoy discount
     row.push_back(slot);
   }
   j["manaRow"] = row;
@@ -57,6 +60,7 @@ static json playerJson(const Player& p, bool self) {
   }
   j["deckCount"] = static_cast<int>(p.deck.size());
   j["graveyardCount"] = static_cast<int>(p.graveyard.size());
+  j["pendingCount"] = static_cast<int>(p.pending.size());  // delayed effects
   j["mulliganDone"] = p.mulliganDone;
 
   json board = json::array();
@@ -77,9 +81,26 @@ std::string viewJson(const Game& g, int you) {
   j["mulligan"] = g.inMulligan();  // true while both players still mulligan
   j["over"] = g.isOver();
   j["winner"] = g.winner();
+  // Blue scry: if it is the viewer's pending scry, surface the peeked cards so
+  // the client can show the sort picker.
+  if (g.inScry() && g.scryPlayer() == you) {
+    json peek = json::array();
+    for (const auto& ci : g.scryPeek()) peek.push_back(ci.def->id);
+    j["scry"] = peek;
+  }
+  // Does the viewer control floodlight (on an aura or a creature)? If so, the
+  // opponent's banked mana cards are revealed to them.
+  bool floodlight = false;
+  for (const auto* a : g.player(you).auras)
+    if (a->hasKeyword("floodlight")) floodlight = true;
+  for (const auto& c : g.player(you).board)
+    if (c.def->hasKeyword("floodlight")) floodlight = true;
   json players = json::array();
-  for (int i = 0; i < 2; ++i)
-    players.push_back(playerJson(g.player(i), i == you));
+  for (int i = 0; i < 2; ++i) {
+    bool self = (i == you);
+    players.push_back(
+        playerJson(g.player(i), self, /*revealMana=*/!self && floodlight));
+  }
   j["players"] = players;
   return j.dump();
 }
@@ -102,6 +123,15 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     return g.mulligan(actor, indices);
   }
   if (g.inMulligan()) return false;  // no normal actions until mulligan is over
+  // A pending scry blocks everything else until the player sorts the peek.
+  if (a == "scryResolve") {
+    std::vector<int> bottom;
+    if (j.contains("bottom") && j["bottom"].is_array())
+      for (const auto& v : j["bottom"])
+        if (v.is_number_integer()) bottom.push_back(v.get<int>());
+    return g.resolveScry(actor, bottom);
+  }
+  if (g.inScry()) return false;
   if (actor != g.current()) return false;  // only the active player may act
   if (a == "endTurn") {
     g.endTurn();

@@ -56,6 +56,16 @@ static const char* kTestCards = R"json([
   { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "dispel", "value": 0 }] },
+  { "id": "floodaura", "name": { "ru": "Прожектор" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "floodlight" }] },
+  { "id": "delaybolt", "name": { "ru": "Отложенный луч" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "delay", "n": 2 }],
+    "effects": [{ "trigger": "on_play", "selector": "enemy_hero",
+                  "action": "damage", "value": 3 }] },
+  { "id": "decoyling", "name": { "ru": "Приманка" }, "type": "creature",
+    "color": [], "cost": { "generic": 2 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }] },
   { "id": "lingerer", "name": { "ru": "Неугас" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "lingering" }] },
@@ -109,6 +119,9 @@ static const char* kTestCards = R"json([
   { "id": "drawspell", "name": { "ru": "Добор" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "draw", "value": 2 }] },
+  { "id": "scryspell", "name": { "ru": "Прозрение" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "scry", "value": 2 }] },
   { "id": "bouncespell", "name": { "ru": "Рассеяние" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
@@ -382,6 +395,70 @@ TEST_CASE("germinate spends a crystal for an N/N sprout, once per turn") {
   CHECK(sprout.hp == 2);
   CHECK(g.player(0).mana.totalAvailable() == 0);  // the crystal was spent
   CHECK_FALSE(g.activate(gid));                   // only once per turn
+}
+
+TEST_CASE("floodlight reveals the enemy's banked mana cards") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"floodaura", "bear", "bear", "bear"}, repeat("bear", 30), 31);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "floodaura")));  // p0 gains floodlight
+  g.endTurn();                                          // p1's turn
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 1, "bear"), Color::Colorless));
+  auto v0 = nlohmann::json::parse(viewJson(g, 0));  // viewer has floodlight
+  auto v1 = nlohmann::json::parse(viewJson(g, 1));  // owner, no floodlight
+  CHECK(v0["players"][1]["manaRow"][0].contains("card"));  // revealed
+  CHECK(v0["players"][1]["manaRow"][0]["card"] == "bear");
+  CHECK_FALSE(v1["players"][1]["manaRow"][0].contains("card"));  // stays hidden
+}
+
+TEST_CASE("delay schedules an effect for a later turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"delaybolt", "bear", "bear", "bear"}, repeat("bear", 30), 32);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "delaybolt")));
+  CHECK(g.player(1).heroHp == HeroStartHp);  // nothing happens yet
+  g.endTurn();
+  g.endTurn();  // p0's 2nd turn: ticks to 1, still nothing
+  CHECK(g.player(1).heroHp == HeroStartHp);
+  g.endTurn();
+  g.endTurn();  // p0's 3rd turn: the bolt lands
+  CHECK(g.player(1).heroHp == HeroStartHp - 3);
+}
+
+TEST_CASE("decoy lets an aged banked card awaken for free") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"decoyling", "bear", "bear", "bear"}, repeat("bear", 30), 33);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "decoyling"), Color::Colorless));
+  CHECK_FALSE(
+      g.awaken(0));  // age 0: the lone banked crystal can't pay the rest
+  g.endTurn();
+  g.endTurn();               // p0 turn 3: age 1
+  CHECK_FALSE(g.awaken(0));  // still not aged enough
+  g.endTurn();
+  g.endTurn();           // p0 turn 5: age 2 -> decoy ready
+  REQUIRE(g.awaken(0));  // free awaken
+  CHECK(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].def->id == "decoyling");
+}
+
+TEST_CASE("scry peeks the top cards and the player sorts them") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 41);
+  begin(g);
+  int deck_before = static_cast<int>(g.player(0).deck.size());
+  g.player(0).hand.push_back(CardInstance{900, lib.find("scryspell")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));
+  CHECK(g.inScry());
+  CHECK(g.scryPlayer() == 0);
+  CHECK(g.scryPeek().size() == 2);
+  CHECK(static_cast<int>(g.player(0).deck.size()) == deck_before - 2);
+  // Everything else is blocked until the scry is resolved.
+  CHECK_FALSE(applyAction(g, 0, R"({"action":"endTurn"})"));
+  // Resolve via the protocol: one card to the bottom, the deck returns to full.
+  CHECK(applyAction(g, 0, R"({"action":"scryResolve","bottom":[1]})"));
+  CHECK_FALSE(g.inScry());
+  CHECK(static_cast<int>(g.player(0).deck.size()) == deck_before);
 }
 
 TEST_CASE("mulligan reshuffles the chosen cards and gates the first turn") {

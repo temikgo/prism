@@ -26,6 +26,7 @@ std::string viewJson(const Game& g, int you);
 //       // target optional (0 = none); pos optional (board slot, -1 = append)
 //   {"action":"awaken","manaRowIndex":0,"target":0,"pos":-1}
 //   {"action":"activate","id":5}   // germinate: spend 1 crystal -> N/N sprout
+//   {"action":"scryResolve","bottom":[0,2]}  // send peeked cards to the bottom
 //   {"action":"attackCreature","attacker":5,"target":9}
 //   {"action":"attackHero","attacker":5}
 //   {"action":"endTurn"}

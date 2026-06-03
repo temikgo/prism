@@ -71,9 +71,58 @@ void Game::startTurn() {
     c.attacked = false;
     c.usedActive = false;
   }
+  for (auto& mc : p.manaRow) mc.age += 1;  // banked cards age for Violet decoy
   applyTurnStartTriggers(p);
+  processDelayed(p);  // Blue delay: effects scheduled for this turn fire now
+  checkDeaths();      // a delayed sweep/bolt may have killed creatures
   recomputeContinuous();  // growth changed bases; refresh the live layer
   draw(p, 1);
+}
+
+// Blue scry: lift the top n cards off the deck and hold them for the player to
+// sort. Nothing else may happen until resolveScry() is called.
+void Game::startScry(Player& p, int n) {
+  int take = std::min(n, static_cast<int>(p.deck.size()));
+  for (int i = 0; i < take; ++i) {
+    scryPeek_.push_back(p.deck.back());  // deck back == top; peek[0] is topmost
+    p.deck.pop_back();
+  }
+  if (!scryPeek_.empty()) scryPlayer_ = p.index;  // nothing to sort -> no-op
+}
+
+// Finish a scry: the chosen peeked cards (by index) go to the bottom of the
+// deck; the rest return to the top in their original order.
+bool Game::resolveScry(int player, const std::vector<int>& toBottom) {
+  if (scryPlayer_ != player) return false;
+  Player& p = players_[player];
+  std::vector<CardInstance> keep;
+  for (int i = 0; i < static_cast<int>(scryPeek_.size()); ++i) {
+    bool bottom =
+        std::find(toBottom.begin(), toBottom.end(), i) != toBottom.end();
+    if (bottom)
+      p.deck.insert(p.deck.begin(), scryPeek_[i]);  // front == bottom
+    else
+      keep.push_back(scryPeek_[i]);
+  }
+  // Restore kept cards so keep[0] (the topmost peek) ends on top (deck back).
+  for (auto it = keep.rbegin(); it != keep.rend(); ++it) p.deck.push_back(*it);
+  scryPeek_.clear();
+  scryPlayer_ = -1;
+  return true;
+}
+
+// Tick every pending delayed effect; the ones that reach zero resolve now (with
+// no target -- delayed effects are the non-targeted kind).
+void Game::processDelayed(Player& p) {
+  std::vector<DelayedEffect> still;
+  for (auto& d : p.pending) {
+    d.turnsLeft -= 1;
+    if (d.turnsLeft <= 0)
+      executeAction(d.effect, p, 0);
+    else
+      still.push_back(d);
+  }
+  p.pending = still;
 }
 
 // OnTurnStart triggers. Regen heals up to max; Growth adds +N/+N;
@@ -210,7 +259,14 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
-  resolveOnPlay(def, p, target);
+  if (def->hasKeyword("delay")) {
+    // Blue delay: schedule the on_play effects instead of running them now.
+    int n = def->keywordN("delay", 1);
+    for (const auto& e : def->effects)
+      if (e.trigger == "on_play") p.pending.push_back(DelayedEffect{e, n});
+  } else {
+    resolveOnPlay(def, p, target);
+  }
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
   checkDeaths();  // an on_play effect may have damaged or destroyed creatures
 }
@@ -244,6 +300,11 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
     eff.pips[c] -= 1;
   else if (eff.generic > 0)
     eff.generic -= 1;
+  // Violet decoy: a banked card that has lain long enough awakens for free --
+  // only its own crystal is spent. The longer the bluff sits, the bigger the
+  // payoff.
+  if (def->hasKeyword("decoy") && mc.age >= def->keywordN("decoy"))
+    eff = Cost{};
   ManaPool sim = p.mana;
   sim.crystals[c] -= 1;  // the banked crystal leaves the pool
   sim.available[c] -= 1;
@@ -563,6 +624,8 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
       if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps
   } else if (a == "draw") {
     draw(owner, e.value);
+  } else if (a == "scry") {
+    startScry(owner, e.value);
   } else if (a == "dispel") {
     // Blue dispel: strip the opponent's auras (they are unique per player, so
     // this is usually the one they control). The cards go to their graveyard.
