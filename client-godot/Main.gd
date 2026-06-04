@@ -1422,53 +1422,20 @@ func _place_mana(idx: int, card_id: String) -> void:
 
 
 func _show_color_picker(idx: int, colors: Array) -> void:
-	# In-scene chooser: a dim full-screen backdrop (click to cancel) with a radial
-	# color wheel near the cursor -- one sector per color, fixed footprint for any
-	# number of colors. The center hole cancels.
 	_close_picker()
-	var layer := Control.new()
-	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	layer.mouse_filter = Control.MOUSE_FILTER_STOP
-	# Force it above everything (hovered cards lift to z_index 20).
-	layer.z_as_relative = false
-	layer.z_index = 4096
-	var backdrop := Button.new()
-	backdrop.flat = true
-	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	backdrop.pressed.connect(_close_picker)
-	layer.add_child(backdrop)
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(Color(0.6, 0.62, 0.8), 0.97))
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 6)
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.add_child(Ui.label("Каким кристаллом?", 13, null, true))
-	var wheel := RadialPicker.new()
-	var ids := PackedStringArray()
-	for c in colors:
-		ids.append(String(c))
-	wheel.colors = ids
-	wheel.picked.connect(func(cid: String) -> void:
-		_send({"action": "placeMana", "handIndex": idx, "color": cid})
-		_close_picker())
-	wheel.cancelled.connect(_close_picker)
-	vb.add_child(wheel)
-	panel.add_child(vb)
-	layer.add_child(panel)
-	add_child(layer)
-
-	var pos := get_global_mouse_position() - Vector2(110, 110)
-	pos.x = clampf(pos.x, 8.0, size.x - 210.0)
-	pos.y = clampf(pos.y, 8.0, size.y - 230.0)
-	panel.position = pos
-	_picker = layer
+	var picker := ManaPicker.new()
+	picker.picked.connect(func(cid: String) -> void:
+		_send({"action": "placeMana", "handIndex": idx, "color": cid}))
+	picker.tree_exited.connect(func() -> void: _picker = null)
+	add_child(picker)
+	picker.setup(colors, get_global_mouse_position(), size)
+	_picker = picker
 
 
 func _close_picker() -> void:
-	if _picker != null:
+	if _picker != null and is_instance_valid(_picker):
 		_picker.queue_free()
-		_picker = null
+	_picker = null
 
 
 # --- hand double-tap (bank to mana) -----------------------------------------
