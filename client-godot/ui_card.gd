@@ -16,9 +16,6 @@ static var active_drag = null
 # arrow from (Vector2.INF when no attacker drag is in flight).
 static var aim_from := Vector2.INF
 static var aim_color := Color(0.5, 0.95, 1.0)  # arrow color: attack vs spell
-# True while a target is being chosen (attacker/spell): cards must not lift on
-# hover so only the legal-target glow reads as interactive.
-static var targeting := false
 var payload: Dictionary = {}        # non-empty + draggable=true => can drag
 var drag_label: String = ""
 var preview_builder: Callable = Callable()   # returns the drag-preview Control
@@ -29,7 +26,7 @@ var drop_fn: Callable = Callable()
 # what we actually accept -- e.g. a creature accepts a play-drop but should
 # not light up as if the card were played "onto" it).
 var highlight_check: Callable = Callable()
-var hoverable := false                        # lift + scale on mouse-over
+var hoverable := false                        # scale up on mouse-over
 var rest_modulate := Color.WHITE              # modulate to restore after a drag
 var glow_self := false                        # glow own panel only (drop zones)
 var _is_drag_source := false
@@ -41,7 +38,7 @@ func _ready() -> void:
 func _on_hover_in() -> void:
 	# Don't lift while dragging or aiming at a target: only the legal-target
 	# glow should read as interactive then.
-	if not hoverable or active_drag != null or targeting:
+	if not hoverable or active_drag != null:
 		return
 	pivot_offset = size / 2.0
 	z_index = 20

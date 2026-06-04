@@ -73,6 +73,7 @@ static json playerJson(const Player& p, bool self, bool revealMana) {
     j["hand"] = hand;  // opponent's hand is intentionally omitted (count only)
   }
   if (self) j["shiftUsed"] = p.shiftUsed;  // Prism: spent its swap this turn?
+  if (self) j["placedMana"] = p.placedManaThisTurn;  // already banked a card?
   j["deckCount"] = static_cast<int>(p.deck.size());
   // Lens clairvoyance: you always see the identity of your own top card.
   if (self && p.hero && p.hero->hasKeyword("clairvoyance") && !p.deck.empty())

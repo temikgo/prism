@@ -13,9 +13,11 @@ extends Control
 # Clicking does the same via a two-step "select, then pick target" flow.
 
 const DEFAULT_URL := "ws://127.0.0.1:8080"
-const CARD_SIZE := Vector2(150, 210)
-const FRAME := 5.0      # colored-gradient frame thickness around the art
+const CARD_SIZE := Vector2(176, 246)
+const RIM := 2.0        # thin colored light-rim around the full-bleed art
+const PAD := 6.0        # inset of cost / stats / status from the card edge
 const GEM := 34.0       # diameter of the cost / atk / hp corner gems
+const STATUS_MAX := 4   # status icons shown before collapsing to a +N chip
 const BOARD_LIMIT := 8  # max creatures per side (mirrors the engine)
 
 var socket := WebSocketPeer.new()
@@ -24,11 +26,8 @@ var view := {}
 var cards := {}            # card id -> definition (from cards.json)
 
 # Click-fallback selection state (drag-and-drop ignores these).
-var attacker_id := -1      # your selected creature, waiting for an attack target
-var casting_index := -1    # hand index of a targeted spell waiting for a target
-var awaken_index := -1     # mana-row index of a targeted awaken card
-var pending_side := ""     # side a pending targeted spell can hit: enemy/friendly/any
 var _picker: Control = null   # open mana-color chooser, if any
+var _motes: GPUParticles2D = null  # ambient light particles (resized with window)
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
@@ -40,6 +39,8 @@ var _my_board_zone: Control = null     # your board drop zone (for hover test)
 var _board_gap: Control = null         # slot opened while dragging a creature in
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
+var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
+var _enemy_hero_node = null            # enemy hero medallion node (lunge target)
 
 var url_edit: LineEdit
 var status_label: Label
@@ -91,6 +92,20 @@ func _build_shell() -> void:
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
+	# The light of the Mega-Prism: a soft cool glow spilling from the top, and a
+	# vignette darkening the edges so the lit battlefield draws the eye to center.
+	add_child(_glow_layer(Vector2(0.5, -0.05), 1.0,
+		Color(0.46, 0.56, 1.0, 0.26), Color(0.46, 0.56, 1.0, 0.0)))
+	add_child(_glow_layer(Vector2(0.5, 1.02), 0.7,
+		Color(0.55, 0.28, 0.7, 0.16), Color(0.55, 0.28, 0.7, 0.0)))
+	add_child(_glow_layer(Vector2(0.5, 0.5), 0.95,
+		Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.02, 0.62)))
+	# Slow drifting light motes -- ambient "living light", behind the UI. They are
+	# sized to the actual window and re-fitted whenever it resizes (e.g. maximize).
+	_motes = _ambient_motes()
+	add_child(_motes)
+	get_tree().root.size_changed.connect(_on_window_resized)
+	_fit_motes()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -142,6 +157,96 @@ func _bg_texture() -> Texture2D:
 	tex.fill_from = Vector2(0.5, 0.42)
 	tex.fill_to = Vector2(1.05, 1.1)
 	return tex
+
+
+### --- ambient particles ---------------------------------------------------
+
+# A soft round dot texture for the light motes (radial white -> transparent).
+func _soft_dot() -> Texture2D:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 1.0])
+	g.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
+	var t := GradientTexture2D.new()
+	t.gradient = g
+	t.fill = GradientTexture2D.FILL_RADIAL
+	t.fill_from = Vector2(0.5, 0.5)
+	t.fill_to = Vector2(0.5, 1.0)
+	t.width = 96
+	t.height = 96
+	return t
+
+
+# Slow drifting motes of cool light across the whole board (ambient atmosphere).
+# Window resized (e.g. maximize): refit the ambient motes and rebuild the board,
+# since the hand fan and board-row overlap are sized from the window width and
+# would otherwise stay stale (cards clumped or overflowing) until the next view.
+func _on_window_resized() -> void:
+	_fit_motes()
+	# Don't rebuild mid-drag (it would free the dragged node) or before any view.
+	if view.is_empty() or UiCard.active_drag != null:
+		return
+	_rebuild()
+
+
+# Resize the mote cloud to the current window so it covers the whole board
+# (including the right mana column) after a maximize/resize.
+func _fit_motes() -> void:
+	if _motes == null:
+		return
+	var vp := get_viewport_rect().size
+	_motes.position = vp * 0.5
+	var mat: ParticleProcessMaterial = _motes.process_material
+	mat.emission_box_extents = Vector3(vp.x * 0.55, vp.y * 0.6, 0)
+	_motes.restart()  # re-seed across the new area so it fills immediately
+
+
+func _ambient_motes() -> GPUParticles2D:
+	var mat := ParticleProcessMaterial.new()
+	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	mat.emission_box_extents = Vector3(820, 520, 0)
+	mat.direction = Vector3(0, -1, 0)
+	mat.spread = 45.0
+	mat.gravity = Vector3(0, -4, 0)
+	mat.initial_velocity_min = 3.0
+	mat.initial_velocity_max = 12.0
+	mat.scale_min = 0.08
+	mat.scale_max = 0.32
+	# Fade in then out over each mote's life, tinted cool light.
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.2, 0.8, 1.0])
+	ramp.colors = PackedColorArray([
+		Color(0.7, 0.82, 1.0, 0.0), Color(0.78, 0.86, 1.0, 0.85),
+		Color(0.82, 0.9, 1.0, 0.8), Color(0.82, 0.9, 1.0, 0.0)])
+	var rtex := GradientTexture1D.new()
+	rtex.gradient = ramp
+	mat.color_ramp = rtex
+
+	var p := GPUParticles2D.new()
+	p.process_material = mat
+	p.texture = _soft_dot()
+	p.amount = 90
+	p.lifetime = 8.0
+	p.preprocess = 8.0          # start with the screen already populated
+	return p                    # position/extents set by _fit_motes()
+
+
+# A full-screen radial glow/vignette layer. `center`/`radius` are in UV (0..1);
+# the gradient runs `inner` (at the center) -> `outer` (at the radius).
+func _glow_layer(center: Vector2, radius: float, inner: Color, outer: Color) -> TextureRect:
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 1.0])
+	grad.colors = PackedColorArray([inner, outer])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = center
+	tex.fill_to = center + Vector2(0.0, radius)
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr
 
 
 func _on_connect() -> void:
@@ -214,9 +319,8 @@ func _send(obj: Dictionary) -> void:
 # Apply a fresh view: diff creature HP against the last one to drive damage,
 # death and summon animations, then rebuild.
 func _ingest_view(new_view: Dictionary) -> void:
-	# A new view means the board changed: a pending click-selection or open mana
-	# picker would point at now-stale indices, so drop them.
-	_clear_selection()
+	# A new view means the board changed: an open mana picker would point at a
+	# now-stale index, so drop it.
 	_close_picker()
 	_dmg = {}
 	_summoned = {}
@@ -245,17 +349,106 @@ func _ingest_view(new_view: Dictionary) -> void:
 
 
 # Apply damage / death / summon effects once the new board has laid out.
+# Attack helpers: record the target's on-screen position and the attacker, then
+# send. _animate_changes plays the lunge on the (rebuilt) attacker node.
+func _attack_creature(attacker_id: int, target_cid: int) -> void:
+	_pending_lunge = {"attacker": attacker_id, "pos": _node_center(_card_nodes.get(target_cid))}
+	_send({"action": "attackCreature", "attacker": attacker_id, "target": target_cid})
+
+
+func _attack_hero(attacker_id: int) -> void:
+	# Lunge straight up toward the enemy side (not sideways at the flank medallion).
+	var ac := _node_center(_card_nodes.get(attacker_id))
+	_pending_lunge = {"attacker": attacker_id, "pos": Vector2(ac.x, 40.0)}
+	_send({"action": "attackHero", "attacker": attacker_id})
+
+
+func _node_center(n) -> Vector2:
+	if n != null and is_instance_valid(n):
+		return n.global_position + n.size * 0.5
+	return Vector2(get_viewport_rect().size.x * 0.5, 70.0)  # fallback: enemy side
+
+
+# A quick lunge of `node` toward `target_pos` and back -- the attack hit.
+func _lunge(node: Control, target_pos: Vector2) -> void:
+	var start := node.position
+	var dir := target_pos - (node.global_position + node.size * 0.5)
+	if dir.length() < 1.0:
+		return
+	dir = dir.normalized()
+	node.z_index = 15
+	var t := create_tween()
+	t.tween_property(node, "position", start + dir * 32.0, 0.09) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(node, "position", start, 0.15) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_callback(_reset_z.bind(node))
+
+
+func _reset_z(node: Control) -> void:
+	if is_instance_valid(node):
+		node.z_index = 0
+
+
+# A soft, slowly pulsing gold ring under a ready-to-attack creature: a clear
+# "this can act" signal. Drawn behind the card face so it reads as a halo.
+func _attach_ready_pulse(card: Control) -> void:
+	var ring := Panel.new()
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ring.offset_left = -3
+	ring.offset_top = -3
+	ring.offset_right = 3
+	ring.offset_bottom = 3
+	ring.show_behind_parent = true
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(2)
+	var gold := Color(0.98, 0.85, 0.4)
+	sb.border_color = gold
+	sb.shadow_size = 12
+	sb.shadow_color = Color(gold.r, gold.g, gold.b, 0.55)
+	ring.add_theme_stylebox_override("panel", sb)
+	card.add_child(ring)
+	var t := create_tween()
+	t.set_loops()
+	t.tween_property(ring, "modulate:a", 0.35, 0.8).set_trans(Tween.TRANS_SINE)
+	t.tween_property(ring, "modulate:a", 1.0, 0.8).set_trans(Tween.TRANS_SINE)
+
+
 func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
 	await get_tree().process_frame
+	if not _pending_lunge.is_empty():
+		var aid := int(_pending_lunge["attacker"])
+		if _card_nodes.has(aid) and is_instance_valid(_card_nodes[aid]):
+			_lunge(_card_nodes[aid], _pending_lunge["pos"])
+		_pending_lunge = {}
 	for id in summoned:
 		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
 			_pop_in(_card_nodes[id])
+	var total := 0
 	for id in dmg:
 		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
 			var nd: Control = _card_nodes[id]
 			_flash_card(nd)
 			_spawn_float_number(
 				nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.18), int(dmg[id]))
+		total += int(dmg[id])
+	if total > 0:
+		_shake(minf(4.0 + total * 1.7, 16.0))  # impact scales with the hit
+
+
+# Brief positional screen shake (impact feedback). Decays over a few quick steps
+# and always returns to rest.
+func _shake(intensity: float) -> void:
+	var steps := 5
+	var t := create_tween()
+	for i in steps:
+		var amp := intensity * (1.0 - float(i) / steps)
+		t.tween_property(self, "position",
+			Vector2(randf_range(-amp, amp), randf_range(-amp, amp)), 0.035)
+	t.tween_property(self, "position", Vector2.ZERO, 0.05)
 
 
 func _flash_card(card: Control) -> void:
@@ -317,13 +510,6 @@ func _spawn_float_number(pos: Vector2, amount: int) -> void:
 	t.chain().tween_callback(lbl.queue_free)
 
 
-func _clear_selection() -> void:
-	attacker_id = -1
-	casting_index = -1
-	awaken_index = -1
-	pending_side = ""
-
-
 # --- view queries ------------------------------------------------------------
 
 # Generated tokens are numbered per size (e.g. germinate's "token_sprout2"); fall
@@ -358,6 +544,16 @@ func _my_turn() -> bool:
 	if bool(view.get("over", false)):
 		return false  # the game is decided -- no actions
 	return int(view.get("current", -1)) == int(view.get("you", -2))
+
+
+# You may bank exactly one card to mana per turn (engine: placedManaThisTurn).
+func _can_place_mana() -> bool:
+	if not _my_turn():
+		return false
+	var you := int(view.get("you", -1))
+	if you < 0:
+		return false
+	return not bool(view["players"][you].get("placedMana", false))
 
 
 func _needs_target(card_id: String) -> bool:
@@ -505,16 +701,6 @@ func _valid_attack_target(cr: Dictionary) -> bool:
 	return true
 
 
-# Does the currently selected attacker (click-fallback) have Bypass?
-func _attacker_has_bypass() -> bool:
-	if attacker_id < 0:
-		return false
-	var you := int(view["you"])
-	for c in view["players"][you].get("board", []):
-		if int(c["id"]) == attacker_id:
-			return _has_keyword(String(c["card"]), "bypass")
-	return false
-
 
 # --- top-level rebuild -------------------------------------------------------
 
@@ -530,7 +716,6 @@ func _rebuild() -> void:
 	var you := int(view["you"])
 	var me: Dictionary = view["players"][you]
 	var opp: Dictionary = view["players"][1 - you]
-	UiCard.targeting = attacker_id >= 0 or casting_index >= 0 or awaken_index >= 0
 
 	root_box.add_child(_banner(you))
 	# Each half is a band: [hero medallion | board (center) | piles]. Heroes get
@@ -552,9 +737,12 @@ func _rebuild() -> void:
 
 
 func _separator() -> Control:
-	var line := HSeparator.new()
-	line.add_theme_constant_override("separation", 6)
-	return line
+	# Just a small gap between the two armies (no decorative line -- the lane
+	# borders and the side accents already separate the sides).
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 6)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
 
 
 func _game_over_panel(you: int) -> Control:
@@ -736,22 +924,59 @@ func _send_scry() -> void:
 
 
 func _banner(you: int) -> Control:
-	var banner := Ui.label("", 22, null, true)
+	var txt := ""
+	var col := Color(0.6, 0.62, 0.72)
 	if bool(view.get("over", false)):
-		var w := int(view.get("winner", -1))
-		var win := w == you
-		banner.text = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
-		banner.add_theme_color_override("font_color",
-			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
+		var win := int(view.get("winner", -1)) == you
+		txt = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
+		col = Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45)
 	elif bool(view.get("mulligan", false)):
-		banner.text = "МУЛИГАН"
-		banner.add_theme_color_override("font_color", Color(0.45, 0.85, 1.0))
+		txt = "МУЛИГАН"
+		col = Color(0.45, 0.85, 1.0)
 	else:
-		var who := "ВАШ ХОД" if _my_turn() else "ХОД СОПЕРНИКА"
-		banner.text = "%s   ·   ход %d" % [who, int(view.get("turn", 0))]
-		banner.add_theme_color_override("font_color",
-			Color(0.45, 0.85, 1.0) if _my_turn() else Color(0.6, 0.62, 0.72))
-	return banner
+		var mine := _my_turn()
+		txt = ("ВАШ ХОД" if mine else "ХОД СОПЕРНИКА") + "    ход %d" % int(view.get("turn", 0))
+		col = ME_ACCENT.lightened(0.12) if mine else ENEMY_ACCENT.lightened(0.05)
+
+	# A centered header pill that glows in the active side's colour, with a small
+	# diamond on each side -- reads as a banner, not a bare line of text.
+	var pill := PanelContainer.new()
+	var sb := Ui.glass(col, 0.26)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 5
+	sb.content_margin_bottom = 5
+	pill.add_theme_stylebox_override("panel", sb)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(_banner_diamond(col))
+	row.add_child(Ui.label(txt, 17, col.lightened(0.45), true))
+	row.add_child(_banner_diamond(col))
+	pill.add_child(row)
+
+	var center := HBoxContainer.new()
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	center.add_child(pill)
+	return center
+
+
+func _banner_diamond(col: Color) -> Control:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(10, 16)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dia := Panel.new()
+	var ds := StyleBoxFlat.new()
+	ds.bg_color = col.lightened(0.3)
+	ds.set_corner_radius_all(2)
+	dia.add_theme_stylebox_override("panel", ds)
+	dia.size = Vector2(8, 8)
+	dia.position = Vector2(1, 4)
+	dia.pivot_offset = Vector2(4, 4)
+	dia.rotation = deg_to_rad(45)
+	dia.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(dia)
+	return holder
 
 
 # --- hero strips -------------------------------------------------------------
@@ -782,17 +1007,14 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 	card.size_flags_vertical = Control.SIZE_FILL
 	card.add_theme_stylebox_override("panel", Ui.glass(accent, 0.4))
 	if not mine:
+		_enemy_hero_node = card  # lunge target for face attacks
 		# Attack the face: blocked by a provoker unless the attacker has Bypass.
 		card.can_drop_fn = func(data: Variant) -> bool:
 			if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
 				return false
 			return not _enemy_has_provoke() or bool(data.get("bypass", false))
 		card.drop_fn = func(data: Variant) -> void:
-			_send({"action": "attackHero", "attacker": int(data["id"])})
-			_clear_selection()
-		card.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_hero())
-		if attacker_id >= 0 and (not _enemy_has_provoke() or _attacker_has_bypass()):
-			card.modulate = Color(1.5, 1.4, 1.1)
+			_attack_hero(int(data["id"]))
 
 	var v := VBoxContainer.new()
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -982,9 +1204,10 @@ func _aura_shelf(auras: Array, mine: bool) -> Control:
 
 
 func _aura_tile(card_id: String) -> Control:
+	# Art-only square tile (name + rules on hover) so it never wraps/overflows.
 	var col := Palette.primary(_def(card_id))
 	var tile := UiCard.new()
-	tile.custom_minimum_size = Vector2(140, 58)
+	tile.custom_minimum_size = Vector2(58, 58)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.09, 0.10, 0.15, 0.92)
 	sb.set_corner_radius_all(8)
@@ -992,21 +1215,12 @@ func _aura_tile(card_id: String) -> Control:
 	sb.border_color = col
 	sb.shadow_size = 8
 	sb.shadow_color = Color(col.r, col.g, col.b, 0.5)
-	sb.set_content_margin_all(5)
+	sb.set_content_margin_all(3)
 	tile.add_theme_stylebox_override("panel", sb)
 	tile.tooltip_text = _name_of(card_id)
 	tile.tooltip_builder = func() -> Control: return _build_tooltip(card_id, null)
-
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 6)
-	row.add_child(_art_thumb(card_id, col, 46))
-	var name_l := Ui.label(_name_of(card_id), 12)
-	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_l.custom_minimum_size = Vector2(66, 0)
-	row.add_child(name_l)
-	tile.add_child(row)
+	tile.hoverable = true
+	tile.add_child(_art_thumb(card_id, col, 50))
 	return tile
 
 
@@ -1243,22 +1457,16 @@ func _awaken_chip(idx: int, slot: Dictionary) -> Control:
 	chip.drag_label = "awaken: " + _name_of(card_id)
 	chip.clicked.connect(func(p: Dictionary) -> void: _on_awaken_clicked(p))
 
+	# Art + a short status tag only (the name shows on hover) -- no wrapping text.
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(_art_thumb(card_id, Palette.color_for(color), 42))
-	var col := VBoxContainer.new()
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var name_l := Ui.label(_name_of(card_id), 12)
-	name_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_l.custom_minimum_size = Vector2(64, 0)
-	col.add_child(name_l)
 	var tag_txt := "бесплатно!" if free else "разбудить"
-	var tag := Ui.label(tag_txt, 9, gold if affordable else gold.darkened(0.25))
+	var tag := Ui.label(tag_txt, 11, gold if affordable else gold.darkened(0.25))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(tag)
-	row.add_child(col)
+	row.add_child(tag)
 	chip.add_child(row)
 	return chip
 
@@ -1365,15 +1573,12 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 				_play_payload(data, cid)
 			else:
 				_play_at_drop(data)
-		card.clicked.connect(func(_p: Dictionary) -> void: _on_my_creature(cid))
 		# On your turn, dim creatures that cannot attack so the ready ones glow.
 		if _my_turn() and not can_attack:
 			card.modulate = Color(0.6, 0.62, 0.7, 0.92)
 			card.rest_modulate = Color(0.6, 0.62, 0.7, 0.92)
-		# A friendly/any spell awaiting a target lights up your creatures.
-		if (casting_index >= 0 or awaken_index >= 0) and pending_side in ["friendly", "any"]:
-			card.modulate = Color(1.45, 1.45, 1.1)
-			card.rest_modulate = Color(1.45, 1.45, 1.1)
+		elif can_attack:
+			_attach_ready_pulse(card)
 	else:
 		# Enemy creature: accept an attacker (subject to provoke/stealth), or an
 		# enemy/any-target spell (not on a hidden creature).
@@ -1385,18 +1590,9 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 			return _can_cast_on(data, "enemy") and not bool(cr.get("stealth", false))
 		card.drop_fn = func(data: Variant) -> void:
 			if data.get("kind", "") == "attacker":
-				_send({"action": "attackCreature", "attacker": int(data["id"]), "target": cid})
-				_clear_selection()
+				_attack_creature(int(data["id"]), cid)
 			else:
 				_play_payload(data, cid)
-		card.clicked.connect(func(_p: Dictionary) -> void: _on_enemy_creature(cid))
-		# Light up only valid targets: attackable ones (respecting provoke/stealth)
-		# while attacking, castable ones while a spell awaits a target.
-		var await_attack := attacker_id >= 0 and _valid_attack_target(cr)
-		var await_spell := (casting_index >= 0 or awaken_index >= 0) \
-			and pending_side in ["enemy", "any"] and not bool(cr.get("stealth", false))
-		if await_attack or await_spell:
-			card.modulate = Color(1.45, 1.45, 1.1)
 
 	# Activated abilities (e.g. germinate): round icon buttons centered along the
 	# bottom edge, in the same row as the ATK/HP gems -- a separate control from
@@ -1436,8 +1632,8 @@ func _ability_dock(cr: Dictionary, cid: int) -> Control:
 	dock.anchor_right = 1
 	dock.anchor_top = 1
 	dock.anchor_bottom = 1
-	dock.offset_top = -34 - FRAME
-	dock.offset_bottom = -FRAME
+	dock.offset_top = -GEM - PAD
+	dock.offset_bottom = -PAD
 	return dock
 
 
@@ -1469,8 +1665,7 @@ func _ability_button(cr: Dictionary, cid: int, kid: String) -> Button:
 	b.tooltip_text = Glossary.keyword_name({"id": kid, "n": _keyword_n(String(cr["card"]), kid)})
 	b.tooltip_builder = func() -> Control: return _ability_tooltip_panel(cr, kid, used)
 	b.pressed.connect(func() -> void:
-		_send({"action": "activate", "id": cid})
-		_clear_selection())
+		_send({"action": "activate", "id": cid}))
 	return b
 
 
@@ -1583,7 +1778,6 @@ func _hand_row(hand: Array) -> Control:
 			card.modulate = Color(0.62, 0.62, 0.68, 0.92)
 			card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
 		var idx := i
-		card.clicked.connect(func(_p: Dictionary) -> void: _on_hand_card(idx, cid))
 		card.double_clicked.connect(func(_p: Dictionary) -> void: _on_hand_double(idx, cid))
 		cards_box.add_child(card)
 	box.add_child(cards_box)
@@ -1631,6 +1825,8 @@ func _build_tooltip(def_id: String, runtime = null) -> Control:
 	panel.add_theme_stylebox_override("panel",
 		Ui.bordered(Color(0.10, 0.11, 0.15, 0.98), 10, 2, col, 11))
 
+	# Compact text-only card info on hover (name, cost, type, generated rules,
+	# flavor, live statuses). Godot anchors and clamps it to the viewport.
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 5)
 	v.custom_minimum_size = Vector2(250, 0)
@@ -1753,61 +1949,67 @@ func _rich(bb: String, size: int, color: Color) -> RichTextLabel:
 # drag preview alike).
 func _card_face(def_id: String, runtime) -> Control:
 	var d: Dictionary = _def(def_id)
+	var has_stats: bool = d.has("stats") or (typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"))
 	var face := Panel.new()
 	face.custom_minimum_size = CARD_SIZE
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Rounded body; clip_children rounds the gradient frame and art to it. The
-	# corner gems are circles and sit clear of the rounded corners, so they read
-	# fully. clip_children draws the panel normally, so the shadow still shows.
+	# Rounded dark body; clip_children rounds the art/rim to it. The panel itself
+	# still draws normally, so the card's outer color glow (set in _make_card) shows.
 	var body := StyleBoxFlat.new()
-	body.bg_color = Color(0.07, 0.07, 0.10)
+	body.bg_color = Color(0.05, 0.05, 0.08)
 	body.set_corner_radius_all(12)
 	face.add_theme_stylebox_override("panel", body)
 	face.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 
-	# Color frame: gradient built from the card's colors (neutral = white).
+	# Color rim: the gradient sits full-rect; the art is inset by RIM so the
+	# gradient only shows as a thin glowing edge (the card's color identity).
 	var frame := TextureRect.new()
 	frame.texture = _frame_texture(d)
 	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	face.add_child(frame)
 
-	# Art inset by FRAME px so the gradient shows as a ring around it.
+	# Art fills the whole card (full-bleed, minus the thin rim).
 	var art := _art_full(def_id)
-	_anchor_inset(art, FRAME)
+	_anchor_inset(art, RIM)
 	face.add_child(art)
 
-	# Status overlays that cover the art so they read at a glance.
+	# State tints over the art -- pure overlays, they never change the layout.
 	if typeof(runtime) == TYPE_DICTIONARY and int(runtime.get("frozen", 0)) > 0:
 		var ice := ColorRect.new()
-		ice.color = Color(0.45, 0.72, 1.0, 0.32)
+		ice.color = Color(0.45, 0.72, 1.0, 0.30)
 		ice.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_anchor_inset(ice, FRAME)
+		_anchor_inset(ice, RIM)
 		face.add_child(ice)
 	if typeof(runtime) == TYPE_DICTIONARY and bool(runtime.get("sick", false)):
 		var sleep := ColorRect.new()
-		sleep.color = Color(0.08, 0.10, 0.24, 0.42)
+		sleep.color = Color(0.05, 0.07, 0.18, 0.46)
 		sleep.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_anchor_inset(sleep, FRAME)
+		_anchor_inset(sleep, RIM)
 		face.add_child(sleep)
 
-	# Cost badge (top-left): generic number plus one colored pip per colored
-	# requirement, so the color cost is visible at a glance.
+	# Legibility scrims: a soft dark fade at the top (under cost/status) and
+	# bottom (under the stat gems) so chrome reads over any bright art. The card
+	# name is intentionally NOT drawn on the face -- it shows on hover (tooltip /
+	# zoom) where long names have room, so the face never risks clipped text.
+	face.add_child(_scrim(true, GEM + PAD))
+	face.add_child(_scrim(false, GEM + PAD))
+
+	# Cost badge (top-left): generic number plus one colored pip per colored pip.
 	var cost_badge := _cost_badge(d.get("cost", {}))
 	cost_badge.anchor_left = 0
 	cost_badge.anchor_top = 0
 	cost_badge.anchor_right = 0
 	cost_badge.anchor_bottom = 0
-	cost_badge.offset_left = FRAME
-	cost_badge.offset_top = FRAME
-	cost_badge.offset_right = FRAME
-	cost_badge.offset_bottom = FRAME
+	cost_badge.offset_left = PAD
+	cost_badge.offset_top = PAD
+	cost_badge.offset_right = PAD
+	cost_badge.offset_bottom = PAD
 	cost_badge.grow_horizontal = Control.GROW_DIRECTION_END
 	cost_badge.grow_vertical = Control.GROW_DIRECTION_END
 	face.add_child(cost_badge)
 
 	# Stat gems (bottom corners) for creatures.
-	var has_stats: bool = d.has("stats") or (typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"))
 	if has_stats:
 		var atk := 0
 		var hp := 0
@@ -1821,27 +2023,60 @@ func _card_face(def_id: String, runtime) -> Control:
 			hp = int(d["stats"].get("hp", 0))
 			max_hp = hp
 		var atk_gem := _gem(str(atk), Color(0.95, 0.8, 0.35))
-		_anchor_corner(atk_gem, 0, 1, FRAME, -GEM - FRAME)
+		_anchor_corner(atk_gem, 0, 1, PAD, -GEM - PAD)
 		face.add_child(atk_gem)
 		var hp_color := Color(0.55, 0.95, 0.5) if hp >= max_hp else Color(0.97, 0.4, 0.4)
 		var hp_gem := _gem(str(hp), hp_color)
-		_anchor_corner(hp_gem, 1, 1, -GEM - FRAME, -GEM - FRAME)
+		_anchor_corner(hp_gem, 1, 1, -GEM - PAD, -GEM - PAD)
 		face.add_child(hp_gem)
 
-	# Status icons (top-right), right-aligned and growing left/down.
+	# Status icons (top-right), right-aligned and growing left, capped with +N.
 	if typeof(runtime) == TYPE_DICTIONARY:
 		var status_row = _status_icons(runtime)
 		if status_row != null:
 			status_row.anchor_left = 1
 			status_row.anchor_right = 1
-			status_row.offset_left = -FRAME
-			status_row.offset_right = -FRAME
-			status_row.offset_top = FRAME
-			status_row.offset_bottom = FRAME
+			status_row.offset_left = -PAD
+			status_row.offset_right = -PAD
+			status_row.offset_top = PAD
+			status_row.offset_bottom = PAD
 			status_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 			status_row.grow_vertical = Control.GROW_DIRECTION_END
 			face.add_child(status_row)
 	return face
+
+
+# A vertical dark gradient used as a legibility scrim under the top/bottom chrome.
+# `from_top` fades dark->clear downward; otherwise clear->dark toward the bottom.
+func _scrim(from_top: bool, height: float) -> TextureRect:
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 1.0])
+	var dark := Color(0.0, 0.0, 0.0, 0.62)
+	var clear := Color(0.0, 0.0, 0.0, 0.0)
+	grad.colors = PackedColorArray([dark, clear]) if from_top else PackedColorArray([clear, dark])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill_from = Vector2(0.5, 0.0)
+	tex.fill_to = Vector2(0.5, 1.0)
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tr.anchor_left = 0
+	tr.anchor_right = 1
+	tr.offset_left = RIM
+	tr.offset_right = -RIM
+	if from_top:
+		tr.anchor_top = 0
+		tr.anchor_bottom = 0
+		tr.offset_top = RIM
+		tr.offset_bottom = RIM + height
+	else:
+		tr.anchor_top = 1
+		tr.anchor_bottom = 1
+		tr.offset_top = -RIM - height
+		tr.offset_bottom = -RIM
+	return tr
 
 
 func _anchor_inset(node: Control, inset: float) -> void:
@@ -1966,30 +2201,33 @@ func _cost_badge(cost: Dictionary) -> Control:
 
 
 func _status_icons(cr: Dictionary) -> Control:
+	# Collect first, then render at most STATUS_MAX icons + a "+N" overflow chip,
+	# so a heavily-statused creature never overflows the card edge.
+	var specs := []
+	if int(cr.get("frozen", 0)) > 0:
+		specs.append(["snowflake", Color(0.6, 0.85, 1.0)])
+	if bool(cr.get("shield", false)):
+		specs.append(["shield", Color(0.97, 0.88, 0.4)])
+	if bool(cr.get("ward", false)):
+		specs.append(["halo", Color(0.72, 0.95, 1.0)])
+	if bool(cr.get("stealth", false)):
+		specs.append(["eye", Color(0.75, 0.55, 0.97)])
+	if int(cr.get("blind", 0)) > 0:
+		specs.append(["eye", Color(0.97, 0.5, 0.5)])
+	if bool(cr.get("sick", false)):
+		specs.append(["moon", Color(0.72, 0.77, 0.87)])
+	if specs.is_empty():
+		return null
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 3)
-	var any := false
-	if int(cr.get("frozen", 0)) > 0:
-		row.add_child(Ui.icon("snowflake", 20, Color(0.6, 0.85, 1.0)))
-		any = true
-	if bool(cr.get("shield", false)):
-		row.add_child(Ui.icon("shield", 20, Color(0.97, 0.88, 0.4)))
-		any = true
-	if bool(cr.get("ward", false)):
-		row.add_child(Ui.icon("halo", 20, Color(0.72, 0.95, 1.0)))
-		any = true
-	if bool(cr.get("stealth", false)):
-		row.add_child(Ui.icon("eye", 20, Color(0.75, 0.55, 0.97)))
-		any = true
-	if int(cr.get("blind", 0)) > 0:
-		row.add_child(Ui.icon("eye", 20, Color(0.97, 0.5, 0.5)))
-		any = true
-	if bool(cr.get("sick", false)):
-		row.add_child(Ui.icon("moon", 20, Color(0.72, 0.77, 0.87)))
-		any = true
-	if not any:
-		return null
+	var shown: int = mini(specs.size(), STATUS_MAX)
+	for i in shown:
+		row.add_child(Ui.icon(specs[i][0], 20, specs[i][1]))
+	if specs.size() > STATUS_MAX:
+		var more := Ui.label("+%d" % (specs.size() - STATUS_MAX), 13, Color(0.92, 0.94, 1.0))
+		more.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(more)
 	# Dark chip behind the icons so they read over any art.
 	var chip := PanelContainer.new()
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2019,18 +2257,12 @@ func _controls() -> Control:
 	var end_btn := Ui.neon_button("Завершить ход", Color(1.0, 0.62, 0.3))
 	end_btn.disabled = not _my_turn()
 	end_btn.pressed.connect(func() -> void:
-		_clear_selection()
 		_send({"action": "endTurn"}))
 	row.add_child(end_btn)
 
 	var hint := Ui.label("", 0, Color(0.62, 0.66, 0.78))
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if casting_index >= 0 or awaken_index >= 0:
-		hint.text = "выберите цель (клик по карте ещё раз — отмена)"
-	elif attacker_id >= 0:
-		hint.text = "выберите вражеское существо или героя для атаки"
-	else:
-		hint.text = "тащите карту на стол — разыграть · двойной тап — в ману · клик по заклинанию — прицел · существо — на цель для атаки"
+	hint.text = "тащите карту на стол — разыграть · на цель — заклинание/атака · двойной тап — в ману"
 	row.add_child(hint)
 	return row
 
@@ -2074,7 +2306,6 @@ func _play_payload(data: Variant, target: int) -> void:
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": target})
 	else:
 		_send({"action": "play", "handIndex": int(data["index"]), "target": target})
-	_clear_selection()
 
 
 # Play a creature onto your board at the slot the cursor dropped it.
@@ -2086,7 +2317,6 @@ func _play_at_drop(data: Variant) -> void:
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": 0, "pos": pos})
 	else:
 		_send({"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
-	_clear_selection()
 
 
 # How many of your creatures sit left of the drop point -> the insertion slot.
@@ -2108,10 +2338,8 @@ func _place_mana(idx: int, card_id: String) -> void:
 	var colors: Array = d.get("color", [])
 	if colors.is_empty():
 		_send({"action": "placeMana", "handIndex": idx, "color": "colorless"})
-		_clear_selection()
 	elif colors.size() == 1:
 		_send({"action": "placeMana", "handIndex": idx, "color": String(colors[0])})
-		_clear_selection()
 	else:
 		# Multicolor card: let the player choose which crystal it becomes.
 		_show_color_picker(idx, colors)
@@ -2147,7 +2375,6 @@ func _show_color_picker(idx: int, colors: Array) -> void:
 	wheel.colors = ids
 	wheel.picked.connect(func(cid: String) -> void:
 		_send({"action": "placeMana", "handIndex": idx, "color": cid})
-		_clear_selection()
 		_close_picker())
 	wheel.cancelled.connect(_close_picker)
 	vb.add_child(wheel)
@@ -2168,85 +2395,21 @@ func _close_picker() -> void:
 		_picker = null
 
 
-# --- click fallback ----------------------------------------------------------
-
-func _on_hand_card(idx: int, card_id: String) -> void:
-	if not _my_turn():
-		return
-	# Single tap: a targeted spell arms targeting (tap again to cancel); other
-	# cards do nothing here -- they are played by dragging onto the board, and
-	# double-tapped to bank as mana (see _on_hand_double).
-	if casting_index == idx:
-		casting_index = -1
-		_rebuild()
-		return
-	if _needs_target(card_id):
-		_clear_selection()
-		casting_index = idx
-		pending_side = _target_side(card_id)
-		_rebuild()
-
+# --- hand double-tap (bank to mana) -----------------------------------------
 
 # Double-tap a hand card to bank it as mana (color picker for multicolor).
 func _on_hand_double(idx: int, card_id: String) -> void:
-	if not _my_turn():
+	# Banking to mana is once per turn: if it's already spent (or not your turn),
+	# do nothing -- don't pop the color picker for an action the server will reject.
+	if not _can_place_mana():
 		return
-	_clear_selection()
 	_place_mana(idx, card_id)
 
 
+# A non-targeted awaken (e.g. a creature) plays straight to your board on a
+# single click. Targeted awaken cards are aimed by dragging the chip instead.
 func _on_awaken_clicked(p: Dictionary) -> void:
 	if not _my_turn():
 		return
-	var idx := int(p["manaRowIndex"])
-	if awaken_index == idx:
-		awaken_index = -1
-		_rebuild()
-		return
-	if bool(p.get("needs_target", false)):
-		_clear_selection()
-		awaken_index = idx
-		pending_side = _target_side(String(p.get("card_id", "")))
-		_rebuild()
-	else:
-		_clear_selection()
-		_send({"action": "awaken", "manaRowIndex": idx, "target": 0})
-
-
-func _on_my_creature(cid: int) -> void:
-	if not _my_turn():
-		return
-	# Cast a pending friendly/any spell on this creature, else select it to attack.
-	if casting_index >= 0 and pending_side in ["friendly", "any"]:
-		_send({"action": "play", "handIndex": casting_index, "target": cid})
-		_clear_selection()
-		return
-	if awaken_index >= 0 and pending_side in ["friendly", "any"]:
-		_send({"action": "awaken", "manaRowIndex": awaken_index, "target": cid})
-		_clear_selection()
-		return
-	_clear_selection()
-	attacker_id = cid
-	_rebuild()
-
-
-func _on_enemy_creature(cid: int) -> void:
-	if not _my_turn():
-		return
-	if casting_index >= 0 and pending_side in ["enemy", "any"]:
-		_send({"action": "play", "handIndex": casting_index, "target": cid})
-		_clear_selection()
-	elif awaken_index >= 0 and pending_side in ["enemy", "any"]:
-		_send({"action": "awaken", "manaRowIndex": awaken_index, "target": cid})
-		_clear_selection()
-	elif attacker_id >= 0:
-		_send({"action": "attackCreature", "attacker": attacker_id, "target": cid})
-		_clear_selection()
-
-
-func _on_enemy_hero() -> void:
-	if not _my_turn():
-		return
-	if attacker_id >= 0:
-		_send({"action": "attackHero", "attacker": attacker_id})
-		_clear_selection()
+	if not bool(p.get("needs_target", false)):
+		_send({"action": "awaken", "manaRowIndex": int(p["manaRowIndex"]), "target": 0})
