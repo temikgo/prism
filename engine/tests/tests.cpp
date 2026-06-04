@@ -122,6 +122,9 @@ static const char* kTestCards = R"json([
   { "id": "scryspell", "name": { "ru": "Прозрение" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "scry", "value": 2 }] },
+  { "id": "rampspell", "name": { "ru": "Накопитель" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "add_crystal", "value": 1 }] },
   { "id": "bouncespell", "name": { "ru": "Рассеяние" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
@@ -506,6 +509,19 @@ TEST_CASE("photosynthesis adds temporary mana at turn start") {
   g.endTurn();
   g.endTurn();
   CHECK(g.player(0).mana.totalAvailable() == 1);
+}
+
+TEST_CASE("add_crystal permanently grows the mana pool") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("rampspell", 30), repeat("bear", 30), 71);
+  begin(g);
+  REQUIRE(g.playCard(0));  // cost 0; adds one permanent colorless crystal
+  CHECK(g.player(0).mana.crystals[idx(Color::Colorless)] == 1);
+  CHECK(g.player(0).mana.totalAvailable() == 1);  // usable the same turn
+  g.endTurn();
+  g.endTurn();  // back to p0: the refill keeps the permanent crystal
+  CHECK(g.player(0).mana.crystals[idx(Color::Colorless)] == 1);
+  CHECK(g.player(0).mana.totalAvailable() >= 1);
 }
 
 TEST_CASE("split spawns permanent 1 HP illusion copies") {
@@ -898,13 +914,27 @@ TEST_CASE("undergrowth scales attack with your other creatures") {
   CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 other)
 }
 
-TEST_CASE("resonance scales attack with your crystals") {
+TEST_CASE("resonance charges from your crystals at summon") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("resonator", 30), repeat("bear", 30), 232);
   g.start();
   REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 1 crystal
   REQUIRE(g.playCard(0));
-  CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 crystal)
+  CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 crystal) snapshot
+}
+
+TEST_CASE("resonance is a snapshot and does not grow after summon") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("resonator", 30), repeat("bear", 30), 233);
+  begin(g);
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // 1 crystal
+  REQUIRE(g.playCard(0));
+  CHECK(g.player(0).board[0].atk == 2);    // charged once at summon
+  CHECK(g.player(0).board[0].maxHp == 5);  // hp also snapshot: 4 + 1
+  g.endTurn();
+  g.endTurn();                                      // back to player 0
+  REQUIRE(g.placeCardToMana(0, Color::Colorless));  // a second crystal
+  CHECK(g.player(0).board[0].atk == 2);  // unchanged -- resonance never grows
 }
 
 TEST_CASE("view redacts hidden information per player") {
@@ -1043,25 +1073,29 @@ TEST_CASE("Lens clairvoyance reveals only your own top card") {
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
   lib.loadFile(PRISM_SAMPLE);
-  CHECK(lib.size() >= 6);  // 6 originals plus bicolor cards and tokens
-  const CardDef* borer = lib.find("red_undying_borer");
-  REQUIRE(borer != nullptr);
-  CHECK(borer->type == CardType::Creature);
-  CHECK(borer->cost.generic == 1);
-  CHECK(borer->cost.pips[idx(Color::Red)] == 1);
-  CHECK(borer->stats.atk == 3);
-  CHECK(borer->stats.hp == 3);
-  REQUIRE(borer->keywords.size() == 2);
-  CHECK(borer->keywords[0].id == "pierce");
-  CHECK(borer->keywords[1].id == "regen");
-  REQUIRE(borer->keywords[1].n.has_value());
-  CHECK(borer->keywords[1].n.value() == 1);
+  CHECK(lib.size() >= 6);  // monos, bicolor pairs, neutrals, penta and heroes
+  const CardDef* sting = lib.find("red_scarlet_sting");
+  REQUIRE(sting != nullptr);
+  CHECK(sting->type == CardType::Creature);
+  CHECK(sting->cost.generic == 0);
+  CHECK(sting->cost.pips[idx(Color::Red)] == 1);
+  CHECK(sting->stats.atk == 2);
+  CHECK(sting->stats.hp == 1);
+  REQUIRE(sting->keywords.size() == 1);
+  CHECK(sting->keywords[0].id == "pierce");
 
-  const CardDef* twin = lib.find("violet_phantom_twin");
-  REQUIRE(twin != nullptr);
-  CHECK(twin->colors.size() == 1);
-  CHECK(twin->colors[0] == Color::Violet);
-  CHECK(twin->cost.pips[idx(Color::Violet)] == 1);
+  const CardDef* hunter = lib.find("red_smoldering_hunter");
+  REQUIRE(hunter != nullptr);
+  REQUIRE(hunter->keywords.size() == 2);
+  CHECK(hunter->keywords[1].id == "regen");
+  REQUIRE(hunter->keywords[1].n.has_value());
+  CHECK(hunter->keywords[1].n.value() == 1);
+
+  const CardDef* stalker = lib.find("violet_dusk_stalker");
+  REQUIRE(stalker != nullptr);
+  CHECK(stalker->colors.size() == 1);
+  CHECK(stalker->colors[0] == Color::Violet);
+  CHECK(stalker->cost.pips[idx(Color::Violet)] == 1);
 
   const CardDef* ram = lib.find("red_yellow_prism_ram");
   REQUIRE(ram != nullptr);

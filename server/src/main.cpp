@@ -54,12 +54,11 @@ bool doHandshake(int fd) {
 // A 30-card demo deck cycling through every playable card the library knows
 // (heroes are not deck cards, so they are excluded).
 std::vector<std::string> demoDeck(const CardLibrary& lib) {
-  std::vector<std::string> ids;
-  for (const auto& d : lib.all())
-    if (d.type != CardType::Hero) ids.push_back(d.id);
+  // Temporary test deck: one copy of every designed (non-hero) card, no 30-card
+  // cap. Real deck-model (limits/curve/selection) is a later task.
   std::vector<std::string> deck;
-  if (ids.empty()) return deck;
-  for (int i = 0; i < 30; ++i) deck.push_back(ids[i % ids.size()]);
+  for (const auto& d : lib.all())
+    if (d.type != CardType::Hero) deck.push_back(d.id);
   return deck;
 }
 

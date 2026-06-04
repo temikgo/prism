@@ -1,41 +1,106 @@
 [
   {
-    "id": "red_undying_borer",
-    "name": { "ru": "Неугасимый бур" },
-    "text": { "ru": "" },
-    "art": "dynamic close-up of a crimson crystal-light drill-creature's head and shoulders, fierce expression, strong silhouette",
+    "id": "red_scarlet_sting",
+    "name": { "ru": "Алое Жало" },
+    "text": { "ru": "Алый луч находит щель в любой броне." },
+    "art": "a darting needle-comet of red ray-light, a single piercing glowing point trailing a thin spark-tail, lunging forward",
     "type": "creature",
     "color": ["red"],
-    "cost": { "generic": 1, "red": 1 },
-    "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "pierce" }, { "id": "regen", "n": 1 }]
+    "cost": { "generic": 0, "red": 1 },
+    "stats": { "atk": 2, "hp": 1 },
+    "keywords": [{ "id": "pierce" }]
   },
   {
-    "id": "yellow_beacon_guard",
-    "name": { "ru": "Маяк-страж" },
-    "text": { "ru": "" },
-    "art": "close-up of a stout yellow crystal-light guardian's head and torso, a single bright beacon-crystal glowing in its chest, calm protective stance",
+    "id": "red_smoldering_hunter",
+    "name": { "ru": "Тлеющий Ловчий" },
+    "text": { "ru": "Он гаснет — и вспыхивает снова." },
+    "art": "a low prowling hunter shaped from smoldering red light, embers knitting its wounds shut as it stalks, a steady inner glow",
+    "type": "creature",
+    "color": ["red"],
+    "cost": { "generic": 2, "red": 1 },
+    "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "self_lifesteal" }, { "id": "regen", "n": 1 }]
+  },
+  {
+    "id": "red_undying_comet",
+    "name": { "ru": "Неугасимая Комета" },
+    "text": { "ru": "Её след не зарастает." },
+    "art": "a vast unstoppable comet of red ray-light tearing past everything, a blazing core and a long searing trail that never dims",
+    "type": "creature",
+    "color": ["red"],
+    "cost": { "generic": 3, "red": 2 },
+    "stats": { "atk": 5, "hp": 4 },
+    "keywords": [{ "id": "bypass" }, { "id": "lingering" }]
+  },
+  {
+    "id": "yellow_beacon_ward",
+    "name": { "ru": "Маяк-Страж" },
+    "text": { "ru": "Свет зовёт удар на себя." },
+    "art": "a stout sentinel of yellow light, a single bright beacon-core glowing in its chest, planted in a calm guarding stance",
     "type": "creature",
     "color": ["yellow"],
-    "cost": { "generic": 2, "yellow": 1 },
-    "stats": { "atk": 0, "hp": 5 },
+    "cost": { "generic": 0, "yellow": 1 },
+    "stats": { "atk": 1, "hp": 3 },
     "keywords": [{ "id": "provoke" }]
   },
   {
-    "id": "green_lightroot",
-    "name": { "ru": "Светокорень" },
-    "text": { "ru": "" },
-    "art": "close-up of a green crystal-light root-spirit, a few large emerald facets and a couple of fresh shoots, lively and lush",
+    "id": "yellow_mirror_halo",
+    "name": { "ru": "Зеркальный Нимб" },
+    "text": { "ru": "Первый удар тонет в сиянии." },
+    "art": "a serene guardian of yellow light haloed by a thin mirror-ring of radiance, a soft protective shield-glow around it",
+    "type": "creature",
+    "color": ["yellow"],
+    "cost": { "generic": 2, "yellow": 1 },
+    "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "shield" }, { "id": "ward" }]
+  },
+  {
+    "id": "yellow_watch_beam",
+    "name": { "ru": "Дозорный Луч" },
+    "text": { "ru": "В его свете не спрятаться." },
+    "art": "a tall watch-beacon of yellow light casting a sweeping searchlight beam across the dark, revealing hidden things",
+    "type": "aura",
+    "color": ["yellow"],
+    "cost": { "generic": 1, "yellow": 1 },
+    "keywords": [{ "id": "floodlight" }]
+  },
+  {
+    "id": "green_lightsprout",
+    "name": { "ru": "Светоросток" },
+    "text": { "ru": "Каждый луч — это завтрашний урожай." },
+    "art": "a small bright sprout of green light unfurling its first leaves, soft motes of pollen-light drifting up",
     "type": "aura",
     "color": ["green"],
     "cost": { "generic": 1, "green": 1 },
     "keywords": [{ "id": "photosynthesis", "n": 1 }]
   },
   {
-    "id": "blue_frostmark",
-    "name": { "ru": "Стылый росчерк" },
-    "text": { "ru": "" },
-    "art": "close-up of an icy blue crystal-light sigil freezing a target, a few bold frost shards, cold blue glow",
+    "id": "green_forest_matron",
+    "name": { "ru": "Лесная Праматерь" },
+    "text": { "ru": "От неё всё растёт." },
+    "art": "a maternal figure of green light teeming with budding shoots and drifting luminous spores, fertile and alive",
+    "type": "creature",
+    "color": ["green"],
+    "cost": { "generic": 1, "green": 2 },
+    "stats": { "atk": 2, "hp": 3 },
+    "keywords": [{ "id": "germinate", "n": 1 }, { "id": "spores", "n": 2 }]
+  },
+  {
+    "id": "green_bounty_tree",
+    "name": { "ru": "Древо Изобилия" },
+    "text": { "ru": "Чем гуще роща, тем выше крона." },
+    "art": "an immense world-tree of green light, branches heavy with glowing fruit and sprouting saplings, ever-growing",
+    "type": "creature",
+    "color": ["green"],
+    "cost": { "generic": 4, "green": 2 },
+    "stats": { "atk": 4, "hp": 6 },
+    "keywords": [{ "id": "growth", "n": 1 }, { "id": "undergrowth", "n": 1 }]
+  },
+  {
+    "id": "blue_frost_stroke",
+    "name": { "ru": "Стылый Росчерк" },
+    "text": { "ru": "Один росчерк — и время встало." },
+    "art": "a sharp stroke of blue frost-light freezing a target solid, pale shards of cold radiance",
     "type": "spell",
     "color": ["blue"],
     "cost": { "generic": 1, "blue": 1 },
@@ -44,32 +109,72 @@
     ]
   },
   {
-    "id": "violet_phantom_twin",
-    "name": { "ru": "Призрачный двойник" },
-    "text": { "ru": "" },
-    "art": "close-up of a violet crystal-light figure with two faint ghostly duplicates beside it, one solid and the others shimmering, mysterious",
+    "id": "blue_crystal_rift",
+    "name": { "ru": "Хрустальный Разлом" },
+    "text": { "ru": "Сквозь трещину видно дальше." },
+    "art": "a clean blue lens-crack shattering shimmering enchantments while a card of cold light is drawn from the break",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 2, "blue": 1 },
+    "effects": [
+      { "trigger": "on_play", "action": "dispel" },
+      { "trigger": "on_play", "action": "draw", "value": 1 }
+    ]
+  },
+  {
+    "id": "blue_deep_oracle",
+    "name": { "ru": "Глубинный Оракул" },
+    "text": { "ru": "Он видит ход прежде, чем тот случится." },
+    "art": "an ancient oracle-being of deep blue light, slow orbiting lenses of foresight around its head, cold and patient",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 3, "blue": 2 },
+    "stats": { "atk": 4, "hp": 6 },
+    "keywords": [{ "id": "delay", "n": 1 }],
+    "effects": [
+      { "trigger": "on_play", "action": "dispel" },
+      { "trigger": "on_play", "action": "scry", "value": 2 }
+    ]
+  },
+  {
+    "id": "violet_dusk_stalker",
+    "name": { "ru": "Сумрачный Лазутчик" },
+    "text": { "ru": "Которая из теней настоящая?" },
+    "art": "a lithe stalker of violet light half-faded from sight, splitting into faint mirror-after-images as it slips forward",
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 2, "violet": 1 },
-    "stats": { "atk": 2, "hp": 2 },
-    "keywords": [{ "id": "awaken" }, { "id": "split", "n": 2 }]
+    "stats": { "atk": 3, "hp": 2 },
+    "keywords": [{ "id": "stealth" }, { "id": "split", "n": 2 }]
   },
   {
-    "id": "neutral_warden",
-    "name": { "ru": "Гранёный страж" },
-    "text": { "ru": "" },
-    "art": "close-up of a colourless crystal-light warden's head and shoulders, smooth facets with subtle rainbow refractions, calm and powerful",
+    "id": "violet_patient_phantom",
+    "name": { "ru": "Терпеливый Морок" },
+    "text": { "ru": "Он ждал среди твоих кристаллов." },
+    "art": "a patient shade of violet light biding among banked crystals, quietly waiting to wake, half-dissolved into shadow",
     "type": "creature",
-    "color": [],
-    "cost": { "generic": 3 },
-    "stats": { "atk": 3, "hp": 4 },
-    "keywords": []
+    "color": ["violet"],
+    "cost": { "generic": 2, "violet": 2 },
+    "stats": { "atk": 4, "hp": 3 },
+    "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }, { "id": "haunt" }]
+  },
+  {
+    "id": "violet_mirror_double",
+    "name": { "ru": "Призрачный Двойник" },
+    "text": { "ru": "Отражению не нужна плоть." },
+    "art": "a violet ripple of refracted light conjuring a faint mirror-duplicate of a creature, shimmering and unreal",
+    "type": "spell",
+    "color": ["violet"],
+    "cost": { "generic": 1, "violet": 1 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_any_minion", "action": "mirage" }
+    ]
   },
   {
     "id": "red_yellow_prism_ram",
     "name": { "ru": "Призма-Таран" },
-    "text": { "ru": "" },
-    "art": "a fierce ram-headed crystal-light warrior, a broad shield of red and gold facets raised, charging stance, strong silhouette",
+    "text": { "ru": "Щит впереди, луч насквозь." },
+    "art": "a charging ram-shaped warrior of red and gold light, a broad bright shield raised, fierce forward motion",
     "type": "creature",
     "color": ["red", "yellow"],
     "cost": { "generic": 1, "red": 1, "yellow": 1 },
@@ -79,43 +184,43 @@
   {
     "id": "red_green_thorn_reaper",
     "name": { "ru": "Терновый Жнец" },
-    "text": { "ru": "" },
-    "art": "a gaunt reaper of crimson and emerald crystal light, a thorned scythe, a faint life-draining glow, predatory stance",
+    "text": { "ru": "Чем полнее палитра, тем острее серп." },
+    "art": "a gaunt reaper of crimson and emerald light, a thorned scythe, a faint life-draining glow pulling vitality inward",
     "type": "creature",
     "color": ["red", "green"],
     "cost": { "generic": 2, "red": 1, "green": 1 },
-    "stats": { "atk": 3, "hp": 4 },
-    "keywords": [{ "id": "self_lifesteal" }, { "id": "growth", "n": 1 }]
+    "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "self_lifesteal" }, { "id": "resonance", "n": 1 }]
   },
   {
     "id": "red_blue_frost_breach",
     "name": { "ru": "Стужный Пробой" },
-    "text": { "ru": "" },
-    "art": "a red-hot lance of crystal light shattering into blue frost as it pierces a frozen target, sharp motion",
+    "text": { "ru": "Горячий луч — холодный след." },
+    "art": "a red lance of light shattering into blue frost as it pierces a target, sharp violent motion",
     "type": "spell",
     "color": ["red", "blue"],
     "cost": { "generic": 2, "red": 1, "blue": 1 },
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 },
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 3 },
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
     ]
   },
   {
     "id": "red_violet_scarlet_stalker",
-    "name": { "ru": "Алый Лазутчик" },
-    "text": { "ru": "" },
-    "art": "a lithe cloaked stalker of red and violet crystal light, half-faded into shadow, a glinting dagger, mysterious",
+    "name": { "ru": "Багряная Тень" },
+    "text": { "ru": "Незримый удар, незаживающая рана." },
+    "art": "a cloaked assassin of red and violet light, half-faded into shadow, a glinting dagger and unhealing wounds in its wake",
     "type": "creature",
     "color": ["red", "violet"],
     "cost": { "generic": 2, "red": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "stealth" }, { "id": "self_lifesteal" }]
+    "stats": { "atk": 4, "hp": 3 },
+    "keywords": [{ "id": "stealth" }, { "id": "lingering" }]
   },
   {
     "id": "yellow_green_sun_bastion",
     "name": { "ru": "Солнечный Оплот" },
-    "text": { "ru": "" },
-    "art": "a towering serene guardian of yellow and green crystal light, a radiant sun-crystal in its chest, rooted like a tree, protective",
+    "text": { "ru": "Стоит — и кормит светом." },
+    "art": "a towering serene guardian of yellow and green light, a radiant sun-core in its chest, rooted like a tree",
     "type": "creature",
     "color": ["yellow", "green"],
     "cost": { "generic": 2, "yellow": 1, "green": 1 },
@@ -125,7 +230,7 @@
   {
     "id": "yellow_blue_blinding_rime",
     "name": { "ru": "Слепящий Иней" },
-    "text": { "ru": "" },
+    "text": { "ru": "Свет ослепил, холод сковал." },
     "art": "a burst of blinding yellow light freezing into pale blue rime over an enemy's eyes, cold radiance",
     "type": "spell",
     "color": ["yellow", "blue"],
@@ -136,42 +241,43 @@
     ]
   },
   {
-    "id": "yellow_violet_veiled_aegis",
-    "name": { "ru": "Тайный Эгид" },
-    "text": { "ru": "" },
-    "art": "a partly invisible sentinel of yellow and violet crystal light, a shimmering shield flickering in and out of sight, enigmatic",
-    "type": "creature",
+    "id": "yellow_violet_searing_flare",
+    "name": { "ru": "Озаряющая Вспышка" },
+    "text": { "ru": "Тьма и обман сгорают разом." },
+    "art": "a silent detonation of yellow light flooding the dark, illusions and shadows scattering before it",
+    "type": "spell",
     "color": ["yellow", "violet"],
     "cost": { "generic": 2, "yellow": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "stealth" }, { "id": "shield" }]
+    "effects": [
+      { "trigger": "on_play", "action": "flash", "value": 1 }
+    ]
   },
   {
     "id": "green_blue_frost_thicket",
     "name": { "ru": "Ледяная Поросль" },
-    "text": { "ru": "" },
-    "art": "a lush thicket of green crystal-light vines glazed with blue frost, glowing softly, calm and lush",
+    "text": { "ru": "Растёт и студит." },
+    "art": "a lush thicket of green light-vines glazed with blue frost, glowing softly and breathing cold",
     "type": "aura",
     "color": ["green", "blue"],
     "cost": { "generic": 2, "green": 1, "blue": 1 },
     "keywords": [{ "id": "photosynthesis", "n": 1 }, { "id": "chill", "n": 1 }]
   },
   {
-    "id": "green_violet_spore_spectre",
+    "id": "green_violet_spore_wraith",
     "name": { "ru": "Споровый Дух" },
-    "text": { "ru": "" },
-    "art": "a ghostly fungal creature of green and violet crystal light, drifting spores and a faint spectral double beside it, eerie",
+    "text": { "ru": "Смерть лишь сеет новые споры." },
+    "art": "a ghostly fungal being of green and violet light, drifting spores and a faint spectral double beside it",
     "type": "creature",
     "color": ["green", "violet"],
     "cost": { "generic": 2, "green": 1, "violet": 1 },
     "stats": { "atk": 2, "hp": 3 },
-    "keywords": [{ "id": "spores", "n": 1 }, { "id": "haunt" }]
+    "keywords": [{ "id": "spores", "n": 1 }, { "id": "compost", "n": 1 }, { "id": "haunt" }]
   },
   {
     "id": "blue_violet_hazy_shift",
     "name": { "ru": "Зыбкое Смещение" },
-    "text": { "ru": "" },
-    "art": "a violet-blue ripple of crystal light bending space, a creature dissolving into drifting mist",
+    "text": { "ru": "Был — и нет." },
+    "art": "a violet-blue ripple of light bending space, a creature dissolving into drifting mist",
     "type": "spell",
     "color": ["blue", "violet"],
     "cost": { "generic": 1, "blue": 1, "violet": 1 },
@@ -180,131 +286,119 @@
     ]
   },
   {
-    "id": "red_searing_lancer",
-    "name": { "ru": "Багряный Ловчий" },
-    "text": { "ru": "" },
-    "art": "a relentless crimson crystal-light reaver lunging past defenders, a life-draining red glow pulling vitality inward, wounds knitting shut, unstoppable",
+    "id": "neutral_faceted_warden",
+    "name": { "ru": "Гранёный Страж" },
+    "text": { "ru": "Чистый свет, без оттенка." },
+    "art": "a calm faceted warden of unsplit white light, smooth planes shimmering with faint rainbow refractions",
     "type": "creature",
-    "color": ["red"],
-    "cost": { "generic": 3, "red": 2 },
-    "stats": { "atk": 5, "hp": 4 },
-    "keywords": [{ "id": "bypass" }, { "id": "self_lifesteal" }, { "id": "regen", "n": 1 }]
-  },
-  {
-    "id": "yellow_halo_keeper",
-    "name": { "ru": "Заступник Зари" },
-    "text": { "ru": "" },
-    "art": "a steadfast yellow crystal-light sentinel with a bright halo above its head, a wide protective stance drawing every enemy's attention, immovable",
-    "type": "creature",
-    "color": ["yellow"],
-    "cost": { "generic": 2, "yellow": 2 },
-    "stats": { "atk": 1, "hp": 6 },
-    "keywords": [{ "id": "provoke" }, { "id": "ward" }]
-  },
-  {
-    "id": "green_living_sprig",
-    "name": { "ru": "Лесная Праматерь" },
-    "text": { "ru": "" },
-    "art": "a lush green crystal-light matron-creature surrounded by sprouting seedlings, drifting spores and budding shoots, fertile and teeming with life",
-    "type": "creature",
-    "color": ["green"],
-    "cost": { "generic": 1, "green": 2 },
-    "stats": { "atk": 2, "hp": 3 },
-    "keywords": [{ "id": "germinate", "n": 1 }, { "id": "spores", "n": 2 }]
-  },
-  {
-    "id": "blue_clarion_rift",
-    "name": { "ru": "Хрустальное Прозрение" },
-    "text": { "ru": "" },
-    "art": "a clear blue crystal-light rift shattering shimmering enchantments while a card of cold light is drawn from the break, lucid and precise",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 1, "blue": 2 },
-    "effects": [
-      { "trigger": "on_play", "action": "dispel" },
-      { "trigger": "on_play", "action": "draw", "value": 1 }
-    ]
-  },
-  {
-    "id": "violet_shard_wraith",
-    "name": { "ru": "Сумрачный Двойник" },
-    "text": { "ru": "" },
-    "art": "a half-unseen violet crystal-light wraith splitting into faint mirror-duplicates as it slips through shadow, one solid and two ghostly, elusive",
-    "type": "creature",
-    "color": ["violet"],
-    "cost": { "generic": 2, "violet": 2 },
+    "color": [],
+    "cost": { "generic": 3 },
     "stats": { "atk": 3, "hp": 4 },
-    "keywords": [{ "id": "stealth" }, { "id": "split", "n": 2 }]
+    "keywords": []
   },
   {
-    "id": "red_sunset_colossus",
-    "name": { "ru": "Закатный Исполин" },
-    "text": { "ru": "" },
-    "art": "a towering crimson crystal-light colossus wreathed in a life-draining glow, vast and merciless, looming over a ruined field, overwhelming",
-    "type": "creature",
-    "color": ["red"],
-    "cost": { "generic": 5, "red": 2 },
-    "stats": { "atk": 8, "hp": 7 },
-    "keywords": [{ "id": "pierce" }, { "id": "self_lifesteal" }]
-  },
-  {
-    "id": "yellow_vigil_titan",
-    "name": { "ru": "Недремлющий Титан" },
-    "text": { "ru": "" },
-    "art": "a colossal yellow crystal-light titan-sentinel crowned with a halo and ever-open watching eyes, immovable, sweeping vigilant beams over the field",
-    "type": "creature",
-    "color": ["yellow"],
-    "cost": { "generic": 5, "yellow": 2 },
-    "stats": { "atk": 4, "hp": 9 },
-    "keywords": [{ "id": "provoke" }, { "id": "ward" }, { "id": "floodlight" }]
-  },
-  {
-    "id": "green_bounty_tree",
-    "name": { "ru": "Древо Изобилия" },
-    "text": { "ru": "" },
-    "art": "an enormous green crystal-light world-tree teeming with sprouts and drifting spores, ever-growing, lush and abundant, towering",
-    "type": "creature",
-    "color": ["green"],
-    "cost": { "generic": 6, "green": 2 },
-    "stats": { "atk": 6, "hp": 9 },
-    "keywords": [{ "id": "germinate", "n": 2 }, { "id": "spores", "n": 2 }]
-  },
-  {
-    "id": "blue_deep_oracle",
-    "name": { "ru": "Глубинный Оракул" },
-    "text": { "ru": "" },
-    "art": "a vast blue crystal-light oracle-being of deep ice and starlight, lenses of foresight orbiting its head, cold and ancient, immense",
-    "type": "creature",
-    "color": ["blue"],
-    "cost": { "generic": 5, "blue": 2 },
-    "stats": { "atk": 6, "hp": 8 },
-    "keywords": [{ "id": "delay", "n": 1 }],
+    "id": "neutral_spectral_volley",
+    "name": { "ru": "Спектральный Залп" },
+    "text": { "ru": "Свет не разбирает своих и чужих." },
+    "art": "a radial burst of full-spectrum white light scything outward across the whole field",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 4 },
     "effects": [
-      { "trigger": "on_play", "action": "dispel" },
-      { "trigger": "on_play", "action": "scry", "value": 2 }
+      { "trigger": "on_play", "action": "damage_all", "value": 2 }
     ]
   },
   {
-    "id": "violet_patient_sleeper",
-    "name": { "ru": "Терпеливый Морок" },
-    "text": { "ru": "" },
-    "art": "a giant violet crystal-light shade biding its time among banked crystals, patient and quietly menacing, half-dissolved into shadow",
-    "type": "creature",
-    "color": ["violet"],
-    "cost": { "generic": 4, "violet": 2 },
-    "stats": { "atk": 6, "hp": 7 },
-    "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }]
+    "id": "neutral_unmaking",
+    "name": { "ru": "Развоплощение" },
+    "text": { "ru": "Луч, что стирает форму." },
+    "art": "a beam of pure white light unmaking a target, dissolving it into fading motes",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 4 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "destroy" }
+    ]
   },
   {
-    "id": "spectral_seraph",
-    "name": { "ru": "Спектральный Серафим" },
+    "id": "neutral_bright_gift",
+    "name": { "ru": "Светлый Дар" },
+    "text": { "ru": "Призма всегда даёт ещё." },
+    "art": "two fresh cards of white light drawn from a soft prismatic glow",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 3 },
+    "effects": [
+      { "trigger": "on_play", "action": "draw", "value": 2 }
+    ]
+  },
+  {
+    "id": "neutral_prism_reservoir",
+    "name": { "ru": "Призменный Накопитель" },
+    "text": { "ru": "Свет, сгущённый в кристалл навсегда." },
+    "art": "a slow-turning prism-reservoir of white light condensing drifting motes into a single bright permanent crystal",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 2 },
+    "effects": [
+      { "trigger": "on_play", "action": "add_crystal", "value": 1 }
+    ]
+  },
+  {
+    "id": "prismatic_seraph",
+    "name": { "ru": "Сияющий Серафим" },
     "text": { "ru": "Когда сходятся все пять лучей, рождается свет, что видит всё." },
-    "art": "a radiant winged seraph of full-spectrum crystal light, broad wings fanning into a rainbow of red, yellow, green, blue and violet facets, a prismatic halo, serene and powerful",
+    "art": "a radiant winged seraph of full-spectrum light, wings fanning into red, yellow, green, blue and violet facets, a prismatic halo",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 7, "hp": 7 },
     "keywords": [{ "id": "provoke" }, { "id": "ward" }, { "id": "regen", "n": 1 }]
+  },
+  {
+    "id": "prismatic_leviathan",
+    "name": { "ru": "Радужный Левиафан" },
+    "text": { "ru": "Все пять лучей — в одной волне." },
+    "art": "a colossal leviathan of full-spectrum light coiling through the dark, scales fanning every ray of the rainbow, an unstoppable bright wake",
+    "type": "creature",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 9, "hp": 8 },
+    "keywords": [{ "id": "pierce" }]
+  },
+  {
+    "id": "prismatic_phoenix",
+    "name": { "ru": "Семицветный Феникс" },
+    "text": { "ru": "Сгорает в спектр и рождается вновь." },
+    "art": "a phoenix of full-spectrum light, wings streaming red, yellow, green, blue and violet flame, reborn from its own glow",
+    "type": "creature",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 5, "hp": 5 },
+    "keywords": [{ "id": "bypass" }, { "id": "regen", "n": 1 }]
+  },
+  {
+    "id": "prismatic_phantom",
+    "name": { "ru": "Многоликий Мираж" },
+    "text": { "ru": "У света столько лиц, сколько лучей." },
+    "art": "a shifting manyfaced phantom of full-spectrum light, its outline fracturing into faint rainbow duplicates, half-unseen",
+    "type": "creature",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 4, "hp": 4 },
+    "keywords": [{ "id": "stealth" }, { "id": "split", "n": 2 }]
+  },
+  {
+    "id": "prismatic_supernova",
+    "name": { "ru": "Призменная Сверхновая" },
+    "text": { "ru": "Вспышка всех цветов разом." },
+    "art": "a blinding full-spectrum supernova bursting outward, a shockwave of every ray scouring the whole field",
+    "type": "spell",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [
+      { "trigger": "on_play", "action": "damage_all", "value": 4 }
+    ]
   },
   {
     "id": "hero_prism",

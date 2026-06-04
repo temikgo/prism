@@ -283,11 +283,19 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
     int allies = static_cast<int>(p.board.size());  // the other creatures
     int crystals = 0;
     for (int v : p.mana.crystals) crystals += v;
-    int hpBonus = def->keywordN("undergrowth") * allies +
-                  def->keywordN("resonance") * crystals;
+    // Resonance is charged ONCE at summon (a snapshot of your crystals), not
+    // continuously, so a cheap body cannot run away to 12/12 in the late game.
+    // Both its atk and hp are baked here; undergrowth keeps a continuous atk
+    // part (recomputeContinuous) and only snapshots its hp here.
+    int resBonus = def->keywordN("resonance") * crystals;
+    int hpBonus = def->keywordN("undergrowth") * allies + resBonus;
     if (hpBonus > 0) {
       nc.maxHp += hpBonus;
       nc.hp += hpBonus;
+    }
+    if (resBonus > 0) {
+      nc.baseAtk += resBonus;
+      nc.atk += resBonus;
     }
     // Insert at the chosen slot (default: append to the right).
     int at = (pos >= 0 && pos <= static_cast<int>(p.board.size()))
@@ -563,14 +571,13 @@ void Game::recomputeContinuous() {
   for (int pi = 0; pi < 2; ++pi) {
     Player& me = players_[pi];
     Player& opp = players_[1 - pi];
-    int crystals = 0;
-    for (int v : me.mana.crystals) crystals += v;
     int enemyChill = 0;
     for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
     int allies = static_cast<int>(me.board.size());
     for (auto& c : me.board) {
-      int cont = c.def->keywordN("undergrowth") * (allies - 1) +
-                 c.def->keywordN("resonance") * crystals - enemyChill;
+      // Resonance is a summon-time snapshot (see playResolved), so it is NOT
+      // part of the live layer here -- only undergrowth and enemy chill are.
+      int cont = c.def->keywordN("undergrowth") * (allies - 1) - enemyChill;
       int eff = c.baseAtk + cont;
       c.atk = eff < 0 ? 0 : eff;
     }
@@ -673,6 +680,8 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
       if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps
   } else if (a == "draw") {
     draw(owner, e.value);
+  } else if (a == "add_crystal") {
+    for (int k = 0; k < e.value; ++k) owner.mana.addCrystal(Color::Colorless);
   } else if (a == "scry") {
     startScry(owner, e.value);
   } else if (a == "dispel") {
