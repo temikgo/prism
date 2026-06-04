@@ -326,8 +326,8 @@ func _clear_selection() -> void:
 
 # --- view queries ------------------------------------------------------------
 
-# Generated tokens are numbered per size (e.g. germinate's "sprout2"); fall back
-# to the base family ("sprout") so they share its name and art.
+# Generated tokens are numbered per size (e.g. germinate's "token_sprout2"); fall
+# back to the base family ("token_sprout") so they share its name and art.
 func _display_id(id: String) -> String:
 	if cards.has(id):
 		return id

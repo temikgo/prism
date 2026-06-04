@@ -400,7 +400,7 @@ bool Game::activate(EntityId id) {
   p.mana.pay(one);
   c->usedActive = true;
   const CardDef* sprout =
-      internToken("sprout" + std::to_string(n), Stats{n, n});
+      internToken("token_sprout" + std::to_string(n), Stats{n, n});
   summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1);
   recomputeContinuous();  // the new body shifts undergrowth totals
   return true;
@@ -489,7 +489,7 @@ void Game::reactTo(const Event& e) {
   // Green spores: the dead creature leaves N 1/1 sprout tokens behind.
   int n = e.card->keywordN("spores");
   if (n > 0) {
-    const CardDef* sprout = internToken("sprout", Stats{1, 1});
+    const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
     for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit;
          ++i)
       summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
