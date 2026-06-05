@@ -162,12 +162,17 @@ static const char* kTestCards = R"json([
     "color": ["yellow"], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 } },
   { "id": "redonly", "name": { "ru": "Алый зов" }, "type": "creature",
     "color": ["red"], "cost": { "red": 1 }, "stats": { "atk": 2, "hp": 2 } },
+  { "id": "dual", "name": { "ru": "Двуцвет" }, "type": "creature",
+    "color": ["red", "blue"], "cost": { "red": 1, "blue": 1 },
+    "stats": { "atk": 2, "hp": 2 } },
   { "id": "hero_prism", "name": { "ru": "Ирида" }, "type": "hero",
     "keywords": [{ "id": "spectral_shift" }] },
-  { "id": "hero_eclipse", "name": { "ru": "Эреб" }, "type": "hero",
-    "keywords": [{ "id": "umbra" }] },
-  { "id": "hero_lens", "name": { "ru": "Кьяра" }, "type": "hero",
-    "keywords": [{ "id": "clairvoyance" }] }
+  { "id": "hero_palette", "name": { "ru": "Тициана" }, "type": "hero",
+    "keywords": [{ "id": "palette" }] },
+  { "id": "hero_facet", "name": { "ru": "Гемма" }, "type": "hero",
+    "keywords": [{ "id": "facet" }] },
+  { "id": "hero_lighteater", "name": { "ru": "Эреб" }, "type": "hero",
+    "keywords": [{ "id": "lighteater" }] }
 ])json";
 
 static CardLibrary testLib() {
@@ -1088,14 +1093,14 @@ TEST_CASE("applyAction dispatches JSON actions and enforces the turn") {
 TEST_CASE("hero identity and passive are public in both players' views") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 30), repeat("bear", 30), 3, "hero_prism",
-         "hero_eclipse");
+         "hero_lighteater");
   begin(g);
   nlohmann::json v = nlohmann::json::parse(viewJson(g, 0));
   CHECK(v["players"][0]["hero"]["card"] == "hero_prism");
   CHECK(v["players"][0]["hero"]["passive"][0]["id"] == "spectral_shift");
   // The opponent's hero is public too, so you can read their passive.
-  CHECK(v["players"][1]["hero"]["card"] == "hero_eclipse");
-  CHECK(v["players"][1]["hero"]["passive"][0]["id"] == "umbra");
+  CHECK(v["players"][1]["hero"]["card"] == "hero_lighteater");
+  CHECK(v["players"][1]["hero"]["passive"][0]["id"] == "lighteater");
 }
 
 TEST_CASE("Prism spectral_shift pays a foreign pip with a neighbour crystal") {
@@ -1135,52 +1140,70 @@ TEST_CASE("Prism spectral_shift is spent once per turn") {
   CHECK(g.player(0).board.size() == 1);
 }
 
-TEST_CASE("Eclipse umbra softens creature attacks on the hero by 1") {
+TEST_CASE("Palette draws a card the first time you play a multicolor card") {
   CardLibrary lib = testLib();
-  auto faceDamage = [&](const std::string& defenderHero) {
-    Game g(lib, repeat("bear", 30), repeat("bear", 30), 5, "", defenderHero);
-    begin(g);
-    CHECK(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4, summoning sick
-    EntityId bear = g.player(0).board[0].id;
-    g.endTurn();  // -> P1
-    g.endTurn();  // -> P0, the bear is awake now
-    CHECK(g.attackHero(bear));
-    return HeroStartHp - g.player(1).heroHp;
-  };
-  CHECK(faceDamage("hero_eclipse") == 2);  // 3 atk - 1 umbra
-  CHECK(faceDamage("") == 3);              // no hero: full 3
-}
-
-TEST_CASE("Eclipse umbra also softens pierce overflow to the hero") {
-  CardLibrary lib = testLib();
-  auto overflowDamage = [&](const std::string& defenderHero) {
-    Game g(lib, repeat("piercer", 30), repeat("smallwall", 30), 22, "",
-           defenderHero);
-    begin(g);
-    CHECK(g.playCard(handIndexOf(g, 0, "piercer")));  // 5/5 pierce
-    EntityId p = g.player(0).board[0].id;
-    g.endTurn();                                        // -> P1
-    CHECK(g.playCard(handIndexOf(g, 1, "smallwall")));  // 0/2 blocker
-    EntityId wall = g.player(1).board[0].id;
-    g.endTurn();  // -> P0, piercer awake
-    CHECK(g.attackCreature(p, wall));
-    return HeroStartHp - g.player(1).heroHp;
-  };
-  CHECK(overflowDamage("hero_eclipse") == 2);  // (5-2 overflow) - 1 umbra
-  CHECK(overflowDamage("") == 3);              // no hero: full overflow
-}
-
-TEST_CASE("Lens clairvoyance reveals only your own top card") {
-  CardLibrary lib = testLib();
-  Game g(lib, repeat("bear", 30), repeat("bear", 30), 9, "hero_lens", "");
+  Game g(lib, repeat("dual", 30), repeat("dual", 30), 11, "hero_palette", "");
   begin(g);
-  nlohmann::json v0 = nlohmann::json::parse(viewJson(g, 0));
-  REQUIRE(v0["players"][0].contains("topCard"));
-  CHECK(v0["players"][0]["topCard"] == g.player(0).deck.back().def->id);
-  CHECK_FALSE(v0["players"][1].contains("topCard"));  // can't see enemy's top
-  // The non-Lens opponent never sees a top card, even of their own deck.
-  nlohmann::json v1 = nlohmann::json::parse(viewJson(g, 1));
-  CHECK_FALSE(v1["players"][1].contains("topCard"));
+  // Bank a Red then a Blue crystal so a dual (red+blue) becomes affordable.
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "dual"), Color::Red));
+  g.endTurn();
+  g.endTurn();
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "dual"), Color::Blue));
+  g.endTurn();
+  g.endTurn();
+  int before = static_cast<int>(g.player(0).hand.size());
+  REQUIRE(g.playCard(handIndexOf(g, 0, "dual")));  // multicolor card
+  CHECK(g.player(0).hand.size() == before);  // -1 played, +1 drawn by Palette
+}
+
+TEST_CASE("Facet wakes any banked card, entering +1/+1") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 22, "hero_facet", "");
+  begin(g);
+  // Bank a bear (3/4) as a Colorless crystal; bear has no awaken keyword.
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  g.endTurn();
+  g.endTurn();           // P0 turn 3: the banked crystal is available again
+  REQUIRE(g.awaken(0));  // Facet lets a non-awaken card be woken
+  REQUIRE(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].def->id == "bear");
+  CHECK(g.player(0).board[0].atk == 4);    // 3 +1
+  CHECK(g.player(0).board[0].maxHp == 5);  // 4 +1
+}
+
+TEST_CASE("Facet reveals every banked card in its own view (any is wakeable)") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 5, "hero_facet", "");
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  nlohmann::json v = nlohmann::json::parse(viewJson(g, 0));
+  REQUIRE(v["players"][0]["manaRow"].size() == 1);
+  CHECK(v["players"][0]["manaRow"][0]["card"] == "bear");  // bear has no awaken
+  // A non-Facet hero keeps a banked non-awaken card hidden.
+  Game g2(lib, repeat("bear", 30), repeat("bear", 30), 5, "hero_prism", "");
+  begin(g2);
+  REQUIRE(g2.placeCardToMana(handIndexOf(g2, 0, "bear"), Color::Colorless));
+  nlohmann::json v2 = nlohmann::json::parse(viewJson(g2, 0));
+  CHECK_FALSE(v2["players"][0]["manaRow"][0].contains("card"));
+}
+
+TEST_CASE("Lighteater devours 1 ATK from a creature that strikes the hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 33, "hero_prism",
+         "hero_lighteater");
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // P0 bear 3/4
+  EntityId bear = g.player(0).board[0].id;
+  g.endTurn();
+  g.endTurn();                                   // P0 turn 3: bear awake
+  REQUIRE(g.attackHero(bear));                   // strikes the lighteater hero
+  CHECK(g.player(1).heroHp == HeroStartHp - 3);  // full 3 this hit
+  CHECK(g.player(0).board[0].atk == 2);          // then -1 ATK forever
+  g.endTurn();
+  g.endTurn();  // P0 turn 5
+  REQUIRE(g.attackHero(bear));
+  CHECK(g.player(1).heroHp == HeroStartHp - 5);  // 3 + 2
+  CHECK(g.player(0).board[0].atk == 1);
 }
 
 #ifdef PRISM_SAMPLE

@@ -39,7 +39,7 @@ func _mock() -> Dictionary:
 		"handCount": 4,
 		"hand": ["green_forest_matron", "blue_deep_oracle", "yellow_blue_blinding_rime",
 			"prismatic_seraph"],
-		"shiftUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
+		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"mulliganDone": true,
 		"board": [
 			_cr(11, "red_scarlet_sting", 2, 1, 1),
@@ -49,7 +49,7 @@ func _mock() -> Dictionary:
 		"auras": [{"card": "green_lightsprout"}],
 	}
 	var opp := {
-		"hero": _hero("hero_eclipse", "Эреб", "umbra", 24, 2),
+		"hero": _hero("hero_eclipse", "Эреб", "lighteater", 24, 2),
 		"mana": {"crystals": _mana(1, 2, 0, 0, 1, 1), "available": _mana(1, 2, 0, 0, 1, 1)},
 		"manaRow": [{"color": "yellow"}, {"color": "violet"}],
 		"handCount": 5,

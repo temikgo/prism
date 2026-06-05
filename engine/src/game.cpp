@@ -73,7 +73,7 @@ void Game::startTurn() {
   Player& p = players_[current_];
   p.mana.refill();
   p.placedManaThisTurn = false;
-  p.shiftUsed = false;  // Prism: the spectral-shift swap recharges each turn
+  p.heroPowerUses = 0;  // limited hero passives recharge each turn
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
@@ -174,14 +174,6 @@ void Game::draw(Player& p, int n) {
   }
 }
 
-// Eclipse umbra softens a creature's attack on the enemy hero by 1 (floor 0).
-// Applies to a direct face hit and to pierce overflow alike, so pierce does not
-// slip past the passive.
-int Game::heroHitDamage(const Player& opp, int raw) const {
-  if (opp.hero && opp.hero->hasKeyword("umbra")) return raw > 1 ? raw - 1 : 0;
-  return raw;
-}
-
 void Game::dealHeroDamage(Player& p, int amount) {
   int remaining = amount;
   int absorbed = remaining < p.heroArmor ? remaining : p.heroArmor;
@@ -250,7 +242,8 @@ bool Game::playCard(int handIndex, EntityId target, int pos) {
   // Affordable normally, or via the Prism hero's once-per-turn spectral shift?
   bool normal = p.mana.canPay(def->cost);
   std::optional<ManaPool> shifted;
-  if (!normal && p.hero && p.hero->hasKeyword("spectral_shift") && !p.shiftUsed)
+  if (!normal && p.hero && p.hero->hasKeyword("spectral_shift") &&
+      p.heroPowerUses < 1)
     shifted = shiftedPool(p.mana, def->cost);
   if (!normal && !shifted) return false;
   if (def->type == CardType::Creature &&
@@ -265,7 +258,7 @@ bool Game::playCard(int handIndex, EntityId target, int pos) {
     ManaPool np = *shifted;
     np.pay(def->cost);
     p.mana = np;
-    p.shiftUsed = true;  // the spectral shift is spent for this turn
+    p.heroPowerUses += 1;  // the spectral shift counts as a hero-power use
   }
   p.hand.erase(p.hand.begin() + handIndex);
   playResolved(p, ci, target, pos);
@@ -327,6 +320,17 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   }
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
   checkDeaths();  // an on_play effect may have damaged or destroyed creatures
+  // Palette hero (Tiziana): the first card you play each turn whose cost needs
+  // 2+ different colours draws a card. Uses the shared hero-power counter.
+  if (p.hero && p.hero->hasKeyword("palette") && p.heroPowerUses < 1) {
+    int distinct = 0;
+    for (int v : def->cost.pips)
+      if (v > 0) ++distinct;
+    if (distinct >= 2) {
+      p.heroPowerUses += 1;
+      draw(p, 1);
+    }
+  }
 }
 
 // Violet awaken: play a card straight from the mana row. The banked crystal is
@@ -340,7 +344,10 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
     return false;
   ManaCard mc = p.manaRow[manaRowIndex];
   const CardDef* def = mc.card.def;
-  if (!def->hasKeyword("awaken")) return false;
+  // Normally only cards with the awaken keyword can be woken from the mana row.
+  // Facet hero (Gemma) can wake ANY banked card.
+  bool facet = p.hero && p.hero->hasKeyword("facet");
+  if (!def->hasKeyword("awaken") && !facet) return false;
   int c = idx(mc.color);
   if (p.mana.available[c] < 1) return false;  // its own crystal must be unspent
   if (def->type == CardType::Creature &&
@@ -370,6 +377,14 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   p.mana = sim;
   p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
   playResolved(p, mc.card, target, pos);
+  // Facet hero (Gemma): a woken creature enters sharpened, +1/+1.
+  if (facet && def->type == CardType::Creature) {
+    Creature* nc = findCreature(p, mc.card.id);
+    if (nc) {
+      buffStats(*nc, 1);
+      recomputeContinuous();
+    }
+  }
   return true;
 }
 
@@ -431,9 +446,7 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   damageCreature(*a, retaliation, b);  // simultaneous retaliation
   if (a->def->hasKeyword("pierce")) {
     int overflow = dealt - targetHpBefore;
-    // Eclipse umbra softens this face damage too -- pierce does not slip past
-    // it.
-    if (overflow > 0) dealHeroDamage(opp, heroHitDamage(opp, overflow));
+    if (overflow > 0) dealHeroDamage(opp, overflow);
   }
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt);
   a->stealthed = false;  // attacking reveals a stealthed creature
@@ -450,11 +463,17 @@ bool Game::attackHero(EntityId attacker) {
   if (!a || !a->canAttack()) return false;
   // Provoke blocks the face unless the attacker has Bypass (Red).
   if (enemyHasProvoke(opp) && !a->def->hasKeyword("bypass")) return false;
-  int dmg = heroHitDamage(opp, a->atk);  // Eclipse umbra softens it by 1
+  int dmg = a->atk;
   dealHeroDamage(opp, dmg);
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg);
   a->stealthed = false;
   a->attacked = true;
+  // Eclipse 'lighteater' (Erebus): a creature that strikes this hero has its
+  // light devoured -- it permanently loses 1 ATK (down to 0).
+  if (opp.hero && opp.hero->hasKeyword("lighteater") && a->baseAtk > 0) {
+    a->baseAtk -= 1;
+    recomputeContinuous();
+  }
   return true;
 }
 

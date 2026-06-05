@@ -53,8 +53,9 @@ static func _portrait(card_id: String, px: float) -> Control:
 static func _passive_icon(id: String) -> String:
 	match id:
 		"spectral_shift": return "prism"
-		"umbra": return "eclipse"
-		"clairvoyance": return "lens"
+		"palette": return "palette"
+		"facet": return "facet"
+		"lighteater": return "eclipse"
 	return "eye"
 
 

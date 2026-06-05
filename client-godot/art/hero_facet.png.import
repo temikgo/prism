@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://nb84nbaxe1xq"
-path="res://.godot/imported/lens.svg-63906560e3aa2da5de791195dfcd263c.ctex"
+uid="uid://do1fqx0kixjbk"
+path="res://.godot/imported/hero_facet.png-876ee98f45a1a49053fa073dd0610e35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://icons/lens.svg"
-dest_files=["res://.godot/imported/lens.svg-63906560e3aa2da5de791195dfcd263c.ctex"]
+source_file="res://art/hero_facet.png"
+dest_files=["res://.godot/imported/hero_facet.png-876ee98f45a1a49053fa073dd0610e35.ctex"]
 
 [params]
 
@@ -32,6 +32,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

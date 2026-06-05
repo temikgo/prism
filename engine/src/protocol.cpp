@@ -55,11 +55,14 @@ static json playerJson(const Player& p, bool self, bool revealMana) {
   j["mana"] = {{"crystals", manaObj(p.mana.crystals)},
                {"available", manaObj(p.mana.available)}};
 
+  // The Facet hero (Gemma) may wake ANY of its banked cards, not only the
+  // awaken-keyword ones, so reveal them all to its own view.
+  bool facet = self && p.hero && p.hero->hasKeyword("facet");
   json row = json::array();
   for (const auto& mc : p.manaRow) {
     json slot = {{"color", std::string(colorName(mc.color))}};
     // You may peek your own awaken cards; floodlight reveals all of an enemy's.
-    if ((self && mc.card.def->hasKeyword("awaken")) || revealMana)
+    if ((self && mc.card.def->hasKeyword("awaken")) || facet || revealMana)
       slot["card"] = mc.card.def->id;
     if (self) slot["age"] = mc.age;  // turns banked, for the decoy discount
     row.push_back(slot);
@@ -72,12 +75,10 @@ static json playerJson(const Player& p, bool self, bool revealMana) {
     for (const auto& ci : p.hand) hand.push_back(ci.def->id);
     j["hand"] = hand;  // opponent's hand is intentionally omitted (count only)
   }
-  if (self) j["shiftUsed"] = p.shiftUsed;  // Prism: spent its swap this turn?
+  // Whether a limited hero passive has been used this turn (e.g. Prism's swap).
+  if (self) j["heroPowerUsed"] = p.heroPowerUses > 0;
   if (self) j["placedMana"] = p.placedManaThisTurn;  // already banked a card?
   j["deckCount"] = static_cast<int>(p.deck.size());
-  // Lens clairvoyance: you always see the identity of your own top card.
-  if (self && p.hero && p.hero->hasKeyword("clairvoyance") && !p.deck.empty())
-    j["topCard"] = p.deck.back().def->id;  // deck back == top of deck
   j["graveyardCount"] = static_cast<int>(p.graveyard.size());
   j["pendingCount"] = static_cast<int>(p.pending.size());  // delayed effects
   j["mulliganDone"] = p.mulliganDone;

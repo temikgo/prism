@@ -347,7 +347,7 @@ func _is_playable(card_id: String) -> bool:
 	var avail: Dictionary = me["mana"].get("available", {})
 	# Prism spectral_shift can pay a foreign pip with a spectrum-neighbour crystal,
 	# once per turn -- so a card unaffordable normally may still be playable.
-	var shift_ready: bool = _hero_has(me, "spectral_shift") and not bool(me.get("shiftUsed", false))
+	var shift_ready: bool = _hero_has(me, "spectral_shift") and not bool(me.get("heroPowerUsed", false))
 	if not _can_afford(cost, avail) and not (shift_ready and _can_afford_with_shift(cost, avail)):
 		return false
 	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
@@ -740,9 +740,6 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	var il := Ui.label("рука %d" % int(p.get("handCount", 0)), 11, Color(0.6, 0.64, 0.74), true)
 	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(il)
-	# Lens clairvoyance: your revealed top card sits by your deck.
-	if mine and p.has("topCard"):
-		col.add_child(_topcard_chip(String(p["topCard"])))
 	return col
 
 
@@ -786,34 +783,6 @@ func _art_thumb(card_id: String, fallback: Color, px: float) -> Control:
 	return Tokens.art(card_id, px, fallback)
 
 
-
-
-# Lens clairvoyance: a small chip showing the revealed top card of your deck.
-func _topcard_chip(card_id: String) -> Control:
-	var col := Palette.primary(_def(card_id))
-	var tile := UiCard.new()
-	tile.custom_minimum_size = Vector2(0, 44)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.10, 0.15, 0.92)
-	sb.set_corner_radius_all(8)
-	sb.set_border_width_all(1)
-	sb.border_color = HeroView.ACCENT
-	sb.set_content_margin_all(4)
-	tile.add_theme_stylebox_override("panel", sb)
-	tile.tooltip_text = _name_of(card_id)
-	tile.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 5)
-	row.add_child(Ui.icon("lens", 14, HeroView.ACCENT))
-	row.add_child(_art_thumb(card_id, col, 34))
-	var nl := Ui.label(_name_of(card_id), 11)
-	nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	nl.custom_minimum_size = Vector2(72, 0)
-	row.add_child(nl)
-	tile.add_child(row)
-	return tile
 
 
 # --- mana row (face-down backs + peekable awaken cards) ----------------------

@@ -102,7 +102,11 @@ struct Player {
   const CardDef* hero = nullptr;    // the chosen hero (its passive = a keyword)
   int fatigue = 0;                  // damage of the NEXT empty-deck draw
   bool placedManaThisTurn = false;  // one card -> mana row per turn
-  bool shiftUsed = false;  // Prism spectral_shift: spent its once-per-turn swap
+  // Per-turn use counter for limited hero passives (spectral_shift, palette,
+  // ...). A hero has a single passive, so there is no contention. It resets
+  // each turn; a passive fires while uses are below its own per-turn limit (1
+  // today, could be 2+ for a future hero) and then increments it.
+  int heroPowerUses = 0;
   bool mulliganDone = false;  // has this player finished its mulligan?
   ManaPool mana;
   std::vector<CardInstance> hand;
@@ -190,8 +194,6 @@ class Game {
   void startTurn();  // refill mana, unsick creatures, start triggers, draw one
   void draw(Player& p, int n);
   void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
-  // Eclipse umbra: reduce a creature's hit on the enemy hero by 1 (floor 0).
-  int heroHitDamage(const Player& opp, int raw) const;
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
   // Resolve a targeted effect's creature based on its selector side:
@@ -222,7 +224,7 @@ class Game {
   // Prism `spectral_shift`: if `cost` is unpayable normally but becomes payable
   // by retuning ONE available crystal to a spectrum-adjacent color (R-Y-G-B-V),
   // return the swapped pool (canPay is then true). Empty otherwise. The caller
-  // pays from it and marks shiftUsed.
+  // pays from it and counts a hero-power use.
   std::optional<ManaPool> shiftedPool(const ManaPool& pool,
                                       const Cost& cost) const;
 
