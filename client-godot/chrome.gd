@@ -16,7 +16,9 @@ static func banner(txt: String, col: Color) -> Control:
 	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(_diamond(col))
-	row.add_child(Ui.label(txt, 17, col.lightened(0.45), true))
+	var bl := Ui.label(txt, 17, col.lightened(0.5), true, true)
+	bl.add_theme_font_override("font", Fonts.BLACK)
+	row.add_child(bl)
 	row.add_child(_diamond(col))
 	pill.add_child(row)
 	var center := HBoxContainer.new()
@@ -49,7 +51,7 @@ static func mana_block(mana: Dictionary) -> Control:
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 3)
-	var tag := Ui.label("МАНА", 10, Color(0.62, 0.66, 0.78), true)
+	var tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(tag)
 	box.add_child(mana_pips(mana))
@@ -114,14 +116,17 @@ static func pile_stack(count: int, label: String, accent: Color) -> Control:
 		sb.border_color = accent if i == depth - 1 else accent.darkened(0.35)
 		back.add_theme_stylebox_override("panel", sb)
 		stack.add_child(back)
-	var cl := Ui.label(str(count), 18, accent.lightened(0.45), true)
+	var cl := Ui.label(str(count), 18, accent.lightened(0.5), true)
+	cl.add_theme_font_override("font", Fonts.BLACK)
+	cl.add_theme_constant_override("outline_size", 5)
+	cl.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.9))
 	cl.size = Vector2(w, h)
 	cl.position = Vector2((depth - 1) * 3, 0)
 	cl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stack.add_child(cl)
 	box.add_child(stack)
-	var ll := Ui.label(label, 10, Color(0.6, 0.64, 0.74), true)
+	var ll := Ui.label(label, 10, Color(0.64, 0.68, 0.78), true, true)
 	ll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(ll)
 	return box

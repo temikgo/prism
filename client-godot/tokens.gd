@@ -28,8 +28,12 @@ static func gem(text: String, ring: Color, size: float, font: int = 0,
 		sb.shadow_size = 6
 		sb.shadow_color = Color(ring.r, ring.g, ring.b, 0.5)
 	g.add_theme_stylebox_override("panel", sb)
-	var fs := font if font > 0 else int(size * 0.42)
-	var l := Ui.label(text, fs, ring.lightened(0.42), true)
+	var fs := font if font > 0 else int(size * 0.46)
+	var l := Ui.label(text, fs, ring.lightened(0.5), true)
+	# Heavy weight + a dark rim so the number stays crisp over any art behind it.
+	l.add_theme_font_override("font", Fonts.BLACK)
+	l.add_theme_constant_override("outline_size", 5)
+	l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.9))
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE

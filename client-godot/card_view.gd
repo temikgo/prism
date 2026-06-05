@@ -122,11 +122,13 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	panel.add_child(v)
 
 	var header := HBoxContainer.new()
-	header.add_child(Ui.label(CardData.name_of(def_id), 18, col.lightened(0.4)))
+	var name_lbl := Ui.label(CardData.name_of(def_id), 19, col.lightened(0.45), false, true)
+	name_lbl.add_theme_font_override("font", Fonts.BLACK)
+	header.add_child(name_lbl)
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(sp)
-	header.add_child(Ui.label("%d" % CardData.total_cost(d.get("cost", {})), 18, Color(0.85, 0.88, 0.98)))
+	header.add_child(Ui.label("%d" % CardData.total_cost(d.get("cost", {})), 19, Color(0.9, 0.93, 1.0), false, true))
 	v.add_child(header)
 
 	v.add_child(Ui.label(Glossary.type_label(d), 12, Color(0.6, 0.65, 0.75)))
@@ -146,13 +148,16 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	# Delay is shown as the effect's timing, not as a separate keyword.
 	var fold_delay := delay_n > 0 and not effs.is_empty()
 
+	# Keyword names are highlighted in the card's own colour so the rules read
+	# with hierarchy (the name pops, the explanation stays calm).
+	var kc := col.lightened(0.42).to_html(false)
 	var head := ""
 	for kw in d.get("keywords", []):
 		if fold_delay and String(kw.get("id", "")) == "delay":
 			continue
 		var nm := Glossary.keyword_name(kw)
 		if nm != "":
-			head += "[b]%s[/b]. " % nm
+			head += "[b][color=#%s]%s[/color][/b]. " % [kc, nm]
 	if not effs.is_empty():
 		var joined: String = " ".join(effs)
 		var when := ""
@@ -177,7 +182,7 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 			continue
 		shown[String(kw.get("id", ""))] = true
 		var ci := full.find(":")
-		details.append("[b]%s[/b]%s" % [full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
+		details.append("[b][color=#%s]%s[/color][/b]%s" % [kc, full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
 	# Effects that apply a named status (freeze/blind/flash) explain that status
 	# too, even when the card carries no matching keyword.
 	for e in d.get("effects", []):
@@ -189,7 +194,7 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 		shown[act] = true
 		var fx: String = Glossary.keyword({"id": act, "n": int(e.get("value", 0))})
 		var cix := fx.find(":")
-		details.append("[b]%s[/b]%s" % [fx.substr(0, cix), fx.substr(cix)] if cix > 0 else fx)
+		details.append("[b][color=#%s]%s[/color][/b]%s" % [kc, fx.substr(0, cix), fx.substr(cix)] if cix > 0 else fx)
 	if not details.is_empty():
 		for dline in details:
 			v.add_child(rich(dline, 12, Color(0.74, 0.8, 0.64)))
@@ -224,6 +229,9 @@ static func rich(bb: String, size: int, color: Color) -> RichTextLabel:
 	r.scroll_active = false
 	r.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	r.custom_minimum_size = Vector2(250, 0)
+	# Real weights so [b] keyword names read as bold (not faux-bold), in Lato.
+	r.add_theme_font_override("normal_font", Fonts.REGULAR)
+	r.add_theme_font_override("bold_font", Fonts.BOLD)
 	r.add_theme_font_size_override("normal_font_size", size)
 	r.add_theme_font_size_override("bold_font_size", size)
 	r.add_theme_color_override("default_color", color)
