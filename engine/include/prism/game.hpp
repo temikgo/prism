@@ -114,6 +114,11 @@ struct Player {
   std::vector<ManaCard> manaRow;  // sacrificed cards = crystals (face-down)
   std::vector<Creature> board;
   std::vector<const CardDef*> auras;
+  // Spent real cards: played spells, dead non-token creatures, dispelled auras,
+  // bounced/overdrawn cards that had nowhere to go. NOTE: currently purely
+  // informational -- only its size is shown to the client (the deck/graveyard
+  // pile). No keyword/effect reads the graveyard yet (no reanimation,
+  // "cards-in-graveyard-matter", etc.); it is a hook for future mechanics.
   std::vector<const CardDef*> graveyard;
   std::vector<DelayedEffect>
       pending;  // Blue delay: effects awaiting their turn

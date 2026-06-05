@@ -289,6 +289,46 @@ TEST_CASE("drawing from an empty deck deals fatigue") {
   CHECK(g.player(0).heroHp == HeroStartHp - 1);
 }
 
+TEST_CASE("overdrawing into a full hand discards the card to the graveyard") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 5);
+  begin(g);
+  // Accumulate to a full hand by passing turns (1 draw per own turn), never
+  // playing or losing a creature, so the graveyard stays empty until overdraw.
+  while (static_cast<int>(g.player(0).hand.size()) < HandLimit) {
+    g.endTurn();
+    g.endTurn();
+  }
+  REQUIRE(g.player(0).hand.size() == HandLimit);
+  REQUIRE(g.player(0).graveyard.empty());
+  int deck = static_cast<int>(g.player(0).deck.size());
+  g.endTurn();
+  g.endTurn();  // next own turn start draws into a full hand -> overdraw
+  CHECK(g.player(0).hand.size() == HandLimit);  // hand stays full
+  CHECK(g.player(0).deck.size() == deck - 1);   // the card left the deck
+  CHECK(g.player(0).graveyard.size() == 1);     // and went to the graveyard
+}
+
+TEST_CASE("a token's death does not add to the graveyard") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("splitter", 30), repeat("bruiser", 30), 4);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "splitter")));  // splitter + 2 illusions
+  REQUIRE(g.player(0).board.size() == 3);
+  REQUIRE(g.player(0).graveyard.empty());
+  EntityId tok = -1;
+  for (const auto& c : g.player(0).board)
+    if (c.token) tok = c.id;
+  REQUIRE(tok != -1);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();                           // P0 turn 3
+  g.endTurn();                           // P1 turn 4, bruiser awake
+  CHECK(g.attackCreature(br, tok));      // bruiser kills the 1-HP token
+  CHECK(g.player(0).graveyard.empty());  // token was never a real card
+}
+
 TEST_CASE("regen heals at the owner's turn start up to max") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("regenbear", 30), repeat("bear", 30), 11);

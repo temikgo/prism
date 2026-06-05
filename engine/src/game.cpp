@@ -168,8 +168,12 @@ void Game::draw(Player& p, int n) {
     } else {
       CardInstance ci = p.deck.back();
       p.deck.pop_back();
-      // Drawing into a full hand burns the card unseen (HS rule).
-      if (static_cast<int>(p.hand.size()) < HandLimit) p.hand.push_back(ci);
+      // Drawing into a full hand discards the card: it has left the deck, so it
+      // goes to the graveyard (a spent card) rather than vanishing untracked.
+      if (static_cast<int>(p.hand.size()) < HandLimit)
+        p.hand.push_back(ci);
+      else
+        p.graveyard.push_back(ci.def);
     }
   }
 }
@@ -489,7 +493,9 @@ void Game::checkDeaths() {
       if (c.hp > 0) {
         survivors.push_back(c);
       } else {
-        p.graveyard.push_back(c.def);
+        // Real cards go to the graveyard; tokens/illusions cease to exist (they
+        // were never deck cards) -- consistent with bounceCreature.
+        if (!c.token) p.graveyard.push_back(c.def);
         // Slot among the survivors so far: where this body sat, so a death-
         // triggered token (spores/haunt) lands where the creature was.
         int slot = static_cast<int>(survivors.size());
