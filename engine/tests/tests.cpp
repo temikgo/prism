@@ -81,6 +81,9 @@ static const char* kTestCards = R"json([
   { "id": "haunter", "name": { "ru": "Морок-зверь" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "haunt" }] },
+  { "id": "sporehaunter", "name": { "ru": "Спорный-морок" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "spores", "n": 2 }, { "id": "haunt" }] },
   { "id": "chillaura", "name": { "ru": "Стужа-аура" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
     "keywords": [{ "id": "chill", "n": 1 }] },
@@ -564,6 +567,98 @@ TEST_CASE("spores summons sprout tokens when the creature dies") {
     CHECK(c.hp == 1);
     CHECK(c.atk == 1);
   }
+}
+
+TEST_CASE(
+    "a death-summoned token lands where the creature died, not at the end") {
+  CardLibrary lib = testLib();
+  // All sporecarriers: the two flanking bodies are non-tokens, so the sprouts
+  // from the middle one are easy to spot by position.
+  Game g(lib, repeat("sporecarrier", 30), repeat("bruiser", 30), 91);
+  g.start();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporecarrier")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporecarrier")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporecarrier")));
+  EntityId left = g.player(0).board[0].id;
+  EntityId mid = g.player(0).board[1].id;
+  EntityId right = g.player(0).board[2].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();                       // P0 turn 3
+  g.endTurn();                       // P1 turn 4: the bruiser is no longer sick
+  CHECK(g.attackCreature(br, mid));  // the middle creature dies
+  REQUIRE(g.player(0).board.size() == 4);
+  CHECK(g.player(0).board[0].id == left);
+  CHECK(
+      g.player(0).board[1].token);  // sprouts land where it died, not far right
+  CHECK(g.player(0).board[2].token);
+  CHECK(g.player(0).board[3].id == right);
+}
+
+TEST_CASE("spores + haunt: the self-copy is summoned before the sprouts") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sporehaunter", 30), repeat("bruiser", 30), 42);
+  g.start();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporehaunter")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporehaunter")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sporehaunter")));
+  EntityId left = g.player(0).board[0].id;
+  EntityId mid = g.player(0).board[1].id;
+  EntityId right = g.player(0).board[2].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();                       // P0 turn 3
+  g.endTurn();                       // P1 turn 4
+  CHECK(g.attackCreature(br, mid));  // the middle sporehaunter dies
+  REQUIRE(g.player(0).board.size() == 5);
+  CHECK(g.player(0).board[0].id == left);
+  // The haunt copy takes the death slot first, then the two sprouts.
+  CHECK(g.player(0).board[1].token);
+  CHECK(g.player(0).board[1].def->id == "sporehaunter");
+  CHECK(g.player(0).board[2].def->id == "token_sprout");
+  CHECK(g.player(0).board[3].def->id == "token_sprout");
+  CHECK(g.player(0).board[4].id == right);
+}
+
+TEST_CASE(
+    "on a full board, spores + haunt yields the self-copy, not a sprout") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sporehaunter", 30), repeat("bruiser", 30), 7);
+  g.start();
+  auto board0 = [&]() { return static_cast<int>(g.player(0).board.size()); };
+  auto playAll = [&]() {
+    int i;
+    while (board0() < BoardLimit &&
+           (i = handIndexOf(g, 0, "sporehaunter")) >= 0)
+      REQUIRE(g.playCard(i));
+  };
+  playAll();  // turn 1: the opening hand
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // an attacker for later
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // P0 turn 3
+  while (board0() < BoardLimit) {
+    playAll();
+    if (board0() < BoardLimit) {
+      g.endTurn();
+      g.endTurn();  // next P0 turn draws one more
+    }
+  }
+  REQUIRE(board0() == BoardLimit);  // a full board of sporehaunters
+  EntityId victim = g.player(0).board[3].id;
+  g.endTurn();  // hand back to P1
+  CHECK(g.attackCreature(br, victim));
+  REQUIRE(board0() == BoardLimit);  // one died, exactly one body replaced it
+  bool hasCopy = false;
+  bool hasSprout = false;
+  for (const auto& c : g.player(0).board) {
+    if (c.token && c.def->id == "sporehaunter") hasCopy = true;
+    if (c.def->id == "token_sprout") hasSprout = true;
+  }
+  CHECK(hasCopy);          // the haunt copy claimed the only free slot
+  CHECK_FALSE(hasSprout);  // no room left for the spores
 }
 
 TEST_CASE("awaken plays a banked card; its crystal pays 1 and is consumed") {
@@ -1162,7 +1257,7 @@ TEST_CASE("a creature can be placed at a chosen board slot") {
   CHECK(g.player(0).board.size() == 4);
 }
 
-TEST_CASE("a positioned summon inserts there; its split tokens append") {
+TEST_CASE("a positioned summon inserts there; its split tokens sit beside it") {
   CardLibrary lib = testLib();
   Game g(lib, {"bear", "bear", "splitter", "splitter"}, repeat("bear", 30), 3);
   g.start();
@@ -1170,11 +1265,11 @@ TEST_CASE("a positioned summon inserts there; its split tokens append") {
   EntityId bear0 = g.player(0).board[0].id;
   // splitter carries split:2; play it at the front (slot 0).
   CHECK(g.playCard(handIndexOf(g, 0, "splitter"), 0, 0));
-  REQUIRE(g.player(0).board.size() == 4);  // splitter + bear + 2 illusions
+  REQUIRE(g.player(0).board.size() == 4);  // splitter + 2 illusions + bear
   CHECK(g.player(0).board[0].def->id == "splitter");  // inserted at the front
-  CHECK(g.player(0).board[1].id == bear0);
-  CHECK(g.player(0).board[2].token);  // split tokens appended after
-  CHECK(g.player(0).board[3].token);
+  CHECK(g.player(0).board[1].token);  // split tokens cluster next to the parent
+  CHECK(g.player(0).board[2].token);
+  CHECK(g.player(0).board[3].id == bear0);  // the old neighbour shifts right
 }
 
 TEST_CASE("an enemy-target spell cannot hit your own creature") {

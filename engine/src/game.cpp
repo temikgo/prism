@@ -309,7 +309,7 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
     int copies = def->keywordN("split");
     for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit;
          ++i)
-      summonToken(p, def, /*sick=*/true, /*hpOverride=*/1);
+      summonToken(p, def, /*sick=*/true, /*hpOverride=*/1, at + 1 + i);
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
@@ -399,9 +399,11 @@ bool Game::activate(EntityId id) {
   if (!p.mana.canPay(one)) return false;
   p.mana.pay(one);
   c->usedActive = true;
+  // The sprout enters right beside the creature that germinated it.
+  int idx = static_cast<int>(c - p.board.data());
   const CardDef* sprout =
       internToken("token_sprout" + std::to_string(n), Stats{n, n});
-  summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1);
+  summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1, idx + 1);
   recomputeContinuous();  // the new body shifts undergrowth totals
   return true;
 }
@@ -465,7 +467,11 @@ void Game::checkDeaths() {
         survivors.push_back(c);
       } else {
         p.graveyard.push_back(c.def);
-        deaths.push_back(Event{EventType::Died, c.id, 0, 0, p.index, c.def});
+        // Slot among the survivors so far: where this body sat, so a death-
+        // triggered token (spores/haunt) lands where the creature was.
+        int slot = static_cast<int>(survivors.size());
+        deaths.push_back(
+            Event{EventType::Died, c.id, 0, 0, p.index, c.def, slot});
       }
     }
     p.board.swap(survivors);
@@ -486,30 +492,42 @@ void Game::processEvents() {
 void Game::reactTo(const Event& e) {
   if (e.type != EventType::Died || !e.card) return;
   Player& owner = players_[e.player];
-  // Green spores: the dead creature leaves N 1/1 sprout tokens behind.
-  int n = e.card->keywordN("spores");
-  if (n > 0) {
-    const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
-    for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit;
-         ++i)
-      summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1);
-  }
-  // Green compost: each surviving ally with Compost grows when an ally dies.
+  // Compost first, on the survivors only -- before any spawn, so a freshly
+  // summoned copy/sprout never gets buffed by the same death that made it.
   for (auto& c : owner.board) {
     int cm = c.def->keywordN("compost");
     if (cm > 0) buffStats(c, cm);
   }
-  // Violet haunt: the dead creature leaves a 1 HP illusion of itself (an
-  // illusion copies the original card, keywords included).
+  // Bodies are spawned where the creature died, filling rightward from `slot`.
+  int slot = e.pos;
+  // Violet haunt: a 1 HP illusion of the creature itself. Spawned BEFORE spores
+  // so that, when the board is nearly full, the self-copy keeps its slot and
+  // the sprouts fill whatever remains (priority decided with the user).
   if (e.card->hasKeyword("haunt") &&
-      static_cast<int>(owner.board.size()) < BoardLimit)
-    summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1);
+      static_cast<int>(owner.board.size()) < BoardLimit) {
+    summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1, slot);
+    ++slot;
+  }
+  // Green spores: N 1/1 sprouts beside where it died, after the self-copy.
+  int n = e.card->keywordN("spores");
+  if (n > 0) {
+    const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
+    for (int i = 0; i < n && static_cast<int>(owner.board.size()) < BoardLimit;
+         ++i, ++slot)
+      summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1, slot);
+  }
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
-                           int hpOverride) {
+                           int hpOverride, int at) {
   EntityId id = nextId_++;
-  p.board.push_back(makeCreature(id, def, sick, /*token=*/true, hpOverride));
+  Creature nc = makeCreature(id, def, sick, /*token=*/true, hpOverride);
+  // Place next to the source (`at`) so spawned bodies appear where they belong,
+  // not always at the far right. Out-of-range / -1 falls back to appending.
+  if (at >= 0 && at <= static_cast<int>(p.board.size()))
+    p.board.insert(p.board.begin() + at, nc);
+  else
+    p.board.push_back(nc);
   return id;
 }
 

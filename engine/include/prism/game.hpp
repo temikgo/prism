@@ -90,6 +90,7 @@ struct Event {
   int amount = 0;
   int player = -1;  // the relevant player (e.g. a dead creature's owner)
   const CardDef* card = nullptr;  // the source card, kept valid after removal
+  int pos = -1;  // board slot the source occupied (for death-summon placement)
 };
 
 // Everything one player owns. Hidden information (hand/deck) is kept here; a
@@ -246,8 +247,9 @@ class Game {
   void makeMirage(Player& owner, EntityId target);  // illusion copy of a target
 
   // Tokens, illusions, and the death-event queue.
-  EntityId summonToken(Player& p, const CardDef* def, bool sick,
-                       int hpOverride);
+  // `at` is the board slot to insert at; -1 appends to the right.
+  EntityId summonToken(Player& p, const CardDef* def, bool sick, int hpOverride,
+                       int at = -1);
   const CardDef* internToken(const std::string& id,
                              Stats s);  // owns a token def
   void emit(const Event& e) { events_.push_back(e); }
