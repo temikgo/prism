@@ -98,6 +98,26 @@ func pop_in(card: Control) -> void:
 	t.tween_property(card, "modulate", rest, 0.26)
 
 
+# A spell card spends itself on cast: a ghost of its face, centered at `center`,
+# flares brighter, swells, and dissolves upward -- the card "spent into the
+# effect". `face` is a CardView.face built by the caller; we own it from here.
+func cast_dissolve(face: Control, center: Vector2) -> void:
+	var sz: Vector2 = Tokens.CARD_SIZE
+	face.size = sz
+	face.position = center - sz * 0.5
+	face.pivot_offset = sz * 0.5
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(face)
+	var t := create_tween()
+	t.set_parallel(true)
+	t.tween_property(face, "modulate", Color(1.7, 1.7, 2.0, 0.0), 0.36) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_property(face, "scale", Vector2(1.18, 1.18), 0.36) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(face, "position", face.position + Vector2(0, -28), 0.36)
+	t.chain().tween_callback(face.queue_free)
+
+
 func fade_out_dead(node: Control) -> void:
 	var gp := node.global_position
 	var parent := node.get_parent()

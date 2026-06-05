@@ -205,13 +205,13 @@ func _update_board_gap() -> void:
 	var idx := _drop_insert_index()
 	if _layer_mine.gap_index != idx:
 		_layer_mine.gap_index = idx
-		_layer_mine._layout()
+		_layer_mine._layout(true)  # the slot opens smoothly
 
 
 func _remove_board_gap() -> void:
 	if _layer_mine != null and is_instance_valid(_layer_mine) and _layer_mine.gap_index != -1:
 		_layer_mine.gap_index = -1
-		_layer_mine._layout()
+		_layer_mine._layout(true)  # the slot closes smoothly
 
 
 func _send(obj: Dictionary) -> void:
@@ -248,9 +248,10 @@ func _attack_creature(attacker_id: int, target_cid: int) -> void:
 
 
 func _attack_hero(attacker_id: int) -> void:
-	# Lunge straight up toward the enemy side (not sideways at the flank medallion).
-	var ac := _node_center(_creature_node(attacker_id))
-	_pending_lunge = {"attacker": attacker_id, "pos": Vector2(ac.x, 40.0)}
+	# Lunge toward the actual enemy hero medallion (it sits on the flank, so a
+	# straight-up lunge looked wrong -- aim at where the hero really is).
+	var target := _node_center(_enemy_hero_node)
+	_pending_lunge = {"attacker": attacker_id, "pos": target}
 	_send({"action": "attackHero", "attacker": attacker_id})
 
 
@@ -285,6 +286,10 @@ func _attach_ready_pulse(card: Control) -> void: _anim.ready_pulse(card)
 # Apply damage / death / summon effects once the new board has laid out. Owns the
 # orchestration (which ids changed); the Fx module owns the animations.
 func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
+	# Two frames so the containers finish positioning the rebuilt board: effects
+	# below read each node's global_position, which is only valid once the row
+	# has laid out (one frame is not enough -- numbers landed at the top edge).
+	await get_tree().process_frame
 	await get_tree().process_frame
 	if not _pending_lunge.is_empty():
 		var att := _creature_node(int(_pending_lunge["attacker"]))
@@ -294,6 +299,8 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
 	for id in summoned:
 		var sn := _creature_node(int(id))
 		if sn != null:
+			# A creature settles into its slot where it was dropped (you dragged it
+			# there -- no fly-in from elsewhere). Neighbours reflow to make room.
 			_anim.pop_in(sn)
 	var total := 0
 	for id in dmg:
@@ -1350,16 +1357,31 @@ func _can_cast_on(data: Variant, want_side: String) -> bool:
 func _play_payload(data: Variant, target: int) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
+	_spell_cast_fx(data)
 	if data.get("kind", "") == "awaken":
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": target})
 	else:
 		_send({"action": "play", "handIndex": int(data["index"]), "target": target})
 
 
+# When a spell is played, dissolve a ghost of its face at the drop point so the
+# card visibly spends itself (it never lands on the board). Creatures/auras don't.
+func _spell_cast_fx(data: Variant) -> void:
+	var card_id := String(data.get("card_id", ""))
+	if card_id == "" or not _is_spell(card_id):
+		return
+	var face := CardView.face(card_id, null)
+	_anim.cast_dissolve(face, get_global_mouse_position())
+
+
+func _is_spell(card_id: String) -> bool: return CardData.is_spell(card_id)
+
+
 # Play a creature onto your board at the slot the cursor dropped it.
 func _play_at_drop(data: Variant) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
+	_spell_cast_fx(data)
 	var pos := _drop_insert_index()
 	if data.get("kind", "") == "awaken":
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": 0, "pos": pos})

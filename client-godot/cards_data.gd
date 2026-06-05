@@ -53,6 +53,10 @@ static func is_creature(card_id: String) -> bool:
 	return String(db.get(card_id, {}).get("type", "")) == "creature"
 
 
+static func is_spell(card_id: String) -> bool:
+	return String(db.get(card_id, {}).get("type", "")) == "spell"
+
+
 # Which side a targeted spell can hit: "enemy", "friendly", "any", or "" (none).
 static func target_side(card_id: String) -> String:
 	var d: Dictionary = db.get(card_id, {})
