@@ -41,6 +41,7 @@ var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
 # the freshly-built half each rebuild (rescued before teardown).
 var _layer_mine: BoardLayer = null
 var _layer_opp: BoardLayer = null
+var _hand: HandRow = null              # persistent hand fan (slides on draw/play)
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
@@ -429,9 +430,9 @@ func _valid_attack_target(cr: Dictionary) -> bool:
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
-	# Rescue the persistent board layers so the teardown below never frees them;
-	# they are reattached into the freshly-built halves by _board_row.
-	for layer in [_layer_mine, _layer_opp]:
+	# Rescue the persistent layers (board halves + hand) so the teardown below
+	# never frees them; they are reattached into the freshly-built rows.
+	for layer in [_layer_mine, _layer_opp, _hand]:
 		if layer != null and is_instance_valid(layer) and layer.get_parent() != null:
 			layer.get_parent().remove_child(layer)
 	# Tear down the board and redraw from the view. The leave button lives on its
@@ -1223,43 +1224,50 @@ func _ability_tooltip_panel(cr: Dictionary, kid: String, used: bool) -> Control:
 
 # --- hand --------------------------------------------------------------------
 
+# The hand is a persistent HandRow (kept across views, reattached here each
+# rebuild) so cards slide when one is drawn or played instead of snapping.
 func _hand_row(hand: Array) -> Control:
-	var box := HBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	if _hand == null:
+		_hand = HandRow.new()
+	_hand.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if _hand.get_parent() != null:
+		_hand.get_parent().remove_child(_hand)
+	_hand.sync(hand,
+		func(cid: String) -> UiCard: return _make_hand_card(cid),
+		func(node: UiCard, cid: String, index: int) -> void: _refresh_hand_card(node, cid, index))
+	return _hand
 
-	# Cards overlap (fan) when there are too many to lay out side by side.
-	var cards_box := HBoxContainer.new()
-	var n := hand.size()
-	var sep := 8
-	if n > 1:
-		var avail := size.x - 40 - 48  # window margins + padding
-		var needed := n * CARD_SIZE.x + (n - 1) * 8
-		if float(needed) > avail:
-			sep = int((avail - n * CARD_SIZE.x) / float(n - 1))
-			sep = maxi(sep, -int(CARD_SIZE.x * 0.5))
-	cards_box.add_theme_constant_override("separation", sep)
 
-	for i in n:
-		var cid: String = hand[i]
-		var card := _make_card(cid, null)
-		var playable := _is_playable(cid)
-		card.payload = {
-			"kind": "hand", "index": int(i), "card_id": cid,
-			"needs_target": _needs_target(cid), "is_creature": _is_creature(cid),
-			"draggable": _my_turn(), "playable": playable,
-			"target_side": _target_side(cid),
-		}
-		card.drag_label = _name_of(cid)
-		# Dim cards you cannot play this turn so the playable ones stand out.
-		if not playable:
-			card.modulate = Color(0.62, 0.62, 0.68, 0.92)
-			card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
-		var idx := i
-		card.double_clicked.connect(func(_p: Dictionary) -> void: _on_hand_double(idx, cid))
-		cards_box.add_child(card)
-	box.add_child(cards_box)
-	return box
+# Build a NEW hand card: its face is fixed (the node is only ever reused for the
+# same card id), and a single double-click handler reads the live index from
+# meta, so the index can change as the hand reflows without reconnecting.
+func _make_hand_card(cid: String) -> UiCard:
+	var card := _make_card(cid, null)
+	card.set_meta("hand_index", 0)
+	card.double_clicked.connect(func(_p: Dictionary) -> void:
+		_on_hand_double(int(card.get_meta("hand_index")), cid))
+	return card
+
+
+# Update a hand card for its new position in the hand: the live index (payload +
+# meta) and the dim/playable state. The face never changes (same card id).
+func _refresh_hand_card(card: UiCard, cid: String, index: int) -> void:
+	card.set_meta("hand_index", index)
+	var playable := _is_playable(cid)
+	card.payload = {
+		"kind": "hand", "index": index, "card_id": cid,
+		"needs_target": _needs_target(cid), "is_creature": _is_creature(cid),
+		"draggable": _my_turn(), "playable": playable,
+		"target_side": _target_side(cid),
+	}
+	card.drag_label = _name_of(cid)
+	# Dim cards you cannot play this turn so the playable ones stand out.
+	if playable:
+		card.modulate = Color.WHITE
+		card.rest_modulate = Color.WHITE
+	else:
+		card.modulate = Color(0.62, 0.62, 0.68, 0.92)
+		card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
 
 
 # --- card visual -------------------------------------------------------------
