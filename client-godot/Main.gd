@@ -36,10 +36,12 @@ var _status_pill: Control = null  # the status message pill (hidden when empty)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
-var _card_nodes := {}          # creature id -> its card node this rebuild
-var _my_creatures_row: Control = null  # the HBox holding your board creatures
+# Board creatures live in two persistent layers (yours / opponent's), keyed by
+# creature id, so a living creature keeps its node across views. Reattached into
+# the freshly-built half each rebuild (rescued before teardown).
+var _layer_mine: BoardLayer = null
+var _layer_opp: BoardLayer = null
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
-var _board_gap: Control = null         # slot opened while dragging a creature in
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
@@ -194,33 +196,22 @@ func _update_board_gap() -> void:
 	var ok: bool = d != null and typeof(d) == TYPE_DICTIONARY \
 		and d.get("kind", "") == "hand" and bool(d.get("is_creature", false)) \
 		and not bool(d.get("needs_target", false)) and bool(d.get("playable", true)) \
-		and _my_creatures_row != null and is_instance_valid(_my_creatures_row) \
+		and _layer_mine != null and is_instance_valid(_layer_mine) \
 		and _my_board_zone != null and is_instance_valid(_my_board_zone) \
 		and _my_board_zone.get_global_rect().has_point(get_global_mouse_position())
 	if not ok:
 		_remove_board_gap()
 		return
-	if _board_gap == null or not is_instance_valid(_board_gap):
-		_board_gap = Panel.new()
-		_board_gap.custom_minimum_size = CARD_SIZE
-		_board_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.4, 0.9, 1.0, 0.08)
-		sb.set_border_width_all(2)
-		sb.border_color = Color(0.4, 0.9, 1.0, 0.5)
-		sb.set_corner_radius_all(10)
-		_board_gap.add_theme_stylebox_override("panel", sb)
-		_my_creatures_row.add_child(_board_gap)
-	elif _board_gap.get_parent() != _my_creatures_row:
-		_board_gap.get_parent().remove_child(_board_gap)
-		_my_creatures_row.add_child(_board_gap)
-	_my_creatures_row.move_child(_board_gap, _drop_insert_index())
+	var idx := _drop_insert_index()
+	if _layer_mine.gap_index != idx:
+		_layer_mine.gap_index = idx
+		_layer_mine._layout()
 
 
 func _remove_board_gap() -> void:
-	if _board_gap != null and is_instance_valid(_board_gap):
-		_board_gap.queue_free()
-	_board_gap = null
+	if _layer_mine != null and is_instance_valid(_layer_mine) and _layer_mine.gap_index != -1:
+		_layer_mine.gap_index = -1
+		_layer_mine._layout()
 
 
 func _send(obj: Dictionary) -> void:
@@ -236,14 +227,14 @@ func _ingest_view(new_view: Dictionary) -> void:
 	_close_picker()
 	var d := GameState.diff(_prev_hp, new_view)
 	var new_hp: Dictionary = d["hp"]
-	# A creature we had is gone: rescue its node from the doomed tree and fade it.
+	# A creature we had is gone: detach its persistent node and fade it out.
 	for id in GameState.departed(_prev_hp, new_hp):
-		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
-			_anim.fade_out_dead(_card_nodes[id])
+		var dead := _take_creature(int(id))
+		if dead != null:
+			_anim.fade_out_dead(dead)
 
 	view = new_view
-	_card_nodes = {}
-	_rebuild()  # refills _card_nodes
+	_rebuild()  # reattaches the board layers and reconciles them
 	_prev_hp = new_hp
 	_animate_changes(d["dmg"], d["summoned"])
 
@@ -252,13 +243,13 @@ func _ingest_view(new_view: Dictionary) -> void:
 # Attack helpers: record the target's on-screen position and the attacker, then
 # send. _animate_changes plays the lunge on the (rebuilt) attacker node.
 func _attack_creature(attacker_id: int, target_cid: int) -> void:
-	_pending_lunge = {"attacker": attacker_id, "pos": _node_center(_card_nodes.get(target_cid))}
+	_pending_lunge = {"attacker": attacker_id, "pos": _node_center(_creature_node(target_cid))}
 	_send({"action": "attackCreature", "attacker": attacker_id, "target": target_cid})
 
 
 func _attack_hero(attacker_id: int) -> void:
 	# Lunge straight up toward the enemy side (not sideways at the flank medallion).
-	var ac := _node_center(_card_nodes.get(attacker_id))
+	var ac := _node_center(_creature_node(attacker_id))
 	_pending_lunge = {"attacker": attacker_id, "pos": Vector2(ac.x, 40.0)}
 	_send({"action": "attackHero", "attacker": attacker_id})
 
@@ -269,6 +260,25 @@ func _node_center(n) -> Vector2:
 	return Vector2(get_viewport_rect().size.x * 0.5, 70.0)  # fallback: enemy side
 
 
+# The persistent card node for a creature id, from whichever board layer holds
+# it (or null).
+func _creature_node(cid: int) -> Control:
+	if _layer_mine != null and _layer_mine.has(cid):
+		return _layer_mine.node_for(cid)
+	if _layer_opp != null and _layer_opp.has(cid):
+		return _layer_opp.node_for(cid)
+	return null
+
+
+# Detach a creature's node from its layer (for the death animation).
+func _take_creature(cid: int) -> Control:
+	if _layer_mine != null and _layer_mine.has(cid):
+		return _layer_mine.take(cid)
+	if _layer_opp != null and _layer_opp.has(cid):
+		return _layer_opp.take(cid)
+	return null
+
+
 func _attach_ready_pulse(card: Control) -> void: _anim.ready_pulse(card)
 
 
@@ -277,17 +287,18 @@ func _attach_ready_pulse(card: Control) -> void: _anim.ready_pulse(card)
 func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
 	await get_tree().process_frame
 	if not _pending_lunge.is_empty():
-		var aid := int(_pending_lunge["attacker"])
-		if _card_nodes.has(aid) and is_instance_valid(_card_nodes[aid]):
-			_anim.lunge(_card_nodes[aid], _pending_lunge["pos"])
+		var att := _creature_node(int(_pending_lunge["attacker"]))
+		if att != null:
+			_anim.lunge(att, _pending_lunge["pos"])
 		_pending_lunge = {}
 	for id in summoned:
-		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
-			_anim.pop_in(_card_nodes[id])
+		var sn := _creature_node(int(id))
+		if sn != null:
+			_anim.pop_in(sn)
 	var total := 0
 	for id in dmg:
-		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
-			var nd: Control = _card_nodes[id]
+		var nd := _creature_node(int(id))
+		if nd != null:
 			_anim.flash(nd)
 			_anim.float_number(
 				nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.18), int(dmg[id]))
@@ -411,6 +422,11 @@ func _valid_attack_target(cr: Dictionary) -> bool:
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
+	# Rescue the persistent board layers so the teardown below never frees them;
+	# they are reattached into the freshly-built halves by _board_row.
+	for layer in [_layer_mine, _layer_opp]:
+		if layer != null and is_instance_valid(layer) and layer.get_parent() != null:
+			layer.get_parent().remove_child(layer)
 	# Tear down the board and redraw from the view. The leave button lives on its
 	# own always-on-top layer (_topbar), so root_box holds only board content.
 	while root_box.get_child_count() > 0:
@@ -944,54 +960,54 @@ func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 	if not auras.is_empty():
 		outer.add_child(_aura_shelf(auras, mine))
 
-	var row := HBoxContainer.new()
-	# IGNORE so drops in the gaps fall through to the zone; the creature cards
-	# (mouse_filter STOP) still receive their own input regardless.
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	# Creatures overlap (like the hand fan) when too many to lay out side by side,
-	# so a full board never runs off the right edge. Account for both flanks.
-	var n := board.size()
-	var sep := 6
-	if n > 1:
-		var avail := size.x - 158 - 142 - 60  # medallion + piles + separations/margins
-		if not auras.is_empty():
-			avail -= 150
-		var needed := n * CARD_SIZE.x + (n - 1) * 6
-		if float(needed) > avail:
-			sep = int((avail - n * CARD_SIZE.x) / float(n - 1))
-			sep = maxi(sep, -int(CARD_SIZE.x * 0.6))
-	row.add_theme_constant_override("separation", sep)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	for cr in board:
-		row.add_child(_creature_card(cr, mine))
-	outer.add_child(row)
+	# The creatures live in a persistent, manually-laid-out layer (kept across
+	# views, reattached here each rebuild). It owns the overlap fan and the
+	# drag-in gap, so cards keep their nodes -- the base for smooth animations.
+	var layer := _ensure_layer(mine)
+	layer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if layer.get_parent() != null:
+		layer.get_parent().remove_child(layer)
+	outer.add_child(layer)
 	zone.add_child(outer)
+	layer.sync(board,
+		func(cr: Dictionary) -> UiCard: return _creature_card(cr, mine),
+		func(node: UiCard, cr: Dictionary) -> void: _refresh_creature(node, cr, mine))
 	if mine:
-		# Remember the row/zone so a drag can open a slot for the incoming creature.
-		_my_creatures_row = row
-		_my_board_zone = zone
-		_board_gap = null  # the old gap (if any) was freed with the old row
+		_my_board_zone = zone  # for the drag-over hit test
 	return zone
 
 
-func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
-	var card := _make_card(String(cr["card"]), cr)
-	var cid := int(cr["id"])
+func _ensure_layer(mine: bool) -> BoardLayer:
 	if mine:
-		# Your creature: drag to attack; also a drop target for playing a creature
-		# here or casting a friendly/any-target spell on it.
-		# Mirror Creature::canAttack: not sick/attacked/frozen/blinded and atk > 0.
-		var can_attack := _my_turn() and int(cr.get("atk", 0)) > 0 \
-			and int(cr.get("frozen", 0)) == 0 and int(cr.get("blind", 0)) == 0 \
-			and not bool(cr.get("sick", false)) and not bool(cr.get("attacked", false))
-		card.payload = {
-			"kind": "attacker", "id": cid, "draggable": can_attack,
-			"bypass": _has_keyword(String(cr["card"]), "bypass"),
-		}
-		card.drag_label = _name_of(String(cr["card"]))
-		# Accept a creature/aura play-drop OR a friendly/any spell, but only glow
-		# for the spell case (playing a creature is not played "onto" this one).
+		if _layer_mine == null:
+			_layer_mine = BoardLayer.new()
+		return _layer_mine
+	if _layer_opp == null:
+		_layer_opp = BoardLayer.new()
+	return _layer_opp
+
+
+# Build a NEW persistent creature card: the outer node and its (cr-independent)
+# interaction hooks. The current creature data is read from get_meta("cr") so the
+# node can be reused across views; _refresh_creature paints the rest.
+func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
+	var card := UiCard.new()
+	card.custom_minimum_size = CARD_SIZE
+	card.hoverable = true
+	var cid := int(cr["id"])
+	card.set_meta("cid", cid)
+	# Color glow in the card's own colour (fixed -- depends only on the card id).
+	var col := Palette.primary(_def(String(cr["card"])))
+	var glow := StyleBoxFlat.new()
+	glow.bg_color = Color(0, 0, 0, 0)
+	glow.set_corner_radius_all(12)
+	glow.shadow_size = 10
+	glow.shadow_color = Color(col.r, col.g, col.b, 0.6)
+	card.add_theme_stylebox_override("panel", glow)
+	if mine:
+		# Your creature: a drop target for a creature play-drop or a friendly/any
+		# spell; only glow for the spell case.
 		card.can_drop_fn = func(data: Variant) -> bool:
 			return _can_play_here(data) or _can_cast_on(data, "friendly")
 		card.highlight_check = func(data: Variant) -> bool:
@@ -1001,39 +1017,75 @@ func _creature_card(cr: Dictionary, mine: bool) -> UiCard:
 				_play_payload(data, cid)
 			else:
 				_play_at_drop(data)
-		# On your turn, dim creatures that cannot attack so the ready ones glow.
-		if _my_turn() and not can_attack:
-			card.modulate = Color(0.6, 0.62, 0.7, 0.92)
-			card.rest_modulate = Color(0.6, 0.62, 0.7, 0.92)
-		elif can_attack:
-			_attach_ready_pulse(card)
 	else:
-		# Enemy creature: accept an attacker (subject to provoke/stealth), or an
-		# enemy/any-target spell (not on a hidden creature).
+		# Enemy creature: accept an attacker (provoke/stealth permitting) or an
+		# enemy/any spell. Reads the live cr from meta (the node is reused).
 		card.can_drop_fn = func(data: Variant) -> bool:
 			if typeof(data) != TYPE_DICTIONARY:
 				return false
+			var c: Dictionary = card.get_meta("cr")
 			if data.get("kind", "") == "attacker":
-				return _valid_attack_target(cr)
-			return _can_cast_on(data, "enemy") and not bool(cr.get("stealth", false))
+				return _valid_attack_target(c)
+			return _can_cast_on(data, "enemy") and not bool(c.get("stealth", false))
 		card.drop_fn = func(data: Variant) -> void:
 			if data.get("kind", "") == "attacker":
 				_attack_creature(int(data["id"]), cid)
 			else:
 				_play_payload(data, cid)
+	_refresh_creature(card, cr, mine)
+	return card
 
-	# Activated abilities (e.g. germinate): round icon buttons centered along the
-	# bottom edge, in the same row as the ATK/HP gems -- a separate control from
-	# the attack drag, so several abilities can sit side by side. Added to the
-	# face (a Panel that respects anchors), not the card (a Container that would
-	# stretch it over the whole art).
+
+# Update an existing creature node for fresh data: store the live cr, rebuild the
+# inner content (face + ability dock + ready pulse) on the same outer node so its
+# identity (and any in-flight animation on it) survives, and refresh the
+# attack/dim state.
+func _refresh_creature(card: UiCard, cr: Dictionary, mine: bool) -> void:
+	card.set_meta("cr", cr)
+	for ch in card.get_children():
+		card.remove_child(ch)
+		ch.queue_free()
+	var def_id := String(cr["card"])
+	var face := CardView.face(def_id, cr)
+	card.add_child(face)
+	card.tooltip_text = _name_of(def_id)
+	card.tooltip_builder = func() -> Control: return CardView.tooltip(def_id, card.get_meta("cr"))
+	card.preview_builder = func() -> Control:
+		var wrapper := Control.new()
+		var f := CardView.face(def_id, card.get_meta("cr"))
+		f.size = CARD_SIZE
+		f.position = -CARD_SIZE / 2.0
+		wrapper.add_child(f)
+		return wrapper
+	var cid := int(cr["id"])
 	if mine:
+		# Mirror Creature::canAttack: not sick/attacked/frozen/blinded and atk > 0.
+		var can_attack := _my_turn() and int(cr.get("atk", 0)) > 0 \
+			and int(cr.get("frozen", 0)) == 0 and int(cr.get("blind", 0)) == 0 \
+			and not bool(cr.get("sick", false)) and not bool(cr.get("attacked", false))
+		card.payload = {
+			"kind": "attacker", "id": cid, "draggable": can_attack,
+			"bypass": _has_keyword(def_id, "bypass"),
+		}
+		card.drag_label = _name_of(def_id)
+		# On your turn, dim creatures that cannot attack so the ready ones glow.
+		if _my_turn() and not can_attack:
+			card.modulate = Color(0.6, 0.62, 0.7, 0.92)
+			card.rest_modulate = Color(0.6, 0.62, 0.7, 0.92)
+		else:
+			card.modulate = Color.WHITE
+			card.rest_modulate = Color.WHITE
+			if can_attack:
+				_attach_ready_pulse(card)
+		# Activated abilities (e.g. germinate): icon buttons along the bottom edge,
+		# added to the face (a Panel that respects anchors).
 		var dock := _ability_dock(cr, cid)
 		if dock != null:
-			card.get_child(0).add_child(dock)
-
-	_card_nodes[cid] = card
-	return card
+			face.add_child(dock)
+	else:
+		card.payload = {}
+		card.modulate = Color.WHITE
+		card.rest_modulate = Color.WHITE
 
 
 # An activated-ability keyword -> its dock icon and accent (empty = not one).
@@ -1321,11 +1373,9 @@ func _drop_insert_index() -> int:
 	var mx := get_global_mouse_position().x
 	var n := 0
 	for cr in view["players"][you].get("board", []):
-		var id := int(cr["id"])
-		if _card_nodes.has(id) and is_instance_valid(_card_nodes[id]):
-			var nd: Control = _card_nodes[id]
-			if nd.global_position.x + nd.size.x * 0.5 < mx:
-				n += 1
+		var nd = _creature_node(int(cr["id"]))
+		if nd != null and nd.global_position.x + nd.size.x * 0.5 < mx:
+			n += 1
 	return n
 
 
