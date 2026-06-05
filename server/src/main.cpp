@@ -86,11 +86,14 @@ struct Client {
   std::string buf;  // raw bytes awaiting WebSocket frame parsing
 };
 
-// A private match slot. Holds the shared secret and the two player sockets; the
-// engine game is created when the second player joins.
+// A private match slot. Holds the shared secret, the two player sockets, and
+// each player's chosen loadout (hero id + deck). The engine game is created
+// when the second player joins.
 struct Room {
   std::string password;
   int fd[2] = {-1, -1};
+  std::string hero[2];               // chosen hero id per seat ("" = random)
+  std::vector<std::string> deck[2];  // chosen deck per seat (empty = default)
   std::unique_ptr<Game> game;
   bool playing = false;
 };
@@ -127,13 +130,18 @@ void broadcastRoom(const Room& r) {
 void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
   std::uint32_t seed = rng();
   std::vector<std::string> heroes = heroPool(lib);
-  std::string h0, h1;
-  if (!heroes.empty()) {
-    h0 = heroes[rng() % heroes.size()];
-    h1 = heroes[rng() % heroes.size()];
-  }
-  r.game =
-      std::make_unique<Game>(lib, demoDeck(lib), demoDeck(lib), seed, h0, h1);
+  // Each seat uses its chosen hero/deck; fall back to a random hero and the
+  // full-pool default deck if a client sent none (older client / empty pick).
+  auto heroFor = [&](int seat) -> std::string {
+    if (!r.hero[seat].empty()) return r.hero[seat];
+    return heroes.empty() ? std::string{} : heroes[rng() % heroes.size()];
+  };
+  auto deckFor = [&](int seat) -> std::vector<std::string> {
+    return r.deck[seat].empty() ? demoDeck(lib) : r.deck[seat];
+  };
+  std::string h0 = heroFor(0);
+  std::string h1 = heroFor(1);
+  r.game = std::make_unique<Game>(lib, deckFor(0), deckFor(1), seed, h0, h1);
   r.game->start();
   r.playing = true;
   sendType(r.fd[0], "matchStart");
@@ -167,6 +175,17 @@ void leaveRoom(int fd) {
   c.seat = -1;
 }
 
+// Read a player's chosen loadout (hero id + deck card list) from a lobby
+// message into the room seat. Both are optional -- startMatch falls back if
+// missing.
+void readLoadout(const json& j, Room& r, int seat) {
+  r.hero[seat] = j.value("hero", std::string{});
+  r.deck[seat].clear();
+  if (j.contains("deck") && j["deck"].is_array())
+    for (const auto& id : j["deck"])
+      if (id.is_string()) r.deck[seat].push_back(id.get<std::string>());
+}
+
 // Handle one lobby-phase command (create/join/leave a room).
 void handleLobby(int fd, const json& j, const CardLibrary& lib,
                  std::mt19937& rng) {
@@ -183,6 +202,7 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     Room& r = g_rooms[code];
     r.password = pw;
     r.fd[0] = fd;
+    readLoadout(j, r, 0);  // host's chosen hero + deck
     c.phase = Phase::Waiting;
     c.room = code;
     c.seat = 0;
@@ -209,6 +229,7 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
       return;
     }
     r.fd[1] = fd;
+    readLoadout(j, r, 1);  // guest's chosen hero + deck
     c.phase = Phase::Playing;
     c.room = code;
     c.seat = 1;

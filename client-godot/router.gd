@@ -12,6 +12,8 @@ const MATCH_SCENE := preload("res://Main.tscn")
 const CONFIG_PATH := "user://settings.cfg"
 
 var server_url := SettingsScreen.DEFAULT_URL
+var chosen_hero := ""   # picked in LoadoutSelect, sent with create/join room
+var chosen_deck := ""   # deck id; resolved to its card list when sent
 var _screen: Control = null
 var _net: Net = null
 var _open := false
@@ -22,6 +24,10 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	# Project typography inherited by every screen below the router.
 	theme = Fonts.default_theme()
+	# Card data is needed app-wide now (the loadout screen lists heroes/decks),
+	# not just inside a match; load it once here (Main re-loads idempotently).
+	CardData.load_file("res://cards.json")
+	CardData.load_file("res://tokens.json")
 	_load_settings()
 	_go_main()
 
@@ -38,7 +44,7 @@ func _swap(screen: Control) -> void:
 
 func _go_main() -> void:
 	var m := MainMenu.new()
-	m.play_pressed.connect(_go_play)
+	m.play_pressed.connect(_go_loadout)
 	m.settings_pressed.connect(_go_settings)
 	m.quit_pressed.connect(func() -> void: get_tree().quit())
 	_swap(m)
@@ -54,19 +60,33 @@ func _go_settings() -> void:
 	_swap(s)
 
 
+# Pressing "Играть" first picks the loadout (hero + deck); confirming enters the
+# room flow with that choice.
+func _go_loadout() -> void:
+	var l := LoadoutSelect.new()
+	l.setup(chosen_hero, chosen_deck)
+	l.confirmed.connect(func(hero: String, deck: String) -> void:
+		chosen_hero = hero
+		chosen_deck = deck
+		_save_settings()
+		_go_play())
+	l.back_pressed.connect(_leave_play)  # also drops a socket if one is open
+	_swap(l)
+
+
 func _go_play() -> void:
 	_connect()  # open the socket while the player reads the menu
 	var p := PlayMenu.new()
 	p.create_pressed.connect(_go_create)
 	p.join_pressed.connect(_go_join)
-	p.back_pressed.connect(_leave_play)
+	p.back_pressed.connect(_go_loadout)  # back to re-pick hero/deck
 	_swap(p)
 
 
 func _go_create() -> void:
 	var c := CreateRoom.new()
 	c.submit.connect(func(pw: String) -> void:
-		_send({"action": "createRoom", "password": pw}))
+		_send(_room_msg("createRoom", {"password": pw})))
 	c.back_pressed.connect(_go_play)
 	_swap(c)
 
@@ -74,9 +94,20 @@ func _go_create() -> void:
 func _go_join() -> void:
 	var j := JoinRoom.new()
 	j.submit.connect(func(code: String, pw: String) -> void:
-		_send({"action": "joinRoom", "code": code, "password": pw}))
+		_send(_room_msg("joinRoom", {"code": code, "password": pw})))
 	j.back_pressed.connect(_go_play)
 	_swap(j)
+
+
+# A create/join-room message carrying the chosen hero and the deck's card list,
+# so the server seats this player with that loadout instead of randomizing.
+func _room_msg(action: String, fields: Dictionary) -> Dictionary:
+	var msg := {"action": action}
+	for k in fields:
+		msg[k] = fields[k]
+	msg["hero"] = chosen_hero
+	msg["deck"] = Decks.by_id(chosen_deck).get("cards", [])
+	return msg
 
 
 func _go_room_wait(code: String) -> void:
@@ -197,9 +228,13 @@ func _load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) == OK:
 		server_url = String(cfg.get_value("net", "server_url", server_url))
+		chosen_hero = String(cfg.get_value("loadout", "hero", chosen_hero))
+		chosen_deck = String(cfg.get_value("loadout", "deck", chosen_deck))
 
 
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("net", "server_url", server_url)
+	cfg.set_value("loadout", "hero", chosen_hero)
+	cfg.set_value("loadout", "deck", chosen_deck)
 	cfg.save(CONFIG_PATH)

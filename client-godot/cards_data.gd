@@ -57,6 +57,26 @@ static func is_spell(card_id: String) -> bool:
 	return String(db.get(card_id, {}).get("type", "")) == "spell"
 
 
+# Every hero id in the database (cards of type "hero"), for the loadout screen.
+static func heroes() -> Array:
+	var ids := []
+	for id in db:
+		if String(db[id].get("type", "")) == "hero":
+			ids.append(id)
+	ids.sort()
+	return ids
+
+
+# Every non-hero card id (a deck card), for building the standard deck.
+static func deck_cards() -> Array:
+	var ids := []
+	for id in db:
+		if String(db[id].get("type", "")) != "hero" and not String(id).begins_with("token_"):
+			ids.append(id)
+	ids.sort()
+	return ids
+
+
 # Which side a targeted spell can hit: "enemy", "friendly", "any", or "" (none).
 static func target_side(card_id: String) -> String:
 	var d: Dictionary = db.get(card_id, {})
