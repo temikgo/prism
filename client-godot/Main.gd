@@ -21,13 +21,17 @@ const PAD := Tokens.PAD
 const GEM := Tokens.GEM
 const STATUS_MAX := Tokens.STATUS_MAX
 
+# Raised when the player leaves the match (game over -> menu, or the back arrow).
+# The Router listens, returns to the main menu, and frees this screen.
+signal exit_to_menu
+
+var _server_url := DEFAULT_URL  # set by start(); the socket opens once mounted
 var _net: Net = null           # websocket transport (signals: opened/closed/message)
 var view := {}
 var cards := {}            # card id -> definition (from cards.json)
 
 # Click-fallback selection state (drag-and-drop ignores these).
 var _picker: Control = null   # open mana-color chooser, if any
-var _motes: GPUParticles2D = null  # ambient light particles (resized with window)
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
@@ -41,7 +45,6 @@ var _scry_sel := {}                    # scry: peeked indices marked for the bot
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
 var _enemy_hero_node = null            # enemy hero medallion node (lunge target)
 
-var url_edit: LineEdit
 var status_label: Label
 var root_box: VBoxContainer
 
@@ -77,26 +80,10 @@ func _load_cards() -> void:
 
 
 func _build_shell() -> void:
-	var bg := TextureRect.new()
-	bg.texture = _bg_texture()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.stretch_mode = TextureRect.STRETCH_SCALE
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bg)
-	# The light of the Mega-Prism: a soft cool glow spilling from the top, and a
-	# vignette darkening the edges so the lit battlefield draws the eye to center.
-	add_child(_glow_layer(Vector2(0.5, -0.05), 1.0,
-		Color(0.46, 0.56, 1.0, 0.26), Color(0.46, 0.56, 1.0, 0.0)))
-	add_child(_glow_layer(Vector2(0.5, 1.02), 0.7,
-		Color(0.55, 0.28, 0.7, 0.16), Color(0.55, 0.28, 0.7, 0.0)))
-	add_child(_glow_layer(Vector2(0.5, 0.5), 0.95,
-		Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.02, 0.62)))
-	# Slow drifting light motes -- ambient "living light", behind the UI. They are
-	# sized to the actual window and re-fitted whenever it resizes (e.g. maximize).
-	_motes = _ambient_motes()
-	add_child(_motes)
+	# Shared atmospheric backdrop (gradient, glows, vignette, drifting motes); it
+	# fits its own motes to the window, so we only need to rebuild the board here.
+	add_child(Backdrop.new())
 	get_tree().root.size_changed.connect(_on_window_resized)
-	_fit_motes()
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -110,15 +97,14 @@ func _build_shell() -> void:
 	root_box.add_theme_constant_override("separation", 8)
 	margin.add_child(root_box)
 
+	# Slim top bar: leave-to-menu on the left, connection status on the right. The
+	# server address now comes from Settings via start(), so there is no URL field.
 	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 8)
-	url_edit = LineEdit.new()
-	url_edit.text = DEFAULT_URL
-	url_edit.custom_minimum_size = Vector2(280, 0)
-	bar.add_child(url_edit)
-	var connect_btn := Ui.neon_button("Подключиться", Color(0.4, 0.8, 1.0))
-	connect_btn.pressed.connect(_on_connect)
-	bar.add_child(connect_btn)
+	bar.add_theme_constant_override("separation", 10)
+	var leave := Ui.neon_button("В меню", Color(0.6, 0.64, 0.74))
+	leave.custom_minimum_size = Vector2(96, 0)
+	leave.pressed.connect(func() -> void: exit_to_menu.emit())
+	bar.add_child(leave)
 	status_label = Ui.label("нет связи", 0, Color(0.7, 0.75, 0.85))
 	bar.add_child(status_label)
 	root_box.add_child(bar)
@@ -149,99 +135,26 @@ func _build_shell() -> void:
 	_net.message.connect(_ingest_view)
 
 
-func _bg_texture() -> Texture2D:
-	var grad := Gradient.new()
-	grad.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
-	grad.colors = PackedColorArray([
-		Color(0.07, 0.08, 0.15), Color(0.10, 0.06, 0.16), Color(0.02, 0.02, 0.05)])
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = Vector2(0.5, 0.42)
-	tex.fill_to = Vector2(1.05, 1.1)
-	return tex
+# Entry point from the Router: remember the server address and open the socket.
+# Called right after the screen is added to the tree.
+func start(url: String) -> void:
+	_server_url = url
+	var err := _net.connect_to(url)
+	if err != OK:
+		status_label.text = "ошибка подключения %d" % err
+	else:
+		status_label.text = "подключение…"
 
 
-### --- ambient particles ---------------------------------------------------
-
-# Window resized (e.g. maximize): refit the ambient motes and rebuild the board,
-# since the hand fan and board-row overlap are sized from the window width and
-# would otherwise stay stale (cards clumped or overflowing) until the next view.
+# Window resized (e.g. maximize): rebuild the board, since the hand fan and
+# board-row overlap are sized from the window width and would otherwise stay
+# stale (cards clumped or overflowing) until the next view. The backdrop refits
+# its own motes.
 func _on_window_resized() -> void:
-	_fit_motes()
 	# Don't rebuild mid-drag (it would free the dragged node) or before any view.
 	if view.is_empty() or UiCard.active_drag != null:
 		return
 	_rebuild()
-
-
-# Resize the mote cloud to the current window so it covers the whole board
-# (including the right mana column) after a maximize/resize.
-func _fit_motes() -> void:
-	if _motes == null:
-		return
-	var vp := get_viewport_rect().size
-	_motes.position = vp * 0.5
-	var mat: ParticleProcessMaterial = _motes.process_material
-	mat.emission_box_extents = Vector3(vp.x * 0.55, vp.y * 0.6, 0)
-	_motes.restart()  # re-seed across the new area so it fills immediately
-
-
-func _ambient_motes() -> GPUParticles2D:
-	var mat := ParticleProcessMaterial.new()
-	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(820, 520, 0)
-	mat.direction = Vector3(0, -1, 0)
-	mat.spread = 45.0
-	mat.gravity = Vector3(0, -4, 0)
-	mat.initial_velocity_min = 3.0
-	mat.initial_velocity_max = 12.0
-	mat.scale_min = 0.08
-	mat.scale_max = 0.32
-	# Fade in then out over each mote's life, tinted cool light.
-	var ramp := Gradient.new()
-	ramp.offsets = PackedFloat32Array([0.0, 0.2, 0.8, 1.0])
-	ramp.colors = PackedColorArray([
-		Color(0.7, 0.82, 1.0, 0.0), Color(0.78, 0.86, 1.0, 0.85),
-		Color(0.82, 0.9, 1.0, 0.8), Color(0.82, 0.9, 1.0, 0.0)])
-	var rtex := GradientTexture1D.new()
-	rtex.gradient = ramp
-	mat.color_ramp = rtex
-
-	var p := GPUParticles2D.new()
-	p.process_material = mat
-	p.texture = Tokens.soft_dot()
-	p.amount = 90
-	p.lifetime = 8.0
-	p.preprocess = 8.0          # start with the screen already populated
-	return p                    # position/extents set by _fit_motes()
-
-
-# A full-screen radial glow/vignette layer. `center`/`radius` are in UV (0..1);
-# the gradient runs `inner` (at the center) -> `outer` (at the radius).
-func _glow_layer(center: Vector2, radius: float, inner: Color, outer: Color) -> TextureRect:
-	var grad := Gradient.new()
-	grad.offsets = PackedFloat32Array([0.0, 1.0])
-	grad.colors = PackedColorArray([inner, outer])
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = center
-	tex.fill_to = center + Vector2(0.0, radius)
-	var tr := TextureRect.new()
-	tr.texture = tex
-	tr.set_anchors_preset(Control.PRESET_FULL_RECT)
-	tr.stretch_mode = TextureRect.STRETCH_SCALE
-	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return tr
-
-
-func _on_connect() -> void:
-	var err := _net.connect_to(url_edit.text)
-	if err != OK:
-		status_label.text = "connect error %d" % err
-	else:
-		status_label.text = "connecting..."
 
 
 func _process(_dt: float) -> void:
@@ -529,8 +442,11 @@ func _game_over_panel(you: int) -> Control:
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 10)
 	vb.add_child(Ui.label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 48, accent.lightened(0.3), true))
-	vb.add_child(Ui.label("Перезапустите сервер для новой партии", 14,
-		Color(0.75, 0.78, 0.86), true))
+	var to_menu := Ui.neon_button("В меню", accent)
+	to_menu.custom_minimum_size = Vector2(180, 46)
+	to_menu.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	to_menu.pressed.connect(func() -> void: exit_to_menu.emit())
+	vb.add_child(to_menu)
 	panel.add_child(vb)
 	center.add_child(panel)
 	return dim
