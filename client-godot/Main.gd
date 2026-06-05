@@ -60,12 +60,15 @@ var root_box: VBoxContainer
 # --- lifecycle ---------------------------------------------------------------
 
 func _ready() -> void:
+	# Project typography (also covers the screenshot harness, which loads this
+	# scene standalone). Under the router the same theme is already inherited.
+	theme = Fonts.default_theme()
 	_load_cards()
 	_build_shell()
 	# Remove the default dark tooltip wrapper window-wide so our custom card
 	# tooltip shows without a panel behind it. The auto-created tooltip popup
 	# resolves its style from the window theme, not from the tooltip control.
-	var th := Theme.new()
+	var th := Fonts.default_theme()
 	th.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new())
 	get_window().theme = th
 
@@ -441,7 +444,9 @@ func _game_over_panel(you: int) -> Control:
 	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.9))
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 10)
-	vb.add_child(Ui.label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 48, accent.lightened(0.3), true))
+	var verdict := Ui.label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 46, accent.lightened(0.3), true)
+	verdict.add_theme_font_override("font", Fonts.DISPLAY)
+	vb.add_child(verdict)
 	var to_menu := Ui.neon_button("В меню", accent)
 	to_menu.custom_minimum_size = Vector2(180, 46)
 	to_menu.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

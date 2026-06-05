@@ -5,8 +5,10 @@ class_name Ui
 # Nothing here reads game state -- callers pass in everything.
 
 # One-liner Label builder. Only the arguments you pass are applied. Pass size <= 0
-# / color = null to inherit the theme default; set `center` for centered text.
-static func label(text: String, size: int = 0, color: Variant = null, center: bool = false) -> Label:
+# / color = null to inherit the theme default; set `center` for centered text and
+# `bold` for the semibold weight (otherwise the theme's Lato Regular is used).
+static func label(text: String, size: int = 0, color: Variant = null,
+		center: bool = false, bold: bool = false) -> Label:
 	var l := Label.new()
 	l.text = text
 	if size > 0:
@@ -15,6 +17,8 @@ static func label(text: String, size: int = 0, color: Variant = null, center: bo
 		l.add_theme_color_override("font_color", color)
 	if center:
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if bold:
+		l.add_theme_font_override("font", Fonts.SEMIBOLD)
 	return l
 
 
@@ -47,6 +51,7 @@ static func bordered(bg: Color, radius: int, border_w: int, border_c: Color, mar
 static func neon_button(text: String, accent: Color) -> Button:
 	var b := Button.new()
 	b.text = text
+	b.add_theme_font_override("font", Fonts.SEMIBOLD)
 	b.add_theme_font_size_override("font_size", 15)
 	b.add_theme_color_override("font_color", accent.lightened(0.5))
 	b.add_theme_color_override("font_hover_color", Color.WHITE)
@@ -58,6 +63,10 @@ static func neon_button(text: String, accent: Color) -> Button:
 	var dis := glass(Color(0.32, 0.34, 0.42), 0.22)
 	dis.shadow_size = 0
 	b.add_theme_stylebox_override("disabled", dis)
+	# No focus rectangle: the press/hover glass is the only state feedback. The
+	# default theme draws a focus outline that reads as a flat rectangle on click.
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.focus_mode = Control.FOCUS_NONE
 	return b
 
 

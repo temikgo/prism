@@ -44,8 +44,8 @@ func _wordmark() -> Control:
 	var box := VBoxContainer.new()
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_theme_constant_override("separation", 8)
-	var title := Ui.label("PRISM", 76, Color(0.94, 0.96, 1.0), true)
-	title.add_theme_constant_override("outline_size", 0)
+	var title := Ui.label("PRISM", 68, Color(0.94, 0.96, 1.0), true)
+	title.add_theme_font_override("font", Fonts.DISPLAY)
 	box.add_child(title)
 	box.add_child(_prism_bar())
 	return box

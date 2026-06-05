@@ -15,6 +15,8 @@ var _screen: Control = null
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Project typography inherited by every screen below the router.
+	theme = Fonts.default_theme()
 	_load_settings()
 	_go_main()
 
