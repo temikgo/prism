@@ -504,6 +504,25 @@ TEST_CASE("mulligan rejects bad indices and leaves the hand untouched") {
   CHECK(g.player(0).hand.size() == OpeningFirst);
 }
 
+TEST_CASE("a mulliganed card cannot come back in the same mulligan") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 99);
+  g.start();
+  // Every instance has a unique id even though they are all "bear": record the
+  // ids of the whole opening hand, then mulligan all of it.
+  std::vector<EntityId> tossed;
+  std::vector<int> idx;
+  for (int i = 0; i < static_cast<int>(g.player(0).hand.size()); ++i) {
+    tossed.push_back(g.player(0).hand[i].id);
+    idx.push_back(i);
+  }
+  REQUIRE(g.mulligan(0, idx));
+  CHECK(g.player(0).hand.size() == OpeningFirst);
+  // Replacements are drawn before the tossed cards go back, so none return.
+  for (const auto& c : g.player(0).hand)
+    for (EntityId t : tossed) CHECK(c.id != t);
+}
+
 TEST_CASE("photosynthesis adds temporary mana at turn start") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("photoaura", 30), repeat("bear", 30), 55);

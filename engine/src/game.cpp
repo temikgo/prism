@@ -47,14 +47,18 @@ bool Game::mulligan(int player, const std::vector<int>& indices) {
   for (int i : idx)
     if (i < 0 || i >= static_cast<int>(p.hand.size())) return false;
 
-  // Put the chosen cards back, reshuffle, and redraw the same number. Erase
-  // from the back so earlier indices stay valid.
+  // Set the chosen cards aside, draw their replacements from the deck, and only
+  // then shuffle the set-aside cards back in -- so a mulliganed card can never
+  // be redrawn within the same mulligan. Erase from the back so earlier indices
+  // stay valid.
+  std::vector<CardInstance> setAside;
   for (auto it = idx.rbegin(); it != idx.rend(); ++it) {
-    p.deck.push_back(p.hand[*it]);
+    setAside.push_back(p.hand[*it]);
     p.hand.erase(p.hand.begin() + *it);
   }
-  std::shuffle(p.deck.begin(), p.deck.end(), rng_);
   draw(p, static_cast<int>(idx.size()));
+  for (const auto& ci : setAside) p.deck.push_back(ci);
+  std::shuffle(p.deck.begin(), p.deck.end(), rng_);
 
   p.mulliganDone = true;
   if (players_[0].mulliganDone && players_[1].mulliganDone) {
