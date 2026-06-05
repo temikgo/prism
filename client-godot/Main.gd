@@ -43,6 +43,14 @@ var _layer_mine: BoardLayer = null
 var _layer_opp: BoardLayer = null
 var _hand: HandRow = null              # persistent hand fan (slides on draw/play)
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
+# Your right-flank chrome nodes (rebuilt each view), pulsed when their value
+# changes -- see _animate_piles.
+var _mana_block_node: Control = null
+var _deck_pile_node: Control = null
+var _grave_pile_node: Control = null
+var _prev_deck := -1
+var _prev_grave := -1
+var _prev_crystals := -1
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
@@ -313,6 +321,32 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
 		total += int(dmg[id])
 	if total > 0:
 		_anim.shake(minf(4.0 + total * 1.7, 16.0))  # impact scales with the hit
+	_animate_piles()
+
+
+# Pulse your right-flank chrome when its value changed: a gained crystal (banked
+# a card / ramp), a drawn card (deck shrank), or a card sent to the graveyard
+# (death / spell). One-shot feedback on the freshly-built nodes.
+func _animate_piles() -> void:
+	if view.is_empty():
+		return
+	var you := int(view["you"])
+	var me: Dictionary = view["players"][you]
+	var deck := int(me.get("deckCount", 0))
+	var grave := int(me.get("graveyardCount", 0))
+	var crystals := 0
+	for v in me.get("mana", {}).get("crystals", {}).values():
+		crystals += int(v)
+	if _prev_deck >= 0:
+		if crystals > _prev_crystals:
+			_anim.pulse(_mana_block_node)
+		if deck < _prev_deck:
+			_anim.pulse(_deck_pile_node)
+		if grave > _prev_grave:
+			_anim.pulse(_grave_pile_node)
+	_prev_deck = deck
+	_prev_grave = grave
+	_prev_crystals = crystals
 
 
 # --- view queries ------------------------------------------------------------
@@ -750,7 +784,8 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 8)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(Chrome.mana_block(p.get("mana", {})))
+	var mana_block := Chrome.mana_block(p.get("mana", {}))
+	col.add_child(mana_block)
 	var mr := _manarow_view(p.get("manaRow", []), mine)
 	if mr != null:
 		col.add_child(mr)
@@ -758,9 +793,16 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	piles.alignment = BoxContainer.ALIGNMENT_CENTER
 	piles.add_theme_constant_override("separation", 12)
 	piles.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	piles.add_child(Chrome.pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95)))
-	piles.add_child(Chrome.pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68)))
+	var deck_stack := Chrome.pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95))
+	var grave_stack := Chrome.pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68))
+	piles.add_child(deck_stack)
+	piles.add_child(grave_stack)
 	col.add_child(piles)
+	# Remember your own chrome nodes so _animate_piles can pulse them on change.
+	if mine:
+		_mana_block_node = mana_block
+		_deck_pile_node = deck_stack
+		_grave_pile_node = grave_stack
 	var il := Ui.label("рука %d" % int(p.get("handCount", 0)), 11, Color(0.6, 0.64, 0.74), true)
 	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(il)

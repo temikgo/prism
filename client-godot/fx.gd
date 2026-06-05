@@ -118,6 +118,22 @@ func cast_dissolve(face: Control, center: Vector2) -> void:
 	t.chain().tween_callback(face.queue_free)
 
 
+# A quick attention bounce + brighten on a small chrome node (a mana block or a
+# deck/graveyard stack) when its value changed. Scale is a visual transform, so
+# it never reflows the column around it.
+func pulse(node: Control) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	node.pivot_offset = node.size * 0.5
+	var t := create_tween()
+	t.tween_property(node, "scale", Vector2(1.2, 1.2), 0.12) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(node, "modulate", Color(1.5, 1.5, 1.65), 0.12)
+	t.tween_property(node, "scale", Vector2.ONE, 0.2) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(node, "modulate", Color.WHITE, 0.2)
+
+
 func fade_out_dead(node: Control) -> void:
 	var gp := node.global_position
 	var parent := node.get_parent()
