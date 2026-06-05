@@ -12,7 +12,6 @@ extends Control
 #   * revealed awaken card in your mana row -> drag like a hand card to awaken it.
 # Clicking does the same via a two-step "select, then pick target" flow.
 
-const DEFAULT_URL := "ws://127.0.0.1:8080"
 const BOARD_LIMIT := 8  # max creatures per side (mirrors the engine)
 # Card geometry lives in Tokens (shared with CardView); aliases keep call sites short.
 const CARD_SIZE := Tokens.CARD_SIZE
@@ -25,14 +24,15 @@ const STATUS_MAX := Tokens.STATUS_MAX
 # The Router listens, returns to the main menu, and frees this screen.
 signal exit_to_menu
 
-var _server_url := DEFAULT_URL  # set by start(); the socket opens once mounted
-var _net: Net = null           # websocket transport (signals: opened/closed/message)
+var _send_action: Callable = Callable()  # set by Router.bind(); sends actions out
 var view := {}
 var cards := {}            # card id -> definition (from cards.json)
 
 # Click-fallback selection state (drag-and-drop ignores these).
 var _picker: Control = null   # open mana-color chooser, if any
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
+var _topbar: Control = null   # always-on-top leave button + status pill
+var _status_pill: Control = null  # the status message pill (hidden when empty)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
@@ -100,18 +100,6 @@ func _build_shell() -> void:
 	root_box.add_theme_constant_override("separation", 8)
 	margin.add_child(root_box)
 
-	# Slim top bar: leave-to-menu on the left, connection status on the right. The
-	# server address now comes from Settings via start(), so there is no URL field.
-	var bar := HBoxContainer.new()
-	bar.add_theme_constant_override("separation", 10)
-	var leave := Ui.neon_button("В меню", Color(0.6, 0.64, 0.74))
-	leave.custom_minimum_size = Vector2(96, 0)
-	leave.pressed.connect(func() -> void: exit_to_menu.emit())
-	bar.add_child(leave)
-	status_label = Ui.label("нет связи", 0, Color(0.7, 0.75, 0.85))
-	bar.add_child(status_label)
-	root_box.add_child(bar)
-
 	# Full-screen overlay (game-over screen), populated on rebuild.
 	_overlay = Control.new()
 	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -130,23 +118,58 @@ func _build_shell() -> void:
 	add_child(_anim)
 	_anim.setup(self, _fx)
 
-	# WebSocket transport: lifecycle + incoming views arrive as signals.
-	_net = Net.new()
-	add_child(_net)
-	_net.opened.connect(func() -> void: status_label.text = "на связи")
-	_net.closed.connect(func() -> void: status_label.text = "соединение закрыто")
-	_net.message.connect(_ingest_view)
+	# Persistent top bar above every overlay, so "В меню" is always reachable --
+	# even during the mulligan/game-over screens (e.g. if the server drops).
+	_build_topbar()
 
 
-# Entry point from the Router: remember the server address and open the socket.
-# Called right after the screen is added to the tree.
-func start(url: String) -> void:
-	_server_url = url
-	var err := _net.connect_to(url)
-	if err != OK:
-		status_label.text = "ошибка подключения %d" % err
-	else:
-		status_label.text = "подключение…"
+# The leave-to-menu button plus a status pill, on their own always-on-top layer.
+func _build_topbar() -> void:
+	_topbar = Control.new()
+	_topbar.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_topbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_topbar.z_index = 110  # above the fx layer and any overlay panel
+	add_child(_topbar)
+
+	var row := HBoxContainer.new()
+	row.position = Vector2(20, 12)
+	row.add_theme_constant_override("separation", 10)
+	_topbar.add_child(row)
+
+	var leave := Ui.neon_button("В меню", Color(0.6, 0.64, 0.74))
+	leave.custom_minimum_size = Vector2(96, 0)
+	leave.pressed.connect(func() -> void: exit_to_menu.emit())
+	row.add_child(leave)
+
+	# A glass pill that only appears when there is a message to show.
+	_status_pill = PanelContainer.new()
+	_status_pill.add_theme_stylebox_override("panel", Ui.glass(Color(0.95, 0.7, 0.35), 0.55))
+	_status_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_pill.visible = false
+	status_label = Ui.label("", 14, Color(1.0, 0.88, 0.62), false, true)
+	status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_status_pill.add_child(status_label)
+	row.add_child(_status_pill)
+
+
+# Wiring from the Router: how this screen sends actions back to the server. The
+# Router owns the socket (it carried the lobby flow); we just hand it actions.
+func bind(sender: Callable) -> void:
+	_send_action = sender
+
+
+# A fresh server view pushed in by the Router (the socket lives there now).
+func feed_view(new_view: Dictionary) -> void:
+	_ingest_view(new_view)
+
+
+# A short transient message in the top-bar pill (e.g. "соперник вышел"), set by
+# the Router. Empty text hides the pill so it never sits as bare text.
+func set_status(text: String) -> void:
+	if status_label != null:
+		status_label.text = text
+	if _status_pill != null:
+		_status_pill.visible = text != ""
 
 
 # Window resized (e.g. maximize): rebuild the board, since the hand fan and
@@ -201,7 +224,8 @@ func _remove_board_gap() -> void:
 
 
 func _send(obj: Dictionary) -> void:
-	_net.send(obj)
+	if _send_action.is_valid():
+		_send_action.call(obj)
 
 
 # Apply a fresh view: diff creature HP against the last one (GameState) to drive
@@ -387,9 +411,10 @@ func _valid_attack_target(cr: Dictionary) -> bool:
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
-	# Tear down everything below the connection bar and redraw from the view.
-	while root_box.get_child_count() > 1:
-		var n := root_box.get_child(1)
+	# Tear down the board and redraw from the view. The leave button lives on its
+	# own always-on-top layer (_topbar), so root_box holds only board content.
+	while root_box.get_child_count() > 0:
+		var n := root_box.get_child(0)
 		root_box.remove_child(n)
 		n.queue_free()
 	if view.is_empty():
@@ -441,14 +466,19 @@ func _game_over_panel(you: int) -> Control:
 	dim.add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.9))
+	# Roomier glass so the wide display word never sits flush against the frame.
+	var sb := Ui.glass(accent, 0.9)
+	sb.set_content_margin_all(34)
+	panel.add_theme_stylebox_override("panel", sb)
 	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 10)
+	vb.add_theme_constant_override("separation", 18)
+	vb.custom_minimum_size = Vector2(440, 0)  # margin around the verdict text
 	var verdict := Ui.label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 46, accent.lightened(0.3), true)
 	verdict.add_theme_font_override("font", Fonts.DISPLAY)
+	verdict.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vb.add_child(verdict)
 	var to_menu := Ui.neon_button("В меню", accent)
-	to_menu.custom_minimum_size = Vector2(180, 46)
+	to_menu.custom_minimum_size = Vector2(200, 48)
 	to_menu.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	to_menu.pressed.connect(func() -> void: exit_to_menu.emit())
 	vb.add_child(to_menu)

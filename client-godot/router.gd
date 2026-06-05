@@ -1,16 +1,21 @@
 class_name Router
 extends Control
 
-# The application shell root. Owns the screen stack and the shared, persisted
-# settings (server address), and switches between the menu screens and the live
-# match. Screens are lightweight Controls that report choices up via signals;
-# the Router decides where to go next. See APP_SHELL.md.
+# The application shell root and network hub. Owns the screen stack, the shared
+# persisted settings (server address), and the single WebSocket connection used
+# for the whole play flow -- the lobby (create/join a room) and then the match.
+# Screens are lightweight Controls reporting choices up via signals; the Router
+# routes incoming messages (lobby replies vs. match views) to the right place.
+# See APP_SHELL.md.
 
 const MATCH_SCENE := preload("res://Main.tscn")
 const CONFIG_PATH := "user://settings.cfg"
 
 var server_url := SettingsScreen.DEFAULT_URL
 var _screen: Control = null
+var _net: Net = null
+var _open := false
+var _pending: Array = []  # actions queued while the socket is still connecting
 
 
 func _ready() -> void:
@@ -29,9 +34,11 @@ func _swap(screen: Control) -> void:
 	add_child(screen)
 
 
+# --- screens -----------------------------------------------------------------
+
 func _go_main() -> void:
 	var m := MainMenu.new()
-	m.play_pressed.connect(_go_match)
+	m.play_pressed.connect(_go_play)
 	m.settings_pressed.connect(_go_settings)
 	m.quit_pressed.connect(func() -> void: get_tree().quit())
 	_swap(m)
@@ -47,13 +54,144 @@ func _go_settings() -> void:
 	_swap(s)
 
 
-func _go_match() -> void:
-	var match_screen := MATCH_SCENE.instantiate()
-	match_screen.exit_to_menu.connect(_go_main)
-	_swap(match_screen)
-	# start() opens the socket once the screen is in the tree.
-	match_screen.start(server_url)
+func _go_play() -> void:
+	_connect()  # open the socket while the player reads the menu
+	var p := PlayMenu.new()
+	p.create_pressed.connect(_go_create)
+	p.join_pressed.connect(_go_join)
+	p.back_pressed.connect(_leave_play)
+	_swap(p)
 
+
+func _go_create() -> void:
+	var c := CreateRoom.new()
+	c.submit.connect(func(pw: String) -> void:
+		_send({"action": "createRoom", "password": pw}))
+	c.back_pressed.connect(_go_play)
+	_swap(c)
+
+
+func _go_join() -> void:
+	var j := JoinRoom.new()
+	j.submit.connect(func(code: String, pw: String) -> void:
+		_send({"action": "joinRoom", "code": code, "password": pw}))
+	j.back_pressed.connect(_go_play)
+	_swap(j)
+
+
+func _go_room_wait(code: String) -> void:
+	var w := RoomWait.new()
+	w.setup(code, server_url)
+	w.cancel_pressed.connect(func() -> void:
+		_send({"action": "leaveRoom"})
+		_go_play())
+	_swap(w)
+
+
+func _go_match() -> void:
+	var m := MATCH_SCENE.instantiate()
+	m.exit_to_menu.connect(_leave_match)
+	_swap(m)
+	# Hand the match its sender; views arrive via the router and are pushed in.
+	m.bind(func(obj: Dictionary) -> void: _send(obj))
+
+
+# Leave the whole play flow (back from the lobby): drop the socket, go home.
+func _leave_play() -> void:
+	_disconnect()
+	_go_main()
+
+
+# Leave an in-progress match: tell the server (only if still connected -- no
+# point reopening a socket just to announce leaving), then home.
+func _leave_match() -> void:
+	if _open and _net != null:
+		_net.send({"action": "leaveRoom"})
+	_leave_play()
+
+
+# --- network -----------------------------------------------------------------
+
+# Ensure a live socket exists, opening one if there is none. Idempotent: safe to
+# call on entering the play flow and before every send.
+func _connect() -> void:
+	if _net != null:
+		return
+	_open = false
+	_net = Net.new()
+	add_child(_net)
+	_net.opened.connect(_on_open)
+	_net.closed.connect(_on_close)
+	_net.message.connect(_on_message)
+	_net.connect_to(server_url)
+
+
+func _disconnect() -> void:
+	_open = false
+	_pending.clear()
+	if _net != null:
+		_net.queue_free()
+		_net = null
+
+
+func _send(obj: Dictionary) -> void:
+	if _open and _net != null:
+		_net.send(obj)
+	else:
+		# Queue and (re)open the socket -- this also recovers after a server that
+		# dropped and came back, where the old socket was closed and freed.
+		_pending.append(obj)
+		_connect()
+
+
+func _on_open() -> void:
+	_open = true
+	for obj in _pending:
+		_net.send(obj)
+	_pending.clear()
+
+
+func _on_close() -> void:
+	# Free the dead socket so the next _connect() makes a fresh one (otherwise a
+	# server restart would leave a closed socket that never reconnects).
+	_open = false
+	if _net != null:
+		_net.queue_free()
+		_net = null
+	if _in_match():
+		_screen.set_status("Соединение потеряно — нажмите «В меню»")
+	elif _screen != null and _screen.has_method("notify"):
+		_screen.notify("Нет связи с сервером")
+	else:
+		_leave_play()
+
+
+# Dispatch a server message: lobby replies carry a "type"; a board view does not.
+func _on_message(data: Dictionary) -> void:
+	if data.has("type"):
+		match String(data["type"]):
+			"roomCreated":
+				_go_room_wait(String(data.get("code", "")))
+			"joinError":
+				if _screen is JoinRoom:
+					_screen.show_error(String(data.get("reason", "")))
+			"matchStart":
+				if not _in_match():
+					_go_match()
+			"opponentLeft":
+				if _in_match():
+					_screen.set_status("Соперник покинул матч — нажмите «В меню»")
+		return
+	# No "type" -> it's a redacted board view for the live match.
+	if _in_match():
+		_screen.feed_view(data)
+
+
+func _in_match() -> bool:
+	return _screen != null and _screen.has_method("feed_view")
+
+
+# --- settings ----------------------------------------------------------------
 
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()

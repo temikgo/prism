@@ -11,9 +11,12 @@ signal message(data: Dictionary)
 
 var _socket := WebSocketPeer.new()
 var _was_open := false
+var _active := false  # a connect attempt is live (so a CLOSED state means "ended")
 
 
 func connect_to(url: String) -> int:
+	_active = true
+	_was_open = false
 	return _socket.connect_to_url(url)
 
 
@@ -38,6 +41,9 @@ func _process(_dt: float) -> void:
 			var data: Variant = JSON.parse_string(txt)
 			if typeof(data) == TYPE_DICTIONARY:
 				message.emit(data)
-	elif st == WebSocketPeer.STATE_CLOSED and _was_open:
+	elif st == WebSocketPeer.STATE_CLOSED and _active:
+		# Fires for a clean close and for a connection that never opened (server
+		# down / refused), so the caller can surface either as "lost connection".
+		_active = false
 		_was_open = false
 		closed.emit()

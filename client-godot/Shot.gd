@@ -77,7 +77,7 @@ func _process(_dt: float) -> bool:
 	if _frame == 3:
 		_main.view = _mock()
 		_main._rebuild()
-		_main.root_box.get_child(0).visible = false  # hide the connect bar
+		_main._topbar.visible = false  # hide the leave button for the mock shot
 	if _frame == 16:
 		var img := root.get_texture().get_image()
 		img.save_png("res://_shot.png")

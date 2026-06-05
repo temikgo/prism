@@ -4,25 +4,32 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <cctype>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <random>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "json.hpp"
 #include "prism/card.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
 #include "ws.hpp"
 
-// Minimal local game server: a single room of two players over WebSocket. Each
-// client receives its redacted view (a WebSocket text frame of JSON) after
-// every applied action, and sends JSON actions as text frames. Thin transport
-// over the engine -- all rules live in prism_engine, all framing in ws.hpp.
+// Local game server: many private rooms over WebSocket, one process. A socket
+// first does the WebSocket handshake, then sits in a lobby until it creates a
+// room (server-generated code + password) or joins one by code+password. When a
+// room has two players the engine match begins; each client receives its
+// redacted view after every applied action. Rules live in prism_engine, framing
+// in ws.hpp; this file is the room manager + lobby protocol (see APP_SHELL.md).
 
 using namespace prism;
+using nlohmann::json;
 
 namespace {
 
@@ -51,11 +58,9 @@ bool doHandshake(int fd) {
   return true;
 }
 
-// A 30-card demo deck cycling through every playable card the library knows
-// (heroes are not deck cards, so they are excluded).
+// Temporary test deck: one copy of every designed (non-hero) card, no 30-card
+// cap. Real deck-model (limits/curve/selection) is a later task.
 std::vector<std::string> demoDeck(const CardLibrary& lib) {
-  // Temporary test deck: one copy of every designed (non-hero) card, no 30-card
-  // cap. Real deck-model (limits/curve/selection) is a later task.
   std::vector<std::string> deck;
   for (const auto& d : lib.all())
     if (d.type != CardType::Hero) deck.push_back(d.id);
@@ -70,9 +75,178 @@ std::vector<std::string> heroPool(const CardLibrary& lib) {
   return ids;
 }
 
-void broadcast(const Game& g, const int fd[2]) {
-  sendAll(fd[0], ws::textFrame(viewJson(g, 0)));
-  sendAll(fd[1], ws::textFrame(viewJson(g, 1)));
+enum class Phase { Lobby, Waiting, Playing };
+
+// A connected socket and where it is in the flow. `room` is the code of the
+// room it created/joined (empty in the bare lobby); `seat` is 0/1 within it.
+struct Client {
+  Phase phase = Phase::Lobby;
+  std::string room;
+  int seat = -1;
+  std::string buf;  // raw bytes awaiting WebSocket frame parsing
+};
+
+// A private match slot. Holds the shared secret and the two player sockets; the
+// engine game is created when the second player joins.
+struct Room {
+  std::string password;
+  int fd[2] = {-1, -1};
+  std::unique_ptr<Game> game;
+  bool playing = false;
+};
+
+std::unordered_map<int, Client> g_clients;
+std::unordered_map<std::string, Room> g_rooms;
+
+void sendJson(int fd, const json& j) { sendAll(fd, ws::textFrame(j.dump())); }
+
+void sendType(int fd, const std::string& type) {
+  sendJson(fd, json{{"type", type}});
+}
+
+// A short room code from an unambiguous alphabet (no 0/O/1/I), unique among the
+// live rooms.
+std::string makeCode(std::mt19937& rng) {
+  static const char* kAlphabet =
+      "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";  // 32 chars
+  std::string code;
+  do {
+    code.clear();
+    for (int i = 0; i < 4; ++i) code += kAlphabet[rng() % 32];
+  } while (g_rooms.count(code) != 0);
+  return code;
+}
+
+void broadcastRoom(const Room& r) {
+  sendAll(r.fd[0], ws::textFrame(viewJson(*r.game, 0)));
+  sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1)));
+}
+
+// Two players are in: pick heroes, seed, build and start the engine game, tell
+// both the match begins, then send the first views.
+void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
+  std::uint32_t seed = rng();
+  std::vector<std::string> heroes = heroPool(lib);
+  std::string h0, h1;
+  if (!heroes.empty()) {
+    h0 = heroes[rng() % heroes.size()];
+    h1 = heroes[rng() % heroes.size()];
+  }
+  r.game =
+      std::make_unique<Game>(lib, demoDeck(lib), demoDeck(lib), seed, h0, h1);
+  r.game->start();
+  r.playing = true;
+  sendType(r.fd[0], "matchStart");
+  sendType(r.fd[1], "matchStart");
+  broadcastRoom(r);
+  std::printf("Match started (heroes %s / %s, seed %u)\n", h0.c_str(),
+              h1.c_str(), seed);
+  std::fflush(stdout);
+}
+
+// Detach a socket from its room without closing it: cancel a waiting room, or
+// end a live match and notify the opponent. The socket returns to the lobby.
+void leaveRoom(int fd) {
+  Client& c = g_clients[fd];
+  if (c.room.empty()) return;
+  auto it = g_rooms.find(c.room);
+  if (it != g_rooms.end()) {
+    Room& r = it->second;
+    int other = (r.fd[0] == fd) ? r.fd[1] : r.fd[0];
+    if (r.playing && other != -1) {
+      sendType(other, "opponentLeft");
+      Client& oc = g_clients[other];
+      oc.phase = Phase::Lobby;
+      oc.room.clear();
+      oc.seat = -1;
+    }
+    g_rooms.erase(it);
+  }
+  c.phase = Phase::Lobby;
+  c.room.clear();
+  c.seat = -1;
+}
+
+// Handle one lobby-phase command (create/join/leave a room).
+void handleLobby(int fd, const json& j, const CardLibrary& lib,
+                 std::mt19937& rng) {
+  const std::string action = j.value("action", std::string{});
+  Client& c = g_clients[fd];
+  if (action == "createRoom") {
+    if (c.phase != Phase::Lobby) return;
+    const std::string pw = j.value("password", std::string{});
+    if (pw.empty()) {
+      sendJson(fd, json{{"type", "joinError"}, {"reason", "bad_password"}});
+      return;
+    }
+    std::string code = makeCode(rng);
+    Room& r = g_rooms[code];
+    r.password = pw;
+    r.fd[0] = fd;
+    c.phase = Phase::Waiting;
+    c.room = code;
+    c.seat = 0;
+    sendJson(fd, json{{"type", "roomCreated"}, {"code", code}});
+    std::printf("Room %s created\n", code.c_str());
+    std::fflush(stdout);
+  } else if (action == "joinRoom") {
+    if (c.phase != Phase::Lobby) return;
+    std::string code = j.value("code", std::string{});
+    for (char& ch : code) ch = static_cast<char>(std::toupper(ch));
+    const std::string pw = j.value("password", std::string{});
+    auto it = g_rooms.find(code);
+    if (it == g_rooms.end()) {
+      sendJson(fd, json{{"type", "joinError"}, {"reason", "no_room"}});
+      return;
+    }
+    Room& r = it->second;
+    if (r.password != pw) {
+      sendJson(fd, json{{"type", "joinError"}, {"reason", "bad_password"}});
+      return;
+    }
+    if (r.playing || r.fd[1] != -1) {
+      sendJson(fd, json{{"type", "joinError"}, {"reason", "room_full"}});
+      return;
+    }
+    r.fd[1] = fd;
+    c.phase = Phase::Playing;
+    c.room = code;
+    c.seat = 1;
+    g_clients[r.fd[0]].phase = Phase::Playing;
+    startMatch(r, lib, rng);
+  } else if (action == "leaveRoom") {
+    leaveRoom(fd);
+  }
+}
+
+// Route one text frame: lobby commands in any phase, otherwise a game action
+// for a player whose match is live.
+void handleText(int fd, const std::string& payload, const CardLibrary& lib,
+                std::mt19937& rng) {
+  json j;
+  try {
+    j = json::parse(payload);
+  } catch (...) {
+    return;
+  }
+  const std::string action = j.value("action", std::string{});
+  if (action == "createRoom" || action == "joinRoom" || action == "leaveRoom") {
+    handleLobby(fd, j, lib, rng);
+    return;
+  }
+  Client& c = g_clients[fd];
+  if (c.phase != Phase::Playing || c.room.empty()) return;
+  auto it = g_rooms.find(c.room);
+  if (it == g_rooms.end() || !it->second.game) return;
+  applyAction(*it->second.game, c.seat, payload);
+  broadcastRoom(it->second);
+}
+
+// A socket dropped (close/EOF/error): tear down its room if any and forget it.
+void dropClient(int fd) {
+  if (g_clients.count(fd) != 0) leaveRoom(fd);
+  close(fd);
+  g_clients.erase(fd);
 }
 
 }  // namespace
@@ -101,89 +275,75 @@ int main(int argc, char** argv) {
     std::perror("bind");
     return 1;
   }
-  listen(srv, 2);
+  listen(srv, 16);
   // Bound to INADDR_ANY: reachable on every interface. The host's own client
-  // connects to ws://127.0.0.1:<port>; a friend on the LAN uses the host's LAN
-  // IP, over the internet a forwarded/tunnelled address.
-  std::printf(
-      "Prism server on port %d (all interfaces). Connect 2 players to "
-      "ws://<host>:%d ...\n",
-      port, port);
+  // connects to ws://127.0.0.1:<port>; a friend uses the host's LAN IP, or a
+  // forwarded/tunnelled address over the internet. Rooms partition the server.
+  std::printf("Prism server on port %d (all interfaces). Rooms by code.\n",
+              port);
   std::fflush(stdout);
 
-  int fd[2];
-  for (int i = 0; i < 2; ++i) {
-    fd[i] = accept(srv, nullptr, nullptr);
-    if (fd[i] < 0 || !doHandshake(fd[i])) {
-      std::fprintf(stderr, "handshake with player %d failed\n", i);
-      return 1;
-    }
-    std::printf("Player %d connected\n", i);
-    std::fflush(stdout);
-  }
-
-  // Fresh randomness each game: a non-fixed seed (tests still pass explicit
-  // seeds for determinism, but a real match should differ every time).
   std::random_device rd;
-  std::uint32_t seed = rd();
+  std::mt19937 rng(rd());
 
-  // Each player gets a random hero (no lobby/picker yet -- DESIGN §6).
-  std::vector<std::string> heroes = heroPool(lib);
-  std::string h0, h1;
-  if (!heroes.empty()) {
-    std::mt19937 pick(rd());
-    h0 = heroes[pick() % heroes.size()];
-    h1 = heroes[pick() % heroes.size()];
-    std::printf("Heroes: P0=%s  P1=%s\n", h0.c_str(), h1.c_str());
-    std::fflush(stdout);
-  }
-  std::printf("Game seed: %u\n", seed);
-  std::fflush(stdout);
-  Game g(lib, demoDeck(lib), demoDeck(lib), seed, h0, h1);
-  g.start();
-  broadcast(g, fd);
+  while (true) {
+    std::vector<pollfd> fds;
+    fds.push_back({srv, POLLIN, 0});
+    for (const auto& [fd, c] : g_clients) fds.push_back({fd, POLLIN, 0});
 
-  std::string buf[2];
-  pollfd fds[2] = {{fd[0], POLLIN, 0}, {fd[1], POLLIN, 0}};
-  bool running = true;
-  while (running) {
-    if (poll(fds, 2, -1) < 0) break;
-    for (int i = 0; i < 2 && running; ++i) {
-      if (fds[i].revents & (POLLHUP | POLLERR)) {
-        running = false;
-        break;
+    if (poll(fds.data(), static_cast<nfds_t>(fds.size()), -1) < 0) break;
+
+    std::vector<int> dropped;
+    for (const pollfd& pf : fds) {
+      if (pf.fd == srv) {
+        if (pf.revents & POLLIN) {
+          int fd = accept(srv, nullptr, nullptr);
+          if (fd >= 0) {
+            if (doHandshake(fd))
+              g_clients[fd];  // default Client in the lobby
+            else
+              close(fd);
+          }
+        }
+        continue;
       }
-      if (!(fds[i].revents & POLLIN)) continue;
+      if (g_clients.count(pf.fd) == 0) continue;  // dropped earlier this pass
+      if (pf.revents & (POLLHUP | POLLERR)) {
+        dropped.push_back(pf.fd);
+        continue;
+      }
+      if (!(pf.revents & POLLIN)) continue;
       char tmp[4096];
-      ssize_t n = recv(fd[i], tmp, sizeof(tmp), 0);
+      ssize_t n = recv(pf.fd, tmp, sizeof(tmp), 0);
       if (n <= 0) {
-        running = false;
-        break;
+        dropped.push_back(pf.fd);
+        continue;
       }
-      buf[i].append(tmp, static_cast<size_t>(n));
+      g_clients[pf.fd].buf.append(tmp, static_cast<size_t>(n));
+      bool drop = false;
       while (true) {
-        ws::Frame frame = ws::parse(buf[i]);
+        ws::Frame frame = ws::parse(g_clients[pf.fd].buf);
         if (frame.op == ws::Op::Incomplete) break;
-        buf[i].erase(0, frame.consumed);
+        g_clients[pf.fd].buf.erase(0, frame.consumed);
         if (frame.op == ws::Op::Close) {
-          running = false;
+          drop = true;
           break;
         }
         if (frame.op == ws::Op::Ping) {
-          sendAll(fd[i], ws::frame(ws::Op::Pong, frame.payload));
+          sendAll(pf.fd, ws::frame(ws::Op::Pong, frame.payload));
           continue;
         }
         if (frame.op == ws::Op::Text) {
-          applyAction(g, i, frame.payload);
-          broadcast(g, fd);
+          handleText(pf.fd, frame.payload, lib, rng);
+          if (g_clients.count(pf.fd) == 0) break;  // handler dropped us
         }
       }
+      if (drop) dropped.push_back(pf.fd);
     }
+    for (int fd : dropped)
+      if (g_clients.count(fd) != 0) dropClient(fd);
   }
 
-  std::printf("A player disconnected; shutting down.\n");
-  close(fd[0]);
-  close(fd[1]);
   close(srv);
   return 0;
 }
