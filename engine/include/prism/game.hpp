@@ -91,6 +91,7 @@ struct Event {
   int player = -1;  // the relevant player (e.g. a dead creature's owner)
   const CardDef* card = nullptr;  // the source card, kept valid after removal
   int pos = -1;  // board slot the source occupied (for death-summon placement)
+  bool token = false;  // the dead body was a token/illusion, not a real card
 };
 
 // Everything one player owns. Hidden information (hand/deck) is kept here; a

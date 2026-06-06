@@ -1022,6 +1022,26 @@ TEST_CASE("haunt leaves an illusion when the creature dies") {
   CHECK(g.player(0).board[0].hp == 1);
 }
 
+TEST_CASE(
+    "haunt rebirth happens only once: the illusion does not haunt again") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("haunter", 30), repeat("bruiser", 30), 217);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId h = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  CHECK(g.attackCreature(h, br));  // 2/2 haunter dies -> one illusion
+  REQUIRE(g.player(0).board.size() == 1);
+  REQUIRE(g.player(0).board[0].token);
+  EntityId ill = g.player(0).board[0].id;
+  g.endTurn();
+  CHECK(g.attackCreature(br, ill));  // the illusion dies in turn
+  CHECK(g.player(0).board.empty());  // no second illusion -- reborn only once
+}
+
 TEST_CASE("illusions inherit the original's keywords") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("shielded", 30), repeat("bear", 30), 220);

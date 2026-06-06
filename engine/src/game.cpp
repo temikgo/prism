@@ -500,7 +500,7 @@ void Game::checkDeaths() {
         // triggered token (spores/haunt) lands where the creature was.
         int slot = static_cast<int>(survivors.size());
         deaths.push_back(
-            Event{EventType::Died, c.id, 0, 0, p.index, c.def, slot});
+            Event{EventType::Died, c.id, 0, 0, p.index, c.def, slot, c.token});
       }
     }
     p.board.swap(survivors);
@@ -529,10 +529,12 @@ void Game::reactTo(const Event& e) {
   }
   // Bodies are spawned where the creature died, filling rightward from `slot`.
   int slot = e.pos;
-  // Violet haunt: a 1 HP illusion of the creature itself. Spawned BEFORE spores
-  // so that, when the board is nearly full, the self-copy keeps its slot and
-  // the sprouts fill whatever remains (priority decided with the user).
-  if (e.card->hasKeyword("haunt") &&
+  // Violet haunt: a 1 HP illusion of the creature itself. Only a real creature
+  // haunts -- the illusion it leaves is a token and does not haunt again, so a
+  // creature is reborn exactly once. Spawned BEFORE spores so that, when the
+  // board is nearly full, the self-copy keeps its slot and the sprouts fill
+  // whatever remains (priority decided with the user).
+  if (!e.token && e.card->hasKeyword("haunt") &&
       static_cast<int>(owner.board.size()) < BoardLimit) {
     summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1, slot);
     ++slot;

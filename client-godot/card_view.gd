@@ -138,6 +138,10 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	# prefixed by a precise "when" -- "При выходе:" for a creature, or "Через N
 	# ход(ов):" when delay folds the timing in. Below it, each keyword is explained.
 	var is_creature := String(d.get("type", "")) == "creature"
+	# An illusion (token copy) inherits the original's keywords but can never
+	# create more illusions, so haunt/split are inert on it -- hide them from the
+	# generated rules so the text matches what the copy actually does.
+	var illusion := typeof(runtime) == TYPE_DICTIONARY and bool(runtime.get("token", false))
 	var delay_n := CardData.keyword_n(def_id, "delay")
 	var effs := []
 	for e in d.get("effects", []):
@@ -153,7 +157,10 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	var kc := col.lightened(0.42).to_html(false)
 	var head := ""
 	for kw in d.get("keywords", []):
-		if fold_delay and String(kw.get("id", "")) == "delay":
+		var hid := String(kw.get("id", ""))
+		if fold_delay and hid == "delay":
+			continue
+		if illusion and (hid == "haunt" or hid == "split"):
 			continue
 		var nm := Glossary.keyword_name(kw)
 		if nm != "":
@@ -175,7 +182,10 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	var details := []
 	var shown := {}
 	for kw in d.get("keywords", []):
-		if fold_delay and String(kw.get("id", "")) == "delay":
+		var did := String(kw.get("id", ""))
+		if fold_delay and did == "delay":
+			continue
+		if illusion and (did == "haunt" or did == "split"):
 			continue
 		var full := Glossary.keyword(kw)
 		if full == "":
