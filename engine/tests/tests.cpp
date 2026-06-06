@@ -1289,35 +1289,35 @@ TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
   lib.loadFile(PRISM_SAMPLE);
   CHECK(lib.size() >= 6);  // monos, bicolor pairs, neutrals, penta and heroes
-  const CardDef* sting = lib.find("red_scarlet_sting");
-  REQUIRE(sting != nullptr);
-  CHECK(sting->type == CardType::Creature);
-  CHECK(sting->cost.generic == 0);
-  CHECK(sting->cost.pips[idx(Color::Red)] == 1);
-  CHECK(sting->stats.atk == 2);
-  CHECK(sting->stats.hp == 1);
-  REQUIRE(sting->keywords.size() == 1);
-  CHECK(sting->keywords[0].id == "pierce");
+  const CardDef* glint = lib.find("red_stinging_glint");
+  REQUIRE(glint != nullptr);
+  CHECK(glint->type == CardType::Creature);
+  CHECK(glint->cost.generic == 0);
+  CHECK(glint->cost.pips[idx(Color::Red)] == 1);
+  CHECK(glint->stats.atk == 2);
+  CHECK(glint->stats.hp == 1);
+  REQUIRE(glint->keywords.size() == 1);
+  CHECK(glint->keywords[0].id == "pierce");
 
-  const CardDef* hunter = lib.find("red_smoldering_hunter");
-  REQUIRE(hunter != nullptr);
-  REQUIRE(hunter->keywords.size() == 2);
-  CHECK(hunter->keywords[1].id == "regen");
-  REQUIRE(hunter->keywords[1].n.has_value());
-  CHECK(hunter->keywords[1].n.value() == 1);
+  const CardDef* bonfire = lib.find("red_undying_bonfire");
+  REQUIRE(bonfire != nullptr);
+  REQUIRE(bonfire->keywords.size() == 2);
+  CHECK(bonfire->keywords[0].id == "regen");
+  REQUIRE(bonfire->keywords[0].n.has_value());
+  CHECK(bonfire->keywords[0].n.value() == 1);
 
-  const CardDef* stalker = lib.find("violet_dusk_stalker");
-  REQUIRE(stalker != nullptr);
-  CHECK(stalker->colors.size() == 1);
-  CHECK(stalker->colors[0] == Color::Violet);
-  CHECK(stalker->cost.pips[idx(Color::Violet)] == 1);
+  const CardDef* slayer = lib.find("violet_dusk_slayer");
+  REQUIRE(slayer != nullptr);
+  CHECK(slayer->colors.size() == 1);
+  CHECK(slayer->colors[0] == Color::Violet);
+  CHECK(slayer->cost.pips[idx(Color::Violet)] == 1);
 
-  const CardDef* ram = lib.find("red_yellow_prism_ram");
-  REQUIRE(ram != nullptr);
-  CHECK(ram->colors.size() == 2);
-  CHECK(ram->cost.generic == 1);
-  CHECK(ram->cost.pips[idx(Color::Red)] == 1);
-  CHECK(ram->cost.pips[idx(Color::Yellow)] == 1);
+  const CardDef* knight = lib.find("red_yellow_sunset_knight");
+  REQUIRE(knight != nullptr);
+  CHECK(knight->colors.size() == 2);
+  CHECK(knight->cost.generic == 1);
+  CHECK(knight->cost.pips[idx(Color::Red)] == 1);
+  CHECK(knight->cost.pips[idx(Color::Yellow)] == 1);
 }
 
 TEST_CASE("a duplicate aura cannot be played") {
