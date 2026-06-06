@@ -236,7 +236,8 @@ std::optional<ManaPool> Game::shiftedPool(const ManaPool& pool,
   return std::nullopt;
 }
 
-bool Game::playCard(int handIndex, EntityId target, int pos) {
+bool Game::playCard(int handIndex, EntityId target, int pos,
+                    std::optional<std::array<int, ColorCount>> genericPay) {
   if (over_) return false;
   Player& p = players_[current_];
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
@@ -257,7 +258,11 @@ bool Game::playCard(int handIndex, EntityId target, int pos) {
   if (!playTargetLegal(def, p, target)) return false;
   // Pay last, after every legality check, so a rejected play never spends mana.
   if (normal) {
-    p.mana.pay(def->cost);
+    // Honour the player's chosen generic breakdown if one was given and is
+    // valid; otherwise fall back to the greedy default (which is also the only
+    // result when the payment is forced).
+    if (!(genericPay && p.mana.pay(def->cost, *genericPay)))
+      p.mana.pay(def->cost);
   } else {
     ManaPool np = *shifted;
     np.pay(def->cost);

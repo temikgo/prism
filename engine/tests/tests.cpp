@@ -227,6 +227,60 @@ TEST_CASE("mana pool rejects when short") {
   CHECK_FALSE(p.canPay(c));
 }
 
+TEST_CASE("explicit generic breakdown spends the chosen crystals") {
+  ManaPool p;
+  p.addCrystal(Color::Red);
+  p.addCrystal(Color::Red);
+  p.addCrystal(Color::Green);
+  p.addCrystal(Color::Blue);
+  Cost c;
+  c.generic = 2;
+  c.pips[idx(Color::Red)] = 1;  // one red is reserved for the pip
+  // Pay the 2 generic with green + blue, keeping the second red crystal.
+  std::array<int, ColorCount> gp{};
+  gp[idx(Color::Green)] = 1;
+  gp[idx(Color::Blue)] = 1;
+  CHECK(p.pay(c, gp));
+  CHECK(p.available[idx(Color::Red)] == 1);    // 2 - 1 pip
+  CHECK(p.available[idx(Color::Green)] == 0);  // spent on generic
+  CHECK(p.available[idx(Color::Blue)] == 0);   // spent on generic
+
+  // A breakdown that does not sum to the generic cost is rejected, unchanged.
+  ManaPool q;
+  q.addCrystal(Color::Red);
+  q.addCrystal(Color::Green);
+  Cost c2;
+  c2.generic = 2;
+  std::array<int, ColorCount> bad{};
+  bad[idx(Color::Red)] = 1;  // sums to 1, not 2
+  CHECK_FALSE(q.pay(c2, bad));
+  CHECK(q.totalAvailable() == 2);  // nothing spent
+
+  // Asking to spend more of a color than is available is rejected.
+  std::array<int, ColorCount> over{};
+  over[idx(Color::Red)] = 2;  // only one red available
+  CHECK_FALSE(q.pay(c2, over));
+  CHECK(q.totalAvailable() == 2);
+}
+
+TEST_CASE("play honours a chosen generic breakdown over the greedy default") {
+  CardLibrary lib = testLib();
+  // "sleeper" costs 2 generic (no colored pips). With greens and colorless both
+  // available, the greedy default would spend colorless first; here we choose
+  // to spend the greens and keep the colorless crystals instead.
+  Game g(lib, repeat("sleeper", 30), repeat("sleeper", 30), 1234);
+  g.start();
+  ManaPool& m = g.player(0).mana;
+  m.available = {};
+  m.available[idx(Color::Green)] = 2;
+  m.available[idx(Color::Colorless)] = 2;
+  std::array<int, ColorCount> gp{};
+  gp[idx(Color::Green)] = 2;  // pay both generic with green, keep colorless
+  CHECK(g.playCard(0, 0, -1, gp));
+  CHECK(g.player(0).mana.available[idx(Color::Green)] == 0);
+  CHECK(g.player(0).mana.available[idx(Color::Colorless)] == 2);  // kept
+}
+
 TEST_CASE("summoning sickness blocks attack on summon turn") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 30), repeat("bear", 30), 1234);

@@ -141,6 +141,25 @@ struct ManaPool {
     available = a;
     return true;
   }
+
+  // Spend the cost with an explicit breakdown of the generic part across
+  // colors: genericPay[i] is how many crystals of color i go toward the generic
+  // cost (on top of that color's pips). Lets the player choose what to spend
+  // instead of the greedy default. Returns false and changes nothing if the
+  // breakdown is invalid (negative, more than available after pips, or not
+  // summing to generic).
+  bool pay(const Cost& cost, const std::array<int, ColorCount>& genericPay) {
+    int sum = 0;
+    for (int i = 0; i < ColorCount; ++i) {
+      if (genericPay[i] < 0) return false;
+      if (available[i] < cost.pips[i] + genericPay[i]) return false;
+      sum += genericPay[i];
+    }
+    if (sum != cost.generic) return false;
+    for (int i = 0; i < ColorCount; ++i)
+      available[i] -= cost.pips[i] + genericPay[i];
+    return true;
+  }
 };
 
 }  // namespace prism

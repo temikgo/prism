@@ -1431,11 +1431,11 @@ func _can_cast_on(data: Variant, want_side: String) -> bool:
 func _play_payload(data: Variant, target: int) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
-	_spell_cast_fx(data)
 	if data.get("kind", "") == "awaken":
+		_spell_cast_fx(data)
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": target})
-	else:
-		_send({"action": "play", "handIndex": int(data["index"]), "target": target})
+		return
+	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": target})
 
 
 # When a spell is played, dissolve a ghost of its face at the drop point so the
@@ -1455,12 +1455,60 @@ func _is_spell(card_id: String) -> bool: return CardData.is_spell(card_id)
 func _play_at_drop(data: Variant) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
-	_spell_cast_fx(data)
 	var pos := _drop_insert_index()
 	if data.get("kind", "") == "awaken":
+		_spell_cast_fx(data)
 		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": 0, "pos": pos})
-	else:
-		_send({"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
+		return
+	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
+
+
+# Send a play action, but when the generic part of the cost can be paid more than
+# one way, first let the player tap which crystals to spend (then attach the
+# chosen breakdown as genericPay). Unambiguous payments play immediately.
+func _dispatch_play(data: Variant, msg: Dictionary) -> void:
+	var choices := _generic_choices(String(data.get("card_id", "")))
+	if choices.is_empty():
+		_spell_cast_fx(data)
+		_send(msg)
+		return
+	_close_picker()
+	var picker := ManaSpendPicker.new()
+	picker.picked.connect(func(generic_pay: Dictionary) -> void:
+		_spell_cast_fx(data)
+		msg["genericPay"] = generic_pay
+		_send(msg))
+	picker.tree_exited.connect(func() -> void: _picker = null)
+	add_child(picker)
+	picker.setup(int(choices["generic"]), choices["avail"], choices["pips"])
+	_picker = picker
+
+
+# {generic, avail, pips} when paying the card's generic cost is ambiguous (free
+# crystals -- available minus reserved pips -- span >= 2 colors and exceed the
+# generic amount), else {} (pay greedily, no prompt). Cards are only droppable
+# when affordable, so total free >= generic is guaranteed here.
+func _generic_choices(card_id: String) -> Dictionary:
+	if card_id == "" or view.is_empty():
+		return {}
+	var cost: Dictionary = cards.get(card_id, {}).get("cost", {})
+	var generic := int(cost.get("generic", 0))
+	if generic <= 0:
+		return {}
+	var you := int(view["you"])
+	var avail: Dictionary = view["players"][you].get("mana", {}).get("available", {})
+	var total_free := 0
+	var colors_with_free := 0
+	var pips := {}
+	for color in CardData.ALL_COLORS:
+		pips[color] = int(cost.get(color, 0))
+		var f: int = maxi(0, int(avail.get(color, 0)) - int(pips[color]))
+		total_free += f
+		if f > 0:
+			colors_with_free += 1
+	if total_free > generic and colors_with_free >= 2:
+		return {"generic": generic, "avail": avail, "pips": pips}
+	return {}
 
 
 # How many of your creatures sit left of the drop point -> the insertion slot.

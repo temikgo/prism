@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
@@ -170,7 +171,9 @@ class Game {
   // pass 0 for cards that need no target.
   // `pos` is where a creature is inserted on the board (0..board size); -1 (the
   // default) appends to the right.
-  bool playCard(int handIndex, EntityId target = 0, int pos = -1);
+  bool playCard(
+      int handIndex, EntityId target = 0, int pos = -1,
+      std::optional<std::array<int, ColorCount>> genericPay = std::nullopt);
   // Violet awaken: play a card straight from the mana row. The banked crystal
   // pays 1 of the cost in its own color (or 1 generic if that color isn't
   // required); the remainder is paid from your other available crystals, and

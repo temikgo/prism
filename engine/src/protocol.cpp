@@ -1,6 +1,7 @@
 #include "prism/protocol.hpp"
 
 #include <array>
+#include <optional>
 
 #include "json.hpp"
 
@@ -162,9 +163,22 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     if (!col) return false;
     return g.placeCardToMana(j.value("handIndex", -1), *col);
   }
-  if (a == "play")
+  if (a == "play") {
+    // Optional player-chosen breakdown of the generic cost: {"genericPay":
+    // {"green":1,"blue":1}}. Absent -> the engine pays the generic part
+    // greedily.
+    std::optional<std::array<int, ColorCount>> genericPay;
+    if (j.contains("genericPay") && j["genericPay"].is_object()) {
+      std::array<int, ColorCount> gp{};
+      for (auto it = j["genericPay"].begin(); it != j["genericPay"].end(); ++it)
+        if (auto col = colorFromString(it.key());
+            col && it.value().is_number_integer())
+          gp[idx(*col)] += it.value().get<int>();
+      genericPay = gp;
+    }
     return g.playCard(j.value("handIndex", -1), j.value("target", 0),
-                      j.value("pos", -1));
+                      j.value("pos", -1), genericPay);
+  }
   if (a == "awaken")
     return g.awaken(j.value("manaRowIndex", -1), j.value("target", 0),
                     j.value("pos", -1));

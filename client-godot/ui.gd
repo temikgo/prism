@@ -98,8 +98,11 @@ static func mana_pip(color: String, filled: bool, temp := false) -> Control:
 		sb.shadow_size = 6
 		sb.shadow_color = Color(c.r, c.g, c.b, 0.6)
 	else:
-		sb.bg_color = Color(c.r, c.g, c.b, 0.12)
-		sb.border_color = Color(c.r, c.g, c.b, 0.5)
+		# Spent this turn: a clearly dark crystal (not a faint outline), so spent
+		# vs available reads as dark vs bright. The faint colored border keeps its
+		# color legible.
+		sb.bg_color = Color(0.16, 0.17, 0.21, 0.95)
+		sb.border_color = Color(c.r, c.g, c.b, 0.55)
 	if temp:
 		# Bonus mana for this turn only (e.g. green photosynthesis ramp): keep the
 		# pip's own fill but ring it in a green glow so it reads as extra, not a
@@ -113,12 +116,12 @@ static func mana_pip(color: String, filled: bool, temp := false) -> Control:
 	if is_neutral:
 		# A rotated square reads as "any color" -- a prism/diamond.
 		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(17, 22)
+		holder.custom_minimum_size = Vector2(28, 38)
 		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var dia := Panel.new()
-		dia.size = Vector2(12, 12)
-		dia.position = Vector2(2.5, 5)
-		dia.pivot_offset = Vector2(6, 6)
+		dia.size = Vector2(19, 19)
+		dia.position = Vector2(4.5, 9.5)
+		dia.pivot_offset = Vector2(9.5, 9.5)
 		dia.rotation = deg_to_rad(45)
 		dia.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		dia.add_theme_stylebox_override("panel", sb)
@@ -126,7 +129,7 @@ static func mana_pip(color: String, filled: bool, temp := false) -> Control:
 		return holder
 
 	var pip := Panel.new()
-	pip.custom_minimum_size = Vector2(15, 22)
+	pip.custom_minimum_size = Vector2(26, 36)
 	pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pip.add_theme_stylebox_override("panel", sb)
 	return pip
