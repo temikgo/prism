@@ -775,37 +775,5 @@
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
     ]
-  },
-  {
-    "id": "hero_prism",
-    "name": { "ru": "Ирида" },
-    "text": { "ru": "Один луч — и в нём уже все цвета." },
-    "art": "Iris, a poised duelist-painter, raises a faceted glass prism; a beam of white light enters and arcs out of it as a rainbow fan sweeping across her, her brush trailing refracted color",
-    "type": "hero",
-    "keywords": [{ "id": "spectral_shift" }]
-  },
-  {
-    "id": "hero_eclipse",
-    "name": { "ru": "Эреб" },
-    "text": { "ru": "Я пишу не светом, а его отсутствием." },
-    "art": "Erebus, half-swallowed in shadow, haloed by the bright corona of a total eclipse; darkness drips from his brush as he paints with the absence of light",
-    "type": "hero",
-    "keywords": [{ "id": "lighteater" }]
-  },
-  {
-    "id": "hero_palette",
-    "name": { "ru": "Тициана" },
-    "text": { "ru": "Смешай два света — и родится третий." },
-    "art": "Tiziana, a painter holding up a large round glowing artist's palette laden with light-paints in one hand, sweeping a broad brush across it with the other as two colours stream together and bloom into a third where they meet",
-    "type": "hero",
-    "keywords": [{ "id": "palette" }]
-  },
-  {
-    "id": "hero_facet",
-    "name": { "ru": "Гемма" },
-    "text": { "ru": "Я бужу свет огранённым." },
-    "art": "Gemma holds a many-faceted crystal up to the light and strikes a clean facet, splitting a thin beam into sharp geometric glints",
-    "type": "hero",
-    "keywords": [{ "id": "facet" }]
   }
 ]
