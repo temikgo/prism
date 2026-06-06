@@ -36,6 +36,7 @@ var _status_pill: Control = null  # the status message pill (hidden when empty)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
+var _prev_hero_hp := {}        # player index (0/1) -> hero hp last seen (face damage)
 # Board creatures live in two persistent layers (yours / opponent's), keyed by
 # creature id, so a living creature keeps its node across views. Reattached into
 # the freshly-built half each rebuild (rescued before teardown).
@@ -55,6 +56,7 @@ var _mull_sel := {}                    # mulligan: hand indices marked for repla
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
 var _enemy_hero_node = null            # enemy hero medallion node (lunge target)
+var _my_hero_node = null               # your hero medallion node (face-damage numbers)
 
 var status_label: Label
 var root_box: VBoxContainer
@@ -241,10 +243,23 @@ func _ingest_view(new_view: Dictionary) -> void:
 		if dead != null:
 			_anim.fade_out_dead(dead)
 
+	var hero_dmg := _diff_hero_hp(new_view)
 	view = new_view
 	_rebuild()  # reattaches the board layers and reconciles them
 	_prev_hp = new_hp
-	_animate_changes(d["dmg"], d["summoned"])
+	_animate_changes(d["dmg"], d["summoned"], hero_dmg)
+
+
+# Update the per-side hero HP record and return {player index -> damage taken}
+# for any hero whose HP dropped this view (face damage / pierce overflow).
+func _diff_hero_hp(new_view: Dictionary) -> Dictionary:
+	var dmg := {}
+	for s in 2:
+		var hp := int(new_view["players"][s].get("hero", {}).get("hp", 0))
+		if _prev_hero_hp.has(s) and hp < _prev_hero_hp[s]:
+			dmg[s] = _prev_hero_hp[s] - hp
+		_prev_hero_hp[s] = hp
+	return dmg
 
 
 # Apply damage / death / summon effects once the new board has laid out.
@@ -293,7 +308,7 @@ func _attach_ready_pulse(card: Control) -> void: _anim.ready_pulse(card)
 
 # Apply damage / death / summon effects once the new board has laid out. Owns the
 # orchestration (which ids changed); the Fx module owns the animations.
-func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
+func _animate_changes(dmg: Dictionary, summoned: Dictionary, hero_dmg: Dictionary = {}) -> void:
 	# Two frames so the containers finish positioning the rebuilt board: effects
 	# below read each node's global_position, which is only valid once the row
 	# has laid out (one frame is not enough -- numbers landed at the top edge).
@@ -318,6 +333,14 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary) -> void:
 			_anim.float_number(
 				nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.18), int(dmg[id]))
 		total += int(dmg[id])
+	# Face damage: the same flash + floating number on the hero medallion that took
+	# the hit (yours or the enemy's), so chip/burst damage to a hero reads too.
+	for s in hero_dmg:
+		var hn = _my_hero_node if int(s) == int(view.get("you", 0)) else _enemy_hero_node
+		if hn != null and is_instance_valid(hn):
+			_anim.flash(hn)
+			_anim.float_number(hn.global_position + hn.size * Vector2(0.5, 0.2), int(hero_dmg[s]))
+		total += int(hero_dmg[s])
 	if total > 0:
 		_anim.shake(minf(4.0 + total * 1.7, 16.0))  # impact scales with the hit
 	_animate_piles()
@@ -743,6 +766,8 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 	card.custom_minimum_size = Vector2(158, 0)
 	card.size_flags_vertical = Control.SIZE_FILL
 	card.add_theme_stylebox_override("panel", Ui.glass(accent, 0.4))
+	if mine:
+		_my_hero_node = card  # where your own face-damage numbers spawn
 	if not mine:
 		_enemy_hero_node = card  # lunge target for face attacks
 		# Attack the face: blocked by a provoker unless the attacker has Bypass.
