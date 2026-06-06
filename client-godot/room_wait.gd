@@ -19,7 +19,6 @@ func setup(code: String, server_url: String) -> void:
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(Backdrop.new())
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -39,7 +39,6 @@ func _apply_defaults() -> void:
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(Backdrop.new())
 	_apply_defaults()  # first run (no saved choice): preselect a sensible loadout
 
 	var root := VBoxContainer.new()

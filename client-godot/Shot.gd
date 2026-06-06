@@ -34,19 +34,19 @@ func _mock() -> Dictionary:
 	var me := {
 		"hero": _hero("hero_prism", "Ирида", "spectral_shift", 27, 0),
 		"mana": {"crystals": _mana(2, 0, 1, 1, 0, 1), "available": _mana(1, 0, 1, 1, 0, 1)},
-		"manaRow": [{"color": "red", "card": "red_scarlet_sting", "age": 1},
+		"manaRow": [{"color": "red", "card": "red_stinging_glint", "age": 1},
 			{"color": "green", "age": 2}, {"color": "colorless", "age": 0}],
 		"handCount": 4,
-		"hand": ["green_forest_matron", "blue_deep_oracle", "yellow_blue_blinding_rime",
+		"hand": ["green_lightwood", "blue_deep_chronicler", "yellow_blue_icy_sentinel",
 			"prismatic_seraph"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"mulliganDone": true,
 		"board": [
-			_cr(11, "red_scarlet_sting", 2, 1, 1),
-			_cr(12, "green_forest_matron", 2, 3, 3, {"shield": true}),
-			_cr(13, "yellow_beacon_ward", 1, 3, 3),
+			_cr(11, "red_stinging_glint", 2, 1, 1),
+			_cr(12, "green_young_lightbloom", 1, 2, 2, {"shield": true}),
+			_cr(13, "yellow_steadfast_warden", 0, 4, 4),
 		],
-		"auras": [{"card": "green_lightsprout"}],
+		"auras": [{"card": "blue_creeping_rime"}],
 	}
 	var opp := {
 		"hero": _hero("hero_eclipse", "Эреб", "lighteater", 24, 2),
@@ -56,8 +56,8 @@ func _mock() -> Dictionary:
 		"deckCount": 16, "graveyardCount": 1, "pendingCount": 1,
 		"mulliganDone": true,
 		"board": [
-			_cr(21, "blue_deep_oracle", 4, 6, 6, {"frozen": 1}),
-			_cr(22, "violet_dusk_stalker", 3, 2, 2, {"stealth": true}),
+			_cr(21, "blue_glacier_titan", 4, 6, 6, {"frozen": 1}),
+			_cr(22, "violet_restless_phantom", 2, 3, 3, {"stealth": true}),
 		],
 		"auras": [],
 	}

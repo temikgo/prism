@@ -29,6 +29,10 @@ func _ready() -> void:
 	CardData.load_file("res://cards.json")
 	CardData.load_file("res://tokens.json")
 	_load_settings()
+	# One shared backdrop lives here, behind every screen, instead of each screen
+	# making its own. Screens swap above it, so the drifting particle field is
+	# continuous and never resets/re-randomizes when routing between screens.
+	add_child(Backdrop.new())
 	_go_main()
 
 

@@ -35,16 +35,28 @@ static func _portrait(card_id: String, px: float) -> Control:
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.09, 0.10, 0.15)
-	sb.set_corner_radius_all(12)
-	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(3)
 	sb.border_color = ACCENT
-	sb.shadow_size = 8
-	sb.shadow_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.45)
+	sb.shadow_size = 16
+	sb.shadow_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.5)
 	holder.add_theme_stylebox_override("panel", sb)
 	holder.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	var art := Tokens.art(card_id, px, ACCENT)
 	art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(art)
+	# A thin bright inner stroke just inside the frame: it reads as a lit bevel and
+	# lifts the portrait off the board, so the hero feels framed, not pasted in.
+	var inner := Panel.new()
+	inner.set_anchors_preset(Control.PRESET_FULL_RECT)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var isb := StyleBoxFlat.new()
+	isb.bg_color = Color(0, 0, 0, 0)
+	isb.set_corner_radius_all(11)
+	isb.set_border_width_all(1)
+	isb.border_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.45)
+	inner.add_theme_stylebox_override("panel", isb)
+	holder.add_child(inner)
 	holder.tooltip_text = CardData.name_of(card_id)
 	return holder
 

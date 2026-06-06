@@ -15,21 +15,15 @@ const STATUS_MAX := 4   # status icons shown before collapsing to a +N chip
 # diameter; `font` defaults to ~0.42*size; `glow` adds a soft colored shadow.
 static func gem(text: String, ring: Color, size: float, font: int = 0,
 		glow: bool = false, bg_alpha: float = 0.96) -> Control:
-	var g := Panel.new()
+	var g := GemNode.new()
+	g.ring = ring
+	g.bg_alpha = bg_alpha
+	g.glow = glow
 	g.custom_minimum_size = Vector2(size, size)
 	g.size = Vector2(size, size)
 	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.05, 0.08, bg_alpha)
-	sb.set_corner_radius_all(int(size / 2.0))
-	sb.set_border_width_all(2)
-	sb.border_color = ring
-	if glow:
-		sb.shadow_size = 6
-		sb.shadow_color = Color(ring.r, ring.g, ring.b, 0.5)
-	g.add_theme_stylebox_override("panel", sb)
 	var fs := font if font > 0 else int(size * 0.46)
-	var l := Ui.label(text, fs, ring.lightened(0.5), true)
+	var l := Ui.label(text, fs, ring.lightened(0.6), true)
 	# Heavy weight + a dark rim so the number stays crisp over any art behind it.
 	l.add_theme_font_override("font", Fonts.BLACK)
 	l.add_theme_constant_override("outline_size", 5)

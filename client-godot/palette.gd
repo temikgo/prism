@@ -3,13 +3,15 @@ class_name Palette
 # Color identity for the five Prism colors plus neutral, and their Russian
 # names. Pure data and lookups, shared across the whole UI.
 
+# Saturated jewel tones tuned to match the painterly card art (crimson, gold,
+# emerald, azure, amethyst) rather than the earlier pastel set.
 const MAP := {
-	"red": Color(0.86, 0.24, 0.26),
-	"yellow": Color(0.92, 0.78, 0.24),
-	"green": Color(0.34, 0.74, 0.40),
-	"blue": Color(0.32, 0.56, 0.92),
-	"violet": Color(0.62, 0.38, 0.86),
-	"colorless": Color(0.72, 0.72, 0.78),
+	"red": Color(0.92, 0.20, 0.30),
+	"yellow": Color(0.98, 0.76, 0.20),
+	"green": Color(0.26, 0.82, 0.44),
+	"blue": Color(0.24, 0.58, 0.98),
+	"violet": Color(0.68, 0.32, 0.94),
+	"colorless": Color(0.80, 0.80, 0.88),
 }
 
 const RU := {

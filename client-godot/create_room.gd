@@ -14,7 +14,6 @@ var _status: Label = null
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(Backdrop.new())
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)

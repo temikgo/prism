@@ -13,6 +13,9 @@ var _cur
 func _initialize() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	DisplayServer.window_set_size(Vector2i(1100, 680))
+	# The router owns the shared backdrop in the real app; screens no longer make
+	# their own. Mirror that here so each shot still shows the atmosphere behind it.
+	root.add_child(Backdrop.new())
 	_shots = [
 		["_menu", func(): return MainMenu.new()],
 		["_play", func(): return PlayMenu.new()],

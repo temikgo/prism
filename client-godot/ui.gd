@@ -25,12 +25,15 @@ static func label(text: String, size: int = 0, color: Variant = null,
 # Translucent dark "glass" with a neon accent border and a soft accent glow.
 static func glass(accent: Color, bg_alpha: float) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.09, 0.15, bg_alpha)
-	sb.set_corner_radius_all(10)
+	sb.bg_color = Color(0.06, 0.07, 0.14, bg_alpha)
+	sb.set_corner_radius_all(12)
 	sb.set_border_width_all(2)
-	sb.border_color = Color(accent.r, accent.g, accent.b, 0.85)
-	sb.shadow_size = 16
-	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.42)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.9)
+	# A lit top edge: a brighter, thicker upper border reads as light catching the
+	# rim of the glass, so panels feel like inked vellum rather than flat boxes.
+	sb.border_width_top = 3
+	sb.shadow_size = 20
+	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.45)
 	sb.set_content_margin_all(8)
 	return sb
 

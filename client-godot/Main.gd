@@ -96,7 +96,6 @@ func _load_cards() -> void:
 func _build_shell() -> void:
 	# Shared atmospheric backdrop (gradient, glows, vignette, drifting motes); it
 	# fits its own motes to the window, so we only need to rebuild the board here.
-	add_child(Backdrop.new())
 	get_tree().root.size_changed.connect(_on_window_resized)
 
 	var margin := MarginContainer.new()
