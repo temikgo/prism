@@ -56,7 +56,10 @@ func ready_pulse(card: Control) -> void:
 	sb.shadow_color = Color(gold.r, gold.g, gold.b, 0.55)
 	ring.add_theme_stylebox_override("panel", sb)
 	card.add_child(ring)
-	var t := create_tween()
+	# Bind the looping pulse to the ring itself, so it is killed when the ring is
+	# freed on the next board rebuild. A tween created on the Fx node instead would
+	# outlive the ring and loop over a freed target -> "infinite loop" spam.
+	var t := ring.create_tween()
 	t.set_loops()
 	t.tween_property(ring, "modulate:a", 0.35, 0.8).set_trans(Tween.TRANS_SINE)
 	t.tween_property(ring, "modulate:a", 1.0, 0.8).set_trans(Tween.TRANS_SINE)
