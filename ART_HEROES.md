@@ -34,47 +34,14 @@
 
 > **Отложено в бэклог:** Кьяра «Линза» / Прозрение (`clairvoyance`) — готовый кандидат, арт `hero_lens.png` сохранён, но из боевого пула и кода (движок/глоссарий/тесты) убран. Возрождение — заново подключить `clairvoyance` (топ-карта во view) + иконку.
 
-## Готовые промпты (BASE + Scene собраны)
+## Промпты
 
-Сохранять в `client-godot/art/<id>.png`, затем импорт Godot. Размер **`1024×1024`** (квадрат).
+Актуальные промпты всех 4 героев (BASE + сцена, MJ v7) — в `ART_PROMPTS.md` (раздел ГЕРОИ),
+единый источник. Сохранять в `client-godot/art/<id>.png`, размер `1024×1024`.
 
-**`hero_prism.png` — Ирида «Призма»:**
-> Stylized hero portrait for Prisma, a world made of and revealed by living light. A humanoid
-> duelist-artist of the Prisma Arena, shaped from light: a bold clean readable figure glowing from
-> within — a translucent luminous body and a few bright internal light-lines, a glowing core and
-> eyes, soft volumetric glow with a crisp rim, set against deep darkness so the light reads. Her
-> signature is a faceted glass prism splitting a single beam into a full rainbow fan, lit in
-> balanced full-spectrum prismatic rainbow light. Simplified, few large shapes, no busy detail, no
-> realistic flesh or metal or texture — light given form. A distinct recognizable silhouette and a
-> confident pose. Square 1:1 composition, a single centered figure filling most of the frame,
-> simple dark atmospheric background. No text, no card frame, no border, no UI. Scene: Iris raises
-> a prism; a beam of white light enters and arcs out of it as a fan of rainbow light sweeping
-> across her.
-
-**`hero_eclipse.png` — Эреб «Затмение»:**
-> Stylized hero portrait for Prisma, a world made of and revealed by living light. A humanoid
-> duelist-artist of the Prisma Arena, shaped from light: a bold clean readable figure glowing from
-> within, but mostly drawn in shadow — a dark form rimmed by light, a glowing core and eyes, soft
-> volumetric glow against deep darkness. His signature is a dark eclipse disc ringed by a thin
-> bright corona, lit in deep shadow with a thin gold corona rim and a cold blue-violet glow.
-> Simplified, few large shapes, no busy detail, no realistic flesh or metal or texture — light
-> (and its absence) given form. A distinct recognizable silhouette and a confident pose. Square
-> 1:1 composition, a single centered figure filling most of the frame, simple dark atmospheric
-> background. No text, no card frame, no border, no UI. Scene: Erebus haloed by the bright corona
-> of a total eclipse, painting with the absence of light as darkness pools around him.
-
-**`hero_lens.png` — Кьяра «Линза»:**
-> Stylized hero portrait for Prisma, a world made of and revealed by living light. A humanoid
-> duelist-artist of the Prisma Arena, shaped from light: a bold clean readable figure glowing from
-> within — a translucent luminous body and a few bright internal light-lines, a glowing core and
-> eyes, soft volumetric glow with a crisp rim, set against deep darkness so the light reads. Her
-> signature is a great convex glass lens focusing light to one bright point, lit in clear cool
-> glassy whites and pale blue with a sharp gold focal glint. Simplified, few large shapes, no busy
-> detail, no realistic flesh or metal or texture — light given form. A distinct recognizable
-> silhouette and a calm focused pose. Square 1:1 composition, a single centered figure filling
-> most of the frame, simple dark atmospheric background. No text, no card frame, no border, no UI.
-> Scene: Chiara gazes through a great lens; a beam focuses to a single brilliant point, faint
-> shimmering after-images of what is to come hovering at the edges.
+Особое: **Эреб «Затмение»** переведён в **чёрно-белый монохром-затмение** (молодой дерзкий
+силуэт, дымка), а не цветной. **Кьяра «Линза»** (`hero_lens.png`, `clairvoyance`) — отложенный
+кандидат, арт сохранён.
 
 ## Иконки абилок
 
