@@ -66,9 +66,13 @@ static const char* kTestCards = R"json([
   { "id": "decoyling", "name": { "ru": "Приманка" }, "type": "creature",
     "color": [], "cost": { "generic": 2 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }] },
-  { "id": "lingerer", "name": { "ru": "Неугас" }, "type": "creature",
+  { "id": "lingerer", "name": { "ru": "Неугасимый страж" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "lingering" }] },
+  { "id": "lingerbolt", "name": { "ru": "Неугасимый росчерк" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "lingering" }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "damage", "value": 2 }] },
   { "id": "hider", "name": { "ru": "Незримка" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "stealth" }] },
@@ -841,6 +845,20 @@ TEST_CASE("lingering wounds cannot be healed by regen") {
   CHECK(g.attackCreature(l, r));  // regenbear 5 -> 3, 2 unhealable
   CHECK(g.player(1).board[0].hp == 3);
   g.endTurn();                          // regenbear's turn start: regen tries
+  CHECK(g.player(1).board[0].hp == 3);  // capped at maxHp - unhealable = 3
+}
+
+TEST_CASE("lingering on a spell makes its damage unhealable") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("lingerbolt", 30), repeat("regenbear", 30), 251);
+  g.start();
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 plays a regenbear (5 hp, regen)
+  EntityId r = g.player(1).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "lingerbolt"), r));  // 2 dmg, lingering
+  CHECK(g.player(1).board[0].hp == 3);  // 5 -> 3, 2 unhealable
+  g.endTurn();                          // regenbear's turn: regen tries to heal
   CHECK(g.player(1).board[0].hp == 3);  // capped at maxHp - unhealable = 3
 }
 

@@ -702,10 +702,19 @@ bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
 // case if needed.
 void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
   for (const auto& e : def->effects)
-    if (e.trigger == "on_play") executeAction(e, owner, target);
+    if (e.trigger == "on_play") executeAction(e, owner, target, def);
 }
 
-void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
+// Mark spell/effect damage as unhealable when the source card has lingering
+// (Red). Mirrors damageCreature's source-creature path for spells, which carry
+// no Creature source.
+void Game::applyLingering(Creature& t, int dealt, const CardDef* src) {
+  if (src && dealt > 0 && src->hasKeyword("lingering"))
+    t.unhealable = std::min(t.maxHp, t.unhealable + dealt);
+}
+
+void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
+                         const CardDef* src) {
   Player& opp = players_[1 - owner.index];
   const std::string& a = e.action;
   if (a == "freeze") {
@@ -720,10 +729,12 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target) {
     if (e.selector == "enemy_hero")
       dealHeroDamage(opp, e.value);
     else if (Creature* t = findSelected(e.selector, owner, target))
-      if (!absorbWard(*t)) damageCreature(*t, e.value, nullptr);
+      if (!absorbWard(*t))
+        applyLingering(*t, damageCreature(*t, e.value, nullptr), src);
   } else if (a == "damage_all") {
     for (auto& pl : players_)
-      for (auto& c : pl.board) damageCreature(c, e.value, nullptr);
+      for (auto& c : pl.board)
+        applyLingering(c, damageCreature(c, e.value, nullptr), src);
   } else if (a == "destroy") {
     if (Creature* t = findSelected(e.selector, owner, target))
       if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps

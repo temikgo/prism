@@ -218,7 +218,9 @@ class Game {
   bool hasAura(const Player& p,
                const std::string& id) const;  // already controls this aura?
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
-  void executeAction(const EffectDef& e, Player& owner, EntityId target);
+  void executeAction(const EffectDef& e, Player& owner, EntityId target,
+                     const CardDef* src = nullptr);
+  void applyLingering(Creature& t, int dealt, const CardDef* src);
   // True if `target` is a legal target for the card's on_play effects (a
   // chosen_enemy_minion must exist and not be stealthed).
   bool playTargetLegal(const CardDef* def, Player& owner, EntityId target);
