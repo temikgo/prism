@@ -128,9 +128,13 @@ atk/hp/maxHp/sick/frozenTurns/blindTurns/shield/warded/stealthed/token...),
 «билдер» = статические функции, строят `Control` из данных; «глобал» =
 автозагрузка/синглтон-стиль через `class_name`.
 
-### Оркестратор матча — `Main.gd` (1661 стр., см. под-карту ниже)
-God-object сцены матча: хранит `view`, строит борд, гоняет play-флоу и оверлеи.
-Главная цель рефакторинга (Фаза D плана) — ужать до координатора.
+### Координатор матча — `Main.gd` (~840 стр., см. под-карту ниже)
+Координатор сцены матча: хранит `view`, владеет персистентными слоями
+(`BoardLayer`×2, `HandRow`), на каждый view пересобирает борд из модулей-виджетов
+и гоняет play-флоу/анимации. Сборку рисуют вынесенные виджеты (`BoardRow`,
+`HeroMedallion`, `PilesColumn`, оверлеи); легальность — `Rules`; данные карт —
+`CardData`. Виджеты эмитят **намерения** (attack/cast/play/awaken), Main их
+маршрутизирует в сеть/Fx. (Разнос — Фаза D плана, выполнена.)
 
 **Под-карта `Main.gd` по секциям:**
 - *Каркас/топбар:* `_ready` `_load_cards` `_build_shell` `_build_topbar`
@@ -138,26 +142,22 @@ God-object сцены матча: хранит `view`, строит борд, г
   `_process` `_update_board_gap`/`_remove_board_gap`.
 - *Координатор:* `bind(sender)` `feed_view` `set_status` `_send` `_ingest_view`
   `_diff_hero_hp` `_animate_changes` `_animate_piles` `_attack_creature`/
-  `_attack_hero` `_node_center`/`_creature_node`/`_take_creature` `_attach_ready_pulse`.
-- *View-запросы (чистая логика, многие делегируют в `CardData`):* `_my_turn`
-  `_can_place_mana` `_needs_target` `_target_side` `_target_required`
-  `_is_creature` `_can_afford`/`_can_afford_with_shift` `_hero_has` `_is_playable`
-  `_has_legal_target` `_has_keyword`/`_keyword_n` `_enemy_has_provoke`
-  `_valid_attack_target`.
-- *Сборка борда:* `_rebuild` (полная пересборка) `_player_half` `_hero_medallion`
-  `_mana_cap_h` (высота скролла маны) `_piles_column` `_aura_shelf`/`_aura_tile`
-  `_art_thumb` `_manarow_view`/`_revealed_thumb`/`_awaken_chip`/`_can_awaken`
-  `_board_row` `_ensure_layer` `_creature_card`/`_refresh_creature`
-  `_ability_dock`/`_ability_button`/`_can_ability`/`_ability_reason`/
-  `_ability_tooltip_panel` `_hand_row`/`_make_hand_card`/`_refresh_hand_card`
-  `_make_card` `_zone_style` `_banner` `_separator` `_controls`.
-- *Play-флоу:* `_can_play_here` `_can_cast_on` `_play_payload` `_spell_cast_fx`
-  `_play_at_drop` `_dispatch_play` (→ confirm потери эффекта → мана-пикер → send)
-  `_dispatch_play_mana` `_confirm_lost_effect` `_generic_choices` (способы
-  заплатить generic) `_drop_insert_index` `_place_mana` `_show_color_picker`/
+  `_attack_hero` `_node_center`/`_creature_node`/`_take_creature`.
+- *View-запросы (тонкие делегаты в `Rules`/`CardData`):* `_my_turn`
+  `_can_place_mana` `_is_playable` `_has_legal_target` `_enemy_has_provoke`
+  `_valid_attack_target` `_can_play_here`/`_can_cast_on` `_generic_choices` и т.п.
+- *Сборка борда (тонкие врапперы над виджетами):* `_rebuild` (полная пересборка)
+  `_player_half` `_hero_medallion`(→`HeroMedallion`) `_piles_column`(→`PilesColumn`)
+  `_board_row`(→`BoardRow`) `_ensure_layer` (владеет `BoardLayer`×2)
+  `_hand_row`/`_make_hand_card`/`_refresh_hand_card` `_make_card`(→`CardView.widget`)
+  `_banner` `_separator` `_controls`.
+- *Play-флоу:* `_play_payload` `_spell_cast_fx` `_play_at_drop` `_dispatch_play`
+  (→ confirm потери эффекта → мана-пикер → send) `_dispatch_play_mana`
+  `_confirm_lost_effect` `_drop_insert_index` `_place_mana` `_show_color_picker`/
   `_close_picker` `_on_hand_double` `_on_awaken_clicked`.
-- *Оверлеи:* `_mulligan_panel`/`_toggle_mulligan`/`_send_mulligan`
-  `_scry_panel`/`_toggle_scry`/`_send_scry` `_game_over_panel`.
+- *Оверлеи (роутинг в `_rebuild`):* монтирует `MulliganPanel`/`ScryPanel`/
+  `GameOverPanel`; держит выбор (`_mull_sel`/`_scry_sel`), хендлеры
+  `_toggle_mulligan`/`_send_mulligan`/`_toggle_scry`/`_send_scry`.
 
 ### Оболочка и сеть
 - `Router` (`router.gd`) — корень `App.tscn`: переключает экраны (`_go_*`),
@@ -177,6 +177,10 @@ God-object сцены матча: хранит `view`, строит борд, г
   `target_side`/`needs_target`/`target_required`/`targeted_effect_texts`
   `has_keyword`/`keyword_n` `total_cost`/`can_afford`/`can_afford_with_shift`
   `display_id`.
+- `Rules` (`rules.gd`) — **чистая легальность** над `view` (компаньон `CardData`):
+  `my_turn`/`can_place_mana`/`is_playable`/`has_legal_target`/`enemy_has_provoke`/
+  `valid_attack_target`/`can_play_here`/`can_cast_on`/`can_awaken`/`generic_choices`.
+  Зовётся и из `Main`, и из виджетов (без обращения к координатору).
 - `GameState` (`game_state.gd`) — `diff(prev_hp, new_view)` (что изменилось),
   `departed(prev, new)` (ушедшие существа).
 - `Glossary` (`glossary.gd`) — генерация ТЕКСТА правил из keywords+effects:
@@ -185,8 +189,9 @@ God-object сцены матча: хранит `view`, строит борд, г
 - `Decks` (`decks.gd`) — предустановленные колоды/лоадауты.
 
 ### Билдеры представления (статические `Control`-фабрики)
-- `CardView` (`card_view.gd`) — лицо карты `face`, тултип `tooltip`, бейджи
-  стоимости/статусов, рамка по типу (`_frame_texture`).
+- `CardView` (`card_view.gd`) — лицо карты `face`, тултип `tooltip`, интерактивный
+  виджет `widget` (UiCard: face+glow+tooltip+drag-preview — основа руки/пикеров),
+  бейджи стоимости/статусов, рамка по типу (`_frame_texture`).
 - `HeroView` (`hero_view.gd`) — портрет+hp `portrait_with_hp`, бейдж/тултип пассивки.
 - `Chrome` (`chrome.gd`) — баннер хода, мана-блок/пипсы, стопки колоды/кладбища.
 - `Ui` (`ui.gd`) — атомы: `label` `glass`/`bordered` (StyleBox) `neon_button`
@@ -195,6 +200,23 @@ God-object сцены матча: хранит `view`, строит борд, г
   карты), `round_style`, `soft_dot`.
 - `Palette` (`palette.gd`) — единственный источник цветов (jewel-тона 5 цветов +
   colorless). `Fonts` (`fonts.gd`) — шкала шрифтов.
+
+### Виджеты-секции борда (строятся из `view`, эмитят намерения вверх)
+Транзитные (пересоздаются каждый `_rebuild`), кроме персистентных слоёв, которые
+им передаёт `Main`. Запросы — через `Rules`/`CardData`; наружу — сигналы-намерения.
+- `BoardRow` (`board_row.gd`, `extends UiCard`) — боевая полоса одной стороны:
+  drop-зона + полка аур + существа в переданном `BoardLayer` + ability-док. Сигналы
+  `play_requested`/`cast_requested`/`attack_requested`/`activate_requested`. Хуки
+  карточек существ **перепривязываются в `_refresh_creature`** каждый ребилд (узлы
+  персистентны и переживают транзитный `BoardRow` — иначе замыкание зависнет).
+- `HeroMedallion` (`hero_medallion.gd`, `extends UiCard`) — портрет героя + HP/броня
+  + пассивка; вражеский — drop-цель атаки в лицо, сигнал `attack_hero_requested`.
+- `PilesColumn` (`piles_column.gd`) — правый фланг: мана (height-capped скролл,
+  `cap_h`), awaken-чипы / прожектор-превью, стопки колода/сброс, счётчик руки.
+  Сигнал `awaken_clicked`; отдаёт `mana_node`/`deck_node`/`grave_node` для пульса.
+- Оверлеи матча (`extends Control`, `setup()` до `add_child`): `MulliganPanel`
+  (`mulligan_panel.gd`) и `ScryPanel` (`scry_panel.gd`) — сигналы `toggle(index)`/
+  `submit` (выбор хранит `Main`); `GameOverPanel` (`game_over_panel.gd`) — `to_menu`.
 
 ### Виджеты и слои
 - `UiCard` (`ui_card.gd`) — **единственный интерактивный виджет**: драг/дроп/ховер
