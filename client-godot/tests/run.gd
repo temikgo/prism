@@ -142,10 +142,10 @@ func _test_main_helpers() -> void:
 	_main = load("res://Main.tscn").instantiate()
 	root.add_child(_main)
 
-	# _mana_cap_h: empty pool -> the "no mana" line; otherwise ceil(total/4)*40, capped at 3 rows
-	_approx(_main._mana_cap_h(DevKit.mana(DevKit.pool(0, 0, 0, 0, 0, 0), DevKit.pool(0, 0, 0, 0, 0, 0))),
+	# PilesColumn.cap_h: empty pool -> the "no mana" line; else ceil(total/4)*40, capped at 3 rows
+	_approx(PilesColumn.cap_h(DevKit.mana(DevKit.pool(0, 0, 0, 0, 0, 0), DevKit.pool(0, 0, 0, 0, 0, 0))),
 		26.0, "no mana -> 26px line")
-	_approx(_main._mana_cap_h(DevKit.mana(DevKit.pool(2, 1, 1, 1, 0, 0), DevKit.pool(2, 1, 1, 1, 0, 0))),
+	_approx(PilesColumn.cap_h(DevKit.mana(DevKit.pool(2, 1, 1, 1, 0, 0), DevKit.pool(2, 1, 1, 1, 0, 0))),
 		80.0, "5 crystals -> 2 rows -> 80px")
 
 	# _diff_hero_hp: only a drop counts; record updates

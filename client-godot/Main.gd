@@ -602,65 +602,16 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 	return card
 
 
-# Capped height for the mana crystal scroll: ~one row per ~4 crystals, capped at
-# 3 rows. Beyond that the crystals scroll instead of growing the column (which
-# would push the hand off the bottom on a tall mana pool).
-func _mana_cap_h(mana: Dictionary) -> float:
-	var crystals: Dictionary = mana.get("crystals", {})
-	var avail: Dictionary = mana.get("available", {})
-	var total := 0
-	for color in CardData.ALL_COLORS:
-		total += maxi(int(crystals.get(color, 0)), int(avail.get(color, 0)))
-	if total <= 0:
-		return 26.0  # the "нет маны" line
-	return float(mini(int(ceil(float(total) / 4.0)), 3) * 40)
-
-
 # Right flank: mana, the banked-card peek, deck/graveyard stacks, counts, top card.
 func _piles_column(p: Dictionary, mine: bool) -> Control:
-	var col := VBoxContainer.new()
-	col.custom_minimum_size = Vector2(142, 0)
-	col.size_flags_vertical = Control.SIZE_FILL
-	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 8)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Mana: a fixed "МАНА" tag + a height-capped scroll of the crystals, so a huge
-	# pool scrolls instead of growing the column and clipping the hand below.
-	var mana_block := VBoxContainer.new()
-	mana_block.alignment = BoxContainer.ALIGNMENT_CENTER
-	mana_block.add_theme_constant_override("separation", 3)
-	mana_block.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mana_tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
-	mana_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mana_block.add_child(mana_tag)
-	var mana_sc := ScrollContainer.new()
-	mana_sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	mana_sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	mana_sc.mouse_filter = Control.MOUSE_FILTER_PASS
-	mana_sc.custom_minimum_size = Vector2(140, _mana_cap_h(p.get("mana", {})))
-	mana_sc.add_child(Chrome.mana_pips(p.get("mana", {})))
-	mana_block.add_child(mana_sc)
-	col.add_child(mana_block)
-	var mr := _manarow_view(p.get("manaRow", []), mine)
-	if mr != null:
-		col.add_child(mr)
-	var piles := HBoxContainer.new()
-	piles.alignment = BoxContainer.ALIGNMENT_CENTER
-	piles.add_theme_constant_override("separation", 12)
-	piles.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var deck_stack := Chrome.pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95))
-	var grave_stack := Chrome.pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68))
-	piles.add_child(deck_stack)
-	piles.add_child(grave_stack)
-	col.add_child(piles)
-	# Remember your own chrome nodes so _animate_piles can pulse them on change.
+	var col := PilesColumn.new()
+	col.awaken_clicked.connect(_on_awaken_clicked)
+	col.setup(p, mine, view)
+	# Keep your own chrome nodes so _animate_piles can pulse them on change.
 	if mine:
-		_mana_block_node = mana_block
-		_deck_pile_node = deck_stack
-		_grave_pile_node = grave_stack
-	var il := Ui.label("рука %d" % int(p.get("handCount", 0)), 11, Color(0.6, 0.64, 0.74), true)
-	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(il)
+		_mana_block_node = col.mana_node
+		_deck_pile_node = col.deck_node
+		_grave_pile_node = col.grave_node
 	return col
 
 
@@ -705,143 +656,6 @@ func _art_thumb(card_id: String, fallback: Color, px: float) -> Control:
 
 
 # --- mana row (face-down backs + peekable awaken cards) ----------------------
-
-# The banked cards themselves are just hidden mana -- their count already shows
-# as crystals -- so we only surface your own awaken-able cards here.
-func _manarow_view(mana_row: Array, mine: bool) -> Control:
-	# Your awaken cards, or (under floodlight) every enemy banked card. Returns
-	# null when there is nothing to show. The list is height-capped and scrolls,
-	# so a full mana row never grows the column and pushes the other board away.
-	var slots := []
-	for i in mana_row.size():
-		var slot: Dictionary = mana_row[i]
-		if slot.has("card"):
-			slots.append({"i": int(i), "slot": slot})
-	if slots.is_empty():
-		return null
-
-	var box := VBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 3)
-	var tag := Ui.label("разбудить:" if mine else "прожектор:", 11, Color(0.95, 0.85, 0.4), true)
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(tag)
-
-	var sc := ScrollContainer.new()
-	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	sc.mouse_filter = Control.MOUSE_FILTER_PASS
-	var cap_h := 0.0
-	if mine:
-		# Your awaken cards stay full interactive chips (usually few); cap ~2 tall.
-		var inner := VBoxContainer.new()
-		inner.add_theme_constant_override("separation", 3)
-		for c in slots:
-			inner.add_child(_awaken_chip(int(c["i"]), c["slot"]))
-		sc.add_child(inner)
-		cap_h = mini(slots.size(), 2) * 57.0
-	else:
-		# Floodlight can reveal many crystals -> compact art thumbnails that wrap.
-		var flow := HFlowContainer.new()
-		flow.custom_minimum_size = Vector2(136, 0)
-		flow.add_theme_constant_override("h_separation", 3)
-		flow.add_theme_constant_override("v_separation", 3)
-		for c in slots:
-			var s: Dictionary = c["slot"]
-			flow.add_child(_revealed_thumb(String(s["card"]), String(s.get("color", "colorless"))))
-		sc.add_child(flow)
-		var rows := (slots.size() + 2) / 3  # 3 thumbnails per row
-		cap_h = mini(rows, 2) * 39.0  # show up to 2 rows, scroll the rest
-	sc.custom_minimum_size = Vector2(138, cap_h)
-	box.add_child(sc)
-	return box
-
-
-# A compact peek thumbnail (floodlight): art only, with the full hover tooltip.
-func _revealed_thumb(card_id: String, color: String) -> Control:
-	var t := UiCard.new()
-	t.custom_minimum_size = Vector2(36, 36)
-	t.add_theme_stylebox_override("panel",
-		Ui.bordered(Color(0.09, 0.10, 0.15, 0.92), 6, 1, Color(0.7, 0.62, 0.32), 2))
-	t.tooltip_text = _name_of(card_id)
-	t.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)
-	t.hoverable = true
-	t.add_child(_art_thumb(card_id, Palette.color_for(color), 30))
-	return t
-
-
-# A peekable awaken card sitting in your mana row: a mini-card (art + name + a
-# tag) with a gold frame. It brightens and glows once you can pay for it this
-# turn; otherwise it is dimmed like an unaffordable hand card. A decoy that has
-# aged enough awakens for free and is tagged accordingly.
-func _awaken_chip(idx: int, slot: Dictionary) -> Control:
-	var card_id := String(slot["card"])
-	var color := String(slot.get("color", "colorless"))
-	var age := int(slot.get("age", 0))
-	var free := _has_keyword(card_id, "decoy") and age >= _keyword_n(card_id, "decoy")
-	var gold := Color(0.95, 0.85, 0.3)
-	var affordable := _can_awaken(card_id, color, age)
-	var chip := UiCard.new()
-	chip.custom_minimum_size = Vector2(132, 54)
-	var sb := Ui.bordered(Color(0.09, 0.10, 0.15, 0.94), 8, 2,
-		gold if affordable else gold.darkened(0.4), 5)
-	if affordable:
-		sb.shadow_size = 10
-		sb.shadow_color = Color(gold.r, gold.g, gold.b, 0.6)
-	chip.add_theme_stylebox_override("panel", sb)
-	chip.tooltip_text = _name_of(card_id)
-	chip.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)
-	chip.hoverable = true
-	if not affordable:
-		chip.modulate = Color(0.62, 0.62, 0.68, 0.92)
-		chip.rest_modulate = chip.modulate
-	chip.payload = {
-		"kind": "awaken", "manaRowIndex": idx, "card_id": card_id,
-		"needs_target": _needs_target(card_id), "draggable": _my_turn(),
-		"target_side": _target_side(card_id),
-	}
-	chip.drag_label = "awaken: " + _name_of(card_id)
-	chip.clicked.connect(func(p: Dictionary) -> void: _on_awaken_clicked(p))
-
-	# Art + a short status tag only (the name shows on hover) -- no wrapping text.
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 6)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_child(_art_thumb(card_id, Palette.color_for(color), 42))
-	var tag_txt := "без доплаты" if free else "разбудить"
-	var tag := Ui.label(tag_txt, 11, gold if affordable else gold.darkened(0.25))
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(tag)
-	chip.add_child(row)
-	return chip
-
-
-# Can you awaken this banked card right now? Mirrors Game::awaken: its own
-# crystal must be unspent and pays 1 of the cost in its color (else 1 generic);
-# the remainder must be affordable. A decoy aged >= N awakens for free.
-func _can_awaken(card_id: String, color: String, age: int) -> bool:
-	if not _my_turn():
-		return false
-	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	var avail: Dictionary = me["mana"].get("available", {})
-	if int(avail.get(color, 0)) < 1:
-		return false  # the banked crystal itself must still be available
-	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
-		return false
-	if _has_keyword(card_id, "decoy") and age >= _keyword_n(card_id, "decoy"):
-		return true  # aged decoy: only the banked crystal is spent
-	var cost: Dictionary = (cards.get(card_id, {}).get("cost", {})).duplicate(true)
-	if int(cost.get(color, 0)) > 0:
-		cost[color] = int(cost[color]) - 1
-	elif int(cost.get("generic", 0)) > 0:
-		cost["generic"] = int(cost["generic"]) - 1
-	var pool: Dictionary = avail.duplicate(true)
-	pool[color] = int(pool.get(color, 0)) - 1  # the banked crystal is consumed
-	return _can_afford(cost, pool)
-
 
 # --- board rows --------------------------------------------------------------
 
