@@ -830,6 +830,20 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 	return card
 
 
+# Capped height for the mana crystal scroll: ~one row per ~4 crystals, capped at
+# 3 rows. Beyond that the crystals scroll instead of growing the column (which
+# would push the hand off the bottom on a tall mana pool).
+func _mana_cap_h(mana: Dictionary) -> float:
+	var crystals: Dictionary = mana.get("crystals", {})
+	var avail: Dictionary = mana.get("available", {})
+	var total := 0
+	for color in CardData.ALL_COLORS:
+		total += maxi(int(crystals.get(color, 0)), int(avail.get(color, 0)))
+	if total <= 0:
+		return 26.0  # the "нет маны" line
+	return float(mini(int(ceil(float(total) / 4.0)), 3) * 40)
+
+
 # Right flank: mana, the banked-card peek, deck/graveyard stacks, counts, top card.
 func _piles_column(p: Dictionary, mine: bool) -> Control:
 	var col := VBoxContainer.new()
@@ -838,7 +852,22 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 8)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mana_block := Chrome.mana_block(p.get("mana", {}))
+	# Mana: a fixed "МАНА" tag + a height-capped scroll of the crystals, so a huge
+	# pool scrolls instead of growing the column and clipping the hand below.
+	var mana_block := VBoxContainer.new()
+	mana_block.alignment = BoxContainer.ALIGNMENT_CENTER
+	mana_block.add_theme_constant_override("separation", 3)
+	mana_block.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mana_tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
+	mana_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mana_block.add_child(mana_tag)
+	var mana_sc := ScrollContainer.new()
+	mana_sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mana_sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	mana_sc.mouse_filter = Control.MOUSE_FILTER_PASS
+	mana_sc.custom_minimum_size = Vector2(140, _mana_cap_h(p.get("mana", {})))
+	mana_sc.add_child(Chrome.mana_pips(p.get("mana", {})))
+	mana_block.add_child(mana_sc)
 	col.add_child(mana_block)
 	var mr := _manarow_view(p.get("manaRow", []), mine)
 	if mr != null:
