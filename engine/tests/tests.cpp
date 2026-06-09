@@ -105,6 +105,10 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
                   "action": "blind", "value": 1 }] },
+  { "id": "sacrifice", "name": { "ru": "Жертва" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "action": "damage", "value": 99, "required": true }] },
   { "id": "flashspell", "name": { "ru": "Вспышка" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "flash", "value": 1 }] },
@@ -279,6 +283,29 @@ TEST_CASE("play honours a chosen generic breakdown over the greedy default") {
   CHECK(g.playCard(0, 0, -1, gp));
   CHECK(g.player(0).mana.available[idx(Color::Green)] == 0);
   CHECK(g.player(0).mana.available[idx(Color::Colorless)] == 2);  // kept
+}
+
+TEST_CASE("optional targeted effect skips with no target; required blocks") {
+  CardLibrary lib = testLib();
+  // frost1 freezes a chosen enemy minion (optional). With no enemy minion it
+  // still plays -- the freeze just skips -- and the card is consumed.
+  Game g(lib, repeat("frost1", 30), repeat("bear", 30), 1234);
+  g.start();
+  int before = static_cast<int>(g.player(0).hand.size());
+  CHECK(g.playCard(0));  // target 0, empty enemy board -> plays, effect skipped
+  CHECK(static_cast<int>(g.player(0).hand.size()) == before - 1);
+
+  // sacrifice requires a friendly target (a cost). With no friendly minion it
+  // cannot be played at all.
+  Game g2(lib, repeat("sacrifice", 30), repeat("bear", 30), 1234);
+  g2.start();
+  int b2 = static_cast<int>(g2.player(0).hand.size());
+  CHECK_FALSE(g2.playCard(0));  // required, no friendly minion -> blocked
+  CHECK(static_cast<int>(g2.player(0).hand.size()) == b2);  // unchanged
+
+  // A supplied-but-illegal target is rejected even for an optional effect (so
+  // stealth etc. can't be bypassed by aiming at a hidden creature).
+  CHECK_FALSE(g.playCard(0, 999999));  // nonexistent enemy id -> illegal
 }
 
 TEST_CASE("summoning sickness blocks attack on summon turn") {

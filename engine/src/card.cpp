@@ -67,6 +67,7 @@ static CardDef parseCard(const json& j) {
       ef.selector = e.value("selector", std::string{});
       ef.action = e.value("action", std::string{});
       ef.value = e.value("value", 0);
+      ef.required = e.value("required", false);
       d.effects.push_back(ef);
     }
   }

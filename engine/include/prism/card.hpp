@@ -27,6 +27,12 @@ struct EffectDef {
   std::string selector;
   std::string action;
   int value = 0;
+  // A targeted effect is optional by default: if there is no valid target it is
+  // simply skipped and the card still plays (e.g. blind/freeze an enemy with an
+  // empty board). Set `required` for effects that are a cost to pay -- e.g.
+  // "sacrifice your own creature" -- so the card cannot be played without a
+  // legal target.
+  bool required = false;
 };
 
 // One card template, mirroring the cards/*.json schema. `colors` is the card's

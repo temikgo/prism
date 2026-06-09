@@ -687,16 +687,30 @@ bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
   Player& opp = players_[1 - owner.index];
   for (const auto& e : def->effects) {
     if (e.trigger != "on_play") continue;
+    bool chooses = e.selector == "chosen_enemy_minion" ||
+                   e.selector == "chosen_friendly_minion" ||
+                   e.selector == "chosen_any_minion";
+    if (!chooses) continue;
+    // Is the supplied target a legal pick for this selector?
+    Creature* t = nullptr;
     if (e.selector == "chosen_enemy_minion") {
-      Creature* t = findCreature(opp, target);
-      if (!t || t->stealthed) return false;  // a hidden enemy cannot be chosen
+      t = findCreature(opp, target);
+      if (t && t->stealthed) t = nullptr;  // a hidden enemy cannot be chosen
     } else if (e.selector == "chosen_friendly_minion") {
-      if (!findCreature(owner, target)) return false;
-    } else if (e.selector == "chosen_any_minion") {
-      Creature* f = findCreature(owner, target);
-      Creature* o = findCreature(opp, target);
-      if (!f && (!o || o->stealthed)) return false;
+      t = findCreature(owner, target);
+    } else {  // chosen_any_minion
+      t = findCreature(owner, target);
+      if (!t) {
+        t = findCreature(opp, target);
+        if (t && t->stealthed) t = nullptr;
+      }
     }
+    if (t) continue;  // a valid target was chosen -> fine
+    // No valid target. If the player did supply one (non-zero) it was illegal,
+    // so reject regardless. With no target chosen, an optional effect just
+    // skips (the card still plays); only a `required` cost effect blocks the
+    // play.
+    if (target != 0 || e.required) return false;
   }
   return true;
 }
