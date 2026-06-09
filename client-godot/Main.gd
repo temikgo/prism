@@ -400,20 +400,8 @@ func _name_of(card_id: String) -> String: return CardData.name_of(card_id)
 func _text_of(card_id: String) -> String: return CardData.text_of(card_id)
 
 
-func _my_turn() -> bool:
-	if bool(view.get("over", false)):
-		return false  # the game is decided -- no actions
-	return int(view.get("current", -1)) == int(view.get("you", -2))
-
-
-# You may bank exactly one card to mana per turn (engine: placedManaThisTurn).
-func _can_place_mana() -> bool:
-	if not _my_turn():
-		return false
-	var you := int(view.get("you", -1))
-	if you < 0:
-		return false
-	return not bool(view["players"][you].get("placedMana", false))
+func _my_turn() -> bool: return Rules.my_turn(view)
+func _can_place_mana() -> bool: return Rules.can_place_mana(view)
 
 
 func _needs_target(card_id: String) -> bool: return CardData.needs_target(card_id)
@@ -424,84 +412,13 @@ func _can_afford(cost: Dictionary, avail: Dictionary) -> bool: return CardData.c
 func _can_afford_with_shift(cost: Dictionary, avail: Dictionary) -> bool: return CardData.can_afford_with_shift(cost, avail)
 
 
-# Does this player's hero carry the given passive keyword?
-func _hero_has(p: Dictionary, passive_id: String) -> bool:
-	for kw in p.get("hero", {}).get("passive", []):
-		if String(kw.get("id", "")) == passive_id:
-			return true
-	return false
-
-
-# Playable right now: my turn, affordable, and (for creatures) the board has room.
-func _is_playable(card_id: String) -> bool:
-	if not _my_turn():
-		return false
-	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	var cost: Dictionary = cards.get(card_id, {}).get("cost", {})
-	var avail: Dictionary = me["mana"].get("available", {})
-	# Prism spectral_shift can pay a foreign pip with a spectrum-neighbour crystal,
-	# once per turn -- so a card unaffordable normally may still be playable.
-	var shift_ready: bool = _hero_has(me, "spectral_shift") and not bool(me.get("heroPowerUsed", false))
-	if not _can_afford(cost, avail) and not (shift_ready and _can_afford_with_shift(cost, avail)):
-		return false
-	if _is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
-		return false
-	# Cannot play an aura you already control (matches the engine rule).
-	if String(cards.get(card_id, {}).get("type", "")) == "aura":
-		for a in me.get("auras", []):
-			if String(a.get("card", "")) == card_id:
-				return false
-	# A targeted spell with no legal target: still playable if the effect is
-	# optional (it just skips, the player is warned on drop); only a required
-	# (cost) target effect makes it truly unplayable.
-	if _needs_target(card_id) and not _has_legal_target(card_id) and _target_required(card_id):
-		return false
-	return true
-
-
-# Is there at least one legal target for this card's targeted effect?
-func _has_legal_target(card_id: String) -> bool:
-	var side := _target_side(card_id)
-	if side == "":
-		return true
-	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	var opp: Dictionary = view["players"][1 - you]
-	if side == "enemy" or side == "any":
-		for c in opp.get("board", []):
-			if not bool(c.get("stealth", false)):
-				return true
-	if side == "friendly" or side == "any":
-		if not me.get("board", []).is_empty():
-			return true
-	return false
-
-
+func _hero_has(p: Dictionary, passive_id: String) -> bool: return Rules.hero_has(p, passive_id)
+func _is_playable(card_id: String) -> bool: return Rules.is_playable(view, card_id)
+func _has_legal_target(card_id: String) -> bool: return Rules.has_legal_target(view, card_id)
 func _has_keyword(card_id: String, kw: String) -> bool: return CardData.has_keyword(card_id, kw)
 func _keyword_n(card_id: String, kw: String) -> int: return CardData.keyword_n(card_id, kw)
-
-
-# Does the enemy control a (visible) provoker, forcing attacks onto it?
-func _enemy_has_provoke() -> bool:
-	var you := int(view["you"])
-	var opp: Dictionary = view["players"][1 - you]
-	for c in opp.get("board", []):
-		if bool(c.get("stealth", false)):
-			continue
-		if _has_keyword(String(c["card"]), "provoke"):
-			return true
-	return false
-
-
-# A legal attack target: not hidden, and if a provoker exists you may only hit
-# a provoker.
-func _valid_attack_target(cr: Dictionary) -> bool:
-	if bool(cr.get("stealth", false)):
-		return false
-	if _enemy_has_provoke() and not _has_keyword(String(cr["card"]), "provoke"):
-		return false
-	return true
+func _enemy_has_provoke() -> bool: return Rules.enemy_has_provoke(view)
+func _valid_attack_target(cr: Dictionary) -> bool: return Rules.valid_attack_target(view, cr)
 
 
 
@@ -1449,39 +1366,8 @@ func _controls() -> Control:
 
 # --- drag drop helpers (shared by play / awaken) -----------------------------
 
-func _can_play_here(data: Variant) -> bool:
-	if typeof(data) != TYPE_DICTIONARY:
-		return false
-	if not (data.get("kind", "") in ["hand", "awaken"]):
-		return false
-	# An unplayable hand card lights up no board zone (but can still go to mana).
-	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
-		return false
-	# A targeted spell is normally dropped on a creature, not the board -- unless it
-	# currently has no legal target and the effect is optional, in which case it may
-	# be played to the board (the effect skips; the player is warned first).
-	if bool(data.get("needs_target", false)):
-		var cid := String(data.get("card_id", ""))
-		return not _has_legal_target(cid) and not _target_required(cid)
-	return true
-
-
-# True if the dragged targeted spell/awaken may be cast on a creature of the
-# given side ("friendly" or "enemy"). An "any" spell hits either side.
-func _can_cast_on(data: Variant, want_side: String) -> bool:
-	if typeof(data) != TYPE_DICTIONARY:
-		return false
-	if not (data.get("kind", "") in ["hand", "awaken"]):
-		return false
-	if not bool(data.get("needs_target", false)):
-		return false
-	var side := String(data.get("target_side", ""))
-	if side != "any" and side != want_side:
-		return false
-	# Hand cards must be affordable; awaken legality is checked by the server.
-	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
-		return false
-	return true
+func _can_play_here(data: Variant) -> bool: return Rules.can_play_here(view, data)
+func _can_cast_on(data: Variant, want_side: String) -> bool: return Rules.can_cast_on(data, want_side)
 
 
 func _play_payload(data: Variant, target: int) -> void:
@@ -1573,31 +1459,7 @@ func _confirm_lost_effect(card_name: String, lost: Array, on_yes: Callable) -> v
 	_picker = dlg
 
 
-# {generic, avail, pips} when paying the card's generic cost is ambiguous (free
-# crystals -- available minus reserved pips -- span >= 2 colors and exceed the
-# generic amount), else {} (pay greedily, no prompt). Cards are only droppable
-# when affordable, so total free >= generic is guaranteed here.
-func _generic_choices(card_id: String) -> Dictionary:
-	if card_id == "" or view.is_empty():
-		return {}
-	var cost: Dictionary = cards.get(card_id, {}).get("cost", {})
-	var generic := int(cost.get("generic", 0))
-	if generic <= 0:
-		return {}
-	var you := int(view["you"])
-	var avail: Dictionary = view["players"][you].get("mana", {}).get("available", {})
-	var total_free := 0
-	var colors_with_free := 0
-	var pips := {}
-	for color in CardData.ALL_COLORS:
-		pips[color] = int(cost.get(color, 0))
-		var f: int = maxi(0, int(avail.get(color, 0)) - int(pips[color]))
-		total_free += f
-		if f > 0:
-			colors_with_free += 1
-	if total_free > generic and colors_with_free >= 2:
-		return {"generic": generic, "avail": avail, "pips": pips}
-	return {}
+func _generic_choices(card_id: String) -> Dictionary: return Rules.generic_choices(view, card_id)
 
 
 # How many of your creatures sit left of the drop point -> the insertion slot.

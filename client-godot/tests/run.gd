@@ -33,6 +33,7 @@ func _initialize() -> void:
 	DevKit.ensure_cards()
 	_test_devkit()
 	_test_card_data()
+	_test_rules()
 	_test_game_state()
 	_test_main_helpers()
 	print("PASS %d/%d" % [_pass, _pass + _fail])
@@ -102,12 +103,44 @@ func _test_game_state() -> void:
 	_eq(GameState.departed({11: 3, 99: 5}, d["hp"]), [99], "creature 99 departed")
 
 
+func _test_rules() -> void:
+	# A live board: your turn, you have mixed crystals, enemy has a provoker (warden)
+	# and a stealthed creature.
+	var enemy_board := [DevKit.creature(21, "yellow_steadfast_warden", 0, 4, 4),
+		DevKit.creature(22, "violet_restless_phantom", 2, 3, 3, {"stealth": true})]
+	var v := DevKit.view(
+		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),
+		DevKit.player({"board": enemy_board}))
+
+	_ok(Rules.my_turn(v), "you=0, current=0 -> your turn")
+	_ok(not Rules.my_turn(DevKit.view(DevKit.player({}), DevKit.player({}), {"current": 1})),
+		"current=1 -> not your turn")
+	_ok(Rules.has_legal_target(v, "blue_frost_shackles"), "enemy has a non-stealth target")
+	_ok(Rules.enemy_has_provoke(v), "warden provokes")
+	_ok(Rules.valid_attack_target(v, enemy_board[0]), "the provoker is a valid attack target")
+	_ok(not Rules.valid_attack_target(v, enemy_board[1]), "stealth/non-provoker is not")
+
+	# generic-spend choice: needs >generic free crystals across >=2 colors
+	_ok(not Rules.generic_choices(v, "red_scarlet_slash").is_empty(),
+		"two+ free colors -> offer a generic-spend choice")
+	var v1 := v.duplicate(true)
+	v1["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
+	_eq(Rules.generic_choices(v1, "red_scarlet_slash"), {}, "one color free -> no choice")
+
+	# no legal target when the enemy board is empty
+	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frost_shackles"),
+		"empty enemy board -> no target")
+
+	# can_play_here / can_cast_on operate on the drag payload
+	_ok(Rules.can_cast_on({"kind": "hand", "needs_target": true, "target_side": "enemy", "playable": true}, "enemy"),
+		"enemy spell may cast on an enemy creature")
+	_ok(not Rules.can_cast_on({"kind": "hand", "needs_target": true, "target_side": "enemy", "playable": true}, "friendly"),
+		"enemy spell may not cast on a friendly creature")
+
+
 func _test_main_helpers() -> void:
 	_main = load("res://Main.tscn").instantiate()
 	root.add_child(_main)
-	# _ready (which runs _load_cards) is deferred to the next frame, but we call
-	# helpers synchronously here -- so wire the card db in directly.
-	_main.cards = CardData.db
 
 	# _mana_cap_h: empty pool -> the "no mana" line; otherwise ceil(total/4)*40, capped at 3 rows
 	_approx(_main._mana_cap_h(DevKit.mana(DevKit.pool(0, 0, 0, 0, 0, 0), DevKit.pool(0, 0, 0, 0, 0, 0))),
@@ -123,27 +156,3 @@ func _test_main_helpers() -> void:
 	var hd: Dictionary = _main._diff_hero_hp(hv)
 	_eq(int(hd.get(1, 0)), 4, "enemy hero took 4 face damage (24->20)")
 	_ok(not hd.has(0), "your hero unchanged -> no entry")
-
-	# legal-target / attack-target / generic-choice helpers run against a set view
-	var enemy_board := [DevKit.creature(21, "yellow_steadfast_warden", 0, 4, 4),
-		DevKit.creature(22, "violet_restless_phantom", 2, 3, 3, {"stealth": true})]
-	_main.view = DevKit.view(
-		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),
-		DevKit.player({"board": enemy_board}))
-
-	_ok(_main._my_turn(), "you=0, current=0 -> your turn")
-	_ok(_main._has_legal_target("blue_frost_shackles"), "enemy has a non-stealth target")
-	# a provoker (warden) on the enemy board forces attacks onto it
-	_ok(_main._enemy_has_provoke(), "warden provokes")
-	_ok(_main._valid_attack_target(enemy_board[0]), "the provoker is a valid target")
-	_ok(not _main._valid_attack_target(enemy_board[1]), "stealth/non-provoker is not")
-
-	# _generic_choices: needs >generic free crystals across >=2 colors
-	var gc: Dictionary = _main._generic_choices("red_scarlet_slash")  # cost {generic:1, red:1}
-	_ok(not gc.is_empty(), "two+ free colors -> offer a generic-spend choice")
-	_main.view["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
-	_eq(_main._generic_choices("red_scarlet_slash"), {}, "one color free -> no choice")
-
-	# no legal target when the enemy board is empty
-	_main.view = DevKit.view(DevKit.player({}), DevKit.player({}))
-	_ok(not _main._has_legal_target("blue_frost_shackles"), "empty enemy board -> no target")
