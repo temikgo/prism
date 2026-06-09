@@ -16,6 +16,15 @@ namespace prism {
 // are shown only for your own awaken cards (floodlight will reveal enemy ones).
 std::string viewJson(const Game& g, int you);
 
+// The wire JSON for a single engine Action (the shape applyAction parses back).
+std::string actionJson(const Action& a);
+
+// Every legal move for the current player as a JSON array of action objects
+// (each accepted by applyAction). The discrete-move surface for bots, the admin
+// panel, and the fuzz harness; empty in over / mulligan / scry phases. See
+// Game::legalActions for the enumerated surface and its boundaries.
+std::string legalActionsJson(const Game& g);
+
 // Apply a client action (JSON) on behalf of `actor`. Returns false if it is not
 // the actor's turn, or the action is malformed or illegal. Action shapes:
 //   {"action":"mulligan","indices":[0,2]}

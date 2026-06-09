@@ -357,33 +357,16 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   // Facet hero (Gemma) can wake ANY banked card.
   bool facet = p.hero && p.hero->hasKeyword("facet");
   if (!def->hasKeyword("awaken") && !facet) return false;
-  int c = idx(mc.color);
-  if (p.mana.available[c] < 1) return false;  // its own crystal must be unspent
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
   if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
   if (!playTargetLegal(def, p, target)) return false;
-  Cost eff = def->cost;
-  // The banked crystal pays 1 of the cost in its OWN color (it became a crystal
-  // of that color when sacrificed). Only if the cost doesn't ask for that color
-  // does it fall back to covering 1 generic. This is the real discount: a
-  // Violet card banked as Violet covers its own Violet pip instead of being
-  // wasted.
-  if (eff.pips[c] > 0)
-    eff.pips[c] -= 1;
-  else if (eff.generic > 0)
-    eff.generic -= 1;
-  // Violet decoy: a banked card that has lain long enough awakens for free --
-  // only its own crystal is spent. The longer the bluff sits, the bigger the
-  // payoff.
-  if (def->hasKeyword("decoy") && mc.age >= def->keywordN("decoy"))
-    eff = Cost{};
-  ManaPool sim = p.mana;
-  sim.crystals[c] -= 1;  // the banked crystal leaves the pool
-  sim.available[c] -= 1;
-  if (!sim.pay(eff)) return false;  // remainder unaffordable -> nothing changes
-  p.mana = sim;
+  // The banked crystal + discount math lives in awakenCost (shared with
+  // legalActions); it returns the resulting pool, or nullopt if unaffordable.
+  std::optional<ManaPool> sim = awakenCost(p, mc);
+  if (!sim) return false;  // remainder unaffordable -> nothing changes
+  p.mana = *sim;
   p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
   playResolved(p, mc.card, target, pos);
   // Facet hero (Gemma): a woken creature enters sharpened, +1/+1.
@@ -683,8 +666,9 @@ const CardDef* Game::internToken(const std::string& id, Stats s) {
 
 // An on_play effect that picks an enemy creature needs a real, non-stealthed
 // target; otherwise the whole play is illegal (checked before paying).
-bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
-  Player& opp = players_[1 - owner.index];
+bool Game::playTargetLegal(const CardDef* def, const Player& owner,
+                           EntityId target) const {
+  const Player& opp = players_[1 - owner.index];
   for (const auto& e : def->effects) {
     if (e.trigger != "on_play") continue;
     bool chooses = e.selector == "chosen_enemy_minion" ||
@@ -692,7 +676,7 @@ bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
                    e.selector == "chosen_any_minion";
     if (!chooses) continue;
     // Is the supplied target a legal pick for this selector?
-    Creature* t = nullptr;
+    const Creature* t = nullptr;
     if (e.selector == "chosen_enemy_minion") {
       t = findCreature(opp, target);
       if (t && t->stealthed) t = nullptr;  // a hidden enemy cannot be chosen
@@ -713,6 +697,159 @@ bool Game::playTargetLegal(const CardDef* def, Player& owner, EntityId target) {
     if (target != 0 || e.required) return false;
   }
   return true;
+}
+
+// --- legal-action enumeration (mirrors the mutators above) -------------------
+
+bool Game::affordableToPlay(const Player& p, const Cost& cost) const {
+  if (p.mana.canPay(cost)) return true;
+  // Prism spectral_shift: one foreign pip may be paid by retuning a
+  // spectrum-adjacent crystal, once per turn (matches playCard).
+  return p.hero && p.hero->hasKeyword("spectral_shift") &&
+         p.heroPowerUses < 1 && shiftedPool(p.mana, cost).has_value();
+}
+
+std::optional<ManaPool> Game::awakenCost(const Player& p,
+                                         const ManaCard& mc) const {
+  const CardDef* def = mc.card.def;
+  int c = idx(mc.color);
+  if (p.mana.available[c] < 1) return std::nullopt;  // own crystal must be free
+  Cost eff = def->cost;
+  // The banked crystal pays 1 of the cost in its OWN color, else 1 generic.
+  if (eff.pips[c] > 0)
+    eff.pips[c] -= 1;
+  else if (eff.generic > 0)
+    eff.generic -= 1;
+  // Violet decoy aged long enough awakens for free -- only its crystal is
+  // spent.
+  if (def->hasKeyword("decoy") && mc.age >= def->keywordN("decoy"))
+    eff = Cost{};
+  ManaPool sim = p.mana;
+  sim.crystals[c] -= 1;  // the banked crystal leaves the pool
+  sim.available[c] -= 1;
+  if (!sim.pay(eff)) return std::nullopt;
+  return sim;
+}
+
+std::vector<EntityId> Game::legalTargets(const CardDef* def,
+                                         const Player& owner) const {
+  std::vector<EntityId> out;
+  // Candidate ids: "no target" (0) plus every creature on either board. Keep
+  // the ones playTargetLegal accepts -- this reuses the single source of target
+  // truth, so enumeration can never diverge from what playCard/awaken allow.
+  if (playTargetLegal(def, owner, 0)) out.push_back(0);
+  for (const Player& side : players_)
+    for (const Creature& c : side.board)
+      if (playTargetLegal(def, owner, c.id)) out.push_back(c.id);
+  return out;
+}
+
+std::vector<Action> Game::legalActions() const {
+  std::vector<Action> out;
+  // Parameterized / terminal phases have no discrete move list (see the
+  // header): mulligan and scry are subset choices driven via mulligan() /
+  // resolveScry().
+  if (over_ || mulliganPhase_ || scryPlayer_ >= 0) return out;
+  const Player& p = players_[current_];
+  const Player& opp = players_[1 - current_];
+
+  out.push_back(Action{Action::Type::EndTurn});
+
+  // placeMana: one card -> the mana row per turn (mirrors placeCardToMana). A
+  // neutral card can only become Colorless; a colored card any one of its
+  // colors.
+  if (!p.placedManaThisTurn) {
+    for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
+      const CardDef* def = p.hand[i].def;
+      Action a;
+      a.type = Action::Type::PlaceMana;
+      a.handIndex = i;
+      if (def->colors.empty()) {
+        a.color = Color::Colorless;
+        out.push_back(a);
+      } else {
+        for (Color col : def->colors) {
+          a.color = col;
+          out.push_back(a);
+        }
+      }
+    }
+  }
+
+  // play: affordable (incl. spectral shift), board/aura room, per legal target
+  // (mirrors playCard). pos and genericPay are free parameters, not enumerated.
+  for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
+    const CardDef* def = p.hand[i].def;
+    if (!affordableToPlay(p, def->cost)) continue;
+    if (def->type == CardType::Creature &&
+        static_cast<int>(p.board.size()) >= BoardLimit)
+      continue;
+    if (def->type == CardType::Aura && hasAura(p, def->id)) continue;
+    for (EntityId t : legalTargets(def, p)) {
+      Action a;
+      a.type = Action::Type::Play;
+      a.handIndex = i;
+      a.target = t;
+      out.push_back(a);
+    }
+  }
+
+  // awaken: a banked card from the mana row (mirrors awaken).
+  bool facet = p.hero && p.hero->hasKeyword("facet");
+  for (int i = 0; i < static_cast<int>(p.manaRow.size()); ++i) {
+    const ManaCard& mc = p.manaRow[i];
+    const CardDef* def = mc.card.def;
+    if (!def->hasKeyword("awaken") && !facet) continue;
+    if (def->type == CardType::Creature &&
+        static_cast<int>(p.board.size()) >= BoardLimit)
+      continue;
+    if (def->type == CardType::Aura && hasAura(p, def->id)) continue;
+    if (!awakenCost(p, mc)) continue;
+    for (EntityId t : legalTargets(def, p)) {
+      Action a;
+      a.type = Action::Type::Awaken;
+      a.manaRowIndex = i;
+      a.target = t;
+      out.push_back(a);
+    }
+  }
+
+  // activate: Green germinate (mirrors activate). Costs 1 crystal of any color.
+  Cost one;
+  one.generic = 1;
+  bool boardFull = static_cast<int>(p.board.size()) >= BoardLimit;
+  if (!boardFull && p.mana.canPay(one)) {
+    for (const Creature& c : p.board)
+      if (c.def->keywordN("germinate") > 0 && !c.usedActive) {
+        Action a;
+        a.type = Action::Type::Activate;
+        a.id = c.id;
+        out.push_back(a);
+      }
+  }
+
+  // attacks: each ready creature onto any legal target, or the face (mirrors
+  // attackCreature / attackHero, incl. provoke / stealth / bypass).
+  bool prov = enemyHasProvoke(opp);
+  for (const Creature& a0 : p.board) {
+    if (!a0.canAttack()) continue;
+    for (const Creature& b : opp.board) {
+      if (b.stealthed) continue;
+      if (prov && !b.def->hasKeyword("provoke")) continue;
+      Action a;
+      a.type = Action::Type::AttackCreature;
+      a.attacker = a0.id;
+      a.target = b.id;
+      out.push_back(a);
+    }
+    if (!prov || a0.def->hasKeyword("bypass")) {
+      Action a;
+      a.type = Action::Type::AttackHero;
+      a.attacker = a0.id;
+      out.push_back(a);
+    }
+  }
+  return out;
 }
 
 // Dispatch the inline effect grammar (DESIGN §8):
@@ -774,6 +911,12 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
 
 Creature* Game::findCreature(Player& p, EntityId id) {
   for (auto& c : p.board)
+    if (c.id == id) return &c;
+  return nullptr;
+}
+
+const Creature* Game::findCreature(const Player& p, EntityId id) const {
+  for (const auto& c : p.board)
     if (c.id == id) return &c;
   return nullptr;
 }

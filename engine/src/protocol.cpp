@@ -132,6 +132,44 @@ std::string viewJson(const Game& g, int you) {
   return j.dump();
 }
 
+static json actionObj(const Action& a) {
+  switch (a.type) {
+    case Action::Type::EndTurn:
+      return json{{"action", "endTurn"}};
+    case Action::Type::PlaceMana:
+      return json{{"action", "placeMana"},
+                  {"handIndex", a.handIndex},
+                  {"color", std::string(colorName(a.color))}};
+    case Action::Type::Play: {
+      json j{{"action", "play"}, {"handIndex", a.handIndex}};
+      if (a.target) j["target"] = a.target;
+      return j;
+    }
+    case Action::Type::Awaken: {
+      json j{{"action", "awaken"}, {"manaRowIndex", a.manaRowIndex}};
+      if (a.target) j["target"] = a.target;
+      return j;
+    }
+    case Action::Type::Activate:
+      return json{{"action", "activate"}, {"id", a.id}};
+    case Action::Type::AttackCreature:
+      return json{{"action", "attackCreature"},
+                  {"attacker", a.attacker},
+                  {"target", a.target}};
+    case Action::Type::AttackHero:
+      return json{{"action", "attackHero"}, {"attacker", a.attacker}};
+  }
+  return json::object();
+}
+
+std::string actionJson(const Action& a) { return actionObj(a).dump(); }
+
+std::string legalActionsJson(const Game& g) {
+  json arr = json::array();
+  for (const Action& a : g.legalActions()) arr.push_back(actionObj(a));
+  return arr.dump();
+}
+
 bool applyAction(Game& g, int actor, const std::string& actionJson) {
   json j;
   try {

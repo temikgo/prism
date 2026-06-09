@@ -126,6 +126,32 @@ struct Player {
       pending;  // Blue delay: effects awaiting their turn
 };
 
+// One discrete legal move in the active play phase, as enumerated by
+// Game::legalActions and consumed by applyAction (via the protocol layer, which
+// maps it to/from the wire JSON). This is the engine-side "move" type -- no
+// JSON dependency -- so a bot can evaluate moves structurally. Only the fields
+// used by a given `type` are meaningful (see protocol.cpp actionJson for the
+// mapping).
+struct Action {
+  enum class Type {
+    EndTurn,         // -
+    PlaceMana,       // handIndex, color
+    Play,            // handIndex, target (0 = none)
+    Awaken,          // manaRowIndex, target (0 = none)
+    Activate,        // id (the germinating creature)
+    AttackCreature,  // attacker, target (the enemy creature)
+    AttackHero,      // attacker
+  };
+  Type type = Type::EndTurn;
+  int handIndex = -1;
+  Color color = Color::Colorless;
+  int manaRowIndex = -1;
+  EntityId target = 0;  // play/awaken effect target, or attack defender
+  int pos = -1;         // play/awaken board slot (-1 = append); not enumerated
+  EntityId attacker = 0;  // attacking creature
+  EntityId id = 0;        // activate: the creature
+};
+
 class Game {
  public:
   // Builds both decks from card IDs (resolved against `lib`). Nothing is dealt
@@ -192,6 +218,16 @@ class Game {
   // Pass priority to the other player and begin their turn.
   void endTurn();
 
+  // Every discrete legal move for the current player in the active play phase.
+  // Empty when the game is over or a parameterized phase is pending (mulligan /
+  // scry) -- those choices are subsets, not discrete moves, and are driven via
+  // mulligan() / resolveScry(). Mirrors the legality checks in playCard /
+  // awaken / activate / attack*; each returned Action, fed back through
+  // applyAction, is accepted. `pos` (board slot) and the play genericPay
+  // breakdown are free parameters, not enumerated here (append / greedy payment
+  // are always legal).
+  std::vector<Action> legalActions() const;
+
   Player& player(int i) { return players_[i]; }
   const Player& player(int i) const { return players_[i]; }
   int current() const { return current_; }
@@ -205,6 +241,7 @@ class Game {
   void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
+  const Creature* findCreature(const Player& p, EntityId id) const;
   // Resolve a targeted effect's creature based on its selector side:
   // chosen_friendly_minion -> owner, chosen_any_minion -> either,
   // anything else (chosen_enemy_minion) -> the opponent.
@@ -225,8 +262,10 @@ class Game {
                      const CardDef* src = nullptr);
   void applyLingering(Creature& t, int dealt, const CardDef* src);
   // True if `target` is a legal target for the card's on_play effects (a
-  // chosen_enemy_minion must exist and not be stealthed).
-  bool playTargetLegal(const CardDef* def, Player& owner, EntityId target);
+  // chosen_enemy_minion must exist and not be stealthed). Const: a pure check,
+  // shared by playCard / awaken (committing) and legalActions (enumerating).
+  bool playTargetLegal(const CardDef* def, const Player& owner,
+                       EntityId target) const;
   // Put an already-paid-for card into play and run its effects. Shared by
   // playCard (from hand) and awaken (from the mana row).
   void playResolved(Player& p, const CardInstance& ci, EntityId target,
@@ -238,6 +277,20 @@ class Game {
   // pays from it and counts a hero-power use.
   std::optional<ManaPool> shiftedPool(const ManaPool& pool,
                                       const Cost& cost) const;
+
+  // Shared legality/cost helpers (const), used by both the committing mutators
+  // and legalActions so the two never diverge.
+  // Can `p` pay `cost` -- plainly, or via the Prism hero's once-per-turn shift?
+  bool affordableToPlay(const Player& p, const Cost& cost) const;
+  // The pool that remains after awakening `mc` from p's mana row (its own
+  // crystal pays 1 of the cost in its color, decoy may zero it), or nullopt if
+  // unaffordable. awaken() commits the returned pool; legalActions just checks.
+  std::optional<ManaPool> awakenCost(const Player& p, const ManaCard& mc) const;
+  // The set of legal `target` values for the card's on_play effects: {0} plus
+  // every creature id that playTargetLegal accepts (0 stays only when no
+  // required target blocks it). Used to enumerate play/awaken targets.
+  std::vector<EntityId> legalTargets(const CardDef* def,
+                                     const Player& owner) const;
 
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,

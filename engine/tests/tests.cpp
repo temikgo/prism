@@ -1353,6 +1353,139 @@ TEST_CASE("Lighteater devours 1 ATK from a creature that strikes the hero") {
   CHECK(g.player(0).board[0].atk == 1);
 }
 
+// --- legalActions (M1) -------------------------------------------------------
+
+// Inject a board creature in a known state (the legalActions tests build
+// precise positions directly; ids well above any dealt card avoid collisions).
+static EntityId putCreature(Game& g, int player, const CardLibrary& lib,
+                            const char* id, bool sick) {
+  const CardDef* d = lib.find(id);
+  Creature c;
+  c.id = 1000 + player * 100 + static_cast<int>(g.player(player).board.size());
+  c.def = d;
+  c.baseAtk = d->stats.atk;
+  c.atk = d->stats.atk;
+  c.hp = d->stats.hp;
+  c.maxHp = d->stats.hp;
+  c.sick = sick;
+  g.player(player).board.push_back(c);
+  return c.id;
+}
+
+TEST_CASE("legalActions: none mid-mulligan; every enumerated move applies") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  g.start();
+  CHECK(g.legalActions().empty());  // parameterized phase -> no discrete moves
+  g.mulligan(0, {});
+  g.mulligan(1, {});
+  auto acts = g.legalActions();
+  CHECK_FALSE(acts.empty());
+  int ends = 0;
+  for (const auto& a : acts)
+    if (a.type == Action::Type::EndTurn) ++ends;
+  CHECK(ends == 1);  // endTurn is always present, exactly once
+  // Soundness: each enumerated action, replayed on a fresh copy of this exact
+  // state, is accepted by applyAction. (Copy-construction is safe here: no
+  // interned token defs are on the board, and the original outlives each copy.)
+  for (const auto& a : acts) {
+    Game c = g;
+    CHECK(applyAction(c, g.current(), actionJson(a)));
+  }
+}
+
+TEST_CASE("legalActions: attacks honour ready / provoke / stealth / bypass") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  begin(g);  // player 0 to act
+
+  EntityId mine = putCreature(g, 0, lib, "bear", /*sick=*/false);  // 3/4 ready
+  EntityId sick = putCreature(g, 0, lib, "bear", /*sick=*/true);
+  EntityId enemy = putCreature(g, 1, lib, "bear", /*sick=*/false);
+
+  auto has = [&](Action::Type t, EntityId atk, EntityId tgt) {
+    for (const auto& a : g.legalActions())
+      if (a.type == t && a.attacker == atk && a.target == tgt) return true;
+    return false;
+  };
+  // No provoke: ready creature may hit the enemy creature and the face; the
+  // summoning-sick one can do neither.
+  CHECK(has(Action::Type::AttackCreature, mine, enemy));
+  CHECK(has(Action::Type::AttackHero, mine, 0));
+  CHECK_FALSE(has(Action::Type::AttackCreature, sick, enemy));
+  CHECK_FALSE(has(Action::Type::AttackHero, sick, 0));
+
+  // Enemy gains a provoker: attacks are forced onto it; the face is blocked.
+  EntityId guard = putCreature(g, 1, lib, "guard", /*sick=*/false);  // provoke
+  CHECK(has(Action::Type::AttackCreature, mine, guard));
+  CHECK_FALSE(has(Action::Type::AttackCreature, mine, enemy));
+  CHECK_FALSE(has(Action::Type::AttackHero, mine, 0));
+
+  // A Bypass creature ignores provoke for the face.
+  EntityId byp = putCreature(g, 0, lib, "bypasser", /*sick=*/false);
+  CHECK(has(Action::Type::AttackHero, byp, 0));
+
+  // A stealthed enemy cannot be targeted at all.
+  EntityId hidden = putCreature(g, 1, lib, "hider", /*sick=*/false);
+  CHECK_FALSE(has(Action::Type::AttackCreature, mine, hidden));
+}
+
+TEST_CASE("legalActions: placeMana colors, play targets, board-full gating") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  begin(g);
+
+  // A known hand: a neutral creature, a red creature, and a targeted spell.
+  auto& hand = g.player(0).hand;
+  hand.clear();
+  hand.push_back(CardInstance{2001, lib.find("bear")});
+  hand.push_back(CardInstance{2002, lib.find("redpip")});
+  hand.push_back(CardInstance{2003, lib.find("frost1")});  // chosen_enemy, opt.
+
+  auto acts = g.legalActions();
+  auto placeColor = [&](int handIndex) -> std::vector<Color> {
+    std::vector<Color> cs;
+    for (const auto& a : acts)
+      if (a.type == Action::Type::PlaceMana && a.handIndex == handIndex)
+        cs.push_back(a.color);
+    return cs;
+  };
+  // Neutral -> Colorless only; the red card -> Red only (one option each).
+  CHECK(placeColor(0) == std::vector<Color>{Color::Colorless});
+  CHECK(placeColor(1) == std::vector<Color>{Color::Red});
+
+  auto playTargets = [&](std::vector<Action> as, int handIndex) {
+    std::vector<EntityId> ts;
+    for (const auto& a : as)
+      if (a.type == Action::Type::Play && a.handIndex == handIndex)
+        ts.push_back(a.target);
+    return ts;
+  };
+  // frost1 is a generic:0 targeted spell. With no enemy creature its effect is
+  // optional, so the only play has target 0 (the effect skips).
+  CHECK(playTargets(acts, 2) == std::vector<EntityId>{0});
+  // With an enemy creature present, both "skip" (0) and "hit it" are offered.
+  EntityId foe = putCreature(g, 1, lib, "bear", /*sick=*/false);
+  auto ts = playTargets(g.legalActions(), 2);
+  CHECK(ts.size() == 2);
+  CHECK(std::find(ts.begin(), ts.end(), EntityId{0}) != ts.end());
+  CHECK(std::find(ts.begin(), ts.end(), foe) != ts.end());
+
+  // Fill the board to the limit: the neutral creature can no longer be played,
+  // but the spell still can (it does not enter the board).
+  while (static_cast<int>(g.player(0).board.size()) < BoardLimit)
+    putCreature(g, 0, lib, "bear", /*sick=*/false);
+  auto full = g.legalActions();
+  bool creaturePlay = false, spellPlay = false;
+  for (const auto& a : full)
+    if (a.type == Action::Type::Play) {
+      if (a.handIndex == 0) creaturePlay = true;  // bear (creature)
+      if (a.handIndex == 2) spellPlay = true;     // frost1 (spell)
+    }
+  CHECK_FALSE(creaturePlay);
+  CHECK(spellPlay);
+}
+
 #ifdef PRISM_SAMPLE
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
