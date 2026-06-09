@@ -16,6 +16,10 @@ add_library(prism_engine
 )
 target_include_directories(prism_engine PUBLIC include third_party)
 
+# Dev CLI: re-run a recorded replay and print its outcome (deterministic).
+add_executable(prism_replay tools/replay.cpp)
+target_link_libraries(prism_replay PRIVATE prism_engine)
+
 enable_testing()
 add_executable(prism_tests tests/tests.cpp)
 target_link_libraries(prism_tests PRIVATE prism_engine)
@@ -31,6 +35,7 @@ if(CLANG_FORMAT)
     ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tools/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../server/src/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../server/src/*.cpp)
   add_test(NAME format_check

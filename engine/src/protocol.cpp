@@ -233,4 +233,37 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
   return false;
 }
 
+std::string makeReplay(
+    std::uint32_t seed, const std::vector<std::string>& deck0,
+    const std::vector<std::string>& deck1, const std::string& hero0,
+    const std::string& hero1,
+    const std::vector<std::pair<int, std::string>>& actions) {
+  json j;
+  j["seed"] = seed;
+  j["decks"] = json::array({deck0, deck1});
+  j["heroes"] = json::array({hero0, hero1});
+  json acts = json::array();
+  for (const auto& [actor, action] : actions)
+    acts.push_back(json{{"actor", actor}, {"action", json::parse(action)}});
+  j["actions"] = acts;
+  return j.dump();
+}
+
+std::unique_ptr<Game> runReplay(const CardLibrary& lib,
+                                const std::string& replayJson, int* applied) {
+  json j = json::parse(replayJson);
+  auto decks = j.value("decks", json::array({json::array(), json::array()}));
+  auto heroes = j.value("heroes", json::array({"", ""}));
+  auto g = std::make_unique<Game>(
+      lib, decks[0].get<std::vector<std::string>>(),
+      decks[1].get<std::vector<std::string>>(), j.value("seed", 0u),
+      heroes[0].get<std::string>(), heroes[1].get<std::string>());
+  g->start();
+  int ok = 0;
+  for (const auto& a : j.value("actions", json::array()))
+    if (applyAction(*g, a.value("actor", 0), a.at("action").dump())) ++ok;
+  if (applied) *applied = ok;
+  return g;
+}
+
 }  // namespace prism

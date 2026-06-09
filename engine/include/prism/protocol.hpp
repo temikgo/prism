@@ -1,5 +1,9 @@
 #pragma once
+#include <cstdint>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "prism/game.hpp"
 
@@ -24,6 +28,26 @@ std::string actionJson(const Action& a);
 // panel, and the fuzz harness; empty in over / mulligan / scry phases. See
 // Game::legalActions for the enumerated surface and its boundaries.
 std::string legalActionsJson(const Game& g);
+
+// A replay is everything needed to reproduce a game bit-for-bit: the setup
+// (seed, both decks, both hero ids) plus the ordered list of accepted actions
+// (each {actor, action}). The engine is deterministic, so re-running the setup
+// and applying the actions in order yields the identical final state. This is
+// the format the server logs per room (for reconnect / replays) and the fuzz
+// harness dumps on a failure. `actions` is a list of (actor, actionJsonString).
+std::string makeReplay(std::uint32_t seed,
+                       const std::vector<std::string>& deck0,
+                       const std::vector<std::string>& deck1,
+                       const std::string& hero0, const std::string& hero1,
+                       const std::vector<std::pair<int, std::string>>& actions);
+
+// Rebuild the game described by a replay JSON: construct it, start(), and apply
+// every logged action in order. Returns the final Game (unique_ptr; the object
+// never moves -- see fromJson). `applied`, if non-null, receives the count of
+// actions that applyAction accepted (== actions.size() for an intact replay).
+std::unique_ptr<Game> runReplay(const CardLibrary& lib,
+                                const std::string& replayJson,
+                                int* applied = nullptr);
 
 // Apply a client action (JSON) on behalf of `actor`. Returns false if it is not
 // the actor's turn, or the action is malformed or illegal. Action shapes:

@@ -103,6 +103,11 @@ HP-часть `undergrowth`/`resonance` фиксируется при выход
   Ссылки на `CardDef*` хранятся как id, резолвятся через библиотеку либо токен-стор.
   Под реконнект (M5), админ-панель (M2) и «честный» клон для фазза. Round-trip
   (byte-identical re-serialize + равенство viewJson/legalActions) под тестом.
+- `makeReplay(...)` / `runReplay(lib, replayJson)` — формат и проигрыватель реплея:
+  партия = `{seed, decks, heroes, actions:[{actor,action}]}`; движок детерминирован,
+  поэтому повтор даёт тот же финальный `toJson`. CLI: `prism_replay <cards.json>
+  <replay.json> [--view]`. Это лог, который сервер будет писать на комнату (реконнект)
+  и фазз — дампить на падении. Детерминизм под тестом.
 
 ## Чего ещё нет
 

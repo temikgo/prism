@@ -1539,6 +1539,59 @@ TEST_CASE("serialize: round-trips a rich mid-game state exactly") {
   CHECK(viewJson(g, 1) == viewJson(*g2, 1));
 }
 
+TEST_CASE("replay: a recorded game reproduces the exact final state") {
+  CardLibrary lib = testLib();
+  std::uint32_t seed = 777;
+  std::vector<std::string> d0;
+  for (int i = 0; i < 15; ++i) {
+    d0.push_back("germinator");
+    d0.push_back("redpip");
+  }
+  std::vector<std::string> d1 = repeat("bear", 30);
+
+  Game g(lib, d0, d1, seed);
+  g.start();
+  std::vector<std::pair<int, std::string>> log;
+  auto act = [&](int actor, const std::string& a) {
+    REQUIRE(applyAction(g, actor, a));
+    log.push_back({actor, a});
+  };
+  act(0, R"({"action":"mulligan","indices":[]})");
+  act(1, R"({"action":"mulligan","indices":[]})");
+
+  // Drive ~40 deterministic moves across several turns. Each turn: prefer to
+  // play / activate / attack / bank, ending the turn only when nothing else is
+  // offered -- a varied sequence that exercises every action kind in the log.
+  const Action::Type pref[] = {
+      Action::Type::Play,       Action::Type::Activate,
+      Action::Type::AttackHero, Action::Type::AttackCreature,
+      Action::Type::PlaceMana,  Action::Type::EndTurn};
+  for (int step = 0; step < 40 && !g.isOver(); ++step) {
+    auto la = g.legalActions();
+    const Action* pick = nullptr;
+    for (Action::Type want : pref) {
+      for (const auto& a : la)
+        if (a.type == want) {
+          pick = &a;
+          break;
+        }
+      if (pick) break;
+    }
+    REQUIRE(pick != nullptr);  // endTurn is always available -> never stuck
+    act(g.current(), actionJson(*pick));
+  }
+  std::string finalState = g.toJson();
+  REQUIRE(log.size() > 10);  // a non-trivial game was recorded
+
+  std::string replay = makeReplay(seed, d0, d1, "", "", log);
+  int applied0 = 0, applied1 = 0;
+  auto r1 = runReplay(lib, replay, &applied0);
+  auto r2 = runReplay(lib, replay, &applied1);
+  CHECK(applied0 == static_cast<int>(log.size()));  // every action re-applied
+  CHECK(r1->toJson() == finalState);  // reproduces the exact final state
+  CHECK(r2->toJson() == finalState);  // and is deterministic across runs
+}
+
 #ifdef PRISM_SAMPLE
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
