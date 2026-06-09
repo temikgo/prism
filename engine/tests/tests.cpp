@@ -1592,6 +1592,100 @@ TEST_CASE("replay: a recorded game reproduces the exact final state") {
   CHECK(r2->toJson() == finalState);  // and is deterministic across runs
 }
 
+// --- fuzz (M1) ---------------------------------------------------------------
+
+TEST_CASE("fuzz: random games hold invariants and legalActions stays sound") {
+  CardLibrary lib = testLib();
+  // A broad card pool so games exercise targets, tokens, statuses, scry, delay,
+  // awaken, auras, walls and provoke.
+  const char* pool[] = {"bear",     "redpip",    "guard",       "hider",
+                        "bypasser", "shielded",  "warded",      "germinator",
+                        "frost1",   "sacrifice", "delaybolt",   "decoyling",
+                        "grower",   "composter", "lifestealer", "piercer",
+                        "wall",     "scryspell", "floodaura",   "lingerer",
+                        "regenbear"};
+  const int poolN = static_cast<int>(sizeof(pool) / sizeof(pool[0]));
+  auto makeDeck = [&](std::mt19937& r) {
+    std::vector<std::string> d;
+    for (int i = 0; i < 30; ++i) d.push_back(pool[r() % poolN]);
+    return d;
+  };
+
+  const int kGames = 200;
+  for (int gi = 0; gi < kGames; ++gi) {
+    // The fuzzer's own RNG is seeded per game, so any failing game reproduces;
+    // the recorded `log` also replays it via runReplay regardless.
+    std::mt19937 fr(1000 + gi);
+    std::uint32_t seed = fr();
+    std::vector<std::string> d0 = makeDeck(fr), d1 = makeDeck(fr);
+    Game g(lib, d0, d1, seed);
+    g.start();
+
+    std::vector<std::pair<int, std::string>> log;
+    auto apply = [&](int actor, const std::string& a) {
+      bool ok = applyAction(g, actor, a);
+      if (ok) log.emplace_back(actor, a);
+      return ok;
+    };
+    auto subset = [&](int n) {  // a random subset of [0, n) for mulligan/scry
+      std::vector<int> v;
+      for (int i = 0; i < n; ++i)
+        if (fr() % 2) v.push_back(i);
+      return v;
+    };
+    auto dump = [&]() { return makeReplay(seed, d0, d1, "", "", log); };
+
+    for (int step = 0; step < 500 && !g.isOver(); ++step) {
+      if (g.inMulligan()) {
+        int p = g.mulliganDone(0) ? 1 : 0;
+        nlohmann::json mj{
+            {"action", "mulligan"},
+            {"indices", subset(static_cast<int>(g.player(p).hand.size()))}};
+        if (!apply(p, mj.dump())) FAIL("mulligan rejected\n" << dump());
+      } else if (g.inScry()) {
+        int p = g.scryPlayer();
+        nlohmann::json sj{
+            {"action", "scryResolve"},
+            {"bottom", subset(static_cast<int>(g.scryPeek().size()))}};
+        if (!apply(p, sj.dump())) FAIL("scryResolve rejected\n" << dump());
+      } else {
+        std::vector<Action> la = g.legalActions();
+        if (la.empty()) FAIL("no legal action in an active phase\n" << dump());
+        const Action& a = la[fr() % la.size()];
+        if (!apply(g.current(), actionJson(a)))
+          FAIL("legalActions offered an action applyAction rejected\n"
+               << dump());
+      }
+
+      // Invariants that must hold after every applied action.
+      for (int pi = 0; pi < 2; ++pi) {
+        const Player& p = g.player(pi);
+        if (p.heroHp > HeroStartHp) FAIL("heroHp above start\n" << dump());
+        if (p.heroArmor < 0) FAIL("negative armor\n" << dump());
+        if (static_cast<int>(p.board.size()) > BoardLimit)
+          FAIL("board over the limit\n" << dump());
+        if (static_cast<int>(p.hand.size()) > HandLimit)
+          FAIL("hand over the limit\n" << dump());
+        for (int i = 0; i < ColorCount; ++i)
+          if (p.mana.crystals[i] < 0 || p.mana.available[i] < 0)
+            FAIL("negative mana\n" << dump());
+        for (const auto& c : p.board) {
+          if (c.hp <= 0)
+            FAIL("a dead creature is still on the board\n" << dump());
+          if (c.hp > c.maxHp) FAIL("hp above maxHp\n" << dump());
+          if (c.atk < 0) FAIL("negative atk\n" << dump());
+        }
+      }
+    }
+
+    // The recorded game replays to the exact same final state (serialization +
+    // replay exercised on every fuzzed game).
+    auto r = runReplay(lib, dump());
+    if (r->toJson() != g.toJson())
+      FAIL("replay diverged from the fuzzed game\n" << dump());
+  }
+}
+
 #ifdef PRISM_SAMPLE
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
