@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <memory>
 #include <optional>
 #include <random>
 #include <string>
@@ -227,6 +228,18 @@ class Game {
   // breakdown are free parameters, not enumerated here (append / greedy payment
   // are always legal).
   std::vector<Action> legalActions() const;
+
+  // Full-state serialization (engine/src/serialize.cpp). toJson captures every
+  // field needed to resume the exact game -- both players, the phase flags, the
+  // RNG state (so future shuffles match), and any interned token defs
+  // (germinate sprouts, which are not library cards). fromJson rebuilds an
+  // independent Game against the same library; it is returned by unique_ptr so
+  // the object never moves (board creatures hold raw pointers into its
+  // interned-token storage). The transient event queue is empty at action
+  // boundaries and is not stored.
+  std::string toJson() const;
+  static std::unique_ptr<Game> fromJson(const CardLibrary& lib,
+                                        const std::string& json);
 
   Player& player(int i) { return players_[i]; }
   const Player& player(int i) const { return players_[i]; }

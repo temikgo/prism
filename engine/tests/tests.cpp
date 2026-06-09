@@ -1486,6 +1486,59 @@ TEST_CASE("legalActions: placeMana colors, play targets, board-full gating") {
   CHECK(spellPlay);
 }
 
+// --- serialization (M1) ------------------------------------------------------
+
+TEST_CASE("serialize: round-trips a rich mid-game state exactly") {
+  CardLibrary lib = testLib();
+  // A deck that lets P0 reach a state exercising the tricky parts: an interned
+  // token (germinate sprout), the mana row (a banked card), a pending delayed
+  // effect, a spent-vs-available mana split, and a populated graveyard.
+  std::vector<std::string> d0;
+  for (int i = 0; i < 15; ++i) {
+    d0.push_back("germinator");
+    d0.push_back("delaybolt");
+  }
+  Game g(lib, d0, repeat("bear", 30), 4242);
+  begin(g);
+
+  // P0 turn 1: bank a germinator to mana, then play one.
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "germinator"), Color::Colorless));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "germinator")));
+  g.endTurn();  // -> P1
+  g.endTurn();  // -> P0 (the germinator is no longer summoning sick)
+
+  // Activate germinate (interns a token_sprout2 and summons it), then play a
+  // delayed bolt (schedules a pending effect; the spell goes to the graveyard).
+  EntityId gid = 0;
+  for (const auto& c : g.player(0).board)
+    if (c.def->id == "germinator") gid = c.id;
+  REQUIRE(gid != 0);
+  REQUIRE(g.activate(gid));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "delaybolt")));
+  REQUIRE(g.player(0).board.size() == 2);      // germinator + sprout token
+  REQUIRE(g.player(0).manaRow.size() == 1);    // a banked card
+  REQUIRE(g.player(0).pending.size() == 1);    // a delayed bolt
+  REQUIRE(g.player(0).graveyard.size() == 1);  // the spent delaybolt
+
+  std::string saved = g.toJson();
+  auto g2 = Game::fromJson(lib, saved);
+
+  // Identical observable state from both perspectives, identical legal moves,
+  // and re-serializing is byte-identical (every field round-tripped, incl. the
+  // RNG state, nextId, and the interned token def).
+  CHECK(viewJson(g, 0) == viewJson(*g2, 0));
+  CHECK(viewJson(g, 1) == viewJson(*g2, 1));
+  CHECK(legalActionsJson(g) == legalActionsJson(*g2));
+  CHECK(g2->toJson() == saved);
+
+  // The restored game continues identically: the same action yields the same
+  // resulting view on both (the end-of-turn draw exercises deck order).
+  CHECK(applyAction(g, 0, R"({"action":"endTurn"})"));
+  CHECK(applyAction(*g2, 0, R"({"action":"endTurn"})"));
+  CHECK(viewJson(g, 0) == viewJson(*g2, 0));
+  CHECK(viewJson(g, 1) == viewJson(*g2, 1));
+}
+
 #ifdef PRISM_SAMPLE
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;

@@ -12,6 +12,7 @@ add_library(prism_engine
   src/card.cpp
   src/game.cpp
   src/protocol.cpp
+  src/serialize.cpp
 )
 target_include_directories(prism_engine PUBLIC include third_party)
 
