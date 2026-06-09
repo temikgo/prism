@@ -421,7 +421,6 @@ func _enemy_has_provoke() -> bool: return Rules.enemy_has_provoke(view)
 func _valid_attack_target(cr: Dictionary) -> bool: return Rules.valid_attack_target(view, cr)
 
 
-
 # --- top-level rebuild -------------------------------------------------------
 
 func _rebuild() -> void:
@@ -454,12 +453,26 @@ func _rebuild() -> void:
 
 	for c in _overlay.get_children():
 		c.queue_free()
+	# setup() sets the panel's full-rect anchors and builds its children before it
+	# enters the tree -- a plain Control parent won't re-lay-out an anchor change
+	# made after add_child, so the panel must be sized first.
 	if bool(view.get("over", false)):
-		_overlay.add_child(_game_over_panel(you))
+		var go := GameOverPanel.new()
+		go.to_menu.connect(func() -> void: exit_to_menu.emit())
+		go.setup(int(view.get("winner", -1)) == you)
+		_overlay.add_child(go)
 	elif bool(view.get("mulligan", false)):
-		_overlay.add_child(_mulligan_panel(me))
+		var mp := MulliganPanel.new()
+		mp.toggle.connect(_toggle_mulligan)
+		mp.submit.connect(_send_mulligan)
+		mp.setup(me.get("hand", []), _mull_sel, bool(me.get("mulliganDone", false)))
+		_overlay.add_child(mp)
 	elif view.has("scry"):
-		_overlay.add_child(_scry_panel(view["scry"]))
+		var sp := ScryPanel.new()
+		sp.toggle.connect(_toggle_scry)
+		sp.submit.connect(_send_scry)
+		sp.setup(view["scry"], _scry_sel)
+		_overlay.add_child(sp)
 
 	# Refresh the pinned End Turn: hidden while an overlay (mulligan/scry/game-over)
 	# owns the screen, disabled when it is not your turn.
@@ -479,108 +492,6 @@ func _separator() -> Control:
 	return spacer
 
 
-func _game_over_panel(you: int) -> Control:
-	var win := int(view.get("winner", -1)) == you
-	var accent := Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.6)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # swallow clicks underneath
-
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dim.add_child(center)
-
-	var panel := PanelContainer.new()
-	# Roomier glass so the wide display word never sits flush against the frame.
-	var sb := Ui.glass(accent, 0.9)
-	sb.set_content_margin_all(34)
-	panel.add_theme_stylebox_override("panel", sb)
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 18)
-	vb.custom_minimum_size = Vector2(440, 0)  # margin around the verdict text
-	var verdict := Ui.label("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 46, accent.lightened(0.3), true)
-	verdict.add_theme_font_override("font", Fonts.DISPLAY)
-	verdict.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vb.add_child(verdict)
-	var to_menu := Ui.neon_button("В меню", accent)
-	to_menu.custom_minimum_size = Vector2(200, 48)
-	to_menu.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	to_menu.pressed.connect(func() -> void: exit_to_menu.emit())
-	vb.add_child(to_menu)
-	panel.add_child(vb)
-	center.add_child(panel)
-	return dim
-
-
-# Opening-hand mulligan: tap cards to mark them for replacement, then confirm.
-# Both players choose at once; the first turn begins when both have confirmed.
-func _mulligan_panel(me: Dictionary) -> Control:
-	var accent := Color(0.45, 0.85, 1.0)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.62)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # block the board underneath
-
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.92))
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
-	panel.add_child(vb)
-	center.add_child(panel)
-
-	var title := Ui.label("", 30, accent.lightened(0.3), true)
-	vb.add_child(title)
-
-	# Once you have confirmed, just wait for the opponent.
-	if bool(me.get("mulliganDone", false)):
-		title.text = "Ждём соперника…"
-		vb.add_child(Ui.label("Ваш мулиган принят.", 0, Color(0.75, 0.78, 0.86), true))
-		return dim
-
-	title.text = "Мулиган"
-	vb.add_child(Ui.label("Нажмите на карты, которые хотите заменить, затем подтвердите.",
-		14, Color(0.75, 0.78, 0.86), true))
-
-	var hand: Array = me.get("hand", [])
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	for i in hand.size():
-		var cid: String = hand[i]
-		var marked: bool = _mull_sel.has(i)
-		var wrap := Control.new()
-		wrap.custom_minimum_size = CARD_SIZE
-		var card := _make_card(cid, null)
-		if marked:
-			# Dim and red-tint cards staged for replacement.
-			card.modulate = Color(1.0, 0.5, 0.5, 0.6)
-			card.rest_modulate = card.modulate
-		var idx := i
-		card.clicked.connect(func(_p: Dictionary) -> void: _toggle_mulligan(idx))
-		wrap.add_child(card)
-		if marked:
-			var badge := Ui.label("ЗАМЕНА", 16, Color(1.0, 0.7, 0.7), true)
-			badge.position = Vector2(0, CARD_SIZE.y / 2.0 - 12)
-			badge.size = Vector2(CARD_SIZE.x, 24)
-			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			wrap.add_child(badge)
-		row.add_child(wrap)
-	vb.add_child(row)
-
-	var n := _mull_sel.size()
-	var btn := Ui.neon_button("Заменить %d" % n if n > 0 else "Оставить руку", accent)
-	btn.custom_minimum_size = Vector2(0, 40)
-	btn.pressed.connect(_send_mulligan)
-	vb.add_child(btn)
-	return dim
-
-
 func _toggle_mulligan(index: int) -> void:
 	if _mull_sel.has(index):
 		_mull_sel.erase(index)
@@ -594,62 +505,6 @@ func _send_mulligan() -> void:
 	indices.sort()
 	_send({"action": "mulligan", "indices": indices})
 	_mull_sel.clear()
-
-
-# Blue scry: the peeked top cards (top first), tap any to send it to the bottom,
-# then confirm. The unmarked ones stay on top in order.
-func _scry_panel(peek: Array) -> Control:
-	var accent := Color(0.45, 0.7, 1.0)
-	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.62)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.92))
-	var vb := VBoxContainer.new()
-	vb.add_theme_constant_override("separation", 14)
-	panel.add_child(vb)
-	center.add_child(panel)
-
-	vb.add_child(Ui.label("Прозрение", 30, accent.lightened(0.3), true))
-	vb.add_child(Ui.label("Верх колоды слева. Отметьте карты, которые уберёте ВНИЗ; остальные останутся сверху.",
-		14, Color(0.75, 0.78, 0.86), true))
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	for i in peek.size():
-		var cid: String = peek[i]
-		var marked: bool = _scry_sel.has(i)
-		var wrap := Control.new()
-		wrap.custom_minimum_size = CARD_SIZE
-		var card := _make_card(cid, null)
-		if marked:
-			card.modulate = Color(0.6, 0.7, 1.0, 0.6)
-			card.rest_modulate = card.modulate
-		var idx := i
-		card.clicked.connect(func(_p: Dictionary) -> void: _toggle_scry(idx))
-		wrap.add_child(card)
-		var pos_l := Ui.label("ВНИЗ" if marked else "верх %d" % (i + 1), 14,
-			Color(0.7, 0.8, 1.0) if marked else Color(0.7, 0.73, 0.82), true)
-		pos_l.position = Vector2(0, CARD_SIZE.y / 2.0 - 12)
-		pos_l.size = Vector2(CARD_SIZE.x, 24)
-		pos_l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		wrap.add_child(pos_l)
-		row.add_child(wrap)
-	vb.add_child(row)
-
-	var n := _scry_sel.size()
-	var btn := Ui.neon_button("Убрать вниз: %d" % n if n > 0 else "Оставить всё сверху", accent)
-	btn.custom_minimum_size = Vector2(0, 40)
-	btn.pressed.connect(_send_scry)
-	vb.add_child(btn)
-	return dim
 
 
 func _toggle_scry(index: int) -> void:
@@ -847,8 +702,6 @@ func _aura_tile(card_id: String) -> Control:
 # missing. Shared by the aura shelf and the awaken chips.
 func _art_thumb(card_id: String, fallback: Color, px: float) -> Control:
 	return Tokens.art(card_id, px, fallback)
-
-
 
 
 # --- mana row (face-down backs + peekable awaken cards) ----------------------
@@ -1314,35 +1167,7 @@ func _refresh_hand_card(card: UiCard, cid: String, index: int) -> void:
 
 # --- card visual -------------------------------------------------------------
 
-func _make_card(def_id: String, runtime) -> UiCard:
-	# Minimal card face: art + cost/atk/hp gems + a color frame. Name, rules
-	# text and keywords live in the hover tooltip, not on the face.
-	var card := UiCard.new()
-	card.custom_minimum_size = CARD_SIZE
-	# Neon glow in the card's own color (drawn by the card panel, behind the
-	# rounded face, so it is not clipped).
-	var col := Palette.primary(_def(def_id))
-	var glow := StyleBoxFlat.new()
-	glow.bg_color = Color(0, 0, 0, 0)
-	glow.set_corner_radius_all(12)
-	glow.shadow_size = 10
-	glow.shadow_color = Color(col.r, col.g, col.b, 0.6)
-	card.add_theme_stylebox_override("panel", glow)
-	card.add_child(CardView.face(def_id, runtime))
-	# Pretty hover tooltip (built lazily) instead of the plain text one. A
-	# non-empty tooltip_text is still required for the tooltip to trigger.
-	card.tooltip_text = _name_of(def_id)
-	card.tooltip_builder = func() -> Control: return CardView.tooltip(def_id, runtime)
-	card.hoverable = true
-	# The drag preview is the card itself, centered under the cursor.
-	card.preview_builder = func() -> Control:
-		var wrapper := Control.new()
-		var f := CardView.face(def_id, runtime)
-		f.size = CARD_SIZE
-		f.position = -CARD_SIZE / 2.0
-		wrapper.add_child(f)
-		return wrapper
-	return card
+func _make_card(def_id: String, runtime) -> UiCard: return CardView.widget(def_id, runtime)
 
 
 # --- styles ------------------------------------------------------------------

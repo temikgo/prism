@@ -1,9 +1,9 @@
 class_name CardView
 
-# The card visual: the fixed-size face (art + cost/atk/hp/status, no text) and the
-# hover tooltip (name + generated rules + flavor + live statuses). Pure builders --
-# read CardData/Glossary/Palette/Tokens/Ui, take plain data, return Controls. The
-# interactive wrapper (drag/click/preview) is assembled in Main from face()+tooltip().
+# The card visual: the fixed-size face (art + cost/atk/hp/status, no text), the
+# hover tooltip (name + generated rules + flavor + live statuses), and widget() --
+# the interactive UiCard wrapping face + tooltip + drag preview. Pure builders --
+# read CardData/Glossary/Palette/Tokens/Ui, take plain data, return Controls.
 
 # Full card visual as a fixed-size Control with everything anchored to corners, so
 # the size is constant regardless of contents (card and drag preview alike).
@@ -93,6 +93,37 @@ static func face(def_id: String, runtime) -> Control:
 			status_row.grow_vertical = Control.GROW_DIRECTION_END
 			face_node.add_child(status_row)
 	return face_node
+
+
+# An interactive card widget: a UiCard wrapping the face, a glow in the card's
+# color, the hover tooltip and a centered drag preview. The draggable/clickable
+# unit used by the hand and the mulligan/scry pickers.
+static func widget(def_id: String, runtime) -> UiCard:
+	var card := UiCard.new()
+	card.custom_minimum_size = Tokens.CARD_SIZE
+	# Neon glow in the card's own color (drawn behind the rounded face, not clipped).
+	var col := Palette.primary(CardData.def(def_id))
+	var glow := StyleBoxFlat.new()
+	glow.bg_color = Color(0, 0, 0, 0)
+	glow.set_corner_radius_all(12)
+	glow.shadow_size = 10
+	glow.shadow_color = Color(col.r, col.g, col.b, 0.6)
+	card.add_theme_stylebox_override("panel", glow)
+	card.add_child(face(def_id, runtime))
+	# Pretty hover tooltip (built lazily); a non-empty tooltip_text is still required
+	# for the tooltip to trigger.
+	card.tooltip_text = CardData.name_of(def_id)
+	card.tooltip_builder = func() -> Control: return tooltip(def_id, runtime)
+	card.hoverable = true
+	# The drag preview is the card itself, centered under the cursor.
+	card.preview_builder = func() -> Control:
+		var wrapper := Control.new()
+		var f := face(def_id, runtime)
+		f.size = Tokens.CARD_SIZE
+		f.position = -Tokens.CARD_SIZE / 2.0
+		wrapper.add_child(f)
+		return wrapper
+	return card
 
 
 # Compact text-only card info on hover: name, cost, type, generated rules, flavor,
