@@ -36,7 +36,10 @@ static json creatureJson(const Creature& c) {
 // `self` = this is the viewing player's own side, so private info is included.
 // `revealMana` = the viewer controls a Yellow floodlight aura, so this player's
 // banked mana-card identities are exposed even though it is the opponent.
-static json playerJson(const Player& p, bool self, bool revealMana) {
+// `deckHeld` = cards this player is currently holding mid-scry; they belong to
+// the deck (scry only reorders the top), so count them as still in it.
+static json playerJson(const Player& p, bool self, bool revealMana,
+                       int deckHeld) {
   json j;
   json hero = {{"hp", p.heroHp}, {"armor", p.heroArmor}};
   // The chosen hero is public to both players: its id, name, and passive
@@ -79,7 +82,7 @@ static json playerJson(const Player& p, bool self, bool revealMana) {
   // Whether a limited hero passive has been used this turn (e.g. Prism's swap).
   if (self) j["heroPowerUsed"] = p.heroPowerUses > 0;
   if (self) j["placedMana"] = p.placedManaThisTurn;  // already banked a card?
-  j["deckCount"] = static_cast<int>(p.deck.size());
+  j["deckCount"] = static_cast<int>(p.deck.size()) + deckHeld;
   j["graveyardCount"] = static_cast<int>(p.graveyard.size());
   j["pendingCount"] = static_cast<int>(p.pending.size());  // delayed effects
   j["mulliganDone"] = p.mulliganDone;
@@ -119,8 +122,11 @@ std::string viewJson(const Game& g, int you) {
   json players = json::array();
   for (int i = 0; i < 2; ++i) {
     bool self = (i == you);
-    players.push_back(
-        playerJson(g.player(i), self, /*revealMana=*/!self && floodlight));
+    int deckHeld = (g.inScry() && g.scryPlayer() == i)
+                       ? static_cast<int>(g.scryPeek().size())
+                       : 0;
+    players.push_back(playerJson(g.player(i), self,
+                                 /*revealMana=*/!self && floodlight, deckHeld));
   }
   j["players"] = players;
   return j.dump();

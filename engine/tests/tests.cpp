@@ -583,6 +583,10 @@ TEST_CASE("scry peeks the top cards and the player sorts them") {
   CHECK(g.scryPlayer() == 0);
   CHECK(g.scryPeek().size() == 2);
   CHECK(static_cast<int>(g.player(0).deck.size()) == deck_before - 2);
+  // ...but the reported deckCount stays full: the peeked cards still belong to
+  // the deck (scry only reorders the top), so the pile count must not dip.
+  auto vs = nlohmann::json::parse(viewJson(g, 0));
+  CHECK(vs["players"][0]["deckCount"].get<int>() == deck_before);
   // Everything else is blocked until the scry is resolved.
   CHECK_FALSE(applyAction(g, 0, R"({"action":"endTurn"})"));
   // Resolve via the protocol: one card to the bottom, the deck returns to full.
