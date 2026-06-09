@@ -557,46 +557,18 @@ func _player_half(p: Dictionary, mine: bool) -> Control:
 	return half
 
 
-# The hero as a big framed portrait with HP/armor gems and the passive badge.
-# The enemy medallion doubles as the face-attack drop target.
+# The hero medallion (portrait + HP/armor + passive). The enemy one is the
+# face-attack drop target; Main keeps the node ref for lunge/face-damage targeting.
 func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
-	var accent := ME_ACCENT if mine else ENEMY_ACCENT
-	var card := UiCard.new()
-	card.custom_minimum_size = Vector2(158, 0)
-	card.size_flags_vertical = Control.SIZE_FILL
-	card.add_theme_stylebox_override("panel", Ui.glass(accent, 0.4))
-	if mine:
-		_my_hero_node = card  # where your own face-damage numbers spawn
+	var m := HeroMedallion.new()
 	if not mine:
-		_enemy_hero_node = card  # lunge target for face attacks
-		# Attack the face: blocked by a provoker unless the attacker has Bypass.
-		card.can_drop_fn = func(data: Variant) -> bool:
-			if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
-				return false
-			return not _enemy_has_provoke() or bool(data.get("bypass", false))
-		card.drop_fn = func(data: Variant) -> void:
-			_attack_hero(int(data["id"]))
-
-	var v := VBoxContainer.new()
-	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", 5)
-	var tag := Ui.label("ВЫ" if mine else "СОПЕРНИК", 11, accent.lightened(0.35), true)
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(tag)
-	v.add_child(HeroView.portrait_with_hp(hero, 124))
-	var nm := Ui.label(String(hero.get("name", "Герой")), 17, null, true)
-	nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(nm)
-	var badge := HeroView.passive_badge(hero)
-	if badge != null:
-		var brow := HBoxContainer.new()
-		brow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		brow.alignment = BoxContainer.ALIGNMENT_CENTER
-		brow.add_child(badge)
-		v.add_child(brow)
-	card.add_child(v)
-	return card
+		m.attack_hero_requested.connect(_attack_hero)
+	m.setup(hero, mine, view)
+	if mine:
+		_my_hero_node = m   # where your own face-damage numbers spawn
+	else:
+		_enemy_hero_node = m  # lunge target for face attacks
+	return m
 
 
 # Right flank: mana, the banked-card peek, deck/graveyard stacks, counts, top card.
