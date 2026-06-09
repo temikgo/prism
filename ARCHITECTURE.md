@@ -3,8 +3,8 @@
 Самодостаточный справочник: дерево, поток данных, карты модулей движка и
 клиента, контракт протокола, каталог ключевиков/эффектов и кукбук «где менять
 X». Цель — найти любой модуль/действие/ключевик и точку правки без grep-разведки.
-Сопутствующие доки: `BACKLOG.md` (что делаем/решили), `DESIGN.md` (правила игры),
-`EFFECTS.md` (каталог ключевиков), `REFACTOR.md` (целевая архитектура клиента).
+Сопутствующие доки: `BACKLOG.md` (роадмап, что делаем/решили — читать вторым),
+`DESIGN.md` (правила игры), `EFFECTS.md` (каталог ключевиков).
 
 ---
 
@@ -29,8 +29,8 @@ cards/sample.json        МАСТЕР-данные карт (69: 52 creature, 11
 tools/                   balance.py (кривая стоимости) · build_prompts.py (арт-промпты)
                          · run_client.sh (импорт+запуск Godot)
 *.md                     DESIGN (правила) · EFFECTS (ключевики) · ART/ART_PROMPTS/
-                         ART_HEROES (арт) · APP_SHELL (экраны/лобби) · REFACTOR
-                         (план клиента) · BACKLOG (задачи) · README (сборка/запуск)
+                         ART_HEROES (арт) · APP_SHELL (экраны/лобби) · BACKLOG
+                         (роадмап+решения) · README (сборка/запуск)
 ```
 
 `cards/sample.json` и `client-godot/cards.json` обязаны быть **идентичны** (движок
@@ -134,7 +134,8 @@ atk/hp/maxHp/sick/frozenTurns/blindTurns/shield/warded/stealthed/token...),
 и гоняет play-флоу/анимации. Сборку рисуют вынесенные виджеты (`BoardRow`,
 `HeroMedallion`, `PilesColumn`, оверлеи); легальность — `Rules`; данные карт —
 `CardData`. Виджеты эмитят **намерения** (attack/cast/play/awaken), Main их
-маршрутизирует в сеть/Fx. (Разнос — Фаза D плана, выполнена.)
+маршрутизирует в сеть/Fx. Принцип: **данные вниз, сигналы вверх** — виджет не
+дёргает методы координатора.
 
 **Под-карта `Main.gd` по секциям:**
 - *Каркас/топбар:* `_ready` `_load_cards` `_build_shell` `_build_topbar`
@@ -223,8 +224,14 @@ atk/hp/maxHp/sick/frozenTurns/blindTurns/shield/warded/stealthed/token...),
   через колбэки `can_drop_fn`/`drop_fn`/`highlight_check`/`preview_builder`/
   `tooltip_builder`; статика `active_drag`/`aim_from` для подсветки целей и
   стрелки атаки; `_show_hl_frame`/`_hide_hl_frame` (золотая рамка валидной цели).
-- `BoardLayer` (`board_layer.gd`) / `HandRow` (`hand_row.gd`) — узловые модели
-  существ/руки, keyed by id (основа для инкрементального апдейта, Фаза D).
+- `BoardLayer` (`board_layer.gd`) / `HandRow` (`hand_row.gd`) — персистентные
+  узловые модели существ/руки, keyed by id (инкрементальный апдейт: узлы
+  переживают `_rebuild`, позиции твинятся). **Паттерн персистентного узла:**
+  замыкания узла (`can_drop_fn`/`drop_fn`/`payload`) НЕ захватывают данные и
+  транзитные объекты напрямую — данные кладём в `node.set_meta(...)` и читаем
+  `get_meta(...)`, а хуки перепривязываем на каждый refresh (иначе при
+  переиспользовании узла данные протухают, а захваченный транзитный владелец
+  (например `BoardRow`) освобождается и замыкание виснет).
 - `AbilityButton` (`ability_button.gd`) — кнопка активной способности.
 - `Fx` (`fx.gd`) / `FxLayer` (`fx_layer.gd`) — анимации (урон, summon-pulse,
   ready_pulse, полёт спелла); твины биндятся к узлу (`node.create_tween()`).
