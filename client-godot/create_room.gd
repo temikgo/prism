@@ -31,7 +31,7 @@ func _ready() -> void:
 	var title := Ui.label("Создать комнату", 26, Color(0.86, 0.9, 1.0), true)
 	title.add_theme_font_override("font", Fonts.BLACK)
 	col.add_child(title)
-	col.add_child(_gap(6))
+	col.add_child(Ui.gap(6))
 
 	col.add_child(Ui.label("Пароль комнаты", 14, Color(0.66, 0.7, 0.82)))
 	_pw = LineEdit.new()
@@ -44,7 +44,7 @@ func _ready() -> void:
 		Color(0.55, 0.58, 0.68)))
 	_status = Ui.label("", 13, Color(0.95, 0.5, 0.5))
 	col.add_child(_status)
-	col.add_child(_gap(6))
+	col.add_child(Ui.gap(6))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -81,10 +81,3 @@ func notify(text: String) -> void:
 
 func _refresh() -> void:
 	_create_btn.disabled = _pw.text.strip_edges().is_empty()
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

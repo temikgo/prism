@@ -53,7 +53,7 @@ func setup(generic: int, avail: Dictionary, pips: Dictionary) -> void:
 		Color(0.9, 0.93, 1.0), true, true))
 	col.add_child(Ui.label("Тёмные кристаллы зарезервированы под цвет. Выбери %d." % _generic,
 		12, Color(0.62, 0.66, 0.78), true))
-	col.add_child(_gap(2))
+	col.add_child(Ui.gap(2))
 
 	# One compact row: all crystals, grouped by color, locked ones first.
 	var row := HBoxContainer.new()
@@ -75,7 +75,7 @@ func setup(generic: int, avail: Dictionary, pips: Dictionary) -> void:
 				row.add_child(cell)
 	col.add_child(row)
 
-	col.add_child(_gap(2))
+	col.add_child(Ui.gap(2))
 	_count_label = Ui.label("", 14, Color(0.85, 0.88, 1.0), true, true)
 	col.add_child(_count_label)
 
@@ -163,10 +163,3 @@ func _on_confirm() -> void:
 			pay[e["color"]] = int(pay.get(e["color"], 0)) + 1
 	picked.emit(pay)
 	queue_free()
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

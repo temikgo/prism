@@ -9,8 +9,6 @@ signal play_pressed
 signal settings_pressed
 signal quit_pressed
 
-const COLORS := ["red", "yellow", "green", "blue", "violet"]
-
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -27,7 +25,7 @@ func _ready() -> void:
 	col.add_child(_wordmark())
 	col.add_child(Ui.label("Свет Мега-Призмы расколот на семь цветов", 15,
 		Color(0.66, 0.7, 0.82), true))
-	col.add_child(_gap(28))
+	col.add_child(Ui.gap(28))
 
 	col.add_child(_menu_button("Играть", Color(0.4, 0.85, 1.0),
 		func() -> void: play_pressed.emit(), true))
@@ -81,30 +79,6 @@ func _emblem() -> Control:
 	return emblem
 
 
-func _prism_bar() -> Control:
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 0)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var n := COLORS.size()
-	for i in n:
-		var seg := Panel.new()
-		seg.custom_minimum_size = Vector2(54, 5)
-		seg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var c := Palette.color_for(COLORS[i])
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = c
-		sb.shadow_size = 8
-		sb.shadow_color = Color(c.r, c.g, c.b, 0.6)
-		sb.corner_radius_top_left = 3 if i == 0 else 0
-		sb.corner_radius_bottom_left = 3 if i == 0 else 0
-		sb.corner_radius_top_right = 3 if i == n - 1 else 0
-		sb.corner_radius_bottom_right = 3 if i == n - 1 else 0
-		seg.add_theme_stylebox_override("panel", sb)
-		row.add_child(seg)
-	return row
-
-
 func _menu_button(text: String, accent: Color, cb: Callable,
 		primary := false, disabled := false) -> Button:
 	var b := Ui.neon_button(text if not disabled else text + "   ·   скоро", accent)
@@ -115,10 +89,3 @@ func _menu_button(text: String, accent: Color, cb: Callable,
 	else:
 		b.pressed.connect(cb)
 	return b
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

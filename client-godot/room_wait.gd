@@ -37,15 +37,15 @@ func _ready() -> void:
 	col.add_child(Ui.label("Комната создана", 22, Color(0.86, 0.9, 1.0), true))
 	col.add_child(Ui.label("Код комнаты", 13, Color(0.62, 0.66, 0.78), true))
 	col.add_child(_code_plate())
-	col.add_child(_gap(4))
+	col.add_child(Ui.gap(4))
 	col.add_child(Ui.label("Передайте другу код, пароль и адрес сервера:", 13,
 		Color(0.6, 0.64, 0.74), true))
 	col.add_child(Ui.label(_url, 14, Color(0.78, 0.82, 0.92), true, true))
-	col.add_child(_gap(10))
+	col.add_child(Ui.gap(10))
 	col.add_child(Ui.label("Ожидание соперника…", 15, Color(0.7, 0.74, 0.85), true))
 	_status = Ui.label("", 13, Color(0.95, 0.5, 0.5), true)
 	col.add_child(_status)
-	col.add_child(_gap(8))
+	col.add_child(Ui.gap(8))
 
 	var cancel := Ui.neon_button("Отмена", Color(0.6, 0.62, 0.7))
 	cancel.custom_minimum_size = Vector2(160, 42)
@@ -71,10 +71,3 @@ func _code_plate() -> Control:
 	plate.add_child(lbl)
 	holder.add_child(plate)
 	return holder
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

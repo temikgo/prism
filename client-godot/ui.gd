@@ -146,3 +146,11 @@ static func cost_pip(color: String) -> Control:
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(pip)
 	return holder
+
+
+# A fixed-height vertical spacer for stacking screen sections.
+static func gap(h: int) -> Control:
+	var s := Control.new()
+	s.custom_minimum_size = Vector2(0, h)
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return s

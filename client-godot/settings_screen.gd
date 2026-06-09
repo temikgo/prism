@@ -37,7 +37,7 @@ func _ready() -> void:
 	var title := Ui.label("Настройки", 28, Color(0.86, 0.9, 1.0), true)
 	title.add_theme_font_override("font", Fonts.BLACK)
 	col.add_child(title)
-	col.add_child(_gap(6))
+	col.add_child(Ui.gap(6))
 
 	col.add_child(Ui.label("Адрес сервера", 14, Color(0.66, 0.7, 0.82)))
 	_url_edit = LineEdit.new()
@@ -47,7 +47,7 @@ func _ready() -> void:
 	col.add_child(_url_edit)
 	col.add_child(Ui.label("Где запущен сервер матча. Код и пароль комнаты появятся позже.",
 		12, Color(0.55, 0.58, 0.68)))
-	col.add_child(_gap(10))
+	col.add_child(Ui.gap(10))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -70,10 +70,3 @@ func _close() -> void:
 	if url.is_empty():
 		url = DEFAULT_URL
 	closed.emit(url)
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

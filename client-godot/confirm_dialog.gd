@@ -44,7 +44,7 @@ func setup(title: String, lines: Array, yes_text := "Разыграть", no_tex
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(320, 0)
 		col.add_child(l)
-	col.add_child(_gap(4))
+	col.add_child(Ui.gap(4))
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -60,10 +60,3 @@ func setup(title: String, lines: Array, yes_text := "Разыграть", no_tex
 		confirmed.emit()
 		queue_free())
 	row.add_child(yes)
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s

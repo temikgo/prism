@@ -38,7 +38,7 @@ func _ready() -> void:
 	var title := Ui.label("Войти по коду", 26, Color(0.86, 0.9, 1.0), true)
 	title.add_theme_font_override("font", Fonts.BLACK)
 	col.add_child(title)
-	col.add_child(_gap(6))
+	col.add_child(Ui.gap(6))
 
 	col.add_child(Ui.label("Код комнаты", 14, Color(0.66, 0.7, 0.82)))
 	_code = LineEdit.new()
@@ -57,7 +57,7 @@ func _ready() -> void:
 
 	_error = Ui.label("", 13, Color(0.95, 0.5, 0.5))
 	col.add_child(_error)
-	col.add_child(_gap(6))
+	col.add_child(Ui.gap(6))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -117,10 +117,3 @@ func _refresh() -> void:
 	var ok := _code.text.strip_edges().length() >= 4 \
 		and not _pw.text.strip_edges().is_empty()
 	_join_btn.disabled = not ok
-
-
-func _gap(h: int) -> Control:
-	var s := Control.new()
-	s.custom_minimum_size = Vector2(0, h)
-	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return s
