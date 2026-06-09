@@ -763,12 +763,6 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
     for (int k = 0; k < e.value; ++k) owner.mana.addCrystal(Color::Colorless);
   } else if (a == "scry") {
     startScry(owner, e.value);
-  } else if (a == "dispel") {
-    // Blue dispel: strip the opponent's auras (they are unique per player, so
-    // this is usually the one they control). The cards go to their graveyard.
-    for (const auto* aura : opp.auras) opp.graveyard.push_back(aura);
-    opp.auras.clear();
-    recomputeContinuous();  // a removed chill aura un-shrinks enemy attack
   } else if (a == "scatter") {
     Creature* t = findCreature(owner, target);
     if (!t) t = findCreature(opp, target);

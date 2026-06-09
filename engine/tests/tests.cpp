@@ -53,9 +53,6 @@ static const char* kTestCards = R"json([
   { "id": "germinator", "name": { "ru": "Прорастатель" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 3 },
     "keywords": [{ "id": "germinate", "n": 2 }] },
-  { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
-    "color": [], "cost": { "generic": 0 },
-    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 0 }] },
   { "id": "floodaura", "name": { "ru": "Прожектор" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
     "keywords": [{ "id": "floodlight" }] },
@@ -511,19 +508,6 @@ TEST_CASE("ward absorbs the next harmful targeted effect, then is spent") {
   CHECK_FALSE(g.player(0).board[0].warded);  // ...and is now spent
   REQUIRE(g.playCard(handIndexOf(g, 1, "frost1"), w));
   CHECK(g.player(0).board[0].frozenTurns == 1);  // the next effect lands
-}
-
-TEST_CASE("dispel strips the opponent's auras") {
-  CardLibrary lib = testLib();
-  Game g(lib, {"photoaura", "bear", "bear", "bear"},
-         {"dispelspell", "bear", "bear", "bear", "bear"}, 21);
-  begin(g);
-  REQUIRE(g.playCard(handIndexOf(g, 0, "photoaura")));
-  REQUIRE(g.player(0).auras.size() == 1);
-  g.endTurn();  // p1's turn
-  REQUIRE(g.playCard(handIndexOf(g, 1, "dispelspell")));
-  CHECK(g.player(0).auras.empty());
-  CHECK(g.player(0).graveyard.size() == 1);
 }
 
 TEST_CASE("germinate spends a crystal for an N/N sprout, once per turn") {
