@@ -23,3 +23,27 @@ jobs:
         run: ctest --test-dir build --output-on-failure
       - name: WebSocket smoke test
         run: python3 server/test_ws_smoke.py
+
+  client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GODOT_VERSION: 4.3-stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot (headless, pinned to match local bundle)
+        run: |
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          wget -q "$url" -O godot.zip
+          unzip -q godot.zip
+          chmod +x "Godot_v${GODOT_VERSION}_linux.x86_64"
+          echo "GODOT=$PWD/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Import project + parse check
+        run: |
+          out=$("$GODOT" --headless --import --path client-godot 2>&1) || true
+          echo "$out"
+          if echo "$out" | grep -E "SCRIPT ERROR|Parse Error"; then
+            echo "::error::parse/script error during import"; exit 1
+          fi
+      - name: Client tests (CardData / GameState / Main helpers + demo-mock validation)
+        run: "$GODOT" --headless --path client-godot -s tests/run.gd
