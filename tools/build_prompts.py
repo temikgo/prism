@@ -84,7 +84,7 @@ def entry(card, style, flags):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "cards", "new_set.json")
+    path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "cards", "sample.json")
     pool = json.load(open(path, encoding="utf-8"))
     heroes = [c for c in json.load(open(os.path.join(ROOT, "cards", "sample.json"), encoding="utf-8")) if c["type"] == "hero"]
 
