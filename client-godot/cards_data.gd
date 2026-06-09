@@ -95,6 +95,30 @@ static func needs_target(card_id: String) -> bool:
 	return target_side(card_id) != ""
 
 
+# True if a targeted effect is a cost (`required`): the card cannot be played at
+# all without a legal target. Optional targeted effects just skip with no target.
+static func target_required(card_id: String) -> bool:
+	var d: Dictionary = db.get(card_id, {})
+	for e in d.get("effects", []):
+		if String(e.get("selector", "")).begins_with("chosen_") and bool(e.get("required", false)):
+			return true
+	return false
+
+
+# Human descriptions of the card's targeted on_play effects -- used to warn the
+# player which effect(s) will be lost when the card is played with no target.
+static func targeted_effect_texts(card_id: String) -> Array:
+	var d: Dictionary = db.get(card_id, {})
+	var out := []
+	for e in d.get("effects", []):
+		if String(e.get("trigger", "")) == "on_play" \
+				and String(e.get("selector", "")).begins_with("chosen_"):
+			var s := Glossary.effect_text(e)
+			if s != "":
+				out.append(s)
+	return out
+
+
 static func has_keyword(card_id: String, kw: String) -> bool:
 	for k in db.get(card_id, {}).get("keywords", []):
 		if String(k.get("id", "")) == kw:

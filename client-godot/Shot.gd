@@ -38,7 +38,7 @@ func _mock() -> Dictionary:
 			{"color": "green", "age": 2}, {"color": "colorless", "age": 0}],
 		"handCount": 4,
 		"hand": ["green_lightwood", "blue_deep_chronicler", "yellow_blue_icy_sentinel",
-			"prismatic_seraph"],
+			"prismatic_titan"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"mulliganDone": true,
 		"board": [

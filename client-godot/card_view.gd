@@ -34,19 +34,8 @@ static func face(def_id: String, runtime) -> Control:
 	_anchor_inset(art, Tokens.RIM)
 	face_node.add_child(art)
 
-	# State tints over the art -- pure overlays, they never change the layout.
-	if typeof(runtime) == TYPE_DICTIONARY and int(runtime.get("frozen", 0)) > 0:
-		var ice := ColorRect.new()
-		ice.color = Color(0.45, 0.72, 1.0, 0.30)
-		ice.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_anchor_inset(ice, Tokens.RIM)
-		face_node.add_child(ice)
-	if typeof(runtime) == TYPE_DICTIONARY and bool(runtime.get("sick", false)):
-		var sleep := ColorRect.new()
-		sleep.color = Color(0.05, 0.07, 0.18, 0.46)
-		sleep.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_anchor_inset(sleep, Tokens.RIM)
-		face_node.add_child(sleep)
+	# State is shown by the status icons (snowflake/moon/...) only -- no colour-wash
+	# overlay over the art.
 
 	# Legibility scrims: a soft dark fade at the top (under cost/status) and bottom
 	# (under the stat gems) so chrome reads over any bright art. The card name is

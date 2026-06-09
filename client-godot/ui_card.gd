@@ -30,6 +30,7 @@ var hoverable := false                        # scale up on mouse-over
 var rest_modulate := Color.WHITE              # modulate to restore after a drag
 var glow_self := false                        # glow own panel only (drop zones)
 var _is_drag_source := false
+var _hl_frame: Panel = null                   # bright target frame shown during a drag
 
 func _ready() -> void:
 	mouse_entered.connect(_on_hover_in)
@@ -121,10 +122,44 @@ func _notification(what: int) -> void:
 				if glow_self:
 					self_modulate = Color(1.45, 1.45, 1.1)
 				else:
-					modulate = Color(1.45, 1.45, 1.1)
+					# A legal target (attackable creature/hero, or a spell target):
+					# a bright frame around it -- no colour wash over the card.
+					_show_hl_frame()
 	elif what == NOTIFICATION_DRAG_END:
 		active_drag = null
 		aim_from = Vector2.INF
 		_is_drag_source = false
 		modulate = rest_modulate
 		self_modulate = Color.WHITE
+		_hide_hl_frame()
+
+
+# A bright gold frame overlay marking this node as a legal drop target while a
+# drag is in flight (attack target, spell target). Removed at drag end.
+func _show_hl_frame() -> void:
+	if _hl_frame != null and is_instance_valid(_hl_frame):
+		return
+	var f := Panel.new()
+	f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	f.set_anchors_preset(Control.PRESET_FULL_RECT)
+	f.offset_left = -3
+	f.offset_top = -3
+	f.offset_right = 3
+	f.offset_bottom = 3
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(3)
+	var c := Color(1.0, 0.92, 0.55)
+	sb.border_color = c
+	sb.shadow_size = 12
+	sb.shadow_color = Color(c.r, c.g, c.b, 0.7)
+	f.add_theme_stylebox_override("panel", sb)
+	add_child(f)
+	_hl_frame = f
+
+
+func _hide_hl_frame() -> void:
+	if _hl_frame != null and is_instance_valid(_hl_frame):
+		_hl_frame.queue_free()
+	_hl_frame = null

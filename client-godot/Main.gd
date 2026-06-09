@@ -33,6 +33,7 @@ var _picker: Control = null   # open mana-color chooser, if any
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
 var _topbar: Control = null   # always-on-top leave button + status pill
 var _status_pill: Control = null  # the status message pill (hidden when empty)
+var _end_btn: Button = null   # pinned End Turn (always visible, never pushed off)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
@@ -162,6 +163,24 @@ func _build_topbar() -> void:
 	status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_status_pill.add_child(status_label)
 	row.add_child(_status_pill)
+
+	# End Turn lives on this always-on-top layer, pinned to the bottom-left of the
+	# VIEWPORT, so it is never pushed off-screen when the side column (lots of mana
+	# / awaken chips) grows the board layout taller than the window. Positioned by
+	# viewport height (anchoring to the parent fails -- the parent grows with the
+	# overflowing board). Repositioned on resize and each rebuild.
+	_end_btn = Ui.neon_button("Завершить ход", Color(1.0, 0.62, 0.3))
+	_end_btn.custom_minimum_size = Vector2(180, 46)
+	_end_btn.add_theme_font_size_override("font_size", 16)
+	_end_btn.pressed.connect(func() -> void: _send({"action": "endTurn"}))
+	_topbar.add_child(_end_btn)
+	get_tree().root.size_changed.connect(_reposition_end_btn)
+	_reposition_end_btn()
+
+
+func _reposition_end_btn() -> void:
+	if _end_btn != null and is_inside_tree():
+		_end_btn.position = Vector2(20.0, get_viewport_rect().size.y - 62.0)
 
 
 # Wiring from the Router: how this screen sends actions back to the server. The
@@ -399,6 +418,7 @@ func _can_place_mana() -> bool:
 
 func _needs_target(card_id: String) -> bool: return CardData.needs_target(card_id)
 func _target_side(card_id: String) -> String: return CardData.target_side(card_id)
+func _target_required(card_id: String) -> bool: return CardData.target_required(card_id)
 func _is_creature(card_id: String) -> bool: return CardData.is_creature(card_id)
 func _can_afford(cost: Dictionary, avail: Dictionary) -> bool: return CardData.can_afford(cost, avail)
 func _can_afford_with_shift(cost: Dictionary, avail: Dictionary) -> bool: return CardData.can_afford_with_shift(cost, avail)
@@ -432,8 +452,10 @@ func _is_playable(card_id: String) -> bool:
 		for a in me.get("auras", []):
 			if String(a.get("card", "")) == card_id:
 				return false
-	# A targeted spell with no legal target on the board cannot be cast.
-	if _needs_target(card_id) and not _has_legal_target(card_id):
+	# A targeted spell with no legal target: still playable if the effect is
+	# optional (it just skips, the player is warned on drop); only a required
+	# (cost) target effect makes it truly unplayable.
+	if _needs_target(card_id) and not _has_legal_target(card_id) and _target_required(card_id):
 		return false
 	return true
 
@@ -521,6 +543,14 @@ func _rebuild() -> void:
 		_overlay.add_child(_mulligan_panel(me))
 	elif view.has("scry"):
 		_overlay.add_child(_scry_panel(view["scry"]))
+
+	# Refresh the pinned End Turn: hidden while an overlay (mulligan/scry/game-over)
+	# owns the screen, disabled when it is not your turn.
+	if _end_btn != null:
+		_reposition_end_btn()
+		_end_btn.visible = not bool(view.get("over", false)) \
+			and not bool(view.get("mulligan", false)) and not view.has("scry")
+		_end_btn.disabled = not _my_turn()
 
 
 func _separator() -> Control:
@@ -981,7 +1011,7 @@ func _awaken_chip(idx: int, slot: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 6)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(_art_thumb(card_id, Palette.color_for(color), 42))
-	var tag_txt := "бесплатно!" if free else "разбудить"
+	var tag_txt := "без доплаты" if free else "разбудить"
 	var tag := Ui.label(tag_txt, 11, gold if affordable else gold.darkened(0.25))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(tag)
@@ -1380,20 +1410,12 @@ func _zone_style(mine: bool) -> StyleBoxFlat:
 
 # --- controls + hints --------------------------------------------------------
 
+# Just the drag hint now; End Turn is pinned on the top layer (see _build_topbar).
 func _controls() -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	var end_btn := Ui.neon_button("Завершить ход", Color(1.0, 0.62, 0.3))
-	end_btn.disabled = not _my_turn()
-	end_btn.pressed.connect(func() -> void:
-		_send({"action": "endTurn"}))
-	row.add_child(end_btn)
-
-	var hint := Ui.label("", 0, Color(0.62, 0.66, 0.78))
+	var hint := Ui.label("тащите карту на стол — разыграть · на цель — заклинание/атака · двойной тап — в ману",
+		0, Color(0.62, 0.66, 0.78), true)
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hint.text = "тащите карту на стол — разыграть · на цель — заклинание/атака · двойной тап — в ману"
-	row.add_child(hint)
-	return row
+	return hint
 
 
 # --- drag drop helpers (shared by play / awaken) -----------------------------
@@ -1406,8 +1428,13 @@ func _can_play_here(data: Variant) -> bool:
 	# An unplayable hand card lights up no board zone (but can still go to mana).
 	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
 		return false
-	# A targeted spell must be dropped on a creature, not on the board.
-	return not bool(data.get("needs_target", false))
+	# A targeted spell is normally dropped on a creature, not the board -- unless it
+	# currently has no legal target and the effect is optional, in which case it may
+	# be played to the board (the effect skips; the player is warned first).
+	if bool(data.get("needs_target", false)):
+		var cid := String(data.get("card_id", ""))
+		return not _has_legal_target(cid) and not _target_required(cid)
+	return true
 
 
 # True if the dragged targeted spell/awaken may be cast on a creature of the
@@ -1463,10 +1490,24 @@ func _play_at_drop(data: Variant) -> void:
 	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
 
 
-# Send a play action, but when the generic part of the cost can be paid more than
-# one way, first let the player tap which crystals to spend (then attach the
-# chosen breakdown as genericPay). Unambiguous payments play immediately.
+# Route a play: warn if a targeted effect will be lost (played with no target),
+# then handle ambiguous generic-mana payment, then send.
 func _dispatch_play(data: Variant, msg: Dictionary) -> void:
+	var card_id := String(data.get("card_id", ""))
+	# Playing a targeted card with no target skips its effect(s) -- confirm first
+	# so the player never wastes it by accident.
+	if int(msg.get("target", 0)) == 0 and _needs_target(card_id) \
+			and not _has_legal_target(card_id):
+		var lost: Array = CardData.targeted_effect_texts(card_id)
+		_confirm_lost_effect(_name_of(card_id), lost,
+			func() -> void: _dispatch_play_mana(data, msg))
+		return
+	_dispatch_play_mana(data, msg)
+
+
+# When the generic part of the cost can be paid more than one way, first let the
+# player tap which crystals to spend; otherwise send the play immediately.
+func _dispatch_play_mana(data: Variant, msg: Dictionary) -> void:
 	var choices := _generic_choices(String(data.get("card_id", "")))
 	if choices.is_empty():
 		_spell_cast_fx(data)
@@ -1482,6 +1523,25 @@ func _dispatch_play(data: Variant, msg: Dictionary) -> void:
 	add_child(picker)
 	picker.setup(int(choices["generic"]), choices["avail"], choices["pips"])
 	_picker = picker
+
+
+# Warn that playing this card now loses its targeted effect(s) -- no valid target.
+# On confirm, run `on_yes` (which continues the play).
+func _confirm_lost_effect(card_name: String, lost: Array, on_yes: Callable) -> void:
+	_close_picker()
+	var lines := []
+	if lost.is_empty():
+		lines.append("Нет цели — эффект карты пропадёт.")
+	else:
+		lines.append("Нет цели — пропадёт эффект:" if lost.size() == 1 else "Нет цели — пропадут эффекты:")
+		for s in lost:
+			lines.append("• " + String(s))
+	var dlg := ConfirmDialog.new()
+	dlg.confirmed.connect(on_yes)
+	dlg.tree_exited.connect(func() -> void: _picker = null)
+	add_child(dlg)
+	dlg.setup(card_name, lines)
+	_picker = dlg
 
 
 # {generic, avail, pips} when paying the card's generic cost is ambiguous (free
