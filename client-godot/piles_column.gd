@@ -27,7 +27,10 @@ static func cap_h(mana: Dictionary) -> float:
 		total += maxi(int(crystals.get(color, 0)), int(avail.get(color, 0)))
 	if total <= 0:
 		return 26.0  # the "нет маны" line
-	return float(mini(int(ceil(float(total) / 4.0)), 3) * 40)
+	# Crystals all share one wrapping flow now, so rows = ceil(total / PER_ROW);
+	# cap at 3 rows -- beyond that the pool scrolls instead of growing the column.
+	var rows := int(ceil(float(total) / float(Chrome.PER_ROW)))
+	return float(mini(rows, 3) * 40)
 
 
 func setup(p: Dictionary, mine: bool, view: Dictionary) -> void:

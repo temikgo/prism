@@ -58,7 +58,15 @@ static func mana_block(mana: Dictionary) -> Control:
 	return box
 
 
-# Mana crystals, grouped by color, wrapping within the flank column width.
+# Mana crystals in color order, wrapping within the flank column width. All
+# crystals share ONE HFlowContainer (not a per-color HBox each), so its minimum
+# width stays one crystal wide -- a tall single-color pool wraps to new rows
+# instead of stretching one row and shoving the creature board sideways. Colors
+# stay clustered by adjacency; PER_ROW (the count that fits the column) keeps
+# cap_h's row estimate in sync with the actual wrap.
+const PER_ROW := 5
+
+
 static func mana_pips(mana: Dictionary) -> Control:
 	var flow := HFlowContainer.new()
 	flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -78,12 +86,8 @@ static func mana_pips(mana: Dictionary) -> Control:
 		if count <= 0:
 			continue
 		any = true
-		var group := HBoxContainer.new()
-		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		group.add_theme_constant_override("separation", 2)
 		for i in count:
-			group.add_child(Ui.mana_pip(color, i < av, i >= t))
-		flow.add_child(group)
+			flow.add_child(Ui.mana_pip(color, i < av, i >= t))
 	if not any:
 		var l := Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
