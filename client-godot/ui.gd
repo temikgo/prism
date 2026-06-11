@@ -39,6 +39,22 @@ static func rail_panel(side: Color, active: bool) -> StyleBoxFlat:
 	sb.content_margin_right = 16
 	return sb
 
+
+# The hero medallion's own sub-panel: a darker side-tinted slab framed inside the
+# rail (a defined portrait surround, not a second bright glass border competing
+# with the rail's stroke). Lit top rim + a soft side glow.
+static func medallion(side: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.047, 0.051, 0.094, 0.78).lerp(Color(side.r, side.g, side.b, 0.78), 0.12)
+	sb.set_corner_radius_all(16)
+	sb.set_border_width_all(1)
+	sb.border_width_top = 2
+	sb.border_color = Color(side.r, side.g, side.b, 0.42)
+	sb.shadow_size = 14
+	sb.shadow_color = Color(side.r, side.g, side.b, 0.26)
+	sb.set_content_margin_all(8)
+	return sb
+
 # One-liner Label builder. Only the arguments you pass are applied. Pass size <= 0
 # / color = null to inherit the theme default; set `center` for centered text and
 # `bold` for the semibold weight (otherwise the theme's Lato Regular is used).

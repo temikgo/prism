@@ -8,12 +8,14 @@ const ACCENT := Color(0.8, 0.72, 0.98)  # heroes are off-color (light violet)
 
 
 # Square portrait with the HP gem overhanging bottom-right (armor bottom-left).
-static func portrait_with_hp(hero: Dictionary, px: float) -> Control:
+# `accent` frames/glows the portrait in the side colour on the board (blue/red);
+# the neutral hero-select screen passes nothing and keeps the off-colour ACCENT.
+static func portrait_with_hp(hero: Dictionary, px: float, accent: Color = ACCENT) -> Control:
 	var holder := Control.new()
 	holder.custom_minimum_size = Vector2(px, px)
 	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var portrait := _portrait(String(hero.get("card", "")), px)
+	var portrait := _portrait(String(hero.get("card", "")), px, accent)
 	portrait.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(portrait)
 	var hp := Tokens.gem(str(int(hero.get("hp", 0))), Color(0.95, 0.42, 0.46), 44, 0, true, 0.96)
@@ -28,7 +30,7 @@ static func portrait_with_hp(hero: Dictionary, px: float) -> Control:
 
 # A large framed hero portrait (rounded, bordered, clipped). Falls back to a
 # tinted placeholder until art/<heroId>.png exists (see ART_HEROES.md).
-static func _portrait(card_id: String, px: float) -> Control:
+static func _portrait(card_id: String, px: float, accent: Color = ACCENT) -> Control:
 	var holder := Panel.new()
 	holder.custom_minimum_size = Vector2(px, px)
 	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -36,15 +38,23 @@ static func _portrait(card_id: String, px: float) -> Control:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.09, 0.10, 0.15)
 	sb.set_corner_radius_all(14)
-	sb.set_border_width_all(3)
-	sb.border_color = ACCENT
+	sb.set_border_width_all(2)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.7)
 	sb.shadow_size = 16
-	sb.shadow_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.5)
+	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.4)
 	holder.add_theme_stylebox_override("panel", sb)
 	holder.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
-	var art := Tokens.art(card_id, px, ACCENT)
+	var art := Tokens.art(card_id, px, accent)
 	art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(art)
+	# A top-to-bottom sheen over the art: a lit upper edge fading to a dark base, so
+	# the portrait reads as glass-cased rather than a flat sticker.
+	var sheen := TextureRect.new()
+	sheen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sheen.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sheen.texture = _sheen_tex()
+	sheen.stretch_mode = TextureRect.STRETCH_SCALE
+	holder.add_child(sheen)
 	# A thin bright inner stroke just inside the frame: it reads as a lit bevel and
 	# lifts the portrait off the board, so the hero feels framed, not pasted in.
 	var inner := Panel.new()
@@ -52,13 +62,36 @@ static func _portrait(card_id: String, px: float) -> Control:
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var isb := StyleBoxFlat.new()
 	isb.bg_color = Color(0, 0, 0, 0)
-	isb.set_corner_radius_all(11)
+	isb.set_corner_radius_all(12)
 	isb.set_border_width_all(1)
-	isb.border_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.45)
+	isb.border_color = Color(1, 1, 1, 0.12)
 	inner.add_theme_stylebox_override("panel", isb)
 	holder.add_child(inner)
 	holder.tooltip_text = CardData.name_of(card_id)
 	return holder
+
+
+# A cached vertical sheen gradient (white top -> clear mid -> dark base) painted
+# over hero portraits. Built once; reused by every portrait.
+static var _sheen: Texture2D = null
+
+
+static func _sheen_tex() -> Texture2D:
+	if _sheen != null:
+		return _sheen
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.32, 0.72, 1.0])
+	g.colors = PackedColorArray([
+		Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.0),
+		Color(0.016, 0.02, 0.047, 0.0), Color(0.016, 0.02, 0.047, 0.5)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	gt.width = 4
+	gt.height = 64
+	_sheen = gt
+	return _sheen
 
 
 # Maps a hero's passive keyword to its tinted icon (icons/<name>.svg).
@@ -72,7 +105,7 @@ static func _passive_icon(id: String) -> String:
 
 
 # A round badge for the hero's passive: its icon, with a styled hover tooltip.
-static func passive_badge(hero: Dictionary) -> Control:
+static func passive_badge(hero: Dictionary, accent: Color = ACCENT) -> Control:
 	var passive: Array = hero.get("passive", [])
 	if passive.is_empty():
 		return null
@@ -81,8 +114,8 @@ static func passive_badge(hero: Dictionary) -> Control:
 	badge.custom_minimum_size = Vector2(30, 30)
 	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	badge.add_theme_stylebox_override("panel", Tokens.round_style(ACCENT, false))
-	badge.add_child(Ui.icon(_passive_icon(String(kw.get("id", ""))), 18, ACCENT.lightened(0.4)))
+	badge.add_theme_stylebox_override("panel", Tokens.round_style(accent, false))
+	badge.add_child(Ui.icon(_passive_icon(String(kw.get("id", ""))), 18, accent.lightened(0.4)))
 	badge.tooltip_text = Glossary.keyword_name(kw)
 	badge.tooltip_builder = func() -> Control: return passive_tooltip(hero)
 	return badge

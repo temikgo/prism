@@ -17,7 +17,7 @@ func setup(hero: Dictionary, mine: bool, view: Dictionary) -> void:
 	var accent := ME_ACCENT if mine else ENEMY_ACCENT
 	custom_minimum_size = Vector2(158, 0)
 	size_flags_vertical = Control.SIZE_FILL
-	add_theme_stylebox_override("panel", Ui.glass(accent, 0.4))
+	add_theme_stylebox_override("panel", Ui.medallion(accent))
 	if not mine:
 		# Attack the face: blocked by a provoker unless the attacker has Bypass.
 		can_drop_fn = func(data: Variant) -> bool:
@@ -31,14 +31,19 @@ func setup(hero: Dictionary, mine: bool, view: Dictionary) -> void:
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_theme_constant_override("separation", 5)
-	var tag := Ui.label("ВЫ" if mine else "СОПЕРНИК", 11, accent.lightened(0.35), true)
+	var tag := Ui.label("ВЫ" if mine else "СОПЕРНИК", 11, accent.lerp(Ui.INK_DIM, 0.35), true)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(tag)
-	v.add_child(HeroView.portrait_with_hp(hero, 124))
-	var nm := Ui.label(String(hero.get("name", "Герой")), 17, null, true)
+	v.add_child(HeroView.portrait_with_hp(hero, 124, accent))
+	var nm := Ui.label(String(hero.get("name", "Герой")), 17, Ui.INK, true)
 	nm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# A soft side-tinted halo around the name (0-offset shadow + outline = even glow).
+	nm.add_theme_color_override("font_shadow_color", Color(accent.r, accent.g, accent.b, 0.55))
+	nm.add_theme_constant_override("shadow_offset_x", 0)
+	nm.add_theme_constant_override("shadow_offset_y", 0)
+	nm.add_theme_constant_override("shadow_outline_size", 5)
 	v.add_child(nm)
-	var badge := HeroView.passive_badge(hero)
+	var badge := HeroView.passive_badge(hero, accent)
 	if badge != null:
 		var brow := HBoxContainer.new()
 		brow.mouse_filter = Control.MOUSE_FILTER_IGNORE
