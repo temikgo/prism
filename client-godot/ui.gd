@@ -4,6 +4,41 @@ class_name Ui
 # the neon "glass" and bordered panels, buttons, icons and the mana/cost pips.
 # Nothing here reads game state -- callers pass in everything.
 
+# Board redesign tokens (from BOARD_REDESIGN.md / board_redesign_ref/styles.css).
+# Near-black glass base, three ink tints for text, and the side-rail glass fill +
+# hairline stroke. Shared so every chrome surface mixes from one source.
+const BG_0 := Color(0.024, 0.024, 0.047)        # #06060c
+const BG_1 := Color(0.039, 0.039, 0.078)        # #0a0a14
+const INK := Color(0.933, 0.941, 0.984)         # #eef0fb
+const INK_DIM := Color(0.604, 0.627, 0.741)     # #9aa0bd
+const INK_FAINT := Color(0.365, 0.384, 0.502)   # #5d6280
+const PANEL_FILL := Color(0.059, 0.067, 0.118, 0.55)   # rgba(15,17,30,0.55)
+const PANEL_STROKE := Color(1, 1, 1, 0.085)
+# Side accents (your blue / the enemy red), the turn/awaken gold.
+const SIDE_ME := Color(0.341, 0.62, 0.98)       # #579EFA
+const SIDE_FOE := Color(0.922, 0.361, 0.42)     # #EB5C6B
+const GOLD := Color(0.957, 0.776, 0.341)        # #F4C657
+
+
+# One side's whole "rail": a dark-glass slab tinted by the side accent, with a lit
+# top edge and a soft accent glow that brightens on that side's turn. Godot has no
+# backdrop blur, so the glass is faked with the translucent fill + a hairline
+# accent-mixed stroke + the colored drop shadow (the depth cue).
+static func rail_panel(side: Color, active: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = PANEL_FILL
+	sb.set_corner_radius_all(22)
+	sb.set_border_width_all(1)
+	sb.border_width_top = 2  # lit top rim catches light -> reads as glass, not a box
+	sb.border_color = PANEL_STROKE.lerp(side, 0.6 if active else 0.38)
+	sb.shadow_size = 34 if active else 20
+	sb.shadow_color = Color(side.r, side.g, side.b, 0.42 if active else 0.22)
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	return sb
+
 # One-liner Label builder. Only the arguments you pass are applied. Pass size <= 0
 # / color = null to inherit the theme default; set `center` for centered text and
 # `bold` for the semibold weight (otherwise the theme's Lato Regular is used).

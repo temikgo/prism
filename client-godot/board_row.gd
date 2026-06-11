@@ -57,9 +57,18 @@ func setup(board: Array, auras: Array, mine: bool, view: Dictionary,
 
 
 func _zone_style(mine: bool) -> StyleBoxFlat:
-	var accent := Color(0.3, 0.75, 0.6) if mine else Color(0.75, 0.35, 0.4)
-	var sb := Ui.glass(accent, 0.22)
-	sb.shadow_size = 0   # board zones stay calm; only cards/heroes glow
+	# The rail slab is the glass now, so the field itself is just the drop area: a
+	# faint side-tinted outline at rest that the drop-legal self_modulate brightens
+	# into a clear glowing border (no second glass box fighting the rail).
+	# Only your own field needs a resting outline (the drop hint the self_modulate
+	# brightens); the enemy field never receives drops, so it stays open glass.
+	var accent := Ui.SIDE_ME
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.set_corner_radius_all(16)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.12 if mine else 0.0)
+	sb.set_content_margin_all(6)
 	return sb
 
 

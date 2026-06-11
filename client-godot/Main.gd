@@ -544,17 +544,29 @@ const ENEMY_ACCENT := Color(0.92, 0.36, 0.42)
 const ME_ACCENT := Color(0.34, 0.62, 0.98)
 
 
-# One player's band: [hero medallion | board (center, expands) | piles column].
+# One player's band: a glass rail slab wrapping [hero medallion | board (center,
+# expands) | piles column]. The rail is tinted by the side accent and glows on
+# that side's turn (the active cue lives on the slab, not just the banner).
 func _player_half(p: Dictionary, mine: bool) -> Control:
 	var half := HBoxContainer.new()
 	half.add_theme_constant_override("separation", 10)
 	half.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	half.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	half.add_child(_hero_medallion(p.get("hero", {}), mine))
 	var board := _board_row(p.get("board", []), p.get("auras", []), mine)
 	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	half.add_child(board)
 	half.add_child(_piles_column(p, mine))
-	return half
+
+	var active := int(view.get("current", -1)) == int(view["you"]) if mine \
+		else int(view.get("current", -1)) != int(view["you"])
+	var rail := PanelContainer.new()
+	rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rail.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rail.add_theme_stylebox_override("panel",
+		Ui.rail_panel(ME_ACCENT if mine else ENEMY_ACCENT, active))
+	rail.add_child(half)
+	return rail
 
 
 # The hero medallion (portrait + HP/armor + passive). The enemy one is the
