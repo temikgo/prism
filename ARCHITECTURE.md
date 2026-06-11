@@ -25,6 +25,7 @@ client-godot/            Godot-4.3 клиент (GDScript)
   cards.json             синхрон-КОПИЯ cards/sample.json (данные карт)
   App.tscn / Main.tscn   корень-роутер / сцена матча
   icons/ fonts/ art/     SVG-иконки, шрифты, арты карт/героев/UI
+  BOARD_REDESIGN.md      план редизайна борда (трек P) + board_redesign_ref/ (спека+target)
 cards/sample.json        МАСТЕР-данные карт (69: 52 creature, 11 spell, 4 hero, 2 aura)
 tools/                   balance.py (кривая стоимости) · build_prompts.py (арт-промпты)
                          · run_client.sh (импорт+запуск Godot)

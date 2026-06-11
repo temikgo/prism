@@ -1,0 +1,770 @@
+/* ============================================================
+   PRISM — board design system
+   ============================================================ */
+:root{
+  /* card color identities (strict palette) */
+  --red:#EB334C; --yellow:#FAC233; --green:#42D170;
+  --blue:#3D94FA; --violet:#AD52F0; --colorless:#CCCCE0;
+  /* side accents */
+  --me:#579EFA; --foe:#EB5C6B;
+  /* awaken / provoke accent */
+  --gold:#F4C657;
+  /* base — near-black glass */
+  --bg-0:#06060c;
+  --bg-1:#0a0a14;
+  --ink:#eef0fb;
+  --ink-dim:#9aa0bd;
+  --ink-faint:#5d6280;
+
+  /* direction-driven knobs (overridden per direction + by tweaks) */
+  --glass-blur:14px;
+  --glow:0.9;           /* global glow multiplier */
+  --motif:0.5;          /* spectral motif opacity */
+  --panel-fill:rgba(15,17,30,0.55);
+  --panel-stroke:rgba(255,255,255,0.085);
+  --rail-radius:22px;
+
+  --font:'Manrope',system-ui,sans-serif;
+  --num:'Chakra Petch','Manrope',sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#000;
+  color:var(--ink);
+  font-family:var(--font);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- viewport scaling stage ---------- */
+#viewport{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #14122a 0%, #0a0917 42%, #050509 100%);
+}
+#stage{
+  width:1600px; height:900px;
+  position:relative;
+  transform-origin:center center;
+  flex:none;
+}
+
+/* atmospheric scene behind the table */
+.scene{
+  position:absolute; inset:0; overflow:hidden;
+  border-radius:2px;
+  background:
+    radial-gradient(80% 60% at 50% 8%, rgba(235,92,107,0.10), transparent 60%),
+    radial-gradient(80% 60% at 50% 96%, rgba(87,158,250,0.12), transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, #0c0b1a 0%, #07070f 55%, #040409 100%);
+}
+.scene::before{ /* fine starfield / dust */
+  content:""; position:absolute; inset:-20%;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 70% 60%, rgba(125,170,255,.45), transparent),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.35), transparent),
+    radial-gradient(1.5px 1.5px at 85% 20%, rgba(173,82,240,.4), transparent),
+    radial-gradient(1px 1px at 55% 45%, rgba(66,209,112,.3), transparent),
+    radial-gradient(1.5px 1.5px at 12% 70%, rgba(250,194,51,.3), transparent);
+  background-size:480px 480px, 520px 520px, 360px 360px, 600px 600px, 440px 440px, 500px 500px;
+  opacity:.5; animation:drift 60s linear infinite;
+}
+@keyframes drift{to{transform:translateY(-60px)}}
+
+/* central spectral dispersion line — the table's prism signature */
+.dispersion{
+  position:absolute; left:6%; right:6%; top:50%; height:2px;
+  transform:translateY(-50%);
+  pointer-events:none;
+  opacity:calc(var(--motif));
+  background:linear-gradient(90deg,
+    transparent 0%, var(--red) 14%, var(--yellow) 32%,
+    var(--green) 50%, var(--blue) 68%, var(--violet) 86%, transparent 100%);
+  filter:blur(.4px);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+          mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+}
+.dispersion::after{
+  content:""; position:absolute; inset:-7px 0;
+  background:inherit; filter:blur(9px); opacity:.55;
+}
+
+#board{ position:absolute; inset:0; display:flex; flex-direction:column; gap:12px;
+  padding:16px 36px 0; z-index:2; }
+
+/* ============================================================
+   TURN INDICATOR
+   ============================================================ */
+.turnbar{ height:48px; display:flex; align-items:center; justify-content:center; flex:none; }
+.turn-pill{
+  display:flex; align-items:center; gap:16px;
+  padding:9px 14px 9px 26px; border-radius:999px;
+  background:linear-gradient(180deg, rgba(20,22,38,.82), rgba(10,11,20,.82));
+  border:1px solid var(--panel-stroke);
+  backdrop-filter:blur(var(--glass-blur));
+  box-shadow:0 8px 30px rgba(0,0,0,.5),
+             inset 0 1px 0 rgba(255,255,255,.08),
+             0 0 calc(34px*var(--glow)) color-mix(in oklab, var(--turn-accent) 55%, transparent);
+  --turn-accent:var(--me);
+}
+.turn-pill.foe{ --turn-accent:var(--foe); }
+.turn-label{ font-weight:800; letter-spacing:.16em; font-size:16px; white-space:nowrap;
+  text-transform:uppercase; color:var(--ink);
+  text-shadow:0 0 18px color-mix(in oklab,var(--turn-accent) 70%, transparent); }
+.turn-sep{ width:5px; height:5px; border-radius:50%; background:var(--turn-accent);
+  box-shadow:0 0 10px var(--turn-accent); }
+.turn-count{ font-family:var(--num); font-weight:600; letter-spacing:.06em; white-space:nowrap;
+  font-size:13px; color:var(--ink-dim); }
+.turn-switch{
+  margin-left:6px; font:inherit; font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-dim); background:rgba(255,255,255,.05);
+  border:1px solid var(--panel-stroke); border-radius:999px; padding:5px 12px; cursor:pointer;
+  transition:.18s;
+}
+.turn-switch:hover{ color:var(--ink); background:rgba(255,255,255,.1);
+  border-color:color-mix(in oklab,var(--turn-accent) 50%, transparent); }
+
+/* ============================================================
+   SIDE RAILS
+   ============================================================ */
+.rail{
+  position:relative;
+  display:flex; align-items:stretch; gap:18px;
+  padding:14px;
+  border-radius:var(--rail-radius);
+  background:
+    linear-gradient(180deg, color-mix(in oklab,var(--side) 7%, transparent), transparent 60%),
+    var(--panel-fill);
+  border:1px solid color-mix(in oklab, var(--side) 38%, var(--panel-stroke));
+  backdrop-filter:blur(var(--glass-blur));
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 0 0 1px color-mix(in oklab,var(--side) 14%, transparent),
+    0 0 calc(30px*var(--glow)) color-mix(in oklab,var(--side) 26%, transparent);
+}
+.rail.foe{ --side:var(--foe); }
+.rail.me{  --side:var(--me); }
+.rail-foe-wrap{ flex:none; }
+.rail-me-wrap{  flex:none; }
+.rail.is-active{
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 0 0 1px color-mix(in oklab,var(--side) 30%, transparent),
+    0 0 calc(48px*var(--glow)) color-mix(in oklab,var(--side) 42%, transparent);
+  border-color:color-mix(in oklab,var(--side) 60%, transparent);
+}
+
+/* battlefield (creature row) */
+.field{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:0 8px; min-width:0;
+  border-radius:16px;
+  transition:background .2s, box-shadow .2s;
+}
+.field-inner{ display:flex; align-items:center; justify-content:center; gap:12px;
+  transform-origin:center center; transition:transform .2s ease; }
+.field.drop-legal{
+  background:
+    repeating-linear-gradient(135deg, color-mix(in oklab,var(--me) 12%, transparent) 0 10px, transparent 10px 20px);
+  box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--me) 65%, transparent),
+             inset 0 0 40px color-mix(in oklab,var(--me) 18%, transparent);
+}
+.field-empty-hint{ color:var(--ink-faint); font-size:13px; letter-spacing:.04em;
+  margin:auto; pointer-events:none; user-select:none; }
+
+/* aura shelf — single column with capped-height scroll (like the mana bank).
+   Stays one column wide so it never collides with the field, even when full. */
+.aura-shelf{ flex:none; display:flex; flex-direction:column; justify-content:center; }
+.aura-tiles{ display:flex; flex-direction:column; gap:6px;
+  max-height:194px; overflow-y:auto; overflow-x:hidden; padding:2px;
+  scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.2) transparent; }
+.aura-tiles::-webkit-scrollbar{ width:6px; }
+.aura-tiles::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:3px; }
+.aura-tile{
+  --ac:var(--blue);
+  position:relative; width:58px; height:58px; flex:none; border-radius:12px; overflow:hidden;
+  border:1px solid color-mix(in oklab,var(--ac) 60%, transparent);
+  box-shadow:0 0 calc(16px*var(--glow)) color-mix(in oklab,var(--ac) 40%, transparent),
+             inset 0 0 16px rgba(0,0,0,.45), 0 4px 12px rgba(0,0,0,.4);
+}
+.aura-art{ position:absolute; inset:0; background-size:cover; background-position:center;
+  filter:saturate(1.05); }
+.aura-art.ph{ background:radial-gradient(120% 100% at 30% 20%,
+   color-mix(in oklab,var(--ac) 60%, #0c1228), #0a1020); }
+.aura-rim{ position:absolute; inset:0; border-radius:12px; pointer-events:none;
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--ac) 70%, transparent),
+             inset 0 0 14px color-mix(in oklab,var(--ac) 28%, transparent); }
+.aura-tile::before{ content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, transparent 45%, rgba(4,5,12,.85) 100%); }
+
+/* ============================================================
+   CARD (creature)
+   ============================================================ */
+.card{
+  --rim:var(--colorless);
+  position:relative; flex:none;
+  width:148px; height:206px; border-radius:13px; overflow:hidden;
+  background:#0c0c16;
+  border:1px solid color-mix(in oklab,var(--rim) 55%, #000);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.55),
+    0 0 0 1px color-mix(in oklab,var(--rim) 22%, transparent),
+    0 0 calc(20px*var(--glow)) color-mix(in oklab,var(--rim) 40%, transparent);
+  cursor:pointer;
+  transition:transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .16s, filter .16s;
+  user-select:none;
+}
+.card .art{ position:absolute; inset:0; background-size:cover; background-position:center;
+  background-repeat:no-repeat; }
+/* gradient placeholder art keyed to identity color */
+.card .art.placeholder{
+  background:
+    radial-gradient(120% 80% at 50% 18%, color-mix(in oklab,var(--rim) 78%, #fff 4%), transparent 60%),
+    radial-gradient(140% 100% at 50% 120%, color-mix(in oklab,var(--rim) 55%, #000), #0a0a13 70%);
+}
+.card .art.placeholder::after{
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(58deg,
+     rgba(255,255,255,.05) 0 2px, transparent 2px 9px);
+  -webkit-mask:radial-gradient(80% 70% at 50% 40%, #000, transparent 75%);
+          mask:radial-gradient(80% 70% at 50% 40%, #000, transparent 75%);
+}
+.card .ph-tag{ position:absolute; left:0; right:0; top:50%; transform:translateY(-50%);
+  text-align:center; font-family:var(--num); font-size:10px; letter-spacing:.18em;
+  text-transform:uppercase; color:rgba(255,255,255,.5); }
+.card .art-scrim{ position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(4,4,10,.55) 0%, transparent 22% 64%, rgba(4,4,10,.78) 100%); }
+/* inner rim line (the "thin glowing edge = card color") */
+.card .rim{ position:absolute; inset:0; border-radius:13px; pointer-events:none;
+  box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--rim) 85%, transparent),
+             inset 0 0 16px color-mix(in oklab,var(--rim) 30%, transparent); }
+
+/* on the board, a hovered creature lifts clear of its overlapping neighbours */
+.field .card:hover{ transform:translateY(-18px) scale(1.06);
+  box-shadow:0 22px 42px rgba(0,0,0,.65),
+    0 0 0 1px color-mix(in oklab,var(--rim) 45%, transparent),
+    0 0 calc(40px*var(--glow)) color-mix(in oklab,var(--rim) 70%, transparent); z-index:60; }
+.card:hover{ transform:translateY(-6px) scale(1.03);
+  box-shadow:0 18px 36px rgba(0,0,0,.6),
+    0 0 0 1px color-mix(in oklab,var(--rim) 40%, transparent),
+    0 0 calc(34px*var(--glow)) color-mix(in oklab,var(--rim) 60%, transparent); z-index:20; }
+
+/* legal target highlight on board creatures */
+.card.targetable{ cursor:crosshair; }
+.card.targetable::before{
+  content:""; position:absolute; inset:-3px; border-radius:16px; pointer-events:none;
+  box-shadow:0 0 0 2px color-mix(in oklab,var(--me) 80%, transparent),
+             0 0 26px color-mix(in oklab,var(--me) 70%, transparent);
+  animation:pulse 1.2s ease-in-out infinite;
+}
+.card.foe-target::before{
+  box-shadow:0 0 0 2px color-mix(in oklab,var(--foe) 82%, transparent),
+             0 0 26px color-mix(in oklab,var(--foe) 70%, transparent);
+}
+@keyframes pulse{ 0%,100%{opacity:.55} 50%{opacity:1} }
+
+.card.summoning{ animation:summon .55s cubic-bezier(.2,.8,.25,1); }
+@keyframes summon{
+  0%{ transform:translateY(14px) scale(.7); opacity:0; filter:brightness(2) saturate(1.4); }
+  60%{ opacity:1; }
+  100%{ transform:none; opacity:1; filter:none; }
+}
+
+/* ---- status-driven full-card effects ---- */
+.fx{ position:absolute; inset:0; border-radius:13px; pointer-events:none; z-index:3; }
+/* заморозка — ледяная корка */
+.fx-freeze-layer{
+  background:linear-gradient(180deg, rgba(120,200,255,.30), rgba(60,140,250,.12) 60%, transparent);
+  box-shadow:inset 0 0 0 2px rgba(160,215,255,.55), inset 0 0 28px rgba(120,200,255,.4);
+  mix-blend-mode:screen;
+}
+.fx-freeze-layer::after{ content:""; position:absolute; inset:0; border-radius:13px;
+  background:
+    radial-gradient(60% 40% at 18% 12%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(50% 40% at 85% 88%, rgba(190,230,255,.4), transparent 60%); }
+/* незримость — фантомная полупрозрачность + штриховой контур */
+.card.fx-stealth .art{ filter:brightness(.85) saturate(.8); opacity:.55; }
+.fx-stealth-layer{
+  border:1.5px dashed rgba(222,226,248,.6);
+  background:radial-gradient(120% 100% at 50% 30%, rgba(180,172,222,.16), transparent 72%);
+}
+/* щит — защитный голубой купол */
+.fx-shield-layer{
+  box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--blue) 60%, transparent),
+             inset 0 16px 28px -10px rgba(120,180,255,.6);
+}
+/* оберег (ward) — золотое кольцо */
+.fx-ward-layer{
+  box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--yellow) 55%, transparent),
+             inset 0 0 22px color-mix(in oklab,var(--yellow) 24%, transparent);
+}
+
+/* ---- провокатор — структурная рамка (must-attack) ---- */
+.provoke-frame{ position:absolute; inset:0; border-radius:13px; pointer-events:none; z-index:5;
+  box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--gold) 80%, transparent),
+             inset 0 0 18px color-mix(in oklab,var(--gold) 35%, transparent),
+             0 0 calc(18px*var(--glow)) color-mix(in oklab,var(--gold) 40%, transparent); }
+.provoke-frame span{ position:absolute; width:15px; height:15px; }
+.provoke-frame span:nth-child(1){ top:4px; left:4px; border-top:2.5px solid var(--gold); border-left:2.5px solid var(--gold); border-top-left-radius:8px; }
+.provoke-frame span:nth-child(2){ top:4px; right:4px; border-top:2.5px solid var(--gold); border-right:2.5px solid var(--gold); border-top-right-radius:8px; }
+.provoke-frame span:nth-child(3),
+.provoke-frame span:nth-child(4){ display:none; }
+
+/* spectrum (multicolor) showpiece card */
+.card.spectrum{
+  border-color:rgba(255,255,255,.45);
+  box-shadow:0 10px 26px rgba(0,0,0,.6),
+    0 0 0 1px rgba(255,255,255,.12),
+    0 0 calc(28px*var(--glow)) rgba(173,82,240,.4),
+    0 0 calc(28px*var(--glow)) rgba(61,148,250,.28);
+}
+.card.spectrum .rim{
+  padding:1.6px; box-shadow:none;
+  background:conic-gradient(from 200deg, #EB334C,#FAC233,#42D170,#3D94FA,#AD52F0,#EB334C);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+}
+.card.spectrum:hover{
+  box-shadow:0 18px 40px rgba(0,0,0,.66),
+    0 0 calc(44px*var(--glow)) rgba(173,82,240,.6),
+    0 0 calc(44px*var(--glow)) rgba(61,148,250,.4); }
+
+/* ---- card badges ---- */
+.cost{
+  position:absolute; top:7px; left:7px; display:flex; align-items:center; gap:5px;
+  height:26px; padding:0 7px; border-radius:8px;
+  background:linear-gradient(180deg, rgba(8,9,18,.92), rgba(4,5,12,.92));
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.cost b{ font-family:var(--num); font-weight:700; font-size:15px; line-height:1; color:#fff;
+  text-shadow:0 0 8px rgba(255,255,255,.3); }
+.pips{ display:flex; gap:3px; }
+.pip{ width:8px; height:8px; border-radius:3px; background:var(--p);
+  box-shadow:0 0 7px color-mix(in oklab,var(--p) 80%, transparent), inset 0 0 0 1px rgba(255,255,255,.25); }
+
+.status{ position:absolute; top:8px; right:8px; display:flex; gap:5px; }
+.status .badge{
+  width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+  background:rgba(8,9,18,.8); border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 0 10px color-mix(in oklab,var(--c,#9fb6ff) 60%, transparent);
+  color:var(--c,#cfe0ff);
+}
+.status .badge svg{ width:13px; height:13px; }
+
+/* fixed stat-gems sit in darkened corner nooks so they read over any art */
+.stat{
+  position:absolute; bottom:6px; width:34px; height:34px; display:grid; place-items:center;
+  font-family:var(--num); font-weight:700; font-size:16px; color:#0a0a0a; z-index:4;
+}
+.stat .nook{ position:absolute; width:46px; height:46px; border-radius:50%;
+  background:radial-gradient(circle, rgba(3,4,9,.82) 0%, rgba(3,4,9,.5) 48%, transparent 72%);
+  z-index:0; pointer-events:none; }
+.stat .hex{ position:absolute; inset:0; z-index:1; }
+.stat .v{ position:relative; z-index:2; text-shadow:0 1px 0 rgba(255,255,255,.35); }
+.stat.atk{ left:6px; --sc:var(--yellow); }
+.stat.hp{  right:6px; --sc:var(--green); }
+.stat.hp.hurt{ --sc:var(--red); color:#fff; }
+
+/* ============================================================
+   HERO MEDALLION
+   ============================================================ */
+.medallion{
+  --side:var(--me);
+  flex:none; width:150px; display:flex; flex-direction:column; align-items:center;
+  gap:7px; padding:10px 10px 12px; border-radius:16px;
+  background:linear-gradient(180deg, color-mix(in oklab,var(--side) 14%, rgba(12,13,24,.7)), rgba(8,9,17,.72));
+  border:1px solid color-mix(in oklab,var(--side) 45%, transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),
+             0 0 calc(24px*var(--glow)) color-mix(in oklab,var(--side) 30%, transparent);
+}
+.medallion.foe{ --side:var(--foe); }
+.hero-tag{ font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:color-mix(in oklab,var(--side) 70%, var(--ink-dim)); font-weight:700; }
+.portrait-wrap{ position:relative; width:104px; height:104px; }
+.portrait{
+  width:100%; height:100%; border-radius:14px; overflow:hidden; position:relative;
+  border:1.5px solid color-mix(in oklab,var(--side) 60%, transparent);
+  box-shadow:inset 0 0 22px rgba(0,0,0,.6),
+             0 0 calc(18px*var(--glow)) color-mix(in oklab,var(--side) 35%, transparent);
+  background:radial-gradient(120% 100% at 50% 25%, color-mix(in oklab,var(--side) 30%, #0b0b16), #060610);
+}
+.portrait .face{ position:absolute; inset:0; background-size:cover; background-position:50% 22%;
+  background-repeat:no-repeat; }
+.portrait-sheen{ position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.14) 0%, transparent 30% 70%, rgba(4,5,12,.55) 100%);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.55); }
+/* health + armor badges on portrait corners */
+.hero-stat{ position:absolute; width:34px; height:34px; display:grid; place-items:center;
+  font-family:var(--num); font-weight:700; font-size:15px; }
+.hero-stat .hex{ position:absolute; inset:0; }
+.hero-stat .v{ position:relative; z-index:2; }
+.hero-stat.armor{ left:-9px; bottom:-7px; color:#06121f; --sc:#bcd6ff; }
+.hero-stat.hp{ right:-9px; bottom:-7px; color:#fff; --sc:var(--foe); }
+.medallion.me .hero-stat.hp{ --sc:var(--me); color:#04121f; }
+.hero-name{ font-weight:800; font-size:16px; letter-spacing:.01em; color:var(--ink);
+  text-shadow:0 0 14px color-mix(in oklab,var(--side) 50%, transparent); }
+.abilities{ display:flex; gap:6px; align-items:center; justify-content:center; }
+.passive{ width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:rgba(255,255,255,.05); border:1px solid color-mix(in oklab,var(--side) 45%, transparent);
+  color:color-mix(in oklab,var(--side) 75%, #fff); cursor:help; transition:.16s; }
+.passive:hover{ background:color-mix(in oklab,var(--side) 22%, rgba(255,255,255,.05));
+  border-color:color-mix(in oklab,var(--side) 70%, transparent);
+  box-shadow:0 0 12px color-mix(in oklab,var(--side) 45%, transparent); }
+.passive svg{ width:16px; height:16px; }
+
+/* ============================================================
+   RESOURCE COLUMN
+   ============================================================ */
+.resources{ --side:var(--me); flex:none; width:252px; display:flex; flex-direction:column;
+  align-items:center; gap:8px; padding:2px 6px; justify-content:center; }
+.resources.foe{ --side:var(--foe); }
+.res-block{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+.res-label{ font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); }
+.res-label.gold{ color:color-mix(in oklab,var(--gold) 78%, var(--ink-dim)); }
+.res-label.flood{ color:color-mix(in oklab,var(--yellow) 82%, #fff);
+  display:flex; align-items:center; gap:5px;
+  text-shadow:0 0 10px color-mix(in oklab,var(--yellow) 55%, transparent); }
+.res-label.flood svg{ color:var(--yellow); }
+.bank-count{ font-family:var(--num); letter-spacing:.02em; color:var(--ink-dim);
+  margin-left:4px; }
+
+/* faceted crystal (preserved) — also used inside banked cards */
+.crystal{ position:relative; }
+.crystal svg{ width:100%; height:100%; display:block;
+  filter:drop-shadow(0 0 calc(6px*var(--glow)) color-mix(in oklab,var(--cc) 80%, transparent)); }
+.crystal.spent{ filter:grayscale(.6) brightness(.4); opacity:.5; }
+
+/* ---- bank: banked cards face-down (= mana crystals) ---- */
+.bankpool{ max-width:246px; max-height:72px; overflow-y:auto; overflow-x:hidden;
+  padding:1px 2px; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.2) transparent; }
+.bankpool::-webkit-scrollbar{ width:6px; }
+.bankpool::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:3px; }
+.bank-row{ display:flex; gap:4px; row-gap:5px; align-items:center; justify-content:center;
+  flex-wrap:wrap; }
+.bankcard{
+  position:relative; width:24px; height:32px; border-radius:5px;
+  display:grid; place-items:center; flex:none;
+}
+.temp-ring{ position:absolute; inset:-2px; border-radius:7px; pointer-events:none;
+  box-shadow:0 0 0 1.5px var(--green), 0 0 9px color-mix(in oklab,var(--green) 70%, transparent);
+  animation:tempPulse 1.6s ease-in-out infinite; }
+@keyframes tempPulse{ 0%,100%{opacity:.6} 50%{opacity:1} }
+
+/* ---- enemy bank revealed by floodlight: compact previews ---- */
+.bankpool.reveal{ max-height:76px; }
+.bankpool.reveal .bank-row{ gap:4px; }
+.bankprev{ position:relative; width:26px; height:34px; border-radius:5px; overflow:hidden;
+  flex:none; --rim:var(--colorless);
+  box-shadow:0 2px 7px rgba(0,0,0,.5),
+             0 0 calc(8px*var(--glow)) color-mix(in oklab,var(--yellow) 30%, transparent); }
+.bankprev-art{ position:absolute; inset:0; background-size:cover; background-position:center; }
+.bankprev-art.ph{ background:radial-gradient(120% 100% at 50% 30%,
+   color-mix(in oklab,var(--rim) 60%, #0c1024), #0a0e1c); }
+.bankprev-rim{ position:absolute; inset:0; border-radius:5px; pointer-events:none;
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--rim) 75%, transparent),
+             inset 0 0 7px rgba(0,0,0,.4); }
+.bankprev::after{ content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, transparent 55%, rgba(4,5,12,.6)); }
+.bank-back{ position:absolute; inset:0; border-radius:5px;
+  background:
+    linear-gradient(180deg, rgba(24,26,44,.95), rgba(9,10,19,.95));
+  border:1px solid color-mix(in oklab,var(--cc) 50%, rgba(255,255,255,.1));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),
+             0 3px 9px rgba(0,0,0,.5),
+             0 0 calc(9px*var(--glow)) color-mix(in oklab,var(--cc) 45%, transparent);
+}
+.bank-back::after{ content:""; position:absolute; inset:0; border-radius:5px;
+  background:repeating-linear-gradient(58deg, rgba(255,255,255,.06) 0 1px, transparent 1px 6px);
+  -webkit-mask:radial-gradient(70% 70% at 50% 40%, #000, transparent 80%);
+          mask:radial-gradient(70% 70% at 50% 40%, #000, transparent 80%); }
+.bankcard .crystal{ position:relative; z-index:2; }
+.bankcard.spent .bank-back{ filter:grayscale(.6) brightness(.55); opacity:.7; }
+
+/* ---- awaken: gold mini-cards, playable straight from the bank ---- */
+.awaken-row{ display:flex; gap:9px; align-items:flex-start; }
+.awaken{
+  position:relative; width:54px; height:76px; border-radius:8px; overflow:hidden;
+  padding:0; cursor:pointer; flex:none; font:inherit;
+  background:#0c0c16; border:1.5px solid color-mix(in oklab,var(--gold) 80%, #000);
+  box-shadow:0 4px 12px rgba(0,0,0,.55),
+             0 0 calc(16px*var(--glow)) color-mix(in oklab,var(--gold) 50%, transparent);
+  transition:transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .16s, filter .16s;
+}
+.awaken:hover{ transform:translateY(-4px) scale(1.05);
+  box-shadow:0 10px 22px rgba(0,0,0,.6), 0 0 calc(26px*var(--glow)) color-mix(in oklab,var(--gold) 70%, transparent); z-index:30; }
+.awaken-art{ position:absolute; inset:0; background-size:cover; background-position:center; }
+.awaken-scrim{ position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(4,4,10,.35) 0%, transparent 40% 60%, rgba(4,4,10,.82) 100%); }
+.awaken-rim{ position:absolute; inset:0; border-radius:8px; pointer-events:none;
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gold) 85%, transparent),
+             inset 0 0 12px color-mix(in oklab,var(--gold) 35%, transparent); }
+.awaken-cost{ position:absolute; top:3px; left:3px; min-width:15px; height:15px; padding:0 3px;
+  display:grid; place-items:center; border-radius:4px; font-family:var(--num); font-weight:700;
+  font-size:10px; color:#1a1405; background:color-mix(in oklab,var(--gold) 92%, #fff);
+  box-shadow:0 0 7px color-mix(in oklab,var(--gold) 60%, transparent); }
+.awaken-stats{ position:absolute; bottom:25px; left:0; right:0; display:flex; justify-content:space-between;
+  padding:0 4px; font-family:var(--num); font-weight:700; font-size:11px; }
+.awaken-stats .aw-atk{ color:#fff; text-shadow:0 0 5px var(--yellow),0 1px 2px #000; }
+.awaken-stats .aw-hp{ color:#fff; text-shadow:0 0 5px var(--green),0 1px 2px #000; }
+.awaken-name{ position:absolute; left:0; right:0; bottom:14px; text-align:center;
+  font-size:7.5px; font-weight:700; letter-spacing:.01em; color:#fff; padding:0 3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:0 1px 3px rgba(0,0,0,.95); }
+.awaken-tag{ position:absolute; left:0; right:0; bottom:0; height:13px; display:grid; place-items:center;
+  font-size:6.5px; letter-spacing:0; text-transform:uppercase; font-weight:700;
+  white-space:nowrap; overflow:hidden;
+  color:#1a1405; background:color-mix(in oklab,var(--gold) 88%, transparent); }
+.awaken.decoy{ border-color:color-mix(in oklab,var(--green) 55%, var(--gold)); }
+.awaken.decoy .awaken-rim{ box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--green) 60%, var(--gold)),
+  inset 0 0 12px color-mix(in oklab,var(--green) 30%, transparent); }
+.awaken.decoy .awaken-tag{ background:color-mix(in oklab,var(--green) 82%, #fff); color:#062010; }
+.awaken.decoy .awaken-cost{ background:color-mix(in oklab,var(--cc,#42D170) 85%, #fff); color:#08130a; }
+.awaken.locked{ cursor:not-allowed; filter:grayscale(.85) brightness(.5);
+  border-color:rgba(255,255,255,.14); box-shadow:0 3px 9px rgba(0,0,0,.5); }
+.awaken.locked .awaken-rim{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
+.awaken.locked .awaken-cost,
+.awaken.locked .awaken-tag{ background:rgba(120,124,150,.85); color:#0c0d16; }
+.awaken.locked:hover{ transform:none; box-shadow:0 3px 9px rgba(0,0,0,.5); }
+
+/* ---- stacks (deck / discard / hand) ---- */
+.stacks{ display:flex; gap:9px; }
+.pile{
+  position:relative; width:54px; height:50px; border-radius:11px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  background:linear-gradient(180deg, rgba(20,22,38,.7), rgba(9,10,19,.7));
+  border:1px solid var(--panel-stroke);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.4);
+}
+.pile::before, .pile::after{ content:""; position:absolute; inset:0; border-radius:11px;
+  border:1px solid rgba(255,255,255,.06); z-index:-1; }
+.pile::before{ transform:translate(3px,3px); background:rgba(10,11,20,.6); }
+.pile::after{ transform:translate(6px,6px); background:rgba(8,9,16,.5); }
+.pile.hand-pile{ border-color:color-mix(in oklab,var(--side) 40%, var(--panel-stroke)); }
+.pile.hand-pile::before, .pile.hand-pile::after{ display:none; }
+.pile b{ font-family:var(--num); font-weight:700; font-size:20px; color:var(--ink);
+  text-shadow:0 0 10px rgba(120,160,255,.3); }
+.pile small{ font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint); }
+
+/* ============================================================
+   HAND
+   ============================================================ */
+.hand-zone{ flex:1; position:relative; }
+.hand{
+  position:absolute; left:50%; bottom:54px; transform:translateX(-50%);
+  display:flex; justify-content:center; align-items:flex-end; height:248px;
+  pointer-events:none; --ov:-18px;
+}
+.hand-card-wrap{ position:relative; }
+.hand-card-wrap:hover{ z-index:200; }
+.hand .card{
+  width:172px; height:238px; pointer-events:auto;
+  margin:0 var(--ov); transform-origin:bottom center;
+  transition:transform .2s cubic-bezier(.2,.7,.3,1), box-shadow .2s, margin .2s, filter .2s;
+}
+.hand .card .cost b{ font-size:17px; }
+.hand .card .stat{ width:40px; height:40px; font-size:18px; }
+.hand .card.dragging{ opacity:.28; filter:saturate(.6); }
+.hand .card:hover{ transform:translateY(-30px) scale(1.06)!important;
+  margin:0 8px; z-index:40; }
+.card-name{ position:absolute; left:0; right:0; bottom:42px; text-align:center;
+  font-size:12.5px; font-weight:700; letter-spacing:.01em; color:#fff;
+  text-shadow:0 1px 6px rgba(0,0,0,.9); padding:0 6px;
+  opacity:0; transition:opacity .2s; }
+.hand .card:hover .card-name{ opacity:1; }
+
+/* floating drag ghost (lives outside the scaled stage) */
+#drag-ghost{ position:fixed; z-index:9999; pointer-events:none; left:0; top:0;
+  width:176px; height:248px; border-radius:13px; overflow:hidden; display:none;
+  transform:translate(-50%,-50%) rotate(-3deg) scale(1.04);
+  filter:drop-shadow(0 24px 40px rgba(0,0,0,.7)); }
+
+/* ---- attack beam-arrow (lives outside the scaled stage) ---- */
+#attack-arrow{ position:fixed; inset:0; width:100%; height:100%; z-index:9998;
+  pointer-events:none; overflow:visible; }
+#attack-arrow .atk-path{ stroke:url(#atkGrad); stroke-width:6; stroke-linecap:round;
+  filter:drop-shadow(0 0 7px rgba(235,92,107,.7)); opacity:.95;
+  stroke-dasharray:2 11; animation:atkFlow .5s linear infinite; }
+@keyframes atkFlow{ to{ stroke-dashoffset:-13; } }
+#attack-arrow .atk-head{ fill:#EB5C6B; filter:drop-shadow(0 0 8px rgba(235,92,107,.85)); }
+#attack-arrow .atk-origin{ fill:#FAC233; opacity:.9;
+  filter:drop-shadow(0 0 9px rgba(250,194,51,.9)); }
+/* invalid (not over a legal target) → muted, no flow */
+#attack-arrow[data-valid="0"] .atk-path{ stroke:rgba(170,182,214,.5); stroke-dasharray:none;
+  animation:none; filter:none; opacity:.6; }
+#attack-arrow[data-valid="0"] .atk-head{ fill:rgba(170,182,214,.55); filter:none; }
+#attack-arrow[data-valid="0"] .atk-origin{ fill:rgba(170,182,214,.6); filter:none; }
+
+/* attack cursors */
+.board.is-attacking{ cursor:crosshair; }
+.board.is-attacking .me-field .card{ cursor:grabbing; }
+.me-field .card{ cursor:grab; }
+
+/* legal attack target highlight (enemy creatures + hero) */
+.atk-legal{ position:relative; }
+.card.atk-legal::after{ content:""; position:absolute; inset:-3px; border-radius:15px;
+  border:2px solid color-mix(in oklab,var(--foe) 80%, #fff); pointer-events:none; z-index:8;
+  box-shadow:0 0 16px color-mix(in oklab,var(--foe) 65%, transparent),
+             inset 0 0 12px color-mix(in oklab,var(--foe) 30%, transparent);
+  animation:pulse 1s ease-in-out infinite; }
+.medallion.atk-legal{ outline:2px solid color-mix(in oklab,var(--foe) 80%, #fff);
+  outline-offset:2px; border-radius:16px;
+  box-shadow:0 0 22px color-mix(in oklab,var(--foe) 60%, transparent);
+  animation:pulse 1s ease-in-out infinite; }
+/* hot target (cursor over it) — solid, brighter */
+.card.atk-hot::after{ inset:-4px; border-width:3px; border-color:#fff;
+  box-shadow:0 0 26px color-mix(in oklab,var(--foe) 90%, transparent),
+             inset 0 0 16px color-mix(in oklab,var(--foe) 45%, transparent);
+  animation:none; }
+.medallion.atk-hot{ outline-width:3px; outline-color:#fff; animation:none;
+  box-shadow:0 0 30px color-mix(in oklab,var(--foe) 85%, transparent); }
+
+/* clash flash on attacker + target */
+.card.clash{ animation:clash .46s cubic-bezier(.3,.7,.3,1); z-index:30; }
+@keyframes clash{
+  0%{ transform:none; }
+  30%{ transform:translateY(-8px) scale(1.07); filter:brightness(1.7) saturate(1.3); }
+  55%{ transform:translateY(2px) scale(.98); }
+  100%{ transform:none; }
+}
+.medallion.hero-hit .portrait{ animation:heroHit .46s ease; }
+@keyframes heroHit{
+  0%,100%{ transform:none; filter:none; }
+  25%{ transform:translateX(-4px); filter:brightness(1.5) saturate(1.4); box-shadow:0 0 24px var(--foe); }
+  60%{ transform:translateX(3px); }
+}
+
+/* ---- multicolor mana picker ---- */
+.manapick{ position:fixed; z-index:10000; pointer-events:auto;
+  padding:12px 14px 10px; border-radius:16px; min-width:160px;
+  background:linear-gradient(180deg, rgba(20,22,38,.96), rgba(10,11,20,.97));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 18px 44px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08),
+             0 0 calc(30px*var(--glow,1)) rgba(120,150,255,.18);
+  backdrop-filter:blur(14px); transition:opacity .12s ease; }
+.manapick::after{ content:""; position:absolute; left:50%; bottom:-7px; width:14px; height:14px;
+  transform:translateX(-50%) rotate(45deg);
+  background:rgba(10,11,20,.97); border-right:1px solid rgba(255,255,255,.12);
+  border-bottom:1px solid rgba(255,255,255,.12); }
+.manapick-title{ font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-dim); text-align:center; margin-bottom:9px; }
+.manapick-row{ display:flex; gap:8px; justify-content:center; }
+.manapick-opt{ display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:7px 7px 6px; border-radius:12px; cursor:pointer; font:inherit;
+  background:rgba(255,255,255,.03); border:1px solid color-mix(in oklab,var(--cc) 40%, transparent);
+  transition:transform .14s cubic-bezier(.2,.7,.3,1), box-shadow .14s, background .14s; }
+.manapick-opt:hover{ transform:translateY(-3px);
+  background:color-mix(in oklab,var(--cc) 16%, rgba(255,255,255,.03));
+  border-color:color-mix(in oklab,var(--cc) 75%, transparent);
+  box-shadow:0 0 18px color-mix(in oklab,var(--cc) 55%, transparent); }
+/* uniform crystal cell — equal visual footprint regardless of colour brightness */
+.manapick-opt .crystal{ display:grid; place-items:center; }
+.manapick-opt .crystal svg{ filter:drop-shadow(0 0 4px color-mix(in oklab,var(--cc) 50%, transparent)); }
+.manapick-name{ font-size:9.5px; letter-spacing:.02em; color:var(--ink-dim); }
+.manapick-opt:hover .manapick-name{ color:var(--ink); }
+.manapick-tip{ margin-top:9px; text-align:center; font-size:10px; color:var(--ink-faint); }
+
+/* footer hint */
+.hint{ position:absolute; left:0; right:0; bottom:9px; text-align:center; z-index:3;
+  font-size:12.5px; letter-spacing:.02em; color:var(--ink-faint); pointer-events:none; }
+.hint b{ color:var(--ink-dim); font-weight:600; }
+
+/* toast */
+.toast{ position:absolute; left:50%; top:64px; transform:translateX(-50%) translateY(-8px);
+  z-index:60; padding:8px 18px; border-radius:999px; font-size:13px; letter-spacing:.02em;
+  background:rgba(12,13,24,.9); border:1px solid var(--panel-stroke); color:var(--ink);
+  backdrop-filter:blur(10px); box-shadow:0 10px 30px rgba(0,0,0,.5);
+  opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast b{ color:var(--me); }
+.toast.warn b{ color:var(--yellow); }
+
+/* ============================================================
+   DIRECTION VARIANTS
+   ============================================================ */
+/* A — Стекло (restrained glass)  : defaults above */
+#stage[data-dir="neon"]{
+  --glow:1.5; --glass-blur:16px;
+  --panel-fill:rgba(13,15,28,.5);
+  --panel-stroke:rgba(255,255,255,.1);
+}
+#stage[data-dir="neon"] .scene{
+  background:
+    radial-gradient(80% 60% at 50% 6%, rgba(235,92,107,.18), transparent 60%),
+    radial-gradient(80% 60% at 50% 98%, rgba(87,158,250,.22), transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, #0d0b20 0%, #07060f 55%, #030308 100%);
+}
+#stage[data-dir="prism"]{
+  --glow:1.05; --glass-blur:20px; --motif:0.92;
+  --panel-fill:rgba(16,16,30,.5);
+}
+/* prism direction: spectral edge light on rails */
+#stage[data-dir="prism"] .rail::after{
+  content:""; position:absolute; inset:0; border-radius:var(--rail-radius); pointer-events:none;
+  padding:1px;
+  background:linear-gradient(120deg, var(--red), var(--yellow), var(--green), var(--blue), var(--violet));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:.28;
+}
+#stage[data-dir="prism"] .turn-pill{
+  background:linear-gradient(180deg, rgba(20,22,38,.82), rgba(10,11,20,.82)),
+            linear-gradient(90deg, rgba(235,51,76,.12), rgba(61,148,250,.12), rgba(173,82,240,.12));
+}
+#stage[data-dir="prism"] .card .rim{
+  box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--rim) 90%, transparent),
+             inset 0 0 18px color-mix(in oklab,var(--rim) 35%, transparent),
+             inset 0 18px 30px -18px color-mix(in oklab,var(--rim) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .scene::before{ animation:none; }
+  .card.targetable::before{ animation:none; opacity:.8; }
+}
+
+/* ============================================================
+   HOVER DESCRIPTION POPOVER
+   ============================================================ */
+.cardtip{
+  position:fixed; z-index:1200; width:236px; pointer-events:none;
+  padding:13px 14px 14px; border-radius:14px;
+  background:linear-gradient(180deg, rgba(18,20,34,.97), rgba(10,11,20,.97));
+  border:1px solid color-mix(in oklab,var(--tipac,#9fb4e8) 38%, rgba(255,255,255,.1));
+  box-shadow:0 18px 44px rgba(0,0,0,.62),
+             inset 0 1px 0 rgba(255,255,255,.07),
+             0 0 24px color-mix(in oklab,var(--tipac,#9fb4e8) 24%, transparent);
+  backdrop-filter:blur(10px);
+  transition:opacity .12s ease;
+  font-family:'Manrope',system-ui,sans-serif;
+}
+.cardtip::before{ content:""; position:absolute; left:0; top:13px; bottom:13px; width:3px;
+  border-radius:3px; background:var(--tipac,#9fb4e8);
+  box-shadow:0 0 12px color-mix(in oklab,var(--tipac,#9fb4e8) 70%, transparent); }
+.cardtip-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.cardtip-name{ font-size:15px; font-weight:800; color:var(--ink); letter-spacing:.005em;
+  text-shadow:0 0 12px color-mix(in oklab,var(--tipac,#9fb4e8) 45%, transparent); }
+.cardtip-cost{ font-family:var(--num); font-weight:700; font-size:15px; color:#fff; flex:none; }
+.cardtip-cost i{ font-style:normal; font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-faint); margin-left:2px; }
+.cardtip-meta{ display:flex; align-items:center; gap:6px; margin-top:3px;
+  font-size:10.5px; letter-spacing:.04em; color:var(--ink-dim); }
+.cardtip-kind{ text-transform:uppercase; letter-spacing:.14em; font-weight:700; font-size:9px;
+  color:color-mix(in oklab,var(--tipac,#9fb4e8) 70%, var(--ink-dim)); }
+.cardtip-dot{ width:8px; height:8px; border-radius:2px; box-shadow:0 0 7px currentColor; }
+.cardtip-owner{ color:var(--ink-faint); }
+.cardtip-stats{ display:flex; gap:14px; margin-top:9px; padding-top:9px;
+  border-top:1px solid rgba(255,255,255,.08); font-size:11px; color:var(--ink-dim); }
+.cardtip-stats b{ font-family:var(--num); font-size:15px; color:var(--ink); margin-right:3px; }
+.cardtip-body{ margin-top:9px; font-size:11.5px; line-height:1.45; color:var(--ink); text-wrap:pretty; }
+.cardtip-status{ margin-top:9px; padding-top:9px; border-top:1px solid rgba(255,255,255,.08);
+  display:flex; flex-direction:column; gap:5px; }
+.cardtip-status-row{ font-size:10.5px; line-height:1.4; color:var(--ink-dim); }
+.cardtip-status-row b{ color:color-mix(in oklab,var(--tipac,#9fb4e8) 65%, #fff); font-weight:700; }
