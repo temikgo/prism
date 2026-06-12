@@ -1,20 +1,24 @@
-# Prism — Caddy reverse proxy + static host + automatic TLS.
-# Replace prism.example.com with your domain (A record -> the VPS IP).
-# Caddy gets/renews a Let's Encrypt cert automatically; nothing else to configure.
+# Prism -- Caddy reverse proxy + static host + automatic TLS.
+# Parameterised so one file serves both deploy paths:
+#   * Docker Compose sets PRISM_DOMAIN / PRISM_BACKEND=prism:8080 / PRISM_WEBROOT=/srv.
+#   * Bare VM (systemd) uses the defaults below -- just edit PRISM_DOMAIN's default
+#     or export it before reloading Caddy.
+# Caddy fetches/renews a Let's Encrypt cert for the domain automatically.
 
-prism.example.com {
+{$PRISM_DOMAIN:prism.example.com} {
 	encode zstd gzip
 
-	# WebSocket game traffic -> the C++ prism_server on localhost:8080.
+	# WebSocket game traffic -> the C++ prism_server.
 	# (The server does the WS handshake on any path; we route /ws* to it.)
 	handle /ws* {
-		reverse_proxy 127.0.0.1:8080
+		reverse_proxy {$PRISM_BACKEND:127.0.0.1:8080}
 	}
 
-	# Everything else: the exported Godot web client (no threads => no COOP/COEP
-	# headers needed). The .wasm/.pck are large; long-cache the hashed assets.
+	# Everything else: the exported Godot web client (single-threaded => no
+	# COOP/COEP headers needed). The .wasm/.pck are large but content-hashed by
+	# the export, so let clients cache them hard.
 	handle {
-		root * /var/www/prism
+		root * {$PRISM_WEBROOT:/var/www/prism}
 		file_server
 	}
 }

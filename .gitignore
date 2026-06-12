@@ -11,3 +11,6 @@ client-godot/_crop*
 
 # Server match replay dumps (M1 action log)
 replays/
+
+# Per-deploy env (real hostname)
+deploy/.env

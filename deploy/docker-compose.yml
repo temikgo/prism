@@ -1,0 +1,38 @@
+# Turnkey Prism deploy: one game server + Caddy (auto-TLS, static client, wss
+# proxy). On a fresh VM:  edit deploy/.env (PRISM_DOMAIN), upload the exported
+# client to client-godot/.web-export, then:  docker compose up -d --build
+#
+# Caddy reaches the server on the internal `prism` network as prism:8080; the
+# server publishes no host port (only Caddy is exposed to the internet).
+
+services:
+  prism:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - prism-replays:/opt/prism/replays
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - prism
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PRISM_DOMAIN: ${PRISM_DOMAIN:?set PRISM_DOMAIN in deploy/.env}
+      PRISM_BACKEND: prism:8080
+      PRISM_WEBROOT: /srv
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../client-godot/.web-export:/srv:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  prism-replays:
+  caddy-data:
+  caddy-config:
