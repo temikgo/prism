@@ -1169,15 +1169,53 @@ TEST_CASE("chill aura lowers enemy attack and reverses when removed") {
   CHECK(g.player(1).board[0].atk == 3);  // attack restored
 }
 
-TEST_CASE("undergrowth scales attack with your other creatures") {
+TEST_CASE("undergrowth scales attack AND hp with your other creatures") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("undergrowther", 30), repeat("bear", 30), 231);
   g.start();
   REQUIRE(g.playCard(0));
   CHECK(g.player(0).board[0].atk == 1);  // 1 + 1*(0 others)
+  CHECK(g.player(0).board[0].hp == 4);   // 4 + 1*(0 others)
   g.player(0).hand.push_back(CardInstance{910, lib.find("bear")});
   REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));
   CHECK(g.player(0).board[0].atk == 2);  // 1 + 1*(1 other)
+  CHECK(g.player(0).board[0].hp == 5);   // hp is continuous now, not baked
+}
+
+TEST_CASE("undergrowth hp shrinks back when an ally leaves the board") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("undergrowther", 30), repeat("bear", 30), 557);
+  g.start();
+  REQUIRE(g.playCard(0));  // undergrowther alone -> 1/4
+  g.player(0).hand.push_back(CardInstance{910, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) -
+                     1));  // +bear -> 2/5
+  REQUIRE(g.player(0).board.size() == 2);
+  REQUIRE(g.player(0).board[0].hp == 5);
+  EntityId bear = g.player(0).board[1].id;
+  g.player(0).hand.push_back(CardInstance{911, lib.find("sacrifice")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1, bear));
+  REQUIRE(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].atk == 1);  // back to 1 + 1*(0 others)
+  CHECK(g.player(0).board[0].hp == 4);   // hp followed the ally down
+}
+
+TEST_CASE(
+    "undergrowth shrink starves a wounded creature when its thicket clears") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("undergrowther", 30), repeat("bear", 30), 558);
+  g.start();
+  REQUIRE(g.playCard(0));
+  g.player(0).hand.push_back(CardInstance{910, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));  // 2/5
+  REQUIRE(g.player(0).board.size() == 2);
+  g.player(0).board[0].hp = 1;  // wound it: maxHp 5, 4 damage taken
+  EntityId bear = g.player(0).board[1].id;
+  g.player(0).hand.push_back(CardInstance{911, lib.find("sacrifice")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1, bear));
+  // maxHp drops 5->4 as the ally leaves; the 4 damage now exceeds it -> it
+  // dies.
+  CHECK(g.player(0).board.empty());
 }
 
 TEST_CASE("resonance charges from your crystals at summon") {
@@ -1367,6 +1405,7 @@ static EntityId putCreature(Game& g, int player, const CardLibrary& lib,
   c.atk = d->stats.atk;
   c.hp = d->stats.hp;
   c.maxHp = d->stats.hp;
+  c.baseMaxHp = d->stats.hp;
   c.sick = sick;
   g.player(player).board.push_back(c);
   return c.id;

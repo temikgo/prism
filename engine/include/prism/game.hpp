@@ -60,6 +60,8 @@ struct Creature {
   int baseAtk;  // printed + permanent buffs (growth/compost); auras add on top
   int hp;
   int maxHp;
+  int baseMaxHp;  // max hp WITHOUT the continuous undergrowth layer (recompute
+                  // base)
   bool sick = true;
   bool attacked = false;
   bool usedActive = false;  // spent its activated ability (germinate) this turn

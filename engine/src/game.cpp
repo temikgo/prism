@@ -283,25 +283,20 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   if (def->type == CardType::Creature) {
     Creature nc =
         makeCreature(ci.id, def, /*sick=*/true, /*token=*/false, /*hp=*/-1);
-    // Snapshot the HP part of undergrowth/resonance at summon. Only atk is
-    // continuous (recomputed live); HP is baked once to avoid shrinking HP and
-    // cascade deaths. (Continuous HP is a later upgrade -- see README.)
-    int allies = static_cast<int>(p.board.size());  // the other creatures
+    // Resonance is charged ONCE at summon (a snapshot of your crystals) so a
+    // cheap body cannot run away to 12/12 in the late game -- baked into base
+    // atk/hp here. Undergrowth is NOT baked: it is continuous for BOTH atk and
+    // hp (recomputeContinuous, run by the checkDeaths after the board insert
+    // below), so a thicket creature grows and shrinks with your board.
     int crystals = 0;
     for (int v : p.mana.crystals) crystals += v;
-    // Resonance is charged ONCE at summon (a snapshot of your crystals), not
-    // continuously, so a cheap body cannot run away to 12/12 in the late game.
-    // Both its atk and hp are baked here; undergrowth keeps a continuous atk
-    // part (recomputeContinuous) and only snapshots its hp here.
     int resBonus = def->keywordN("resonance") * crystals;
-    int hpBonus = def->keywordN("undergrowth") * allies + resBonus;
-    if (hpBonus > 0) {
-      nc.maxHp += hpBonus;
-      nc.hp += hpBonus;
-    }
     if (resBonus > 0) {
       nc.baseAtk += resBonus;
       nc.atk += resBonus;
+      nc.baseMaxHp += resBonus;
+      nc.maxHp += resBonus;
+      nc.hp += resBonus;
     }
     // Insert at the chosen slot (default: append to the right).
     int at = (pos >= 0 && pos <= static_cast<int>(p.board.size()))
@@ -473,29 +468,39 @@ bool Game::attackHero(EntityId attacker) {
 // event is processed (which may summon tokens, e.g. Green spores). Tokens that
 // vanish (illusions) are not removed here -- that happens at turn end.
 void Game::checkDeaths() {
-  std::vector<Event> deaths;
-  for (auto& p : players_) {
-    std::vector<Creature> survivors;
-    survivors.reserve(p.board.size());
-    for (auto& c : p.board) {
-      if (c.hp > 0) {
-        survivors.push_back(c);
-      } else {
-        // Real cards go to the graveyard; tokens/illusions cease to exist (they
-        // were never deck cards) -- consistent with bounceCreature.
-        if (!c.token) p.graveyard.push_back(c.def);
-        // Slot among the survivors so far: where this body sat, so a death-
-        // triggered token (spores/haunt) lands where the creature was.
-        int slot = static_cast<int>(survivors.size());
-        deaths.push_back(
-            Event{EventType::Died, c.id, 0, 0, p.index, c.def, slot, c.token});
+  // Loop: a death shrinks the board, and recomputeContinuous then lowers the
+  // undergrowth HP of the survivors -- which can itself drop one to <=0. So the
+  // sweep repeats until the board is stable (a thicket can collapse on itself).
+  while (true) {
+    std::vector<Event> deaths;
+    for (auto& p : players_) {
+      std::vector<Creature> survivors;
+      survivors.reserve(p.board.size());
+      for (auto& c : p.board) {
+        if (c.hp > 0) {
+          survivors.push_back(c);
+        } else {
+          // Real cards go to the graveyard; tokens/illusions cease to exist
+          // (they were never deck cards) -- consistent with bounceCreature.
+          if (!c.token) p.graveyard.push_back(c.def);
+          // Slot among the survivors so far: where this body sat, so a death-
+          // triggered token (spores/haunt) lands where the creature was.
+          int slot = static_cast<int>(survivors.size());
+          deaths.push_back(Event{EventType::Died, c.id, 0, 0, p.index, c.def,
+                                 slot, c.token});
+        }
       }
+      p.board.swap(survivors);
     }
-    p.board.swap(survivors);
+    for (const auto& e : deaths) emit(e);
+    processEvents();
+    recomputeContinuous();  // board changed -> refresh continuous atk AND hp
+    bool more = false;
+    for (auto& p : players_)
+      for (const auto& c : p.board)
+        if (c.hp <= 0) more = true;
+    if (!more) break;
   }
-  for (const auto& e : deaths) emit(e);
-  processEvents();
-  recomputeContinuous();  // board changed -> refresh continuous attack
 }
 
 void Game::processEvents() {
@@ -560,6 +565,7 @@ Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
   c.baseAtk = def->stats.atk;
   c.hp = hp;
   c.maxHp = hp;
+  c.baseMaxHp = hp;
   c.sick = sick;
   c.token = token;
   // Illusions reference the original card, so they inherit its keywords -- that
@@ -600,6 +606,7 @@ void Game::healCreature(Creature& c, int amount) {
 void Game::buffStats(Creature& c, int n) {
   c.baseAtk += n;  // permanent: the live layer is added on top of this
   c.atk += n;
+  c.baseMaxHp += n;
   c.maxHp += n;
   c.hp += n;
 }
@@ -612,11 +619,19 @@ void Game::recomputeContinuous() {
     for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
     int allies = static_cast<int>(me.board.size());
     for (auto& c : me.board) {
-      // Resonance is a summon-time snapshot (see playResolved), so it is NOT
-      // part of the live layer here -- only undergrowth and enemy chill are.
-      int cont = c.def->keywordN("undergrowth") * (allies - 1) - enemyChill;
-      int eff = c.baseAtk + cont;
+      // Resonance is a summon-time snapshot (see playResolved); only
+      // undergrowth and enemy chill are live here. Undergrowth is +N per OTHER
+      // ally.
+      int under = c.def->keywordN("undergrowth") * (allies - 1);
+      int eff = c.baseAtk + under - enemyChill;  // chill bites attack only
       c.atk = eff < 0 ? 0 : eff;
+      // Undergrowth HP is continuous too: recompute the live max and carry the
+      // same delta onto current hp, so damage is preserved. A shrinking board
+      // can push hp <= 0 -- checkDeaths reaps it and loops, so the shrink can
+      // cascade.
+      int newMaxHp = c.baseMaxHp + under;
+      c.hp += newMaxHp - c.maxHp;
+      c.maxHp = newMaxHp;
     }
   }
 }

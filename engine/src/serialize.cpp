@@ -44,6 +44,7 @@ json creatureJson(const Creature& c) {
               {"baseAtk", c.baseAtk},
               {"hp", c.hp},
               {"maxHp", c.maxHp},
+              {"baseMaxHp", c.baseMaxHp},
               {"sick", c.sick},
               {"attacked", c.attacked},
               {"usedActive", c.usedActive},
@@ -226,6 +227,7 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
       c.baseAtk = cj.value("baseAtk", 0);
       c.hp = cj.value("hp", 0);
       c.maxHp = cj.value("maxHp", 0);
+      c.baseMaxHp = cj.value("baseMaxHp", c.maxHp);
       c.sick = cj.value("sick", false);
       c.attacked = cj.value("attacked", false);
       c.usedActive = cj.value("usedActive", false);
