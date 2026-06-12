@@ -9,10 +9,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "json.hpp"
@@ -96,6 +100,14 @@ struct Room {
   std::vector<std::string> deck[2];  // chosen deck per seat (empty = default)
   std::unique_ptr<Game> game;
   bool playing = false;
+  // Action log for the live match: the resolved setup (seed/heroes/decks) plus
+  // every accepted action, so the room can emit a deterministic replay (M1) --
+  // the same log will feed reconnect (M5). Dumped to a file on game-over.
+  std::uint32_t seed = 0;
+  std::string usedHero[2];
+  std::vector<std::string> usedDeck[2];
+  std::vector<std::pair<int, std::string>> actionLog;  // (seat, action JSON)
+  bool dumped = false;
 };
 
 std::unordered_map<int, Client> g_clients;
@@ -125,6 +137,30 @@ void broadcastRoom(const Room& r) {
   sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1)));
 }
 
+// Write this room's match as a deterministic replay (engine format) once, when
+// the game ends. The same recorded log will also drive reconnect (M5).
+// Best-effort: a write failure is logged but never disrupts the match.
+void dumpReplay(const std::string& code, Room& r) {
+  if (r.dumped) return;
+  r.dumped = true;
+  std::error_code ec;
+  std::filesystem::create_directories("replays", ec);
+  std::string rep = makeReplay(r.seed, r.usedDeck[0], r.usedDeck[1],
+                               r.usedHero[0], r.usedHero[1], r.actionLog);
+  std::time_t t = std::time(nullptr);
+  char ts[32];
+  std::strftime(ts, sizeof(ts), "%Y%m%d-%H%M%S", std::localtime(&t));
+  std::string path = "replays/" + code + "-" + ts + ".json";
+  std::ofstream f(path);
+  if (f) {
+    f << rep;
+    std::printf("Replay saved: %s (%zu actions)\n", path.c_str(),
+                r.actionLog.size());
+  } else {
+    std::printf("Replay save FAILED: %s\n", path.c_str());
+  }
+}
+
 // Two players are in: pick heroes, seed, build and start the engine game, tell
 // both the match begins, then send the first views.
 void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
@@ -141,9 +177,19 @@ void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
   };
   std::string h0 = heroFor(0);
   std::string h1 = heroFor(1);
-  r.game = std::make_unique<Game>(lib, deckFor(0), deckFor(1), seed, h0, h1);
+  std::vector<std::string> d0 = deckFor(0);
+  std::vector<std::string> d1 = deckFor(1);
+  r.game = std::make_unique<Game>(lib, d0, d1, seed, h0, h1);
   r.game->start();
   r.playing = true;
+  // Remember the resolved setup so a replay of this match can be reconstructed.
+  r.seed = seed;
+  r.usedHero[0] = h0;
+  r.usedHero[1] = h1;
+  r.usedDeck[0] = d0;
+  r.usedDeck[1] = d1;
+  r.actionLog.clear();
+  r.dumped = false;
   sendType(r.fd[0], "matchStart");
   sendType(r.fd[1], "matchStart");
   broadcastRoom(r);
@@ -259,8 +305,12 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
   if (c.phase != Phase::Playing || c.room.empty()) return;
   auto it = g_rooms.find(c.room);
   if (it == g_rooms.end() || !it->second.game) return;
-  applyAction(*it->second.game, c.seat, payload);
+  // Record every accepted action (seat + raw action JSON) for the room's
+  // replay.
+  bool applied = applyAction(*it->second.game, c.seat, payload);
+  if (applied) it->second.actionLog.emplace_back(c.seat, payload);
   broadcastRoom(it->second);
+  if (applied && it->second.game->isOver()) dumpReplay(c.room, it->second);
 }
 
 // A socket dropped (close/EOF/error): tear down its room if any and forget it.
