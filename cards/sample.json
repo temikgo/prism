@@ -204,7 +204,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 2 },
-    "stats": { "atk": 3, "hp": 4 },
+    "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "compost", "n": 1 }, { "id": "spores", "n": 1 }]
   },
   {
@@ -247,7 +247,7 @@
     "art": "a slow creeping field of pale blue rime-frost spreading across the ground, glazing everything it touches in numbing cold",
     "type": "aura",
     "color": ["blue"],
-    "cost": { "generic": 0, "blue": 1 },
+    "cost": { "generic": 2, "blue": 1 },
     "keywords": [{ "id": "chill", "n": 1 }]
   },
   {
@@ -258,7 +258,7 @@
     "type": "creature",
     "color": ["blue"],
     "cost": { "generic": 1, "blue": 1 },
-    "stats": { "atk": 2, "hp": 2 },
+    "stats": { "atk": 2, "hp": 1 },
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
     ]
@@ -322,7 +322,7 @@
     "type": "creature",
     "color": ["blue"],
     "cost": { "generic": 3, "blue": 2 },
-    "stats": { "atk": 4, "hp": 6 },
+    "stats": { "atk": 4, "hp": 5 },
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
     ]
@@ -345,7 +345,7 @@
     "art": "a mournful phantom of violet light, faint and translucent, a fading after-image of itself trailing behind as it drifts",
     "type": "creature",
     "color": ["violet"],
-    "cost": { "generic": 1, "violet": 1 },
+    "cost": { "generic": 2, "violet": 1 },
     "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "haunt" }]
   },
@@ -356,7 +356,7 @@
     "art": "a figure of violet light splitting into two faint mirror-copies of itself, all three shimmering and indistinct",
     "type": "creature",
     "color": ["violet"],
-    "cost": { "generic": 2, "violet": 1 },
+    "cost": { "generic": 3, "violet": 1 },
     "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "split", "n": 2 }]
   },
@@ -391,7 +391,7 @@
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 2, "violet": 1 },
-    "stats": { "atk": 3, "hp": 3 },
+    "stats": { "atk": 4, "hp": 3 },
     "keywords": [{ "id": "stealth" }]
   },
   {
@@ -402,7 +402,7 @@
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 3, "violet": 2 },
-    "stats": { "atk": 4, "hp": 4 },
+    "stats": { "atk": 4, "hp": 3 },
     "keywords": [{ "id": "stealth" }, { "id": "split", "n": 1 }]
   },
   {
@@ -468,7 +468,7 @@
     "art": "a regal sovereign woven of light crowned with all five rays in balanced rainbow -- red, yellow, green, blue and violet, none dominant, growing ever brighter, a faint after-image trailing it, gaze piercing far ahead",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 5, "hp": 5 },
     "keywords": [{ "id": "pierce" }, { "id": "ward" }, { "id": "growth", "n": 1 }, { "id": "haunt" }],
     "effects": [
@@ -482,8 +482,8 @@
     "art": "a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, frost rippling out from its first flare",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 4, "hp": 6 },
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 4, "hp": 5 },
     "keywords": [{ "id": "self_lifesteal" }, { "id": "provoke" }, { "id": "photosynthesis", "n": 1 }, { "id": "split", "n": 1 }],
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
@@ -496,8 +496,8 @@
     "art": "a hulking six-limbed predator-beast woven of light in balanced rainbow -- red, yellow, green, blue and violet, none dominant, half-faded from sight, frost-rimed claws leaving wounds that glow and never close, faint spores drifting from its hide",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 6, "hp": 4 },
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 5, "hp": 4 },
     "keywords": [{ "id": "lingering" }, { "id": "shield" }, { "id": "spores", "n": 1 }, { "id": "stealth" }],
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
@@ -510,9 +510,9 @@
     "art": "a dense roiling cluster of countless distinct sharp glowing light-motes massing together, every colour of the spectrum in balance -- red, yellow, green, blue and violet, none dominant, crisp well-defined particles, a swirling living swarm, sharp and clear, not a humanoid",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 5, "hp": 6 },
-    "keywords": [{ "id": "regen", "n": 1 }, { "id": "provoke" }, { "id": "undergrowth", "n": 1 }, { "id": "split", "n": 2 }],
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 5, "hp": 7 },
+    "keywords": [{ "id": "regen", "n": 1 }, { "id": "provoke" }, { "id": "undergrowth", "n": 1 }, { "id": "split", "n": 1 }],
     "effects": [
       { "trigger": "on_play", "action": "scry", "value": 1 }
     ]
@@ -524,7 +524,7 @@
     "art": "a colossal many-faceted crystalline colossus, no human face, every ray of the rainbow -- red, yellow, green, blue and violet -- blazing in balance along its towering crystal frame, none dominant, the air freezing solid where it strides",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 4, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 5, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 7, "hp": 8 },
     "keywords": [{ "id": "pierce" }, { "id": "provoke" }, { "id": "resonance", "n": 1 }, { "id": "haunt" }],
     "effects": [
@@ -621,7 +621,7 @@
     "art": "a swift winged shadow-beast of dim red-violet light gliding past a defending line toward the foe, a faint after-image trailing its wings",
     "type": "creature",
     "color": ["red", "violet"],
-    "cost": { "generic": 2, "red": 1, "violet": 1 },
+    "cost": { "generic": 3, "red": 1, "violet": 1 },
     "stats": { "atk": 4, "hp": 3 },
     "keywords": [{ "id": "bypass" }, { "id": "haunt" }]
   },
@@ -681,7 +681,7 @@
     "art": "an unseen flicker of pale yellow-violet light, invisible until it flares and sears a foe's sight to white",
     "type": "creature",
     "color": ["yellow", "violet"],
-    "cost": { "generic": 2, "yellow": 1, "violet": 1 },
+    "cost": { "generic": 1, "yellow": 1, "violet": 1 },
     "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "stealth" }],
     "effects": [
@@ -695,7 +695,7 @@
     "art": "a sly gleam of yellow-violet light haloed in protective radiance, splitting off a faint mirror-copy of itself",
     "type": "creature",
     "color": ["yellow", "violet"],
-    "cost": { "generic": 2, "yellow": 1, "violet": 1 },
+    "cost": { "generic": 3, "yellow": 1, "violet": 1 },
     "stats": { "atk": 4, "hp": 3 },
     "keywords": [{ "id": "ward" }, { "id": "split", "n": 1 }]
   },
@@ -735,7 +735,7 @@
     "type": "creature",
     "color": ["green", "violet"],
     "cost": { "generic": 1, "green": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 3 },
+    "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "spores", "n": 1 }, { "id": "haunt" }]
   },
   {
@@ -746,7 +746,7 @@
     "type": "creature",
     "color": ["green", "violet"],
     "cost": { "generic": 2, "green": 1, "violet": 1 },
-    "stats": { "atk": 4, "hp": 4 },
+    "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "compost", "n": 1 }, { "id": "split", "n": 1 }]
   },
   {

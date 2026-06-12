@@ -2,6 +2,7 @@ engine/build/
 build/
 *.o
 *.a
+__pycache__/
 .godot/
 client-godot/.godot/
 client-godot/.godot-bin/
