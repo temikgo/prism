@@ -5,7 +5,6 @@ build/
 .godot/
 client-godot/.godot/
 client-godot/.godot-bin/
-client-godot/export_presets.cfg
 client-godot/_*.png
 client-godot/_*.png.import
 client-godot/_crop*
