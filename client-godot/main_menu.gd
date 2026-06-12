@@ -66,6 +66,8 @@ func _emblem() -> Control:
 		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.custom_minimum_size = Vector2(240, 210)
+		# Mipmaps so a high-res logo source downscales crisply (see Tokens.art).
+		img.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		img.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		# Additive blend: a black/transparent logo background contributes nothing,
 		# so only the prism and its spectrum show over the backdrop.
