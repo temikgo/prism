@@ -4,7 +4,7 @@ class_name Ui
 # the neon "glass" and bordered panels, buttons, icons and the mana/cost pips.
 # Nothing here reads game state -- callers pass in everything.
 
-# Board redesign tokens (from BOARD_REDESIGN.md / board_redesign_ref/styles.css).
+# Board design tokens (the "light-table arena" board redesign, now in Godot).
 # Near-black glass base, three ink tints for text, and the side-rail glass fill +
 # hairline stroke. Shared so every chrome surface mixes from one source.
 const BG_0 := Color(0.024, 0.024, 0.047)        # #06060c
