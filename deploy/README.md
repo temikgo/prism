@@ -6,9 +6,27 @@ proxies WebSocket traffic to the server. The web build is single-threaded, so no
 cross-origin-isolation (COOP/COEP) headers are needed.
 
 ## What you need (your part)
-- A VPS: any Ubuntu 22.04+ box, ~$4–6/mo (1 vCPU / 1 GB is plenty). Note its IP.
+- A VPS: any Ubuntu 22.04+ box (1 vCPU / 1 GB is plenty). Note its IP.
 - A domain (or subdomain). Point an **A record** at the VPS IP and wait for it to
   propagate. Caddy will get the TLS cert automatically.
+
+### Free option (recommended for "let everyone try it")
+Everything below works on a free, always-on box -- no monthly cost:
+- **VM: Oracle Cloud Always Free.** A genuinely always-free Ubuntu VM (AMD
+  E2.1.Micro, or ARM Ampere). Crucially it gives **10 TB/mo egress** -- the web
+  build is ~180 MB per first load, so a generous egress matters. (Google Cloud's
+  free e2-micro only has ~1 GB/mo egress -> exhausted in ~5 downloads; avoid for a
+  shared build.) Oracle signup needs a card for verification but never charges for
+  always-free; capacity for ARM can be flaky, AMD is usually available.
+- **Hostname: DuckDNS** (free `name.duckdns.org`). Point it at the VM's public IP;
+  Caddy gets a free Let's Encrypt cert for it. (Or a cheap real domain if you want.)
+- **Hosting the 180 MB client:** Caddy on the same VM serves it directly -- no
+  separate static host, so no per-file size limits (GitHub/Cloudflare Pages reject
+  the 152 MB .pck). One free VM does everything: TLS + client + wss proxy + server.
+
+The steps below are identical for the free box -- just use the Oracle VM + the
+DuckDNS hostname in the Caddyfile. Open the VM's ports 80 + 443 in Oracle's
+security list (and `ufw allow 80,443` on the box).
 
 ## 1. Export the web client (local machine)
 The export preset `Web` is committed (`client-godot/export_presets.cfg`). With the
