@@ -15,7 +15,6 @@ static var active_drag = null
 # While an attacker is being dragged: viewport position to draw the attack
 # arrow from (Vector2.INF when no attacker drag is in flight).
 static var aim_from := Vector2.INF
-static var aim_color := Color(0.5, 0.95, 1.0)  # arrow color: attack vs spell
 var payload: Dictionary = {}        # non-empty + draggable=true => can drag
 var drag_label: String = ""
 var preview_builder: Callable = Callable()   # returns the drag-preview Control
@@ -85,8 +84,6 @@ func _get_drag_data(_at: Vector2) -> Variant:
 		# Attacks and targeted spells show an aiming arrow, not a floating
 		# card: use a tiny invisible preview and record where the arrow starts.
 		aim_from = global_position + size * 0.5
-		aim_color = Color(0.5, 0.95, 1.0) if payload.get("kind", "") == "attacker" \
-			else Color(0.82, 0.55, 1.0)
 		var dot := Control.new()
 		dot.custom_minimum_size = Vector2(2, 2)
 		set_drag_preview(dot)
