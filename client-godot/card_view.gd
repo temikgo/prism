@@ -132,23 +132,39 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	var d: Dictionary = CardData.def(def_id)
 	var col := Palette.primary(d)
 
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel",
-		Ui.bordered(Color(0.10, 0.11, 0.15, 0.98), 10, 2, col, 11))
+	# The description is framed in the card's colours: a gradient border through all
+	# of them (a single colour reads as solid).
+	var colors := []
+	for c in d.get("color", []):
+		colors.append(Palette.color_for(String(c)))
+	var border := GradientBorder.new()
+	border.setup(colors, Color(0.10, 0.11, 0.15, 0.98))
 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 5)
 	v.custom_minimum_size = Vector2(250, 0)
-	panel.add_child(v)
+	border.add_child(v)
 
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 6)
 	var name_lbl := Ui.label(CardData.name_of(def_id), 19, col.lightened(0.45), false, true)
 	name_lbl.add_theme_font_override("font", Fonts.BLACK)
 	header.add_child(name_lbl)
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(sp)
-	header.add_child(Ui.label("%d" % CardData.total_cost(d.get("cost", {})), 19, Color(0.9, 0.93, 1.0), false, true))
+	# Creatures show their stats; then the full cost with its coloured pips.
+	if String(d.get("type", "")) == "creature":
+		var atk := 0
+		var hp := 0
+		var max_hp := 0
+		if typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"):
+			atk = int(runtime["atk"]); hp = int(runtime["hp"]); max_hp = int(runtime.get("maxHp", hp))
+		elif d.has("stats"):
+			atk = int(d["stats"].get("atk", 0)); hp = int(d["stats"].get("hp", 0)); max_hp = hp
+		header.add_child(_gem(str(atk), Color(0.95, 0.8, 0.35)))
+		header.add_child(_gem(str(hp), Color(0.55, 0.95, 0.5) if hp >= max_hp else Color(0.97, 0.4, 0.4)))
+	header.add_child(_cost_badge(d.get("cost", {})))
 	v.add_child(header)
 
 	v.add_child(Ui.label(Glossary.type_label(d), 12, Color(0.6, 0.65, 0.75)))
@@ -247,7 +263,7 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 			sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			sl.custom_minimum_size = Vector2(250, 0)
 			v.add_child(sl)
-	return panel
+	return border
 
 
 # A wrapping label that honours [b]bold[/b] BBCode, for rules text. Shared by the
