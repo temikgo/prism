@@ -47,12 +47,11 @@ var _hand: HandRow = null              # persistent hand fan (slides on draw/pla
 var _my_board_zone: Control = null     # your board drop zone (for hover test)
 # Your right-flank chrome nodes (rebuilt each view), pulsed when their value
 # changes -- see _animate_piles.
-var _mana_block_node: Control = null
-var _deck_pile_node: Control = null
-var _grave_pile_node: Control = null
-var _prev_deck := -1
-var _prev_grave := -1
-var _prev_crystals := -1
+# Deck/discard/hand count tiles, keyed "<side>_<pile>" (side: me|foe), with the last
+# seen counts -- _animate_piles pulses any tile whose number changed this view, so
+# the feedback fires for both players (yours on your turn, the foe's on theirs).
+var _pile_nodes := {}
+var _prev_piles := {}
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
@@ -362,29 +361,27 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary, hero_dmg: Dictionar
 	_animate_piles()
 
 
-# Pulse your right-flank chrome when its value changed: a gained crystal (banked
-# a card / ramp), a drawn card (deck shrank), or a card sent to the graveyard
-# (death / spell). One-shot feedback on the freshly-built nodes.
+# Pulse each deck/discard/hand count tile whose number changed this view -- for
+# both players, so drawing (deck down / hand up), a death or play (discard up),
+# and the same on the enemy's turn all read. One-shot, on the freshly-built nodes.
 func _animate_piles() -> void:
 	if view.is_empty():
 		return
 	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	var deck := int(me.get("deckCount", 0))
-	var grave := int(me.get("graveyardCount", 0))
-	var crystals := 0
-	for v in me.get("mana", {}).get("crystals", {}).values():
-		crystals += int(v)
-	if _prev_deck >= 0:
-		if crystals > _prev_crystals:
-			_anim.pulse(_mana_block_node)
-		if deck < _prev_deck:
-			_anim.pulse(_deck_pile_node)
-		if grave > _prev_grave:
-			_anim.pulse(_grave_pile_node)
-	_prev_deck = deck
-	_prev_grave = grave
-	_prev_crystals = crystals
+	var counts := {
+		"me_deck": int(view["players"][you].get("deckCount", 0)),
+		"me_grave": int(view["players"][you].get("graveyardCount", 0)),
+		"me_hand": int(view["players"][you].get("handCount", 0)),
+		"foe_deck": int(view["players"][1 - you].get("deckCount", 0)),
+		"foe_grave": int(view["players"][1 - you].get("graveyardCount", 0)),
+		"foe_hand": int(view["players"][1 - you].get("handCount", 0)),
+	}
+	for key in counts:
+		# Pulse on ANY change (not just a direction), so it always fires; skip the
+		# first view (no baseline yet) to avoid a pulse on entering the match.
+		if _prev_piles.has(key) and counts[key] != _prev_piles[key]:
+			_anim.pulse(_pile_nodes.get(key))
+		_prev_piles[key] = counts[key]
 
 
 # --- view queries ------------------------------------------------------------
@@ -588,11 +585,11 @@ func _piles_column(p: Dictionary, mine: bool) -> Control:
 	var col := PilesColumn.new()
 	col.awaken_clicked.connect(_on_awaken_clicked)
 	col.setup(p, mine, view)
-	# Keep your own chrome nodes so _animate_piles can pulse them on change.
-	if mine:
-		_mana_block_node = col.mana_node
-		_deck_pile_node = col.deck_node
-		_grave_pile_node = col.grave_node
+	# Keep both sides' freshly-built count tiles so _animate_piles can pulse them.
+	var side := "me" if mine else "foe"
+	_pile_nodes[side + "_deck"] = col.deck_node
+	_pile_nodes[side + "_grave"] = col.grave_node
+	_pile_nodes[side + "_hand"] = col.hand_node
 	return col
 
 

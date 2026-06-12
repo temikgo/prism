@@ -11,6 +11,7 @@ extends Control
 var crystal_color: Color = Color(0.8, 0.8, 0.88)
 var spent: bool = false
 var temp: bool = false
+var selected: bool = false  # the mana-spend picker's "chosen to pay" state
 
 # Kite + facet geometry in the SVG's 32x44 space; scaled to the node in _draw.
 const VBOX := Vector2(32.0, 44.0)
@@ -86,10 +87,23 @@ func _draw() -> void:
 	draw_colored_polygon(PackedVector2Array([_p(TOP), _p(MID_L), _p(HILITE_B)]),
 		Color(1, 1, 1, 0.28 * alpha))
 
-	# Crisp outer rim.
+	# Crisp outer rim -- bright white when picked (mana-spend selection).
 	var rim := PackedVector2Array(body)
 	rim.append(body[0])
-	draw_polyline(rim, Color(1, 1, 1, 0.55 * alpha), 0.9, true)
+	if selected:
+		draw_polyline(rim, Color(1, 1, 1, 0.95), 1.8, true)
+	else:
+		draw_polyline(rim, Color(1, 1, 1, 0.55 * alpha), 0.9, true)
+
+	# Selected (chosen to pay): a bright white halo so the pick reads at a glance.
+	if selected:
+		var c := size * 0.5
+		for k in 3:
+			var halo := PackedVector2Array()
+			for pt in body:
+				halo.append(c + (pt - c) * (1.04 + float(k) * 0.07))
+			halo.append(halo[0])
+			draw_polyline(halo, Color(1, 1, 1, 0.4 - float(k) * 0.12), 1.6, true)
 
 	# Temporary (ramp) mana: ring the stone in green so it reads as bonus this turn.
 	if temp:

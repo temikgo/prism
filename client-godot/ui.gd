@@ -44,20 +44,27 @@ static func rail_panel(side: Color, active: bool) -> StyleBoxFlat:
 # rail (a defined portrait surround, not a second bright glass border competing
 # with the rail's stroke). Lit top rim + a soft side glow.
 static func medallion(side: Color) -> StyleBoxFlat:
+	# The hero backing, matching Claude Design's `.medallion`: a side-tinted dark
+	# glass slab (side ~14% over near-black), a translucent side border (~45%), a lit
+	# top rim, and a soft side glow. A defined backing -- NOT a near-invisible line;
+	# the earlier "too explicit" was the inner-stroke + sheen stacking on top, which
+	# the portrait no longer adds.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.047, 0.051, 0.094, 0.78).lerp(Color(side.r, side.g, side.b, 0.78), 0.12)
+	# Lighter + more side-tinted than the rail behind it, so the backing reads as a
+	# raised slab rather than blending into the dark glass; a clear border and glow.
+	sb.bg_color = Color(0.078, 0.084, 0.137, 0.92).lerp(Color(side.r, side.g, side.b, 0.95), 0.2)
 	sb.set_corner_radius_all(16)
 	sb.set_border_width_all(1)
-	sb.border_width_top = 2
-	sb.border_color = Color(side.r, side.g, side.b, 0.42)
-	sb.shadow_size = 14
-	sb.shadow_color = Color(side.r, side.g, side.b, 0.26)
+	sb.border_width_top = 2  # lit top rim ~ the ref's inset top highlight
+	sb.border_color = Color(side.r, side.g, side.b, 0.55)
+	sb.shadow_size = 18
+	sb.shadow_color = Color(side.r, side.g, side.b, 0.34)
 	sb.set_content_margin_all(8)
 	return sb
 
 # One-liner Label builder. Only the arguments you pass are applied. Pass size <= 0
 # / color = null to inherit the theme default; set `center` for centered text and
-# `bold` for the semibold weight (otherwise the theme's Lato Regular is used).
+# `bold` for the semibold weight (otherwise the theme's Manrope Regular is used).
 static func label(text: String, size: int = 0, color: Variant = null,
 		center: bool = false, bold: bool = false) -> Label:
 	var l := Label.new()

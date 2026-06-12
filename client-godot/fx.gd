@@ -129,12 +129,12 @@ func pulse(node: Control) -> void:
 		return
 	node.pivot_offset = node.size * 0.5
 	var t := create_tween()
-	t.tween_property(node, "scale", Vector2(1.2, 1.2), 0.12) \
+	t.tween_property(node, "scale", Vector2(1.4, 1.4), 0.13) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(node, "modulate", Color(1.5, 1.5, 1.65), 0.12)
-	t.tween_property(node, "scale", Vector2.ONE, 0.2) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(node, "modulate", Color.WHITE, 0.2)
+	t.parallel().tween_property(node, "modulate", Color(2.0, 2.0, 2.15), 0.13)
+	t.tween_property(node, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(node, "modulate", Color.WHITE, 0.3)
 
 
 func fade_out_dead(node: Control) -> void:

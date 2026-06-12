@@ -58,79 +58,97 @@ static func mana_block(mana: Dictionary) -> Control:
 	return box
 
 
-# Mana crystals in color order, wrapping within the flank column width. All
-# crystals share ONE HFlowContainer (not a per-color HBox each), so its minimum
-# width stays one crystal wide -- a tall single-color pool wraps to new rows
-# instead of stretching one row and shoving the creature board sideways. Colors
-# stay clustered by adjacency; PER_ROW (the count that fits the column) keeps
-# cap_h's row estimate in sync with the actual wrap.
+# Mana crystals in colour order as centred rows: a VBox of HBoxContainers, each
+# ALIGNMENT_CENTER. An HBox row centres its crystals on the column axis reliably --
+# the same way the deck/discard piles row centres -- so the crystals line up under
+# the centred "МАНА" tag for any count (unlike an HFlowContainer, which left-packs).
+# PER_ROW crystals per row; "нет маны" is a single centred row. Colours stay
+# clustered by adjacency. Caller caps the height (see PilesColumn).
 const PER_ROW := 5
 
 
 static func mana_pips(mana: Dictionary) -> Control:
-	var flow := HFlowContainer.new()
-	flow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	flow.alignment = FlowContainer.ALIGNMENT_CENTER
-	flow.add_theme_constant_override("h_separation", 4)
-	flow.add_theme_constant_override("v_separation", 3)
-	flow.custom_minimum_size = Vector2(134, 0)
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 3)
 	var avail: Dictionary = mana.get("available", {})
 	var total: Dictionary = mana.get("crystals", {})
-	var any := false
+	# Flatten to an ordered crystal list: [color, available_this_turn, is_temporary].
+	var pips := []
 	for color in CardData.ALL_COLORS:
 		var t := int(total.get(color, 0))
 		var av := int(avail.get(color, 0))
-		# Show permanent crystals plus any temporary mana on top (available beyond
-		# the permanent stock -- e.g. photosynthesis ramp), so bonus mana is visible.
-		var count := maxi(t, av)
-		if count <= 0:
-			continue
-		any = true
+		var count := maxi(t, av)  # permanent crystals + any temporary ramp on top
 		for i in count:
-			flow.add_child(Ui.mana_pip(color, i < av, i >= t))
-	if not any:
-		var l := Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))
-		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		flow.add_child(l)
-	return flow
+			pips.append([color, i < av, i >= t])
+	if pips.is_empty():
+		box.add_child(_mana_row([Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))]))
+		return box
+	var i := 0
+	while i < pips.size():
+		var cells := []
+		for j in range(i, mini(i + PER_ROW, pips.size())):
+			cells.append(Ui.mana_pip(pips[j][0], pips[j][1], pips[j][2]))
+		box.add_child(_mana_row(cells))
+		i += PER_ROW
+	return box
 
 
-# A deck/graveyard pile: up to three offset card-backs with the count on top.
-static func pile_stack(count: int, label: String, accent: Color) -> Control:
+# One centred row of crystal cells (or the "нет маны" label).
+static func _mana_row(cells: Array) -> Control:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in cells:
+		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(c)
+	return row
+
+
+# A deck / discard / hand pile: a glass tile holding the count (heavy, glowing),
+# with the label BELOW the tile -- on the column's full width, so a long Russian
+# caption ("КОЛОДА") stays readable instead of being crammed inside a small tile.
+# The hand tile tints its rim to the side accent (it isn't a physical pile). The
+# returned VBox is the pulse target (Main pulses it when the count changes).
+const PILE := Vector2(50, 44)
+
+
+static func pile_stack(count: int, label: String, side: Color, is_hand := false) -> Control:
 	var box := VBoxContainer.new()
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 3)
-	var stack := Control.new()
-	stack.custom_minimum_size = Vector2(46, 56)
-	stack.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var depth := maxi(clampi(count, 0, 3), 1)
-	var w := 36.0
-	var h := 48.0
-	for i in range(depth):
-		var back := Panel.new()
-		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		back.size = Vector2(w, h)
-		back.position = Vector2(i * 3, (depth - 1 - i) * 3)
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.11, 0.13, 0.18, 0.96) if count > 0 else Color(0.10, 0.11, 0.14, 0.65)
-		sb.set_corner_radius_all(6)
-		sb.set_border_width_all(2)
-		sb.border_color = accent if i == depth - 1 else accent.darkened(0.35)
-		back.add_theme_stylebox_override("panel", sb)
-		stack.add_child(back)
-	var cl := Ui.label(str(count), 18, accent.lightened(0.5), true)
-	cl.add_theme_font_override("font", Fonts.BLACK)
-	cl.add_theme_constant_override("outline_size", 5)
-	cl.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.9))
-	cl.size = Vector2(w, h)
-	cl.position = Vector2((depth - 1) * 3, 0)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# The glass count tile.
+	var tile := Panel.new()
+	tile.custom_minimum_size = PILE
+	tile.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Ui.PANEL_FILL
+	sb.set_corner_radius_all(11)
+	sb.set_border_width_all(1)
+	sb.border_width_top = 2  # lit top rim
+	sb.border_color = Ui.PANEL_STROKE.lerp(side, 0.45) if is_hand else Ui.PANEL_STROKE.lerp(side, 0.12)
+	sb.shadow_size = 6
+	sb.shadow_color = Color(0, 0, 0, 0.4)
+	tile.add_theme_stylebox_override("panel", sb)
+
+	var cl := Ui.label(str(count), 21, Ui.INK, true)
+	cl.add_theme_font_override("font", Fonts.NUM_BOLD)
+	cl.add_theme_color_override("font_shadow_color", Color(0.47, 0.63, 1.0, 0.45))
+	cl.add_theme_constant_override("shadow_offset_x", 0)
+	cl.add_theme_constant_override("shadow_offset_y", 0)
+	cl.add_theme_constant_override("shadow_outline_size", 6)
+	cl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	stack.add_child(cl)
-	box.add_child(stack)
-	var ll := Ui.label(label, 10, Color(0.64, 0.68, 0.78), true, true)
+	tile.add_child(cl)
+	box.add_child(tile)
+
+	# Label on its own line below the tile -- full column width, comfortably readable.
+	var ll := Ui.label(label.to_upper(), 10, Ui.INK_DIM, true)
 	ll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(ll)
 	return box

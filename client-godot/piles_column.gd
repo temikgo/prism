@@ -10,10 +10,12 @@ extends VBoxContainer
 
 signal awaken_clicked(payload: Dictionary)
 
-# Pulse targets for the owner's side (read by Main._animate_piles); null for the enemy.
+# Pulse targets (read by Main._animate_piles) -- exposed for both sides so the
+# coordinator can pulse the deck/discard/hand counts whenever they change.
 var mana_node: Control = null
 var deck_node: Control = null
 var grave_node: Control = null
+var hand_node: Control = null
 
 
 # Capped height for the mana crystal scroll: ~one row per ~4 crystals, capped at 3
@@ -49,38 +51,39 @@ func setup(p: Dictionary, mine: bool, view: Dictionary) -> void:
 	var mana_tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
 	mana_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mana_block.add_child(mana_tag)
-	var mana_sc := ScrollContainer.new()
-	mana_sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	mana_sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	mana_sc.mouse_filter = Control.MOUSE_FILTER_PASS
-	mana_sc.custom_minimum_size = Vector2(140, cap_h(p.get("mana", {})))
-	mana_sc.add_child(Chrome.mana_pips(p.get("mana", {})))
-	mana_block.add_child(mana_sc)
+	# Height-capped, wheel-scrollable clip that keeps the crystal rows at full width
+	# (so they stay centred) -- a tall pool scrolls instead of growing the column or
+	# breaking the centring (which a plain ScrollContainer would).
+	var mana_scroll := ScrollClip.new()
+	mana_scroll.setup(Chrome.mana_pips(p.get("mana", {})), cap_h(p.get("mana", {})))
+	mana_block.add_child(mana_scroll)
 	add_child(mana_block)
 
 	var mr := _manarow(p.get("manaRow", []), mine, view)
 	if mr != null:
 		add_child(mr)
 
+	# Deck / discard / hand as three glass tiles in a row. Deck and discard are real
+	# stacks (stack illusion); the hand tile is the side-tinted variant (no stack).
+	var side := Ui.SIDE_ME if mine else Ui.SIDE_FOE
 	var piles := HBoxContainer.new()
 	piles.alignment = BoxContainer.ALIGNMENT_CENTER
-	piles.add_theme_constant_override("separation", 12)
+	piles.add_theme_constant_override("separation", 9)
 	piles.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var deck_stack := Chrome.pile_stack(int(p.get("deckCount", 0)), "колода", Color(0.5, 0.7, 0.95))
-	var grave_stack := Chrome.pile_stack(int(p.get("graveyardCount", 0)), "сброс", Color(0.62, 0.6, 0.68))
+	var deck_stack := Chrome.pile_stack(int(p.get("deckCount", 0)), "колода", side)
+	var grave_stack := Chrome.pile_stack(int(p.get("graveyardCount", 0)), "сброс", side)
+	var hand_stack := Chrome.pile_stack(int(p.get("handCount", 0)), "рука", side, true)
 	piles.add_child(deck_stack)
 	piles.add_child(grave_stack)
+	piles.add_child(hand_stack)
 	add_child(piles)
 
-	# The owner's chrome nodes, so the coordinator can pulse them on change.
-	if mine:
-		mana_node = mana_block
-		deck_node = deck_stack
-		grave_node = grave_stack
-
-	var il := Ui.label("рука %d" % int(p.get("handCount", 0)), 11, Color(0.6, 0.64, 0.74), true)
-	il.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(il)
+	# Chrome nodes for both sides, so the coordinator can pulse them on a count
+	# change -- yours on your turn, the enemy's on theirs (they drew / discarded).
+	mana_node = mana_block
+	deck_node = deck_stack
+	grave_node = grave_stack
+	hand_node = hand_stack
 
 
 # The banked cards themselves are just hidden mana (their count shows as crystals),

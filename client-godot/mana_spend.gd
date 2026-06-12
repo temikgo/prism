@@ -97,35 +97,30 @@ func setup(generic: int, avail: Dictionary, pips: Dictionary) -> void:
 	_refresh()
 
 
-# A 18x24 crystal cell. `locked` => reserved (dim, not tappable); otherwise a free
-# crystal whose look flips between chosen (bright) and unchosen (faint).
-func _pip(color: String, locked: bool, chosen: bool) -> Panel:
-	var p := Panel.new()
-	p.custom_minimum_size = Vector2(46, 58)
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE if locked else Control.MOUSE_FILTER_STOP
-	_style_pip(p, Palette.color_for(color), locked, chosen)
-	return p
+# A faceted mana crystal cell (the same CrystalNode as the board mana row). `locked`
+# => reserved for the colored cost (drained/dim, not tappable); otherwise a free
+# crystal whose look flips between chosen (bright white halo) and unchosen.
+func _pip(color: String, locked: bool, chosen: bool) -> Control:
+	var cell := Control.new()
+	cell.custom_minimum_size = Vector2(34, 46)
+	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE if locked else Control.MOUSE_FILTER_STOP
+	var cr := CrystalNode.new()
+	cr.crystal_color = Color(0.85, 0.87, 0.96) if color == "colorless" else Palette.color_for(color)
+	cr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cell.add_child(cr)
+	cell.set_meta("crystal", cr)
+	_style_pip(cell, color, locked, chosen)
+	return cell
 
 
-# Three clearly distinct tiers: locked = dark grey (reserved for the colored
-# cost), free = full saturated colour (tappable), chosen = bright + glow (picked).
-func _style_pip(p: Panel, c: Color, locked: bool, chosen: bool) -> void:
-	var sb := StyleBoxFlat.new()
-	sb.set_corner_radius_all(6)
-	sb.set_border_width_all(2)
-	if locked:
-		sb.bg_color = Color(0.16, 0.17, 0.21, 0.95)
-		sb.border_color = Color(0.30, 0.32, 0.38)
-	elif chosen:
-		sb.bg_color = c.lightened(0.12)
-		sb.set_border_width_all(3)
-		sb.border_color = Color(1, 1, 1, 0.9)
-		sb.shadow_size = 10
-		sb.shadow_color = Color(c.r, c.g, c.b, 0.8)
-	else:
-		sb.bg_color = c
-		sb.border_color = c.lightened(0.5)
-	p.add_theme_stylebox_override("panel", sb)
+# Three tiers via the crystal's own states: locked = spent (drained, reserved for
+# the colored cost), free = bright available, chosen = bright + white selection halo.
+func _style_pip(cell: Control, _color, locked: bool, chosen: bool) -> void:
+	var cr: CrystalNode = cell.get_meta("crystal")
+	cr.spent = locked
+	cr.selected = chosen
+	cr.queue_redraw()
 
 
 func _total() -> int:

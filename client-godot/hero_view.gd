@@ -28,70 +28,33 @@ static func portrait_with_hp(hero: Dictionary, px: float, accent: Color = ACCENT
 	return holder
 
 
-# A large framed hero portrait (rounded, bordered, clipped). Falls back to a
-# tinted placeholder until art/<heroId>.png exists (see ART_HEROES.md).
+# A framed hero portrait: the art behind a single soft side-tinted frame. The art
+# is rect-clipped via clip_contents (a plain scissor clip) -- NOT clip_children,
+# which renders through a back-buffer/canvas-group that on some drivers samples
+# stale framebuffer content (a card from the prior match bled into the frame). The
+# rounded StyleBox border masks the square corners. Falls back to a tinted
+# placeholder until art/<heroId>.png exists (see ART_HEROES.md).
 static func _portrait(card_id: String, px: float, accent: Color = ACCENT) -> Control:
 	var holder := Panel.new()
 	holder.custom_minimum_size = Vector2(px, px)
 	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.10, 0.15)
+	sb.bg_color = Color(0.043, 0.043, 0.066)
 	sb.set_corner_radius_all(14)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(accent.r, accent.g, accent.b, 0.7)
-	sb.shadow_size = 16
-	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.4)
+	sb.set_border_width_all(1)
+	# One defined translucent frame in the side colour (ref `.portrait`: side ~60%),
+	# plus a side glow -- a single clean edge, NOT the old inner-stroke + sheen stack.
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.6)
+	sb.shadow_size = 14
+	sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.35)
 	holder.add_theme_stylebox_override("panel", sb)
-	holder.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	holder.clip_contents = true
 	var art := Tokens.art(card_id, px, accent)
 	art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(art)
-	# A top-to-bottom sheen over the art: a lit upper edge fading to a dark base, so
-	# the portrait reads as glass-cased rather than a flat sticker.
-	var sheen := TextureRect.new()
-	sheen.set_anchors_preset(Control.PRESET_FULL_RECT)
-	sheen.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sheen.texture = _sheen_tex()
-	sheen.stretch_mode = TextureRect.STRETCH_SCALE
-	holder.add_child(sheen)
-	# A thin bright inner stroke just inside the frame: it reads as a lit bevel and
-	# lifts the portrait off the board, so the hero feels framed, not pasted in.
-	var inner := Panel.new()
-	inner.set_anchors_preset(Control.PRESET_FULL_RECT)
-	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var isb := StyleBoxFlat.new()
-	isb.bg_color = Color(0, 0, 0, 0)
-	isb.set_corner_radius_all(12)
-	isb.set_border_width_all(1)
-	isb.border_color = Color(1, 1, 1, 0.12)
-	inner.add_theme_stylebox_override("panel", isb)
-	holder.add_child(inner)
 	holder.tooltip_text = CardData.name_of(card_id)
 	return holder
-
-
-# A cached vertical sheen gradient (white top -> clear mid -> dark base) painted
-# over hero portraits. Built once; reused by every portrait.
-static var _sheen: Texture2D = null
-
-
-static func _sheen_tex() -> Texture2D:
-	if _sheen != null:
-		return _sheen
-	var g := Gradient.new()
-	g.offsets = PackedFloat32Array([0.0, 0.32, 0.72, 1.0])
-	g.colors = PackedColorArray([
-		Color(1, 1, 1, 0.14), Color(1, 1, 1, 0.0),
-		Color(0.016, 0.02, 0.047, 0.0), Color(0.016, 0.02, 0.047, 0.5)])
-	var gt := GradientTexture2D.new()
-	gt.gradient = g
-	gt.fill_from = Vector2(0, 0)
-	gt.fill_to = Vector2(0, 1)
-	gt.width = 4
-	gt.height = 64
-	_sheen = gt
-	return _sheen
 
 
 # Maps a hero's passive keyword to its tinted icon (icons/<name>.svg).

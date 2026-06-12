@@ -142,11 +142,13 @@ func _test_main_helpers() -> void:
 	_main = load("res://Main.tscn").instantiate()
 	root.add_child(_main)
 
-	# PilesColumn.cap_h: empty pool -> the "no mana" line; else ceil(total/4)*40, capped at 3 rows
+	# PilesColumn.cap_h: empty pool -> the "no mana" line; else ceil(total/PER_ROW)*40, capped at 3 rows
 	_approx(PilesColumn.cap_h(DevKit.mana(DevKit.pool(0, 0, 0, 0, 0, 0), DevKit.pool(0, 0, 0, 0, 0, 0))),
 		26.0, "no mana -> 26px line")
 	_approx(PilesColumn.cap_h(DevKit.mana(DevKit.pool(2, 1, 1, 1, 0, 0), DevKit.pool(2, 1, 1, 1, 0, 0))),
-		80.0, "5 crystals -> 2 rows -> 80px")
+		40.0, "5 crystals -> 1 row -> 40px")
+	_approx(PilesColumn.cap_h(DevKit.mana(DevKit.pool(3, 3, 0, 0, 0, 0), DevKit.pool(3, 3, 0, 0, 0, 0))),
+		80.0, "6 crystals -> 2 rows -> 80px")
 
 	# _diff_hero_hp: only a drop counts; record updates
 	var hv := DevKit.view(
@@ -156,3 +158,16 @@ func _test_main_helpers() -> void:
 	var hd: Dictionary = _main._diff_hero_hp(hv)
 	_eq(int(hd.get(1, 0)), 4, "enemy hero took 4 face damage (24->20)")
 	_ok(not hd.has(0), "your hero unchanged -> no entry")
+
+	# Pile pulse wiring: the deck/discard/hand count tiles must be exposed for BOTH
+	# sides (the coordinator pulses any tile whose number changed, either player's).
+	var pmine := DevKit.player({"deckCount": 20, "graveyardCount": 2, "handCount": 5,
+		"mana": DevKit.mana(DevKit.pool(3, 0, 0, 0, 0, 0), DevKit.pool(3, 0, 0, 0, 0, 0))})
+	for mine in [true, false]:
+		var pc := PilesColumn.new()
+		root.add_child(pc)
+		pc.setup(pmine, mine, {})
+		_ok(is_instance_valid(pc.deck_node), "PilesColumn exposes deck tile (mine=%s)" % mine)
+		_ok(is_instance_valid(pc.grave_node), "PilesColumn exposes grave tile (mine=%s)" % mine)
+		_ok(is_instance_valid(pc.hand_node), "PilesColumn exposes hand tile (mine=%s)" % mine)
+		pc.queue_free()
