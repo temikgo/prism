@@ -3,24 +3,48 @@ class_name Chrome
 # Pure board-chrome visuals: the turn banner and the right-flank mana pips and
 # deck/graveyard pile stacks. No game state -- callers pass resolved text/values.
 
-# A centered header pill that glows in `col`, with a small diamond on each side.
-static func banner(txt: String, col: Color) -> Control:
+# The turn pill: whose turn it is + the turn number, and on YOUR turn the whole
+# pill is the clickable End-Turn button (the indicator and the action are one
+# element now -- no separate pinned button). `on_end` empty => a plain indicator
+# (the foe's turn, or the win/mulligan banner). Glows in `accent`.
+static func turn_pill(label: String, turn_n: int, accent: Color, on_end := Callable()) -> Control:
+	var clickable := on_end.is_valid()
 	var pill := PanelContainer.new()
-	var sb := Ui.glass(col, 0.26)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 5
-	sb.content_margin_bottom = 5
+	var sb := Ui.glass(accent, 0.34 if clickable else 0.22)
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 7
+	sb.content_margin_bottom = 7
 	pill.add_theme_stylebox_override("panel", sb)
+
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 10)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_child(_diamond(col))
-	var bl := Ui.label(txt, 17, col.lightened(0.5), true, true)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_diamond(accent))
+	# The label IS the element: "ЗАВЕРШИТЬ ХОД" on your turn (the whole pill is the
+	# button), the state ("ХОД СОПЕРНИКА" / "ПОБЕДА" / "МУЛИГАН") otherwise.
+	var bl := Ui.label(label, 16, accent.lightened(0.5), true, true)
 	bl.add_theme_font_override("font", Fonts.BLACK)
+	bl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(bl)
-	row.add_child(_diamond(col))
+	if turn_n > 0:
+		var cnt := Ui.label("ход %d" % turn_n, 12, Ui.INK_DIM)
+		cnt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(cnt)
+	row.add_child(_diamond(accent))  # symmetric diamond each side
 	pill.add_child(row)
+
+	if clickable:
+		# The whole pill ends the turn; it brightens on hover so it reads as a button.
+		pill.mouse_filter = Control.MOUSE_FILTER_STOP
+		pill.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		pill.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+				on_end.call())
+		pill.mouse_entered.connect(func() -> void: pill.modulate = Color(1.2, 1.2, 1.25))
+		pill.mouse_exited.connect(func() -> void: pill.modulate = Color.WHITE)
+
 	var center := HBoxContainer.new()
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(pill)
@@ -30,6 +54,10 @@ static func banner(txt: String, col: Color) -> Control:
 static func _diamond(col: Color) -> Control:
 	var holder := Control.new()
 	holder.custom_minimum_size = Vector2(10, 16)
+	# Keep the diamond its own 16px height and centre it vertically in the pill row
+	# (otherwise the row stretches the holder and the absolute-positioned diamond
+	# floats to the top instead of the middle).
+	holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var dia := Panel.new()
 	var ds := StyleBoxFlat.new()
@@ -45,63 +73,51 @@ static func _diamond(col: Color) -> Control:
 	return holder
 
 
-# "МАНА" label over the wrapping crystal pips.
-static func mana_block(mana: Dictionary) -> Control:
-	var box := VBoxContainer.new()
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 3)
-	var tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
-	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(tag)
-	box.add_child(mana_pips(mana))
-	return box
-
-
 # Mana crystals in colour order as centred rows: a VBox of HBoxContainers, each
 # ALIGNMENT_CENTER. An HBox row centres its crystals on the column axis reliably --
 # the same way the deck/discard piles row centres -- so the crystals line up under
-# the centred "МАНА" tag for any count (unlike an HFlowContainer, which left-packs).
+# the centred "СПЕКТР" tag for any count (unlike an HFlowContainer, which left-packs).
 # PER_ROW crystals per row; "нет маны" is a single centred row. Colours stay
 # clustered by adjacency. Caller caps the height (see PilesColumn).
 const PER_ROW := 5
 
 
 static func mana_pips(mana: Dictionary) -> Control:
-	var box := VBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 3)
 	var avail: Dictionary = mana.get("available", {})
 	var total: Dictionary = mana.get("crystals", {})
-	# Flatten to an ordered crystal list: [color, available_this_turn, is_temporary].
-	var pips := []
+	var cells := []
 	for color in CardData.ALL_COLORS:
 		var t := int(total.get(color, 0))
 		var av := int(avail.get(color, 0))
-		var count := maxi(t, av)  # permanent crystals + any temporary ramp on top
-		for i in count:
-			pips.append([color, i < av, i >= t])
-	if pips.is_empty():
-		box.add_child(_mana_row([Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))]))
+		for i in maxi(t, av):  # permanent crystals + any temporary ramp on top
+			cells.append(Ui.mana_pip(color, i < av, i >= t))
+	return crystal_rows(cells)
+
+
+# Arrange crystal Controls into centred PER_ROW rows (a VBox of ALIGNMENT_CENTER
+# HBoxes), so they sit on the column's centre axis -- the same axis as the centred
+# "СПЕКТР" tag -- for any count. Shared by the normal mana row and the floodlit
+# enemy crystals (which are clickable, so this does NOT touch a cell's mouse_filter).
+static func crystal_rows(cells: Array) -> Control:
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 3)
+	if cells.is_empty():
+		box.add_child(_row([Ui.label("нет маны", 11, Color(0.5, 0.53, 0.62))]))
 		return box
 	var i := 0
-	while i < pips.size():
-		var cells := []
-		for j in range(i, mini(i + PER_ROW, pips.size())):
-			cells.append(Ui.mana_pip(pips[j][0], pips[j][1], pips[j][2]))
-		box.add_child(_mana_row(cells))
+	while i < cells.size():
+		box.add_child(_row(cells.slice(i, mini(i + PER_ROW, cells.size()))))
 		i += PER_ROW
 	return box
 
 
-# One centred row of crystal cells (or the "нет маны" label).
-static func _mana_row(cells: Array) -> Control:
+static func _row(cells: Array) -> Control:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 4)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for c in cells:
-		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(c)
 	return row
 

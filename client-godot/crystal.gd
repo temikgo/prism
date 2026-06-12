@@ -12,6 +12,7 @@ var crystal_color: Color = Color(0.8, 0.8, 0.88)
 var spent: bool = false
 var temp: bool = false
 var selected: bool = false  # the mana-spend picker's "chosen to pay" state
+var floodlit: bool = false  # enemy crystal you can click to peek (floodlight)
 
 # Kite + facet geometry in the SVG's 32x44 space; scaled to the node in _draw.
 const VBOX := Vector2(32.0, 44.0)
@@ -104,6 +105,18 @@ func _draw() -> void:
 				halo.append(c + (pt - c) * (1.04 + float(k) * 0.07))
 			halo.append(halo[0])
 			draw_polyline(halo, Color(1, 1, 1, 0.4 - float(k) * 0.12), 1.6, true)
+
+	# Floodlit (enemy crystal you can click to peek): a yellow spotlight rim + glow.
+	if floodlit:
+		var y := Color(0.96, 0.8, 0.34)
+		draw_polyline(rim, Color(y.r, y.g, y.b, 0.9), 1.3, true)
+		var c := size * 0.5
+		for k in 2:
+			var halo := PackedVector2Array()
+			for pt in body:
+				halo.append(c + (pt - c) * (1.05 + float(k) * 0.08))
+			halo.append(halo[0])
+			draw_polyline(halo, Color(y.r, y.g, y.b, 0.34 - float(k) * 0.14), 1.4, true)
 
 	# Temporary (ramp) mana: ring the stone in green so it reads as bonus this turn.
 	if temp:

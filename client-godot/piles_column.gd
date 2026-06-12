@@ -9,6 +9,7 @@ extends VBoxContainer
 # it also exposes the chrome nodes the coordinator pulses on change.
 
 signal awaken_clicked(payload: Dictionary)
+signal peek_requested(card_id: String)   # click a floodlit enemy crystal to peek it
 
 # Pulse targets (read by Main._animate_piles) -- exposed for both sides so the
 # coordinator can pulse the deck/discard/hand counts whenever they change.
@@ -42,20 +43,28 @@ func setup(p: Dictionary, mine: bool, view: Dictionary) -> void:
 	add_theme_constant_override("separation", 8)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Mana: a fixed "МАНА" tag + a height-capped scroll of the crystals, so a huge
-	# pool scrolls instead of growing the column and clipping the hand below.
+	# The Spectrum: a fixed "СПЕКТР" tag + a height-capped scroll of the crystals, so
+	# a huge pool scrolls instead of growing the column and clipping the hand below.
+	# (The zone is the player's accumulated colours of light; the resource is mana.)
 	var mana_block := VBoxContainer.new()
 	mana_block.alignment = BoxContainer.ALIGNMENT_CENTER
 	mana_block.add_theme_constant_override("separation", 3)
 	mana_block.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mana_tag := Ui.label("МАНА", 10, Color(0.66, 0.7, 0.82), true, true)
+	var mana_tag := Ui.label("СПЕКТР", 10, Color(0.66, 0.7, 0.82), true, true)
 	mana_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mana_block.add_child(mana_tag)
 	# Height-capped, wheel-scrollable clip that keeps the crystal rows at full width
 	# (so they stay centred) -- a tall pool scrolls instead of growing the column or
 	# breaking the centring (which a plain ScrollContainer would).
 	var mana_scroll := ScrollClip.new()
-	mana_scroll.setup(Chrome.mana_pips(p.get("mana", {})), cap_h(p.get("mana", {})))
+	# Floodlit enemy crystals are built from the manaRow (each = a banked card you can
+	# click to peek); otherwise the crystals are the plain colour-count pips.
+	var crystals: Control
+	if not mine and _has_revealed(p.get("manaRow", [])):
+		crystals = _floodlit_crystals(p.get("manaRow", []), p.get("mana", {}))
+	else:
+		crystals = Chrome.mana_pips(p.get("mana", {}))
+	mana_scroll.setup(crystals, cap_h(p.get("mana", {})))
 	mana_block.add_child(mana_scroll)
 	add_child(mana_block)
 
@@ -86,10 +95,12 @@ func setup(p: Dictionary, mine: bool, view: Dictionary) -> void:
 	hand_node = hand_stack
 
 
-# The banked cards themselves are just hidden mana (their count shows as crystals),
-# so we surface only your own awaken-able cards (or, under floodlight, every enemy
-# banked card). Returns null when there is nothing to show; height-capped + scrolls.
+# Your awaken cards as peekable chips. (The enemy's floodlit cards are no longer a
+# separate thumbnail row -- their crystals in the Spectrum are clickable to peek,
+# see _floodlit_crystals.) Returns null when you have no awaken cards banked.
 func _manarow(mana_row: Array, mine: bool, view: Dictionary) -> Control:
+	if not mine:
+		return null
 	var slots := []
 	for i in mana_row.size():
 		var slot: Dictionary = mana_row[i]
@@ -102,51 +113,69 @@ func _manarow(mana_row: Array, mine: bool, view: Dictionary) -> Control:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_theme_constant_override("separation", 3)
-	var tag := Ui.label("разбудить:" if mine else "прожектор:", 11, Color(0.95, 0.85, 0.4), true)
+	var tag := Ui.label("разбудить:", 11, Color(0.95, 0.85, 0.4), true)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(tag)
-
-	var sc := ScrollContainer.new()
-	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	sc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	sc.mouse_filter = Control.MOUSE_FILTER_PASS
-	var cap := 0.0
-	if mine:
-		# Your awaken cards stay full interactive chips (usually few); cap ~2 tall.
-		var inner := VBoxContainer.new()
-		inner.add_theme_constant_override("separation", 3)
-		for c in slots:
-			inner.add_child(_awaken_chip(int(c["i"]), c["slot"], view))
-		sc.add_child(inner)
-		cap = mini(slots.size(), 2) * 57.0
-	else:
-		# Floodlight can reveal many crystals -> compact art thumbnails that wrap.
-		var flow := HFlowContainer.new()
-		flow.custom_minimum_size = Vector2(136, 0)
-		flow.add_theme_constant_override("h_separation", 3)
-		flow.add_theme_constant_override("v_separation", 3)
-		for c in slots:
-			var s: Dictionary = c["slot"]
-			flow.add_child(_revealed_thumb(String(s["card"]), String(s.get("color", "colorless"))))
-		sc.add_child(flow)
-		var rows := (slots.size() + 2) / 3  # 3 thumbnails per row
-		cap = mini(rows, 2) * 39.0  # show up to 2 rows, scroll the rest
-	sc.custom_minimum_size = Vector2(138, cap)
-	box.add_child(sc)
+	# Awaken chips stack directly (no scroll/clip: a chip lifts on hover and a clip
+	# would slice that off); usually one in the current set.
+	var inner := VBoxContainer.new()
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_theme_constant_override("separation", 4)
+	for c in slots:
+		inner.add_child(_awaken_chip(int(c["i"]), c["slot"], view))
+	box.add_child(inner)
 	return box
 
 
-# A compact peek thumbnail (floodlight): art only, with the full hover tooltip.
-func _revealed_thumb(card_id: String, color: String) -> Control:
-	var t := UiCard.new()
-	t.custom_minimum_size = Vector2(36, 36)
-	t.add_theme_stylebox_override("panel",
-		Ui.bordered(Color(0.09, 0.10, 0.15, 0.92), 6, 1, Color(0.7, 0.62, 0.32), 2))
-	t.tooltip_text = CardData.name_of(card_id)
-	t.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)
-	t.hoverable = true
-	t.add_child(Tokens.art(card_id, 30, Palette.color_for(color)))
-	return t
+func _has_revealed(mana_row: Array) -> bool:
+	for slot in mana_row:
+		if slot.has("card"):
+			return true
+	return false
+
+
+# The enemy's Spectrum under floodlight: each banked card becomes a crystal you can
+# click to peek (a yellow spotlight rim marks them). Built from the manaRow (every
+# slot = one crystal); available/spent is approximated from the colour counts.
+func _floodlit_crystals(mana_row: Array, mana: Dictionary) -> Control:
+	var avail: Dictionary = mana.get("available", {})
+	var by_color := {}
+	for slot in mana_row:
+		var col := String(slot.get("color", "colorless"))
+		if not by_color.has(col):
+			by_color[col] = []
+		by_color[col].append(slot)
+	var cells := []
+	for color in CardData.ALL_COLORS:
+		if not by_color.has(color):
+			continue
+		var slots: Array = by_color[color]
+		var av := int(avail.get(color, 0))
+		for i in slots.size():
+			cells.append(_floodlit_crystal(color, String(slots[i].get("card", "")), i < av))
+	return Chrome.crystal_rows(cells)
+
+
+func _floodlit_crystal(color: String, card_id: String, available: bool) -> Control:
+	var cell := Control.new()
+	cell.custom_minimum_size = Vector2(22, 30)
+	var peekable := card_id != ""
+	cell.mouse_filter = Control.MOUSE_FILTER_STOP if peekable else Control.MOUSE_FILTER_IGNORE
+	if peekable:
+		cell.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		cell.tooltip_text = CardData.name_of(card_id)
+	var cr := CrystalNode.new()
+	cr.crystal_color = Color(0.85, 0.87, 0.96) if color == "colorless" else Palette.color_for(color)
+	cr.spent = not available
+	cr.floodlit = peekable
+	cr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cell.add_child(cr)
+	if peekable:
+		cell.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+				peek_requested.emit(card_id))
+	return cell
 
 
 # A peekable awaken card in your mana row: a mini-card (art + name + tag) with a
@@ -157,15 +186,22 @@ func _awaken_chip(idx: int, slot: Dictionary, view: Dictionary) -> Control:
 	var color := String(slot.get("color", "colorless"))
 	var age := int(slot.get("age", 0))
 	var free := CardData.has_keyword(card_id, "decoy") and age >= CardData.keyword_n(card_id, "decoy")
-	var gold := Color(0.95, 0.85, 0.3)
+	var gold := Ui.GOLD
 	var affordable := Rules.can_awaken(view, card_id, color, age)
 	var chip := UiCard.new()
 	chip.custom_minimum_size = Vector2(132, 54)
-	var sb := Ui.bordered(Color(0.09, 0.10, 0.15, 0.94), 8, 2,
-		gold if affordable else gold.darkened(0.4), 5)
+	# Clean dark-glass chip (no gold wash): a thin gold rim + a lit top edge, and a
+	# soft gold glow only when you can awaken it this turn -- dim, no glow, otherwise.
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.055, 0.062, 0.10, 0.96)  # opaque dark, so no glow/art bleeds into a muddy fill
+	sb.set_corner_radius_all(10)
+	sb.set_border_width_all(1)
+	sb.border_width_top = 2
+	sb.border_color = Color(gold.r, gold.g, gold.b, 0.6 if affordable else 0.22)
+	sb.set_content_margin_all(5)
 	if affordable:
-		sb.shadow_size = 10
-		sb.shadow_color = Color(gold.r, gold.g, gold.b, 0.6)
+		sb.shadow_size = 12
+		sb.shadow_color = Color(gold.r, gold.g, gold.b, 0.45)
 	chip.add_theme_stylebox_override("panel", sb)
 	chip.tooltip_text = CardData.name_of(card_id)
 	chip.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)

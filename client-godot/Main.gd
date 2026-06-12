@@ -30,10 +30,10 @@ var cards := {}            # card id -> definition (from cards.json)
 
 # Click-fallback selection state (drag-and-drop ignores these).
 var _picker: Control = null   # open mana-color chooser, if any
+var _peek: Control = null     # open floodlight card-peek popup, if any
 var _overlay: Control = null  # full-screen overlay layer (game-over screen)
 var _topbar: Control = null   # always-on-top leave button + status pill
 var _status_pill: Control = null  # the status message pill (hidden when empty)
-var _end_btn: Button = null   # pinned End Turn (always visible, never pushed off)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
@@ -163,25 +163,6 @@ func _build_topbar() -> void:
 	_status_pill.add_child(status_label)
 	row.add_child(_status_pill)
 
-	# End Turn lives on this always-on-top layer, pinned to the bottom-left of the
-	# VIEWPORT, so it is never pushed off-screen when the side column (lots of mana
-	# / awaken chips) grows the board layout taller than the window. Positioned by
-	# viewport height (anchoring to the parent fails -- the parent grows with the
-	# overflowing board). Repositioned on resize and each rebuild.
-	_end_btn = Ui.neon_button("Завершить ход", Color(1.0, 0.62, 0.3))
-	_end_btn.custom_minimum_size = Vector2(180, 46)
-	_end_btn.add_theme_font_size_override("font_size", 16)
-	_end_btn.pressed.connect(func() -> void: _send({"action": "endTurn"}))
-	_topbar.add_child(_end_btn)
-	get_tree().root.size_changed.connect(_reposition_end_btn)
-	_reposition_end_btn()
-
-
-func _reposition_end_btn() -> void:
-	if _end_btn != null and is_inside_tree():
-		_end_btn.position = Vector2(20.0, get_viewport_rect().size.y - 62.0)
-
-
 # Wiring from the Router: how this screen sends actions back to the server. The
 # Router owns the socket (it carried the lobby flow); we just hand it actions.
 func bind(sender: Callable) -> void:
@@ -251,8 +232,9 @@ func _send(obj: Dictionary) -> void:
 # damage / death / summon animations, then rebuild.
 func _ingest_view(new_view: Dictionary) -> void:
 	# A new view means the board changed: an open mana picker would point at a
-	# now-stale index, so drop it.
+	# now-stale index, so drop it (and any open floodlight peek).
 	_close_picker()
+	_dismiss_peek()
 	var d := GameState.diff(_prev_hp, new_view)
 	var new_hp: Dictionary = d["hp"]
 	# A creature we had is gone: detach its persistent node and fade it out.
@@ -468,14 +450,6 @@ func _rebuild() -> void:
 		sp.setup(view["scry"], _scry_sel)
 		_overlay.add_child(sp)
 
-	# Refresh the pinned End Turn: hidden while an overlay (mulligan/scry/game-over)
-	# owns the screen, disabled when it is not your turn.
-	if _end_btn != null:
-		_reposition_end_btn()
-		_end_btn.visible = not bool(view.get("over", false)) \
-			and not bool(view.get("mulligan", false)) and not view.has("scry")
-		_end_btn.disabled = not _my_turn()
-
 
 func _separator() -> Control:
 	# Just a small gap between the two armies (no decorative line -- the lane
@@ -517,22 +491,24 @@ func _send_scry() -> void:
 
 
 func _banner(you: int) -> Control:
-	var txt := ""
-	var col := Color(0.6, 0.62, 0.72)
 	if bool(view.get("over", false)):
 		var win := int(view.get("winner", -1)) == you
-		txt = "ПОБЕДА" if win else "ПОРАЖЕНИЕ"
-		col = Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45)
-	elif bool(view.get("mulligan", false)):
-		txt = "МУЛИГАН"
-		col = Color(0.45, 0.85, 1.0)
-	else:
-		var mine := _my_turn()
-		txt = ("ВАШ ХОД" if mine else "ХОД СОПЕРНИКА") + "    ход %d" % int(view.get("turn", 0))
-		col = ME_ACCENT.lightened(0.12) if mine else ENEMY_ACCENT.lightened(0.05)
-
-	# Main reads the state; Chrome renders the pill (with a diamond each side).
-	return Chrome.banner(txt, col)
+		return Chrome.turn_pill("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 0,
+			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
+	if bool(view.get("mulligan", false)):
+		return Chrome.turn_pill("МУЛИГАН", 0, Color(0.45, 0.85, 1.0))
+	# Normal turn: on your turn the pill IS the end-turn button (indicator + action
+	# merged); on the foe's it's a plain indicator. Not clickable during scry.
+	var mine := _my_turn()
+	var accent := ME_ACCENT.lightened(0.12) if mine else ENEMY_ACCENT.lightened(0.05)
+	# On your turn the pill itself is the End-Turn button (its label says so); on the
+	# foe's it's a plain indicator. Not clickable during scry.
+	var clickable := mine and not view.has("scry")
+	var on_end := Callable()
+	if clickable:
+		on_end = func() -> void: _send({"action": "endTurn"})
+	var label := ("ЗАВЕРШИТЬ ХОД" if clickable else "ВАШ ХОД") if mine else "ХОД СОПЕРНИКА"
+	return Chrome.turn_pill(label, int(view.get("turn", 0)), accent, on_end)
 
 
 # --- hero strips -------------------------------------------------------------
@@ -584,6 +560,7 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 func _piles_column(p: Dictionary, mine: bool) -> Control:
 	var col := PilesColumn.new()
 	col.awaken_clicked.connect(_on_awaken_clicked)
+	col.peek_requested.connect(_show_peek)  # click a floodlit enemy crystal -> peek its card
 	col.setup(p, mine, view)
 	# Keep both sides' freshly-built count tiles so _animate_piles can pulse them.
 	var side := "me" if mine else "foe"
@@ -678,9 +655,9 @@ func _make_card(def_id: String, runtime) -> UiCard: return CardView.widget(def_i
 
 # --- controls + hints --------------------------------------------------------
 
-# Just the drag hint now; End Turn is pinned on the top layer (see _build_topbar).
+# Just the drag hint now; End Turn lives in the turn pill at the top (see _banner).
 func _controls() -> Control:
-	var hint := Ui.label("тащите карту на стол — разыграть · на цель — заклинание/атака · двойной тап — в ману",
+	var hint := Ui.label("тащите карту на стол — разыграть · на цель — заклинание/атака · двойной тап — преломить в спектр",
 		0, Color(0.62, 0.66, 0.78), true)
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return hint
@@ -823,6 +800,40 @@ func _close_picker() -> void:
 	if _picker != null and is_instance_valid(_picker):
 		_picker.queue_free()
 	_picker = null
+
+
+# Peek a floodlit enemy card: a dimmed full-screen catcher with the card's info
+# panel centred; a click anywhere (or the next view) dismisses it. The art loads
+# only now -- one card -- so there is no reveal-everything freeze.
+func _show_peek(card_id: String) -> void:
+	_dismiss_peek()
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.z_index = 200
+	layer.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed:
+			_dismiss_peek())
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.02, 0.45)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var card := CardView.tooltip(card_id, null)  # name + art + rules
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE  # clicks fall through to the catcher
+	center.add_child(card)
+	layer.add_child(center)
+	_peek = layer
+	add_child(layer)
+
+
+func _dismiss_peek() -> void:
+	if _peek != null and is_instance_valid(_peek):
+		_peek.queue_free()
+	_peek = null
 
 
 # --- hand double-tap (bank to mana) -----------------------------------------
