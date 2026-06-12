@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://dass2285lvxl"
-path="res://.godot/imported/Lato-Black.ttf-7dcc902f2c342ac36feb010b578bb111.fontdata"
+uid="uid://cntiuysde6cm8"
+path="res://.godot/imported/Exo2.ttf-97992135c4692269453c74bde8d6cee0.fontdata"
 
 [deps]
 
-source_file="res://fonts/Lato-Black.ttf"
-dest_files=["res://.godot/imported/Lato-Black.ttf-7dcc902f2c342ac36feb010b578bb111.fontdata"]
+source_file="res://fonts/Exo2.ttf"
+dest_files=["res://.godot/imported/Exo2.ttf-97992135c4692269453c74bde8d6cee0.fontdata"]
 
 [params]
 

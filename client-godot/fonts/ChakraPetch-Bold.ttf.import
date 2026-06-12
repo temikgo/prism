@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://doiy3e0gv2cny"
-path="res://.godot/imported/Lato-Semibold.ttf-19ad89b35a180f65a89dcf353b8cc61c.fontdata"
+uid="uid://bw653bmlb7rqf"
+path="res://.godot/imported/ChakraPetch-Bold.ttf-b45a74094acbceb3f49c2d4f74608170.fontdata"
 
 [deps]
 
-source_file="res://fonts/Lato-Semibold.ttf"
-dest_files=["res://.godot/imported/Lato-Semibold.ttf-19ad89b35a180f65a89dcf353b8cc61c.fontdata"]
+source_file="res://fonts/ChakraPetch-Bold.ttf"
+dest_files=["res://.godot/imported/ChakraPetch-Bold.ttf-b45a74094acbceb3f49c2d4f74608170.fontdata"]
 
 [params]
 

@@ -24,8 +24,9 @@ static func gem(text: String, ring: Color, size: float, font: int = 0,
 	g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var fs := font if font > 0 else int(size * 0.46)
 	var l := Ui.label(text, fs, ring.lightened(0.6), true)
-	# Heavy weight + a dark rim so the number stays crisp over any art behind it.
-	l.add_theme_font_override("font", Fonts.BLACK)
+	# Chakra Petch (numeric face) + a dark rim so the number stays crisp over any
+	# art behind it; the techy digits carry the crystal/prism identity into stats.
+	l.add_theme_font_override("font", Fonts.NUM_BLACK)
 	l.add_theme_constant_override("outline_size", 5)
 	l.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.04, 0.9))
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -46,6 +47,11 @@ static func art(card_id: String, px: float = 0.0,
 		tex.texture = load(path)
 		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		# The source art is high-res (896x1344) shown small (cards ~110px, portrait
+		# 124, aura 50). Without mipmaps that minification aliases into grain ("low
+		# quality in-game"); the art imports now generate mipmaps and this filter
+		# makes the 2D canvas actually sample them, so downscaling stays crisp.
+		tex.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if px > 0:
 			tex.custom_minimum_size = Vector2(px, px)

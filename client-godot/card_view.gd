@@ -259,7 +259,7 @@ static func rich(bb: String, size: int, color: Color) -> RichTextLabel:
 	r.scroll_active = false
 	r.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	r.custom_minimum_size = Vector2(250, 0)
-	# Real weights so [b] keyword names read as bold (not faux-bold), in Lato.
+	# Real weights so [b] keyword names read as bold (not faux-bold), in Manrope.
 	r.add_theme_font_override("normal_font", Fonts.REGULAR)
 	r.add_theme_font_override("bold_font", Fonts.BOLD)
 	r.add_theme_font_size_override("normal_font_size", size)
@@ -378,6 +378,7 @@ static func _cost_badge(cost: Dictionary) -> Control:
 	# colored pips (so a "0" still appears instead of an empty badge).
 	if gen > 0 or not has_color:
 		var n := Ui.label(str(gen), 18, Color(0.95, 0.96, 1.0))
+		n.add_theme_font_override("font", Fonts.NUM_BOLD)
 		n.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(n)
 	for c in CardData.COLORS:
