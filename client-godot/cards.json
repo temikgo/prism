@@ -66,7 +66,7 @@
     "art": "a roaring bonfire of red light that keeps re-kindling brighter when struck, pulling glowing motes of life from everything it scorches",
     "type": "creature",
     "color": ["red"],
-    "cost": { "generic": 2, "red": 2 },
+    "cost": { "generic": 3, "red": 2 },
     "stats": { "atk": 3, "hp": 4 },
     "keywords": [{ "id": "regen", "n": 1 }, { "id": "self_lifesteal" }]
   },
@@ -226,7 +226,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 4, "green": 2 },
-    "stats": { "atk": 5, "hp": 7 },
+    "stats": { "atk": 1, "hp": 1 },
     "keywords": [{ "id": "resonance", "n": 1 }]
   },
   {
@@ -468,7 +468,7 @@
     "art": "a regal sovereign woven of light crowned with all five rays in balanced rainbow -- red, yellow, green, blue and violet, none dominant, growing ever brighter, a faint after-image trailing it, gaze piercing far ahead",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 5, "hp": 5 },
     "keywords": [{ "id": "pierce" }, { "id": "ward" }, { "id": "growth", "n": 1 }, { "id": "haunt" }],
     "effects": [
@@ -482,7 +482,7 @@
     "art": "a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, frost rippling out from its first flare",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 4, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 4, "hp": 5 },
     "keywords": [{ "id": "self_lifesteal" }, { "id": "provoke" }, { "id": "photosynthesis", "n": 1 }, { "id": "split", "n": 1 }],
     "effects": [
@@ -526,7 +526,7 @@
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 5, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 7, "hp": 8 },
-    "keywords": [{ "id": "pierce" }, { "id": "provoke" }, { "id": "resonance", "n": 1 }, { "id": "haunt" }],
+    "keywords": [{ "id": "pierce" }, { "id": "provoke" }, { "id": "undergrowth", "n": 1 }, { "id": "haunt" }],
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
     ]
@@ -560,7 +560,7 @@
     "art": "a thorned blackthorn of crimson and emerald light, draining life through its barbs and growing taller with every drop it takes",
     "type": "creature",
     "color": ["red", "green"],
-    "cost": { "generic": 1, "red": 1, "green": 1 },
+    "cost": { "generic": 2, "red": 1, "green": 1 },
     "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "self_lifesteal" }, { "id": "growth", "n": 1 }]
   },

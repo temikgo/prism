@@ -15,18 +15,17 @@ KW = {
     "bypass": lambda a, h, n: 0.8 * (a / 3.0),
     "lingering": lambda a, h, n: 0.2,
     "regen": lambda a, h, n: 0.2 * n,
-    "self_lifesteal": lambda a, h, n: 0.25 * a,
+    "self_lifesteal": lambda a, h, n: 0.6 * a,
     "provoke": lambda a, h, n: 0.4 + 0.1 * h,
     "shield": lambda a, h, n: 1.2,
     "ward": lambda a, h, n: 0.6,
     "floodlight": lambda a, h, n: 0.8,
     "photosynthesis": lambda a, h, n: 0.8 * n,
     "germinate": lambda a, h, n: 0.6 * n,
-    "growth": lambda a, h, n: 0.8 * n,
+    "growth": lambda a, h, n: 1.5 * n,
     "compost": lambda a, h, n: 0.7 * n,
     "spores": lambda a, h, n: 0.9 * n,
     "undergrowth": lambda a, h, n: 0.6 * n,
-    "resonance": lambda a, h, n: 0.6 * n,
     "chill": lambda a, h, n: 3.5 * n,
     "delay": lambda a, h, n: -0.3 * n,
     "stealth": lambda a, h, n: 0.2,
@@ -79,6 +78,14 @@ def power(card):
     for kw in card.get("keywords", []):
         kid = kw["id"]
         n = kw.get("n", 1)
+        if kid == "resonance":
+            # Resonance snapshots +n/+n per crystal at summon. On curve you hold
+            # ~mana crystals when you play it, so it adds ~n*mana of stats -- which
+            # is why a high-cost resonance body is a bomb. Cannot be a flat coeff.
+            c = card.get("cost", {})
+            mana = c.get("generic", 0) + sum(v for k, v in c.items() if k != "generic")
+            parts["kw:resonance"] = float(n * mana)
+            continue
         fn = KW.get(kid)
         if fn is None:
             parts["?" + kid] = 0.0
