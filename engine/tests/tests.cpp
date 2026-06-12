@@ -88,6 +88,9 @@ static const char* kTestCards = R"json([
   { "id": "chillaura", "name": { "ru": "Стужа-аура" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
     "keywords": [{ "id": "chill", "n": 1 }] },
+  { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }] },
   { "id": "undergrowther", "name": { "ru": "Подлесок-зверь" },
     "type": "creature", "color": [], "cost": { "generic": 0 },
     "stats": { "atk": 1, "hp": 4 }, "keywords": [{ "id": "undergrowth", "n": 1 }] },
@@ -1167,6 +1170,22 @@ TEST_CASE("chill aura lowers enemy attack and reverses when removed") {
   g.player(0).auras.clear();             // aura gone
   g.endTurn();                           // a turn start recomputes
   CHECK(g.player(1).board[0].atk == 3);  // attack restored
+}
+
+TEST_CASE("dispel strips an enemy aura and lifts its effect at once") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("chillaura", 30), repeat("bear", 30), 240);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 plays the chill aura
+  g.endTurn();
+  REQUIRE(g.playCard(0));                // p1 summons a bear (atk 3)
+  CHECK(g.player(1).board[0].atk == 2);  // chilled by 1
+  REQUIRE(g.player(0).auras.size() == 1);
+  // p1 dispels the enemy aura; the bear's attack returns within the resolve.
+  g.player(1).hand.push_back(CardInstance{920, lib.find("dispelspell")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(1).hand.size()) - 1));
+  CHECK(g.player(0).auras.empty());
+  CHECK(g.player(1).board[0].atk == 3);
 }
 
 TEST_CASE("undergrowth scales attack AND hp with your other creatures") {

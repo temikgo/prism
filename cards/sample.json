@@ -462,6 +462,30 @@
     ]
   },
   {
+    "id": "neutral_clearing_ray",
+    "name": { "ru": "Ясный Луч", "en": "Clearing Ray" },
+    "text": { "ru": "Чистый свет растворяет любые чары." },
+    "art": "a clean shaft of pure white light dissolving a glowing enchantment-weave into fading colorless motes",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 1 },
+    "effects": [
+      { "trigger": "on_play", "action": "dispel", "value": 1 }
+    ]
+  },
+  {
+    "id": "neutral_white_dawn",
+    "name": { "ru": "Белая Заря", "en": "White Dawn" },
+    "text": { "ru": "На рассвете все наваждения тают." },
+    "art": "a pale spectral dawn washing across a dark field, every lingering coloured glow and weave dissolving into pure white light",
+    "type": "spell",
+    "color": [],
+    "cost": { "generic": 2 },
+    "effects": [
+      { "trigger": "on_play", "action": "dispel", "value": 0 }
+    ]
+  },
+  {
     "id": "prismatic_spectral_sovereign",
     "name": { "ru": "Спектральный Владыка" },
     "text": { "ru": "Все пять лучей склонились в одну корону." },

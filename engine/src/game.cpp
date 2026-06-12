@@ -921,6 +921,16 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
     if (t && !absorbWard(*t)) bounceCreature(target);
   } else if (a == "mirage") {
     makeMirage(owner, target);
+  } else if (a == "dispel") {
+    // A universal answer to auras (which otherwise never leave play): strip the
+    // opponent's auras, newest first. value <= 0 clears all; value N removes
+    // the N most recent. The trailing checkDeaths/recomputeContinuous lifts any
+    // chill this removed, so a suppressed attack returns at once.
+    if (e.value <= 0)
+      opp.auras.clear();
+    else
+      for (int k = 0; k < e.value && !opp.auras.empty(); ++k)
+        opp.auras.pop_back();
   }
 }
 

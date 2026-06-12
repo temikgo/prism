@@ -54,6 +54,7 @@ const EFFECT := {
 	"scatter": "Верните существо в руку.",
 	"mirage": "Создайте иллюзорную копию существа (1 HP).",
 	"add_crystal": "Добавьте N бесцветных кристалла(ов) в свой пул навсегда.",
+	"dispel": "Уничтожьте ауру.",
 }
 
 
@@ -97,6 +98,15 @@ static func effect_text(e: Dictionary) -> String:
 			s = "Верните любое существо в руку."
 		elif sel == "chosen_enemy_minion":
 			s = "Верните вражеское существо в руку."
+	elif a == "dispel":
+		# Shown as an action, never as a keyword chip: "destroy an aura / all auras".
+		var dv := int(e.get("value", 1))
+		if dv <= 0:
+			s = "Уничтожьте все ауры."
+		elif dv == 1:
+			s = "Уничтожьте ауру."
+		else:
+			s = "Уничтожьте N ауры."
 	if e.has("value"):
 		s = s.replace("N", str(int(e["value"])))
 	return s

@@ -380,6 +380,18 @@ save: `client-godot/art/neutral_light_gift.png`
 an open coffer of pure white light brimming with radiance, two glowing crystalline cards of light rising out of it, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict pure white and silver monochrome palette, no strong hue, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
+## Ясный Луч — `neutral_clearing_ray`
+save: `client-godot/art/neutral_clearing_ray.png`
+```
+a clean shaft of pure white light dissolving a glowing enchantment-weave into fading colorless motes, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict pure white and silver monochrome palette, no strong hue, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+```
+
+## Белая Заря — `neutral_white_dawn`
+save: `client-godot/art/neutral_white_dawn.png`
+```
+a pale spectral dawn washing across a dark field, every lingering coloured glow and weave dissolving into pure white light, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict pure white and silver monochrome palette, no strong hue, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+```
+
 ## Жгучая Стужа — `red_blue_searing_frost`
 save: `client-godot/art/red_blue_searing_frost.png`
 ```
@@ -417,7 +429,7 @@ Iris, a poised duelist-painter, raises a faceted glass prism; a beam of white li
 ## Эреб — `hero_eclipse`
 save: `client-godot/art/hero_eclipse.png`
 ```
-a striking stylized character portrait of Erebus, the lighteater of the Prisma Arena — a young defiant teenage boy about fifteen, smooth boyish face, no facial hair, lean, sharp messy hair, a cocky half-smirk with a faint weary jaded glint. A humanoid figure shaped from light and shadow, mostly a dark silhouette rimmed by light, glowing luminous light-lines tracing his edge, a glowing core and eyes. Bold clean graphic 2D ink linework. His signature is a black eclipse disc ringed by a thin brilliant corona behind his head; he drinks light into the darkness. Set against a deep moody atmospheric background of swirling dark luminous energy, drifting light-motes and layered depth, richly detailed and alive — predominantly black, darkness dominant, the bright corona and his rim the only light. Square 1:1 centered portrait, from the chest up. No text, no border, no UI. --ar 1:1 --v 7 --style raw --c 0 --no color, colour, white background, pale background, bright background, man, adult, old man, elderly, grandpa, beard, stubble, mustache, facial hair, wrinkles, aged face, hands, fingers, text, border, frame, photo, 3D render
+Erebus, half-swallowed in shadow, haloed by the bright corona of a total eclipse; darkness drips from his brush as he paints with the absence of light, a striking stylized character portrait, bold clean graphic 2D ink linework, glowing luminous light accents tracing the figure, faint prismatic refractions and spectrum glints, flat illustration, set against a deep moody atmospheric background of swirling luminous energy, drifting light-motes and layered depth, richly detailed and alive, centered portrait --ar 1:1 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Тициана — `hero_palette`
