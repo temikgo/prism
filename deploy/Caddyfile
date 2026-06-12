@@ -1,0 +1,20 @@
+# Prism — Caddy reverse proxy + static host + automatic TLS.
+# Replace prism.example.com with your domain (A record -> the VPS IP).
+# Caddy gets/renews a Let's Encrypt cert automatically; nothing else to configure.
+
+prism.example.com {
+	encode zstd gzip
+
+	# WebSocket game traffic -> the C++ prism_server on localhost:8080.
+	# (The server does the WS handshake on any path; we route /ws* to it.)
+	handle /ws* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	# Everything else: the exported Godot web client (no threads => no COOP/COEP
+	# headers needed). The .wasm/.pck are large; long-cache the hashed assets.
+	handle {
+		root * /var/www/prism
+		file_server
+	}
+}

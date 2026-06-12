@@ -1,0 +1,21 @@
+[Unit]
+Description=Prism game server (WebSocket, C++)
+After=network.target
+
+[Service]
+Type=simple
+User=prism
+Group=prism
+WorkingDirectory=/opt/prism
+# port + cards file. Replays are written under WorkingDirectory/replays/.
+ExecStart=/opt/prism/prism_server 8080 /opt/prism/cards/sample.json
+Restart=on-failure
+RestartSec=2
+# Light hardening (the process needs only its own dir + the network).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/prism
+
+[Install]
+WantedBy=multi-user.target

@@ -28,12 +28,28 @@ func _ready() -> void:
 	# not just inside a match; load it once here (Main re-loads idempotently).
 	CardData.load_file("res://cards.json")
 	CardData.load_file("res://tokens.json")
+	# On the web build, default to the same origin the page was served from (the VPS
+	# runs caddy: static client at / + a wss proxy to prism_server at /ws). Desktop
+	# keeps the localhost default. A saved setting (below) overrides either.
+	server_url = _default_server_url()
 	_load_settings()
 	# One shared backdrop lives here, behind every screen, instead of each screen
 	# making its own. Screens swap above it, so the drifting particle field is
 	# continuous and never resets/re-randomizes when routing between screens.
 	add_child(Backdrop.new())
 	_go_main()
+
+
+# The server address to default to. On web that's the page's own origin as a
+# WebSocket URL (wss on https) with the /ws path caddy proxies to prism_server;
+# elsewhere the localhost dev default.
+func _default_server_url() -> String:
+	if OS.has_feature("web"):
+		var host := str(JavaScriptBridge.eval("location.host", true))
+		if host != "":
+			var secure := str(JavaScriptBridge.eval("location.protocol", true)) == "https:"
+			return ("wss://" if secure else "ws://") + host + "/ws"
+	return SettingsScreen.DEFAULT_URL
 
 
 func _swap(screen: Control) -> void:
