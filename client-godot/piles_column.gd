@@ -116,14 +116,20 @@ func _manarow(mana_row: Array, mine: bool, view: Dictionary) -> Control:
 	var tag := Ui.label("разбудить:", 11, Color(0.95, 0.85, 0.4), true)
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(tag)
-	# Awaken chips stack directly (no scroll/clip: a chip lifts on hover and a clip
-	# would slice that off); usually one in the current set.
 	var inner := VBoxContainer.new()
 	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_theme_constant_override("separation", 4)
 	for c in slots:
 		inner.add_child(_awaken_chip(int(c["i"]), c["slot"], view))
-	box.add_child(inner)
+	# One or two chips stack directly so the hover-lift isn't clipped. But a facet
+	# hero makes every banked crystal awakable -- past two, cap the height and scroll
+	# (like the Spectrum) instead of growing the column and shoving the piles off-screen.
+	if slots.size() <= 2:
+		box.add_child(inner)
+	else:
+		var scroll := ScrollClip.new()
+		scroll.setup(inner, 132.0)  # ~2 chips tall + a peek of the next
+		box.add_child(scroll)
 	return box
 
 
