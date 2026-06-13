@@ -139,7 +139,7 @@ static func demo_view() -> Dictionary:
 			{"color": "green", "age": 2},
 			{"color": "colorless", "age": 0},
 		],
-		"hand": ["green_lightwood", "blue_deep_chronicler", "yellow_blue_icy_sentinel",
+		"hand": ["green_ancient_lightwood", "blue_deep_study", "yellow_blue_icy_sentinel",
 			"prismatic_titan"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"board": [

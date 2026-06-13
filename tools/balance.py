@@ -7,8 +7,18 @@ CARDS = os.path.join(ROOT, "cards", "sample.json")
 
 LAMBDA_MULTI = 0.5
 MULTI_CAP = 1.5
-STAT_HP_WEIGHT = 1.0
 FLAG = 0.75
+
+# Tier-1 stat model: atk valued above hp. Calibrated so a vanilla 3/2 @cost2 and
+# 4/5 @cost4 land at R~=0 (the old neutral vanilla anchors -- the cards are gone,
+# the calibration stays baked here as the reference vanilla curve).
+# atk premium ~1.28x (a point of attack is worth more than a point of toughness
+# in a tempo duel). The negative offset is implicit mana-convexity: big vanillas
+# come out slightly weak, cheap ones fair. An explicit per-mana convexity knob is
+# deferred to a Tier-2 self-play fit (two linear anchors can't pin it down).
+W_ATK = 0.6
+W_HP = 0.467
+STAT_B = -0.734
 
 KW = {
     "pierce": lambda a, h, n: 0.4,
@@ -17,7 +27,7 @@ KW = {
     "regen": lambda a, h, n: 0.2 * n,
     "self_lifesteal": lambda a, h, n: 0.6 * a,
     "provoke": lambda a, h, n: 0.4 + 0.1 * h,
-    "shield": lambda a, h, n: 1.2,
+    "shield": lambda a, h, n: 0.9 + 0.06 * (a + h),
     "ward": lambda a, h, n: 0.6,
     "floodlight": lambda a, h, n: 0.8,
     "photosynthesis": lambda a, h, n: 0.8 * n,
@@ -74,7 +84,7 @@ def power(card):
     hp = card.get("stats", {}).get("hp", 0)
     parts = {}
     if card["type"] == "creature":
-        parts["stats"] = (atk + STAT_HP_WEIGHT * hp - 1) / 2.0
+        parts["stats"] = W_ATK * atk + W_HP * hp + STAT_B
     for kw in card.get("keywords", []):
         kid = kw["id"]
         n = kw.get("n", 1)

@@ -1766,11 +1766,11 @@ TEST_CASE("sample.json loads with expected schema") {
   REQUIRE(bonfire->keywords[0].n.has_value());
   CHECK(bonfire->keywords[0].n.value() == 2);
 
-  const CardDef* slayer = lib.find("violet_dusk_slayer");
-  REQUIRE(slayer != nullptr);
-  CHECK(slayer->colors.size() == 1);
-  CHECK(slayer->colors[0] == Color::Violet);
-  CHECK(slayer->cost.pips[idx(Color::Violet)] == 1);
+  const CardDef* gleam = lib.find("violet_dim_gleam");
+  REQUIRE(gleam != nullptr);
+  CHECK(gleam->colors.size() == 1);
+  CHECK(gleam->colors[0] == Color::Violet);
+  CHECK(gleam->cost.pips[idx(Color::Violet)] == 1);
 
   const CardDef* knight = lib.find("red_yellow_sunset_knight");
   REQUIRE(knight != nullptr);
