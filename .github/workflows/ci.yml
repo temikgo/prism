@@ -6,6 +6,16 @@ on:
   pull_request:
 
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Card id convention (id == colours + snake(en-name))
+        run: python3 tools/check_ids.py
+      - name: Art imports (mipmaps on, sidecar present)
+        run: python3 tools/check_art.py
+
   build-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
