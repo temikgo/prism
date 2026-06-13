@@ -61,14 +61,14 @@
   },
   {
     "id": "red_undying_bonfire",
-    "name": { "ru": "Неугасимый Костёр" },
+    "name": { "ru": "Неугасимый Костёр", "en": "Undying Bonfire" },
     "text": { "ru": "Затопчи — и он разгорится с новой силой." },
     "art": "a roaring bonfire of red light that keeps re-kindling brighter when struck, pulling glowing motes of life from everything it scorches",
     "type": "creature",
     "color": ["red"],
     "cost": { "generic": 3, "red": 2 },
     "stats": { "atk": 3, "hp": 4 },
-    "keywords": [{ "id": "regen", "n": 1 }, { "id": "self_lifesteal" }]
+    "keywords": [{ "id": "regen", "n": 2 }, { "id": "self_lifesteal" }]
   },
   {
     "id": "red_sunset_reaper",
@@ -103,15 +103,14 @@
     "keywords": [{ "id": "provoke" }]
   },
   {
-    "id": "yellow_meek_intercessor",
-    "name": { "ru": "Кроткий Заступник" },
-    "text": { "ru": "Он примет первую беду вместо того, кто рядом." },
-    "art": "a gentle radiant protector-spirit of soft golden light, stepping in front of a wounded ally to take the first harm onto itself",
-    "type": "creature",
+    "id": "yellow_signal_pyres",
+    "name": { "ru": "Сигнальные Огни", "en": "Signal Pyres" },
+    "text": { "ru": "Зажги дозор — и ни одна тень не пройдёт незамеченной." },
+    "art": "a ring of tall golden signal-fires blazing around the field, their light throwing back every shadow to lay bare what hides, a warm shielding glow over those within",
+    "type": "aura",
     "color": ["yellow"],
     "cost": { "generic": 1, "yellow": 1 },
-    "stats": { "atk": 2, "hp": 2 },
-    "keywords": [{ "id": "ward" }]
+    "keywords": [{ "id": "floodlight" }, { "id": "ward" }]
   },
   {
     "id": "yellow_golden_champion",
@@ -138,15 +137,15 @@
   },
   {
     "id": "yellow_heat_herald",
-    "name": { "ru": "Глашатай Зноя" },
-    "text": { "ru": "Его явление само по себе — приговор зрению." },
+    "name": { "ru": "Глашатай Зноя", "en": "Heat Herald" },
+    "text": { "ru": "Его явление само по себе — долгий приговор зрению." },
     "art": "a towering herald wreathed in scorching golden light, his blazing arrival searing the sight of a single foe to white",
     "type": "creature",
     "color": ["yellow"],
-    "cost": { "generic": 3, "yellow": 1 },
+    "cost": { "generic": 4, "yellow": 1 },
     "stats": { "atk": 3, "hp": 4 },
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 1 }
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 2 }
     ]
   },
   {
@@ -198,14 +197,14 @@
   },
   {
     "id": "green_decay_bracket",
-    "name": { "ru": "Трутовик Тлена" },
-    "text": { "ru": "Кормится тем, что отжило, и сеет новое." },
+    "name": { "ru": "Трутовик Тлена", "en": "Decay Bracket" },
+    "text": { "ru": "Кормится тем, что отжило, и сеет новое горстями." },
     "art": "a shelf of bracket-fungus woven from decaying green light, feeding on fallen motes and puffing out drifting clouds of spore-light",
     "type": "creature",
     "color": ["green"],
-    "cost": { "generic": 2, "green": 2 },
+    "cost": { "generic": 3, "green": 2 },
     "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "compost", "n": 1 }, { "id": "spores", "n": 1 }]
+    "keywords": [{ "id": "compost", "n": 1 }, { "id": "spores", "n": 2 }]
   },
   {
     "id": "green_lightgrove",
@@ -231,14 +230,14 @@
   },
   {
     "id": "green_lush_bed",
-    "name": { "ru": "Тучная Грядка" },
-    "text": { "ru": "Что ни день — то новый росток и горсть света." },
+    "name": { "ru": "Тучная Грядка", "en": "Lush Bed" },
+    "text": { "ru": "Что ни день — то новый росток и две горсти света." },
     "art": "a rich raised garden-bed of green light, dark soil sprouting fresh shoots and breathing glowing motes of pollen-light upward",
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
     "stats": { "atk": 1, "hp": 3 },
-    "keywords": [{ "id": "germinate", "n": 1 }, { "id": "photosynthesis", "n": 1 }]
+    "keywords": [{ "id": "germinate", "n": 1 }, { "id": "photosynthesis", "n": 2 }]
   },
   {
     "id": "blue_creeping_rime",
@@ -251,17 +250,14 @@
     "keywords": [{ "id": "chill", "n": 1 }]
   },
   {
-    "id": "blue_frost_shard",
-    "name": { "ru": "Осколок-Стужа" },
-    "text": { "ru": "Один холодный блик — и ты застыл." },
-    "art": "a sharp floating shard of blue frost-light, a single cold glint freezing a chosen foe solid where it stands",
-    "type": "creature",
+    "id": "blue_hoarfrost_reach",
+    "name": { "ru": "Седые Пустоши", "en": "Hoarfrost Reach" },
+    "text": { "ru": "Здесь стынет всё — и сталь, и кровь, и сама воля." },
+    "art": "a vast creeping expanse of deep-blue hoarfrost swallowing the whole field, ancient frozen ground glittering with cold pale light, a numbing aura with no figure in it",
+    "type": "aura",
     "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "stats": { "atk": 2, "hp": 1 },
-    "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
-    ]
+    "cost": { "generic": 4, "blue": 2 },
+    "keywords": [{ "id": "chill", "n": 2 }]
   },
   {
     "id": "blue_frost_shackles",
@@ -315,28 +311,28 @@
     ]
   },
   {
-    "id": "blue_glacier_titan",
-    "name": { "ru": "Ледник-Исполин" },
-    "text": { "ru": "Сходит с гор — и всё вокруг стынет в лёд." },
-    "art": "a colossal titan carved from deep blue glacial ice-light, the air freezing solid around its every step, locking a foe in rime as it arrives",
-    "type": "creature",
+    "id": "blue_coming_storm",
+    "name": { "ru": "Грядущий Шторм", "en": "Coming Storm" },
+    "text": { "ru": "Видишь тучу на горизонте? У тебя есть один ход." },
+    "art": "a towering wall of blue ice-storm massing on the far horizon, lightning of frost crackling inside it, poised to break over the whole field but not yet arrived",
+    "type": "spell",
     "color": ["blue"],
-    "cost": { "generic": 3, "blue": 2 },
-    "stats": { "atk": 4, "hp": 5 },
+    "cost": { "generic": 5, "blue": 1 },
+    "keywords": [{ "id": "delay", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "action": "damage_all", "value": 3 }
     ]
   },
   {
     "id": "violet_dim_gleam",
-    "name": { "ru": "Тусклый Отблеск" },
+    "name": { "ru": "Тусклый Отблеск", "en": "Dim Gleam" },
     "text": { "ru": "Краем глаза видел — а посмотришь, и нет." },
     "art": "a dim violet gleam of refracted light, half-faded from sight, slipping along the edge of vision and never quite there",
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 0, "violet": 1 },
     "stats": { "atk": 2, "hp": 1 },
-    "keywords": [{ "id": "stealth" }]
+    "keywords": [{ "id": "stealth" }, { "id": "decoy", "n": 2 }]
   },
   {
     "id": "violet_restless_phantom",
@@ -385,25 +381,25 @@
   },
   {
     "id": "violet_dusk_slayer",
-    "name": { "ru": "Сумрак-Убийца" },
-    "text": { "ru": "Ты не увидишь того, кто нанёс удар." },
+    "name": { "ru": "Сумрак-Убийца", "en": "Dusk Slayer" },
+    "text": { "ru": "Затаится среди кристаллов — и явится, когда не ждёшь." },
     "art": "a lithe assassin of dusk-violet light, a thin blade drawn, almost wholly faded from sight as it slips forward",
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 2, "violet": 1 },
     "stats": { "atk": 4, "hp": 3 },
-    "keywords": [{ "id": "stealth" }]
+    "keywords": [{ "id": "stealth" }, { "id": "awaken" }]
   },
   {
     "id": "violet_manyfaced_impostor",
-    "name": { "ru": "Многоликий Самозванец" },
+    "name": { "ru": "Многоликий Самозванец", "en": "Manyfaced Impostor" },
     "text": { "ru": "У него столько лиц, сколько нужно." },
-    "art": "a shifting manyfaced figure of violet light, its outline fracturing into faint shimmering duplicates, half-unseen",
+    "art": "a shifting manyfaced figure of violet light, its outline fracturing into a whole crowd of faint shimmering duplicates fanning out around it",
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 3, "violet": 2 },
-    "stats": { "atk": 4, "hp": 3 },
-    "keywords": [{ "id": "stealth" }, { "id": "split", "n": 1 }]
+    "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "split", "n": 3 }, { "id": "awaken" }]
   },
   {
     "id": "neutral_faceless_golem",
@@ -503,28 +499,28 @@
     "id": "prismatic_living_luminary",
     "name": { "ru": "Живое Светило" },
     "text": { "ru": "Растёт, пока светит, и пьёт свет павших." },
-    "art": "a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, frost rippling out from its first flare",
+    "art": "a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, its watchful light reaching ahead to read what is yet to come",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 4, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 4, "hp": 5 },
     "keywords": [{ "id": "self_lifesteal" }, { "id": "provoke" }, { "id": "photosynthesis", "n": 1 }, { "id": "split", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "action": "scry", "value": 1 }
     ]
   },
   {
     "id": "prismatic_bloody_executioner",
     "name": { "ru": "Кровавый Палач" },
     "text": { "ru": "Незримый, неотвратимый, ненасытный." },
-    "art": "a hulking six-limbed predator-beast woven of light in balanced rainbow -- red, yellow, green, blue and violet, none dominant, half-faded from sight, frost-rimed claws leaving wounds that glow and never close, faint spores drifting from its hide",
+    "art": "a hulking six-limbed predator-beast woven of light in balanced rainbow -- red, yellow, green, blue and violet, none dominant, half-faded from sight, its claws opening wounds that bleed glowing crimson light and never close, faint spores drifting from its hide, its cold gaze already fixed on prey it sees coming",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 5, "hp": 4 },
     "keywords": [{ "id": "lingering" }, { "id": "shield" }, { "id": "spores", "n": 1 }, { "id": "stealth" }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "action": "scry", "value": 1 }
     ]
   },
   {
@@ -600,17 +596,16 @@
     "keywords": [{ "id": "regen", "n": 1 }, { "id": "undergrowth", "n": 1 }]
   },
   {
-    "id": "red_blue_searing_frost",
-    "name": { "ru": "Жгучая Стужа" },
-    "text": { "ru": "Обожжёт и тут же скуёт льдом." },
-    "art": "a lance of red light plunging into a target and bursting into blue frost, the searing wound left glowing under a casing of ice",
+    "id": "red_blue_slow_burn",
+    "name": { "ru": "Тлеющий Залп", "en": "Slow Burn" },
+    "text": { "ru": "Уголёк лёг сейчас, а полыхнёт на следующем ходу." },
+    "art": "a slow-falling ember of red light settling on a target and smouldering, a deep blue ring of held time around it, poised to flare into a deep unhealing burn a turn later",
     "type": "spell",
     "color": ["red", "blue"],
     "cost": { "generic": 1, "red": 1, "blue": 1 },
-    "keywords": [{ "id": "lingering" }],
+    "keywords": [{ "id": "lingering" }, { "id": "delay", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 3 },
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 5 }
     ]
   },
   {
@@ -673,15 +668,15 @@
   },
   {
     "id": "yellow_blue_murky_haze",
-    "name": { "ru": "Мутная Хмарь" },
-    "text": { "ru": "Ослепит и скуёт разом." },
-    "art": "a cold murky haze of yellow-blue light rolling over a foe, searing its eyes blind and freezing it stiff in place",
+    "name": { "ru": "Мутная Хмарь", "en": "Murky Haze" },
+    "text": { "ru": "Хмарь сгущается с вечера, а слепнешь поутру." },
+    "art": "a cold murky bank of yellow-blue haze gathering at the edge of the field, a ring of held blue time within it, swelling to roll over a foe and sear it blind a turn later",
     "type": "spell",
     "color": ["yellow", "blue"],
-    "cost": { "generic": 1, "yellow": 1, "blue": 1 },
+    "cost": { "generic": 0, "yellow": 1, "blue": 1 },
+    "keywords": [{ "id": "delay", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 2 },
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "blind", "value": 2 }
     ]
   },
   {
@@ -724,17 +719,17 @@
     "keywords": [{ "id": "ward" }, { "id": "split", "n": 1 }]
   },
   {
-    "id": "green_blue_rime_flower",
-    "name": { "ru": "Иней-Цветок" },
-    "text": { "ru": "Цветёт и студит всё вокруг." },
-    "art": "a delicate flower of green light glazed in blue rime, drinking light for mana and breathing a freezing chill on a foe",
+    "id": "green_blue_dew_bloom",
+    "name": { "ru": "Росистый Цвет", "en": "Dew Bloom" },
+    "text": { "ru": "Роняет ростки, а в каплях росы видит, что грядёт." },
+    "art": "a delicate flower of green light beaded with glowing deep-blue dew, dropping fresh shoots from its petals into the soil while the dewdrops mirror what is yet to come",
     "type": "creature",
     "color": ["green", "blue"],
     "cost": { "generic": 1, "green": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 3 },
-    "keywords": [{ "id": "photosynthesis", "n": 1 }],
+    "keywords": [{ "id": "germinate", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+      { "trigger": "on_play", "action": "scry", "value": 1 }
     ]
   },
   {

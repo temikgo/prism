@@ -48,12 +48,6 @@ save: `client-godot/art/yellow_steadfast_warden.png`
 a stout armored man-at-arms forged of dense golden light, planted immovably behind a great barricade of radiance, daring every blow to land on him, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only gold and amber tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
-## Кроткий Заступник — `yellow_meek_intercessor`
-save: `client-godot/art/yellow_meek_intercessor.png`
-```
-a gentle radiant protector-spirit of soft golden light, stepping in front of a wounded ally to take the first harm onto itself, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only gold and amber tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
-```
-
 ## Златой Поборник — `yellow_golden_champion`
 save: `client-godot/art/yellow_golden_champion.png`
 ```
@@ -114,12 +108,6 @@ save: `client-godot/art/green_lush_bed.png`
 a rich raised garden-bed of green light, dark soil sprouting fresh shoots and breathing glowing motes of pollen-light upward, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only emerald green tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
-## Осколок-Стужа — `blue_frost_shard`
-save: `client-godot/art/blue_frost_shard.png`
-```
-a sharp floating shard of blue frost-light, a single cold glint freezing a chosen foe solid where it stands, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
-```
-
 ## Бездонный Провидец — `blue_bottomless_seer`
 save: `client-godot/art/blue_bottomless_seer.png`
 ```
@@ -130,12 +118,6 @@ an ancient seer-being of deep blue light, slow lenses of foresight orbiting its 
 save: `client-godot/art/blue_deep_chronicler.png`
 ```
 a patient chronicler of cold blue light, turning pages of frozen glass and drawing fresh knowledge from the deep, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
-```
-
-## Ледник-Исполин — `blue_glacier_titan`
-save: `client-godot/art/blue_glacier_titan.png`
-```
-a colossal titan carved from deep blue glacial ice-light, the air freezing solid around its every step, locking a foe in rime as it arrives, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Тусклый Отблеск — `violet_dim_gleam`
@@ -171,7 +153,7 @@ a lithe assassin of dusk-violet light, a thin blade drawn, almost wholly faded f
 ## Многоликий Самозванец — `violet_manyfaced_impostor`
 save: `client-godot/art/violet_manyfaced_impostor.png`
 ```
-a shifting manyfaced figure of violet light, its outline fracturing into faint shimmering duplicates, half-unseen, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only violet and purple tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
+a shifting manyfaced figure of violet light, its outline fracturing into a whole crowd of faint shimmering duplicates fanning out around it, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only violet and purple tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Безликий Голем — `neutral_faceless_golem`
@@ -195,13 +177,13 @@ a regal sovereign woven of light crowned with all five rays in balanced rainbow 
 ## Живое Светило — `prismatic_living_luminary`
 save: `client-godot/art/prismatic_living_luminary.png`
 ```
-a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, frost rippling out from its first flare, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, the full spectrum in balanced rainbow, every colour of light, none dominant, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
+a living miniature sun blazing in balanced rainbow -- red, yellow, green, blue and violet, none dominant, swelling as it burns, drawing the glow of the fallen inward, its watchful light reaching ahead to read what is yet to come, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, the full spectrum in balanced rainbow, every colour of light, none dominant, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Кровавый Палач — `prismatic_bloody_executioner`
 save: `client-godot/art/prismatic_bloody_executioner.png`
 ```
-a hulking six-limbed predator-beast woven of light in balanced rainbow -- red, yellow, green, blue and violet, none dominant, half-faded from sight, frost-rimed claws leaving wounds that glow and never close, faint spores drifting from its hide, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, the full spectrum in balanced rainbow, every colour of light, none dominant, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
+a hulking six-limbed predator-beast woven of light in balanced rainbow -- red, yellow, green, blue and violet, none dominant, half-faded from sight, its claws opening wounds that bleed glowing crimson light and never close, faint spores drifting from its hide, its cold gaze already fixed on prey it sees coming, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, the full spectrum in balanced rainbow, every colour of light, none dominant, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Кишащий Сонм — `prismatic_teeming_host`
@@ -288,10 +270,10 @@ save: `client-godot/art/yellow_violet_sly_gleam.png`
 a sly gleam of yellow-violet light haloed in protective radiance, splitting off a faint mirror-copy of itself, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only gold and amber and violet and purple tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
-## Иней-Цветок — `green_blue_rime_flower`
-save: `client-godot/art/green_blue_rime_flower.png`
+## Росистый Цвет — `green_blue_dew_bloom`
+save: `client-godot/art/green_blue_dew_bloom.png`
 ```
-a delicate flower of green light glazed in blue rime, drinking light for mana and breathing a freezing chill on a foe, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only emerald green and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
+a delicate flower of green light beaded with glowing deep-blue dew, dropping fresh shoots from its petals into the soil while the dewdrops mirror what is yet to come, a being woven from living light, translucent radiant energy given form, bold clean graphic 2D ink linework, glowing luminous light-lines tracing its shape, flat illustration, a strict colour palette of only emerald green and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background
 ```
 
 ## Морозная Грибница — `green_blue_frost_mycelium`
@@ -332,6 +314,12 @@ save: `client-godot/art/yellow_noon_glow.png`
 a vast ambient blaze of golden noon light flooding the whole field, burning away every shadow and pool of darkness so nothing stays hidden, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only gold and amber tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
+## Сигнальные Огни — `yellow_signal_pyres`
+save: `client-godot/art/yellow_signal_pyres.png`
+```
+a ring of tall golden signal-fires blazing around the field, their light throwing back every shadow to lay bare what hides, a warm shielding glow over those within, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only gold and amber tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+```
+
 ## Солнечный Удар — `yellow_sunstroke`
 save: `client-godot/art/yellow_sunstroke.png`
 ```
@@ -344,6 +332,12 @@ save: `client-godot/art/blue_creeping_rime.png`
 a slow creeping field of pale blue rime-frost spreading across the ground, glazing everything it touches in numbing cold, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
+## Седые Пустоши — `blue_hoarfrost_reach`
+save: `client-godot/art/blue_hoarfrost_reach.png`
+```
+a vast creeping expanse of deep-blue hoarfrost swallowing the whole field, ancient frozen ground glittering with cold pale light, a numbing aura with no figure in it, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+```
+
 ## Оковы Стужи — `blue_frost_shackles`
 save: `client-godot/art/blue_frost_shackles.png`
 ```
@@ -354,6 +348,12 @@ bands of blue frost-light clamping around a target, locking it motionless inside
 save: `client-godot/art/blue_ebbing_tide.png`
 ```
 a cold blue wave of light washing across a creature and pulling it back out to sea, dissolving it into drifting mist, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+```
+
+## Грядущий Шторм — `blue_coming_storm`
+save: `client-godot/art/blue_coming_storm.png`
+```
+a towering wall of blue ice-storm massing on the far horizon, lightning of frost crackling inside it, poised to break over the whole field but not yet arrived, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
 ## Призрачный Обман — `violet_phantom_deceit`
@@ -392,16 +392,16 @@ save: `client-godot/art/neutral_white_dawn.png`
 a pale spectral dawn washing across a dark field, every lingering coloured glow and weave dissolving into pure white light, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict pure white and silver monochrome palette, no strong hue, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
-## Жгучая Стужа — `red_blue_searing_frost`
-save: `client-godot/art/red_blue_searing_frost.png`
+## Тлеющий Залп — `red_blue_slow_burn`
+save: `client-godot/art/red_blue_slow_burn.png`
 ```
-a lance of red light plunging into a target and bursting into blue frost, the searing wound left glowing under a casing of ice, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only red and crimson and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+a slow-falling ember of red light settling on a target and smouldering, a deep blue ring of held time around it, poised to flare into a deep unhealing burn a turn later, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only red and crimson and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
 ## Мутная Хмарь — `yellow_blue_murky_haze`
 save: `client-godot/art/yellow_blue_murky_haze.png`
 ```
-a cold murky haze of yellow-blue light rolling over a foe, searing its eyes blind and freezing it stiff in place, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only gold and amber and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
+a cold murky bank of yellow-blue haze gathering at the edge of the field, a ring of held blue time within it, swelling to roll over a foe and sear it blind a turn later, an effect of pure light, an abstract phenomenon of energy and rays with no creature, bold clean graphic 2D ink linework, glowing luminous light-lines and energy, flat illustration, a strict colour palette of only gold and amber and deep blue and cyan tones, no other colours, set against a deep moody atmospheric background of swirling luminous energy in the same palette, drifting light-motes and layered depth, richly detailed and alive, centered composition --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, 3D render, plain background, flat background, creature, character, person, figure, monster, animal, face
 ```
 
 ## Мнимая Рябь — `blue_violet_false_ripple`

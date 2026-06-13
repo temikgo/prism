@@ -155,7 +155,7 @@ static func demo_view() -> Dictionary:
 		"manaRow": [{"color": "yellow"}, {"color": "violet"}],
 		"handCount": 5, "deckCount": 16, "graveyardCount": 1, "pendingCount": 1,
 		"board": [
-			creature(21, "blue_glacier_titan", 4, 6, 6, {"frozen": 1}),
+			creature(21, "blue_bottomless_seer", 2, 4, 4, {"frozen": 1}),
 			creature(22, "violet_restless_phantom", 2, 3, 3, {"stealth": true}),
 		],
 	})

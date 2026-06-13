@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwcfcnwyif5mu"
-path="res://.godot/imported/yellow_meek_intercessor.png-306b2525af160f3125798fb100cf3bcd.ctex"
+uid="uid://cm6l8gdbpxhvr"
+path="res://.godot/imported/blue_hoarfrost_reach.png-1172757cef897bd8ba01c82bbac3acef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/yellow_meek_intercessor.png"
-dest_files=["res://.godot/imported/yellow_meek_intercessor.png-306b2525af160f3125798fb100cf3bcd.ctex"]
+source_file="res://art/blue_hoarfrost_reach.png"
+dest_files=["res://.godot/imported/blue_hoarfrost_reach.png-1172757cef897bd8ba01c82bbac3acef.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

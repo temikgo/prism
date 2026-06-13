@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://iovrhc4cmc6g"
-path="res://.godot/imported/violet_manyfaced_impostor.png-8bc0a454c67337810fa9c096a10f340a.ctex"
+uid="uid://b6s7xu6ia4tfo"
+path="res://.godot/imported/green_blue_dew_bloom.png-63b2ec722d90bd9a1f66705adf78f2b6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/violet_manyfaced_impostor.png"
-dest_files=["res://.godot/imported/violet_manyfaced_impostor.png-8bc0a454c67337810fa9c096a10f340a.ctex"]
+source_file="res://art/green_blue_dew_bloom.png"
+dest_files=["res://.godot/imported/green_blue_dew_bloom.png-63b2ec722d90bd9a1f66705adf78f2b6.ctex"]
 
 [params]
 

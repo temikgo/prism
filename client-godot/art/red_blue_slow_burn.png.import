@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://colocx4yohp0j"
-path="res://.godot/imported/green_blue_rime_flower.png-198039025ee912a634e96294dfc09866.ctex"
+uid="uid://bslbmyc05fr12"
+path="res://.godot/imported/red_blue_slow_burn.png-90d72609f5b3e1eaa39ea45a1876533c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/green_blue_rime_flower.png"
-dest_files=["res://.godot/imported/green_blue_rime_flower.png-198039025ee912a634e96294dfc09866.ctex"]
+source_file="res://art/red_blue_slow_burn.png"
+dest_files=["res://.godot/imported/red_blue_slow_burn.png-90d72609f5b3e1eaa39ea45a1876533c.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

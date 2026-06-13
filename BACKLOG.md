@@ -212,6 +212,32 @@ decoy/split-N; (3) Зелёный: resonance/germinate/compost + N, убрать
 (4) Красный: bypass/lingering/regen-N; (5) Жёлтый: ward/blind-N/floodlight-ауры;
 (6) ревизия призматик/нейтраль.
 
+**Прогресс — ПОЛНЫЙ ПРОХОД ГОТОВ** (2026-06, не закоммичен — пользователь генерит
+арты и плейтестит, потом правки). Счёт держан 67 (1:1). Набор: 0 флагов, meanR +0.12.
+
+Сделано по цветам:
+- 🔵 Синий моно: −`frost_shard` −`glacier_titan` (дубли фриза); +`hoarfrost_reach`
+  (аура chill:2) +`coming_storm` (delay:1 + damage_all:3). Контрольный, беатеры — из пар.
+- 🟣 Фиолет: dim_gleam +decoy:2; dusk_slayer +awaken; manyfaced → 2/2 split:3 +awaken
+  (снят stealth). Итог: awaken 1→3, decoy 1→2, stealth 3→2, split N 2/3.
+- 🟢 Зелёный: lush_bed photo→2; decay_bracket spores→2 (cost 4→5). N-вариативность.
+- 🔴 Красный: undying_bonfire regen→2 (+ обновлён ассерт в tests.cpp).
+- 🟡 Жёлтый: −meek_intercessor +`signal_pyres` (аура floodlight+ward, floodlight 1→2);
+  heat_herald blind→2 (cost 4→5).
+- Фриз 12→**5** (оставлен: frost_shackles, icy_sentinel, shimmering_rime, frost_harpoon,
+  prismatic_titan). Снят с: searing_frost→`slow_burn` (delay:1+dmg5+lingering),
+  murky_haze (delay:1+blind:2, дешевле), rime_flower→`dew_bloom` (photo+germinate),
+  living_luminary (→blind), bloody_executioner (→damage:2).
+- delay 0→**3** (coming_storm, slow_burn, murky_haze).
+- Скорер: chill 3.5→3.0 (ауры снимаемы dispel), dispel-all (value 0) 0.8→1.5.
+
+Остатки таргета (в следующих правках/двуцветках): **chill ещё ×1**, **decoy ещё ×1**,
+2-я resonance (крошечная), growth:2 без дублей. Арты: перегенерены 14 промптов
+(новые id + ретемы), 5 осиротевших png удалены.
+
+Мелочь: генератор текста показывает delay чипом «Отсрочка N» + отдельной строкой эффект,
+не склеивает в «через N ходов: …» (как flash у sunstroke) — косметика, тултип поясняет.
+
 ## Параллельный трек P — полировка и game-feel (XL, фоновый)
 
 - [ ] **Адаптивный UI** (пререквизит M5): stretch-режим/анкоры/минимумы/скроллы,

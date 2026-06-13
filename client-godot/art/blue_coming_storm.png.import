@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://iovrhc4cmc6g"
-path="res://.godot/imported/violet_manyfaced_impostor.png-8bc0a454c67337810fa9c096a10f340a.ctex"
+uid="uid://c74fduvg67d1g"
+path="res://.godot/imported/blue_coming_storm.png-94400dcac20c183f0e3e08a15805bdf0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/violet_manyfaced_impostor.png"
-dest_files=["res://.godot/imported/violet_manyfaced_impostor.png-8bc0a454c67337810fa9c096a10f340a.ctex"]
+source_file="res://art/blue_coming_storm.png"
+dest_files=["res://.godot/imported/blue_coming_storm.png-94400dcac20c183f0e3e08a15805bdf0.ctex"]
 
 [params]
 

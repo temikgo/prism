@@ -1764,7 +1764,7 @@ TEST_CASE("sample.json loads with expected schema") {
   REQUIRE(bonfire->keywords.size() == 2);
   CHECK(bonfire->keywords[0].id == "regen");
   REQUIRE(bonfire->keywords[0].n.has_value());
-  CHECK(bonfire->keywords[0].n.value() == 1);
+  CHECK(bonfire->keywords[0].n.value() == 2);
 
   const CardDef* slayer = lib.find("violet_dusk_slayer");
   REQUIRE(slayer != nullptr);

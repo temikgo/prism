@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oy8s4ciflitu"
-path="res://.godot/imported/red_blue_searing_frost.png-a3ea09dab2a03522c54dc80099414c03.ctex"
+uid="uid://c2o40iqdfyqh5"
+path="res://.godot/imported/neutral_clearing_ray.png-3ba868d3c972d8d5c4d0ea01756313cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/red_blue_searing_frost.png"
-dest_files=["res://.godot/imported/red_blue_searing_frost.png-a3ea09dab2a03522c54dc80099414c03.ctex"]
+source_file="res://art/neutral_clearing_ray.png"
+dest_files=["res://.godot/imported/neutral_clearing_ray.png-3ba868d3c972d8d5c4d0ea01756313cd.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxqglq8ke5e8k"
-path="res://.godot/imported/blue_frost_shard.png-9ba722af705246702c7e34eb65d3bfbb.ctex"
+uid="uid://bmy8rpljuw7yg"
+path="res://.godot/imported/yellow_signal_pyres.png-fcc6b6d461f7ddcb2ea0d243c2f608d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/blue_frost_shard.png"
-dest_files=["res://.godot/imported/blue_frost_shard.png-9ba722af705246702c7e34eb65d3bfbb.ctex"]
+source_file="res://art/yellow_signal_pyres.png"
+dest_files=["res://.godot/imported/yellow_signal_pyres.png-fcc6b6d461f7ddcb2ea0d243c2f608d6.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
