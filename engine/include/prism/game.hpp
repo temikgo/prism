@@ -47,6 +47,10 @@ struct ManaCard {
 struct DelayedEffect {
   EffectDef effect;
   int turnsLeft;
+  EntityId target = 0;  // target chosen at play time (0 = none), kept so a
+                        // targeted delayed effect still hits the right creature
+                        // when it resolves (fizzles if it has since gone)
+  const CardDef* src = nullptr;  // source card, for lingering on delayed damage
 };
 
 // A creature in play. atk/hp are the live (buffable, woundable) values; they

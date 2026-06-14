@@ -111,8 +111,10 @@ json playerJson(const Player& p) {
   j["graveyard"] = grave;
   json pending = json::array();
   for (const auto& d : p.pending)
-    pending.push_back(
-        json{{"effect", effectJson(d.effect)}, {"turnsLeft", d.turnsLeft}});
+    pending.push_back(json{{"effect", effectJson(d.effect)},
+                           {"turnsLeft", d.turnsLeft},
+                           {"target", d.target},
+                           {"src", d.src ? d.src->id : std::string{}}});
   j["pending"] = pending;
   return j;
 }
@@ -250,8 +252,9 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
         p.graveyard.push_back(d);
     p.pending.clear();
     for (const auto& dj : pj.value("pending", json::array()))
-      p.pending.push_back(
-          DelayedEffect{effectFrom(dj.at("effect")), dj.value("turnsLeft", 0)});
+      p.pending.push_back(DelayedEffect{
+          effectFrom(dj.at("effect")), dj.value("turnsLeft", 0),
+          dj.value("target", 0), resolve(dj.value("src", std::string{}))});
   }
   return g;
 }

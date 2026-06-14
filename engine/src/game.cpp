@@ -119,14 +119,15 @@ bool Game::resolveScry(int player, const std::vector<int>& toBottom) {
   return true;
 }
 
-// Tick every pending delayed effect; the ones that reach zero resolve now (with
-// no target -- delayed effects are the non-targeted kind).
+// Tick every pending delayed effect; the ones that reach zero resolve now,
+// against the target and source captured when the card was played (a targeted
+// bomb still finds its creature, or fizzles harmlessly if it has since gone).
 void Game::processDelayed(Player& p) {
   std::vector<DelayedEffect> still;
   for (auto& d : p.pending) {
     d.turnsLeft -= 1;
     if (d.turnsLeft <= 0)
-      executeAction(d.effect, p, 0);
+      executeAction(d.effect, p, d.target, d.src);
     else
       still.push_back(d);
   }
@@ -317,8 +318,12 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   if (def->hasKeyword("delay")) {
     // Blue delay: schedule the on_play effects instead of running them now.
     int n = def->keywordN("delay", 1);
+    // Capture the chosen target and source card so a targeted delayed effect
+    // (e.g. damage a chosen enemy minion) still resolves against it -- and
+    // keeps its source for lingering -- when it fires N turns later.
     for (const auto& e : def->effects)
-      if (e.trigger == "on_play") p.pending.push_back(DelayedEffect{e, n});
+      if (e.trigger == "on_play")
+        p.pending.push_back(DelayedEffect{e, n, target, def});
   } else {
     resolveOnPlay(def, p, target);
   }
@@ -349,9 +354,13 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   ManaCard mc = p.manaRow[manaRowIndex];
   const CardDef* def = mc.card.def;
   // Normally only cards with the awaken keyword can be woken from the mana row.
-  // Facet hero (Gemma) can wake ANY banked card.
+  // Decoy implies awaken-ability: a decoy card is meant to be banked and later
+  // woken (free once matured, awakenCost handles the discount), so it counts as
+  // wakeable even without the awaken keyword. Facet hero (Gemma) wakes ANY
+  // card.
   bool facet = p.hero && p.hero->hasKeyword("facet");
-  if (!def->hasKeyword("awaken") && !facet) return false;
+  bool wakeable = def->hasKeyword("awaken") || def->hasKeyword("decoy");
+  if (!wakeable && !facet) return false;
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
@@ -814,7 +823,8 @@ std::vector<Action> Game::legalActions() const {
   for (int i = 0; i < static_cast<int>(p.manaRow.size()); ++i) {
     const ManaCard& mc = p.manaRow[i];
     const CardDef* def = mc.card.def;
-    if (!def->hasKeyword("awaken") && !facet) continue;
+    bool wakeable = def->hasKeyword("awaken") || def->hasKeyword("decoy");
+    if (!wakeable && !facet) continue;
     if (def->type == CardType::Creature &&
         static_cast<int>(p.board.size()) >= BoardLimit)
       continue;

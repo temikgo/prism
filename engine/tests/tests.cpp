@@ -63,6 +63,13 @@ static const char* kTestCards = R"json([
   { "id": "decoyling", "name": { "ru": "Приманка" }, "type": "creature",
     "color": [], "cost": { "generic": 2 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "awaken" }, { "id": "decoy", "n": 2 }] },
+  { "id": "delaystab", "name": { "ru": "Отложенный удар" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "delay", "n": 1 }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "damage", "value": 5 }] },
+  { "id": "purebait", "name": { "ru": "Чистая приманка" }, "type": "creature",
+    "color": [], "cost": { "generic": 2 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "decoy", "n": 2 }] },
   { "id": "lingerer", "name": { "ru": "Неугасимый страж" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "lingering" }] },
@@ -573,6 +580,41 @@ TEST_CASE("decoy lets an aged banked card awaken for free") {
   REQUIRE(g.awaken(0));  // free awaken
   CHECK(g.player(0).board.size() == 1);
   CHECK(g.player(0).board[0].def->id == "decoyling");
+}
+
+TEST_CASE(
+    "decoy implies wakeability: a banked decoy card with no awaken wakes") {
+  CardLibrary lib = testLib();
+  // purebait has decoy but NOT awaken (the 5-colour prismatic case). It must
+  // still be wakeable from the mana row once matured -- otherwise its decoy is
+  // dead weight.
+  Game g(lib, {"purebait", "bear", "bear", "bear"}, repeat("bear", 30), 35);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "purebait"), Color::Colorless));
+  g.endTurn();
+  g.endTurn();
+  g.endTurn();
+  g.endTurn();           // p0 turn 5: age 2 -> matured
+  REQUIRE(g.awaken(0));  // free awaken despite no awaken keyword
+  CHECK(g.player(0).board.size() == 1);
+  CHECK(g.player(0).board[0].def->id == "purebait");
+}
+
+TEST_CASE("delay keeps its chosen target and hits it when it resolves") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"delaystab", "bear", "bear", "bear"}, repeat("bear", 30), 36);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // p1 puts up a target
+  EntityId tgt = g.player(1).board[0].id;
+  int hp0 = g.player(1).board[0].hp;
+  g.endTurn();
+  // Schedule the stab at the chosen enemy minion; nothing happens this turn.
+  REQUIRE(g.playCard(handIndexOf(g, 0, "delaystab"), tgt));
+  CHECK(g.player(1).board[0].hp == hp0);
+  g.endTurn();
+  g.endTurn();  // p0's next turn: the delayed stab lands on the chosen creature
+  REQUIRE(g.player(1).board.empty());  // bear (hp 4) took 5 and died
 }
 
 TEST_CASE("scry peeks the top cards and the player sorts them") {
