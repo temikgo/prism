@@ -26,51 +26,50 @@ func _ready() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(Color(0.5, 0.62, 0.9), 0.5))
-	center.add_child(panel)
-
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 12)
-	col.custom_minimum_size = Vector2(420, 0)
-	panel.add_child(col)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 14)
+	center.add_child(col)
 
-	var title := Ui.label("Войти по коду", 26, Color(0.86, 0.9, 1.0), true)
-	title.add_theme_font_override("font", Fonts.BLACK)
-	col.add_child(title)
-	col.add_child(Ui.gap(6))
+	col.add_child(Ui.title("Войти по коду", 32))
+	col.add_child(Ui.gap(10))
 
-	col.add_child(Ui.label("Код комнаты", 14, Color(0.66, 0.7, 0.82)))
-	_code = LineEdit.new()
-	_code.placeholder_text = "напр. PEKY"
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Ui.panel_glass())
+	col.add_child(panel)
+	var pcol := VBoxContainer.new()
+	pcol.add_theme_constant_override("separation", 8)
+	pcol.custom_minimum_size = Vector2(440, 0)
+	panel.add_child(pcol)
+
+	pcol.add_child(Ui.caption("КОД КОМНАТЫ"))
+	_code = Ui.style_input(LineEdit.new(), true, true)  # big mono code field
+	_code.placeholder_text = "----"
 	_code.max_length = 4
-	_code.add_theme_font_size_override("font_size", 18)
 	_code.text_changed.connect(_on_code_changed)
-	col.add_child(_code)
+	pcol.add_child(_code)
 
-	col.add_child(Ui.label("Пароль", 14, Color(0.66, 0.7, 0.82)))
-	_pw = LineEdit.new()
-	_pw.add_theme_font_size_override("font_size", 15)
+	pcol.add_child(Ui.gap(2))
+	pcol.add_child(Ui.caption("ПАРОЛЬ"))
+	_pw = Ui.style_input(LineEdit.new())
+	_pw.placeholder_text = "пароль комнаты"
+	_pw.add_theme_font_size_override("font_size", 16)
 	_pw.text_changed.connect(func(_t: String) -> void: _refresh())
 	_pw.text_submitted.connect(func(_t: String) -> void: _try_submit())
-	col.add_child(_pw)
+	pcol.add_child(_pw)
+	_error = Ui.label("", 14, Color(0.95, 0.5, 0.5))
+	pcol.add_child(_error)
 
-	_error = Ui.label("", 13, Color(0.95, 0.5, 0.5))
-	col.add_child(_error)
 	col.add_child(Ui.gap(6))
-
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(row)
 
-	var back := Ui.neon_button("Назад", Color(0.6, 0.62, 0.7))
-	back.custom_minimum_size = Vector2(150, 42)
+	var back := Ui.mbtn("Назад", "ghost", Ui.COLORLESS, 160)
 	back.pressed.connect(func() -> void: back_pressed.emit())
 	row.add_child(back)
-
-	_join_btn = Ui.neon_button("Войти", Color(0.4, 0.85, 1.0))
-	_join_btn.custom_minimum_size = Vector2(150, 42)
+	_join_btn = Ui.mbtn("Войти", "primary", Ui.SIDE_ME, 200)
 	_join_btn.pressed.connect(_try_submit)
 	row.add_child(_join_btn)
 

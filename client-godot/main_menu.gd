@@ -13,10 +13,6 @@ signal play_pressed
 signal settings_pressed
 signal quit_pressed
 
-# Spectrum / accent colours from the design tokens (board palette).
-const ACC_VIOLET := Color(0.678, 0.322, 0.941)   # #AD52F0
-const COLORLESS := Color(0.8, 0.8, 0.878)        # #CCCCE0
-
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -48,13 +44,16 @@ func _ready() -> void:
 	nav.alignment = BoxContainer.ALIGNMENT_CENTER
 	nav.add_theme_constant_override("separation", 14)
 	col.add_child(nav)
-	nav.add_child(_menu_button("Играть", Ui.SIDE_ME, "primary",
-		func() -> void: play_pressed.emit()))
-	nav.add_child(_menu_button("Колоды", ACC_VIOLET, "muted", Callable()))
-	nav.add_child(_menu_button("Настройки", COLORLESS, "ghost",
-		func() -> void: settings_pressed.emit()))
-	nav.add_child(_menu_button("Выход", COLORLESS, "ghost",
-		func() -> void: quit_pressed.emit()))
+	var play := Ui.mbtn("Играть", "primary", Ui.SIDE_ME)
+	play.pressed.connect(func() -> void: play_pressed.emit())
+	nav.add_child(play)
+	nav.add_child(Ui.mbtn("Колоды", "muted", Ui.ACC_VIOLET))
+	var settings := Ui.mbtn("Настройки", "ghost", Ui.COLORLESS)
+	settings.pressed.connect(func() -> void: settings_pressed.emit())
+	nav.add_child(settings)
+	var quit := Ui.mbtn("Выход", "ghost", Ui.COLORLESS)
+	quit.pressed.connect(func() -> void: quit_pressed.emit())
+	nav.add_child(quit)
 
 	# Rise-in: fade + a touch of scale (position is container-managed, so we drive
 	# alpha and a pivot-centred scale instead of a y-offset).
@@ -75,7 +74,7 @@ func _wordmark() -> Label:
 	var l := Label.new()
 	l.text = "PRISM"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_override("font", _spaced(Fonts.NUM_BLACK, 14))
+	l.add_theme_font_override("font", Fonts.spaced(Fonts.NUM_BLACK, 14))
 	l.add_theme_font_size_override("font_size", 104)
 	l.add_theme_color_override("font_color", Color(0.957, 0.969, 1.0))
 	l.add_theme_color_override("font_shadow_color", Color(0.02, 0.03, 0.08, 0.55))
@@ -88,78 +87,10 @@ func _lore() -> Label:
 	var l := Label.new()
 	l.text = "·  СВЕТ МЕГА-ПРИЗМЫ РАСКОЛОТ НА ПЯТЬ ЦВЕТОВ  ·"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_override("font", _spaced(Fonts.SEMIBOLD, 4))
+	l.add_theme_font_override("font", Fonts.spaced(Fonts.SEMIBOLD, 4))
 	l.add_theme_font_size_override("font_size", 15)
 	l.add_theme_color_override("font_color", Ui.INK_DIM)
 	return l
-
-
-# One nav button in the board's neon-glass language. `kind`: "primary" (large
-# blue, the call to action), "muted" (dim, hover-violet, carries a "скоро" note
-# and does nothing), "ghost" (compact, neutral accent).
-func _menu_button(text: String, accent: Color, kind: String, cb: Callable) -> Button:
-	var primary := kind == "primary"
-	var muted := kind == "muted"
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(340, 66 if primary else (52 if kind == "ghost" else 58))
-	b.add_theme_font_override("font", _spaced(Fonts.SEMIBOLD, 1))
-	b.add_theme_font_size_override("font_size", 21 if primary else (16 if kind == "ghost" else 18))
-	var ink := Color(0.918, 0.949, 1.0) if primary else (Ui.INK_DIM if muted else Ui.INK)
-	b.add_theme_color_override("font_color", ink)
-	b.add_theme_color_override("font_hover_color", Color(0.957, 0.969, 1.0))
-	b.add_theme_color_override("font_pressed_color", Color.WHITE)
-	b.add_theme_stylebox_override("normal", _pill(accent, primary, false))
-	b.add_theme_stylebox_override("hover", _pill(accent, primary, true))
-	b.add_theme_stylebox_override("pressed", _pill(accent, primary, true))
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	b.focus_mode = Control.FOCUS_NONE
-
-	if muted:
-		# A faint "скоро" chip on the right rail; the button is inert.
-		var note := Ui.label("СКОРО", 11, Ui.INK_FAINT)
-		note.add_theme_font_override("font", _spaced(Fonts.SEMIBOLD, 2))
-		note.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-		note.offset_right = -20
-		note.offset_left = -70
-		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		note.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		b.add_child(note)
-	if cb.is_valid():
-		b.pressed.connect(cb)
-	return b
-
-
-# The neon-glass pill: a dark glass fill (blended toward the accent for primary),
-# a hairline stroke with a lit top rim, and an accent glow that brightens on
-# hover. Godot has no gradient/backdrop-blur, so the look is the translucent fill
-# + lit rim + coloured drop shadow (the same fakery as the board rails).
-func _pill(accent: Color, primary: bool, hot: bool) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	var base := Color(0.086, 0.094, 0.165, 0.82)
-	sb.bg_color = base.lerp(Color(accent.r, accent.g, accent.b, 0.9), 0.22 if primary else 0.0)
-	if hot and not primary:
-		sb.bg_color = base.lerp(Color(accent.r, accent.g, accent.b, 0.9), 0.08)
-	sb.set_corner_radius_all(15)
-	sb.set_border_width_all(1)
-	sb.border_width_top = 2  # lit top rim -> glass, not a flat box
-	var stroke := Ui.PANEL_STROKE
-	sb.border_color = stroke.lerp(accent, 0.55 if primary else 0.0)
-	if hot:
-		sb.border_color = stroke.lerp(accent, 0.65)
-	# Accent glow: present at rest only for primary; everything lights up on hover.
-	if primary:
-		sb.shadow_size = 40 if hot else 28
-		sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.6 if hot else 0.42)
-	elif hot:
-		sb.shadow_size = 26
-		sb.shadow_color = Color(accent.r, accent.g, accent.b, 0.4)
-	else:
-		sb.shadow_size = 12
-		sb.shadow_color = Color(0, 0, 0, 0.45)
-	sb.content_margin_left = 22
-	sb.content_margin_right = 22
-	return sb
 
 
 # A broad, soft additive aura behind the lockup (spectral bloom).
@@ -180,12 +111,3 @@ func _aura() -> Control:
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	tr.material = mat
 	return tr
-
-
-# A glyph-tracked variant of a base font (Godot Labels have no letter-spacing, so
-# tracking from the design's letter-spacing is applied via FontVariation).
-func _spaced(base: Font, px: int) -> FontVariation:
-	var fv := FontVariation.new()
-	fv.base_font = base
-	fv.set_spacing(TextServer.SPACING_GLYPH, px)
-	return fv

@@ -34,6 +34,16 @@ static func _weight(w: int) -> Font:
 	return fv
 
 
+# A glyph-tracked variant of a base font (Godot Labels/Buttons have no letter-
+# spacing property, so the design's letter-spacing is applied via FontVariation's
+# glyph spacing). Shared by the menu wordmark, lobby titles and nav buttons.
+static func spaced(base: Font, px: int) -> FontVariation:
+	var fv := FontVariation.new()
+	fv.base_font = base
+	fv.set_spacing(TextServer.SPACING_GLYPH, px)
+	return fv
+
+
 # A theme whose default font is the Inter body weight. Setting it on a root Control
 # makes every descendant inherit it; bold variants are opted into per widget.
 static func default_theme() -> Theme:
