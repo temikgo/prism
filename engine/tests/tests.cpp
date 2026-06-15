@@ -401,7 +401,7 @@ TEST_CASE("overdrawing into a full hand discards the card to the graveyard") {
   CHECK(g.player(0).graveyard.size() == 1);     // and went to the graveyard
 }
 
-TEST_CASE("a token's death does not add to the graveyard") {
+TEST_CASE("a token's death adds its card to the graveyard") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("splitter", 30), repeat("bruiser", 30), 4);
   begin(g);
@@ -415,10 +415,11 @@ TEST_CASE("a token's death does not add to the graveyard") {
   g.endTurn();
   REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
   EntityId br = g.player(1).board[0].id;
-  g.endTurn();                           // P0 turn 3
-  g.endTurn();                           // P1 turn 4, bruiser awake
-  CHECK(g.attackCreature(br, tok));      // bruiser kills the 1-HP token
-  CHECK(g.player(0).graveyard.empty());  // token was never a real card
+  g.endTurn();                       // P0 turn 3
+  g.endTurn();                       // P1 turn 4, bruiser awake
+  CHECK(g.attackCreature(br, tok));  // bruiser kills the 1-HP token
+  CHECK(g.player(0).graveyard.size() ==
+        1);  // the dead token counts in the pile
 }
 
 TEST_CASE("regen heals at the owner's turn start up to max") {
@@ -1120,6 +1121,31 @@ TEST_CASE("scatter returns a creature to its owner's hand") {
   REQUIRE(g.playCard(0, bear));
   CHECK(g.player(1).board.empty());
   CHECK(static_cast<int>(g.player(1).hand.size()) == hb + 1);
+}
+
+TEST_CASE("scatter on an illusion token hands its card back, not void") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bouncespell", 30), {"splitter", "bear", "bear", "bear"},
+         217);
+  begin(g);
+  g.endTurn();                                         // P1's turn
+  REQUIRE(g.playCard(handIndexOf(g, 1, "splitter")));  // real + 2 illusions
+  EntityId tok = 0;
+  for (const auto& c : g.player(1).board)
+    if (c.token) {
+      tok = c.id;
+      break;
+    }
+  REQUIRE(tok != 0);
+  int hb = static_cast<int>(g.player(1).hand.size());
+  g.endTurn();  // P0's turn
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bouncespell"), tok));
+  for (const auto& c : g.player(1).board) CHECK(c.id != tok);  // left the board
+  CHECK(static_cast<int>(g.player(1).hand.size()) == hb + 1);
+  bool has_split = false;
+  for (const auto& ci : g.player(1).hand)
+    if (ci.def->id == "splitter") has_split = true;
+  CHECK(has_split);  // the token's card returned to its owner's hand
 }
 
 TEST_CASE("mirage creates a 1 HP illusion copy of a creature") {

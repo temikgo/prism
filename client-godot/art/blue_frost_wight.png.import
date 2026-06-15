@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmy8rpljuw7yg"
-path="res://.godot/imported/yellow_signal_pyres.png-fcc6b6d461f7ddcb2ea0d243c2f608d6.ctex"
+uid="uid://bupjcftwue6bu"
+path="res://.godot/imported/blue_frost_wight.png-6f7e6ebe58c1b36943d1e50913abc468.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/yellow_signal_pyres.png"
-dest_files=["res://.godot/imported/yellow_signal_pyres.png-fcc6b6d461f7ddcb2ea0d243c2f608d6.ctex"]
+source_file="res://art/blue_frost_wight.png"
+dest_files=["res://.godot/imported/blue_frost_wight.png-6f7e6ebe58c1b36943d1e50913abc468.ctex"]
 
 [params]
 

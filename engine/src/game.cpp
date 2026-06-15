@@ -489,9 +489,10 @@ void Game::checkDeaths() {
         if (c.hp > 0) {
           survivors.push_back(c);
         } else {
-          // Real cards go to the graveyard; tokens/illusions cease to exist
-          // (they were never deck cards) -- consistent with bounceCreature.
-          if (!c.token) p.graveyard.push_back(c.def);
+          // On death the card goes to the graveyard -- tokens/illusions too, so
+          // the pile counts every body that died (matches bounce, which also
+          // hands a token's card back rather than voiding it).
+          p.graveyard.push_back(c.def);
           // Slot among the survivors so far: where this body sat, so a death-
           // triggered token (spores/haunt) lands where the creature was.
           int slot = static_cast<int>(survivors.size());
@@ -651,14 +652,13 @@ void Game::bounceCreature(EntityId id) {
       if (pl.board[i].id != id) continue;
       Creature c = pl.board[i];
       pl.board.erase(pl.board.begin() + i);
-      // Tokens cease to exist when bounced; real cards return to hand (or burn
-      // if the hand is full).
-      if (!c.token) {
-        if (static_cast<int>(pl.hand.size()) < HandLimit)
-          pl.hand.push_back(CardInstance{c.id, c.def});
-        else
-          pl.graveyard.push_back(c.def);
-      }
+      // A bounced creature returns its card to the owner's hand -- even an
+      // illusion token hands back the card it copies (design choice: scatter is
+      // never pure removal). Burns to the graveyard if the hand is full.
+      if (static_cast<int>(pl.hand.size()) < HandLimit)
+        pl.hand.push_back(CardInstance{c.id, c.def});
+      else
+        pl.graveyard.push_back(c.def);
       return;
     }
   }

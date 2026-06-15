@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dyr27ksutjqbe"
-path="res://.godot/imported/blue_deepwinter_pall.png-b12e337b3cd1e6f280baf467712afb67.ctex"
+uid="uid://4bpcyykmokwh"
+path="res://.godot/imported/blue_undertow_serpent.png-68a2ffba97c47cea43b2a56381a206bf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/blue_deepwinter_pall.png"
-dest_files=["res://.godot/imported/blue_deepwinter_pall.png-b12e337b3cd1e6f280baf467712afb67.ctex"]
+source_file="res://art/blue_undertow_serpent.png"
+dest_files=["res://.godot/imported/blue_undertow_serpent.png-68a2ffba97c47cea43b2a56381a206bf.ctex"]
 
 [params]
 

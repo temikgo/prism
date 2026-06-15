@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0ycg2c7eijcn"
-path="res://.godot/imported/blue_undertow_rinse.png-5b5b0b822f8ae7632ed4b67d7a86afda.ctex"
+uid="uid://y2f5m1u5j7ue"
+path="res://.godot/imported/violet_shard_phantom.png-b0dc32cae7969f245f60da8be539622b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/blue_undertow_rinse.png"
-dest_files=["res://.godot/imported/blue_undertow_rinse.png-5b5b0b822f8ae7632ed4b67d7a86afda.ctex"]
+source_file="res://art/violet_shard_phantom.png"
+dest_files=["res://.godot/imported/violet_shard_phantom.png-b0dc32cae7969f245f60da8be539622b.ctex"]
 
 [params]
 

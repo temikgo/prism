@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c7nmcqh7pv60i"
-path="res://.godot/imported/violet_hall_of_mirrors.png-d84bdea2bceb48d05a543f0a1b508527.ctex"
+uid="uid://dhkh8kghu7gky"
+path="res://.godot/imported/yellow_halo_warden.png-b3c0c5a84bd2a6a2189ad1a54da0ab0c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/violet_hall_of_mirrors.png"
-dest_files=["res://.godot/imported/violet_hall_of_mirrors.png-d84bdea2bceb48d05a543f0a1b508527.ctex"]
+source_file="res://art/yellow_halo_warden.png"
+dest_files=["res://.godot/imported/yellow_halo_warden.png-b3c0c5a84bd2a6a2189ad1a54da0ab0c.ctex"]
 
 [params]
 

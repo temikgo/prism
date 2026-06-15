@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://doj15loqk8ksf"
-path="res://.godot/imported/yellow_sunstroke.png-6b1d1b6cf6393066d68101b3fba66914.ctex"
+uid="uid://cvtdlyu6ins0n"
+path="res://.godot/imported/blue_rime_warden.png-c740c38fb1bedd377978715aeedd9123.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/yellow_sunstroke.png"
-dest_files=["res://.godot/imported/yellow_sunstroke.png-6b1d1b6cf6393066d68101b3fba66914.ctex"]
+source_file="res://art/blue_rime_warden.png"
+dest_files=["res://.godot/imported/blue_rime_warden.png-c740c38fb1bedd377978715aeedd9123.ctex"]
 
 [params]
 

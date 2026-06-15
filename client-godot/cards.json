@@ -172,14 +172,15 @@
     "keywords": [{ "id": "floodlight" }]
   },
   {
-    "id": "yellow_signal_pyres",
-    "name": { "ru": "Сигнальные Огни", "en": "Signal Pyres" },
-    "text": { "ru": "Зажги дозор — и ни одна тень не пройдёт незамеченной." },
-    "art": "a ring of tall golden signal-fires blazing around the field, their light throwing back every shadow to lay bare what hides, a warm shielding glow over those within",
-    "type": "aura",
+    "id": "yellow_halo_warden",
+    "name": { "ru": "Нимбовый Страж", "en": "Halo Warden" },
+    "text": { "ru": "Его нимб держит удар и отводит чары." },
+    "art": "a stout golden warden-beast planted firm behind a radiant ring-halo of light, broad and armoured in glowing gold plates, calm and protective",
+    "type": "creature",
     "color": ["yellow"],
-    "cost": { "generic": 1, "yellow": 1 },
-    "keywords": [{ "id": "floodlight" }, { "id": "ward" }]
+    "cost": { "generic": 3, "yellow": 1 },
+    "stats": { "atk": 2, "hp": 4 },
+    "keywords": [{ "id": "shield" }, { "id": "ward" }]
   },
   {
     "id": "yellow_watchful_beacon",
@@ -192,13 +193,14 @@
     "keywords": [{ "id": "floodlight" }, { "id": "ward" }]
   },
   {
-    "id": "yellow_high_sun",
-    "name": { "ru": "Высокое Солнце", "en": "High Sun" },
-    "text": { "ru": "Когда солнце в зените, прятаться попросту негде." },
-    "art": "a blazing high sun hanging directly overhead, its flat white-gold glare pouring straight down over the whole field so nothing casts a shadow to hide in",
-    "type": "aura",
+    "id": "yellow_sun_sentinel",
+    "name": { "ru": "Солнечный Дозор", "en": "Sun Sentinel" },
+    "text": { "ru": "Под его лучом не спрячется ни одна тень." },
+    "art": "a watchful sentinel-beast of pure gold light, a tall lean four-legged guardian with a blazing lantern-eye casting a sweeping beam across the ground, alert and still",
+    "type": "creature",
     "color": ["yellow"],
-    "cost": { "generic": 0, "yellow": 1 },
+    "cost": { "generic": 2, "yellow": 1 },
+    "stats": { "atk": 1, "hp": 4 },
     "keywords": [{ "id": "floodlight" }]
   },
   {
@@ -215,13 +217,14 @@
     ]
   },
   {
-    "id": "yellow_sunstroke",
-    "name": { "ru": "Солнечный Удар", "en": "Sunstroke" },
-    "text": { "ru": "Свет ударил — и весь строй ослеп." },
-    "art": "a sudden overwhelming blast of pure sun-light slamming across the enemy line, every foe staggering and clutching its seared eyes",
-    "type": "spell",
+    "id": "yellow_flare_dancer",
+    "name": { "ru": "Слепящая Плясунья", "en": "Flare Dancer" },
+    "text": { "ru": "Один взмах — и весь строй ослеп." },
+    "art": "a lithe dancing creature of living gold flame, whirling on one foot and flinging a blinding burst of white-gold light outward, all motion and glare",
+    "type": "creature",
     "color": ["yellow"],
-    "cost": { "generic": 2, "yellow": 1 },
+    "cost": { "generic": 3, "yellow": 1 },
+    "stats": { "atk": 2, "hp": 2 },
     "effects": [
       { "trigger": "on_play", "action": "flash", "value": 1 }
     ]
@@ -318,7 +321,7 @@
     "color": ["green"],
     "cost": { "generic": 3, "green": 2 },
     "stats": { "atk": 3, "hp": 3 },
-    "keywords": [{ "id": "compost", "n": 1 }, { "id": "spores", "n": 2 }]
+    "keywords": [{ "id": "compost", "n": 2 }, { "id": "spores", "n": 2 }]
   },
   {
     "id": "green_mulch_warden",
@@ -340,7 +343,7 @@
     "color": ["green"],
     "cost": { "generic": 3, "green": 2 },
     "stats": { "atk": 4, "hp": 6 },
-    "keywords": [{ "id": "undergrowth", "n": 1 }]
+    "keywords": [{ "id": "undergrowth", "n": 2 }]
   },
   {
     "id": "green_pollen_sprite",
@@ -362,7 +365,7 @@
     "color": ["green"],
     "cost": { "generic": 4, "green": 2 },
     "stats": { "atk": 1, "hp": 1 },
-    "keywords": [{ "id": "resonance", "n": 1 }]
+    "keywords": [{ "id": "resonance", "n": 1 }, { "id": "compost", "n": 1 }]
   },
   {
     "id": "green_crystal_sapling",
@@ -384,7 +387,7 @@
     "color": ["green"],
     "cost": { "generic": 3, "green": 1 },
     "stats": { "atk": 1, "hp": 1 },
-    "keywords": [{ "id": "resonance", "n": 1 }]
+    "keywords": [{ "id": "resonance", "n": 1 }, { "id": "germinate", "n": 1 }]
   },
   {
     "id": "green_fruiting_vine",
@@ -394,7 +397,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
-    "stats": { "atk": 1, "hp": 3 },
+    "stats": { "atk": 2, "hp": 3 },
     "effects": [
       { "trigger": "on_play", "action": "draw", "value": 1 }
     ]
@@ -433,24 +436,28 @@
     "keywords": [{ "id": "chill", "n": 2 }]
   },
   {
-    "id": "blue_polar_gloom",
-    "name": { "ru": "Полярный Сумрак", "en": "Polar Gloom" },
-    "text": { "ru": "Долгая ночь студит врага до самых костей." },
-    "art": "a creeping field of deep-blue polar twilight settling over the ground, a dim aura of bone-deep cold with no figure in it, frost dimming everything it reaches",
-    "type": "aura",
+    "id": "blue_rime_warden",
+    "name": { "ru": "Инеевый Страж", "en": "Rime Warden" },
+    "text": { "ru": "Стынет всё, что подходит близко." },
+    "art": "a hulking frost-warden beast of deep-blue ice, thick hoarfrost steaming off its broad frozen frame, a slow heavy guardian radiating cold",
+    "type": "creature",
     "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
+    "cost": { "generic": 4, "blue": 1 },
+    "stats": { "atk": 2, "hp": 4 },
     "keywords": [{ "id": "chill", "n": 1 }]
   },
   {
-    "id": "blue_deepwinter_pall",
-    "name": { "ru": "Покров Зимы", "en": "Deepwinter Pall" },
-    "text": { "ru": "Под этим пологом замирает любое движение." },
-    "art": "a heavy pall of deep-blue winter cold draped over the whole field, a thick numbing aura of glittering frost-haze with no figure in it",
-    "type": "aura",
+    "id": "blue_frost_wight",
+    "name": { "ru": "Морозный Гость", "en": "Frost Wight" },
+    "text": { "ru": "Его касание сковывает на месте." },
+    "art": "a gaunt wight of pale blue ice-light reaching out one long clawed hand, sealing a single target in a creeping sheath of frost",
+    "type": "creature",
     "color": ["blue"],
-    "cost": { "generic": 4, "blue": 2 },
-    "keywords": [{ "id": "chill", "n": 2 }]
+    "cost": { "generic": 2, "blue": 1 },
+    "stats": { "atk": 2, "hp": 3 },
+    "effects": [
+      { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }
+    ]
   },
   {
     "id": "blue_frost_shackles",
@@ -474,7 +481,7 @@
     "cost": { "generic": 2, "blue": 1 },
     "stats": { "atk": 2, "hp": 4 },
     "effects": [
-      { "trigger": "on_play", "action": "scry", "value": 2 }
+      { "trigger": "on_play", "action": "scry", "value": 3 }
     ]
   },
   {
@@ -521,7 +528,7 @@
     "type": "spell",
     "color": ["blue"],
     "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "delay", "n": 1 }],
+    "keywords": [{ "id": "delay", "n": 2 }],
     "effects": [
       { "trigger": "on_play", "action": "draw", "value": 2 }
     ]
@@ -540,15 +547,16 @@
     ]
   },
   {
-    "id": "blue_undertow_rinse",
-    "name": { "ru": "Холодный Смыв", "en": "Undertow Rinse" },
-    "text": { "ru": "Холодная вода смывает любую морось чар." },
-    "art": "a cold blue undertow surging across the field and rinsing a glowing enchantment-weave loose, carrying it away dissolved into drifting mist",
-    "type": "spell",
+    "id": "blue_undertow_serpent",
+    "name": { "ru": "Подводный Змей", "en": "Undertow Serpent" },
+    "text": { "ru": "Подхватывает и уносит отливом." },
+    "art": "a long coiling serpent of deep-blue water-light surging through a riptide, sweeping a foe off its feet and dragging it away in the current",
+    "type": "creature",
     "color": ["blue"],
-    "cost": { "generic": 0, "blue": 1 },
+    "cost": { "generic": 2, "blue": 1 },
+    "stats": { "atk": 2, "hp": 2 },
     "effects": [
-      { "trigger": "on_play", "action": "dispel", "value": 1 }
+      { "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }
     ]
   },
   {
@@ -641,13 +649,14 @@
     ]
   },
   {
-    "id": "violet_hall_of_mirrors",
-    "name": { "ru": "Зеркальный Зал", "en": "Hall Of Mirrors" },
-    "text": { "ru": "Один шагнул в свет — а вышло двое." },
-    "art": "a corridor of bent violet light-mirrors, a creature stepping through and a second shimmering duplicate of it peeling away alongside",
-    "type": "spell",
+    "id": "violet_shard_phantom",
+    "name": { "ru": "Осколочный Призрак", "en": "Shard Phantom" },
+    "text": { "ru": "Шагнул один — мерцает уже двое." },
+    "art": "a flickering phantom of violet light splitting from itself, one form solid and a second shimmering mirror-illusion peeling away alongside",
+    "type": "creature",
     "color": ["violet"],
-    "cost": { "generic": 1, "violet": 1 },
+    "cost": { "generic": 2, "violet": 1 },
+    "stats": { "atk": 2, "hp": 2 },
     "effects": [
       { "trigger": "on_play", "selector": "chosen_any_minion", "action": "mirage" }
     ]
@@ -699,7 +708,7 @@
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 5, "hp": 5 },
-    "keywords": [{ "id": "pierce" }, { "id": "provoke" }, { "id": "photosynthesis", "n": 1 }, { "id": "decoy", "n": 2 }],
+    "keywords": [{ "id": "pierce" }, { "id": "provoke" }, { "id": "photosynthesis", "n": 1 }, { "id": "haunt" }],
     "effects": [
       { "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }
     ]
@@ -713,7 +722,7 @@
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 4, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 4, "hp": 5 },
-    "keywords": [{ "id": "bypass" }, { "id": "shield" }, { "id": "growth", "n": 1 }, { "id": "split", "n": 1 }],
+    "keywords": [{ "id": "bypass" }, { "id": "shield" }, { "id": "growth", "n": 2 }, { "id": "split", "n": 1 }],
     "effects": [
       { "trigger": "on_play", "action": "scry", "value": 1 }
     ]
@@ -756,7 +765,7 @@
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 5, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 7, "hp": 8 },
-    "keywords": [{ "id": "pierce" }, { "id": "undergrowth", "n": 1 }, { "id": "decoy", "n": 2 }, { "id": "delay", "n": 1 }],
+    "keywords": [{ "id": "pierce" }, { "id": "undergrowth", "n": 1 }, { "id": "awaken" }, { "id": "delay", "n": 1 }],
     "effects": [
       { "trigger": "on_play", "action": "flash", "value": 1 }
     ]
@@ -781,7 +790,7 @@
     "color": ["red", "yellow"],
     "cost": { "generic": 2, "red": 1, "yellow": 1 },
     "stats": { "atk": 3, "hp": 5 },
-    "keywords": [{ "id": "provoke" }, { "id": "regen", "n": 1 }]
+    "keywords": [{ "id": "provoke" }, { "id": "regen", "n": 2 }]
   },
   {
     "id": "red_green_scarlet_blackthorn",
@@ -813,7 +822,7 @@
     "type": "spell",
     "color": ["red", "blue"],
     "cost": { "generic": 1, "red": 1, "blue": 1 },
-    "keywords": [{ "id": "lingering" }, { "id": "delay", "n": 1 }],
+    "keywords": [{ "id": "lingering" }, { "id": "delay", "n": 2 }],
     "effects": [
       { "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 5 }
     ]

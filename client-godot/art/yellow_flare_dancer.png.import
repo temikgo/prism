@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c7viihhwy5myb"
-path="res://.godot/imported/blue_polar_gloom.png-40de170f74d9bb27f770cc96915241ce.ctex"
+uid="uid://4cnot5vbrsw1"
+path="res://.godot/imported/yellow_flare_dancer.png-f686197a30f78e973856f79df87c0d31.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/blue_polar_gloom.png"
-dest_files=["res://.godot/imported/blue_polar_gloom.png-40de170f74d9bb27f770cc96915241ce.ctex"]
+source_file="res://art/yellow_flare_dancer.png"
+dest_files=["res://.godot/imported/yellow_flare_dancer.png-f686197a30f78e973856f79df87c0d31.ctex"]
 
 [params]
 

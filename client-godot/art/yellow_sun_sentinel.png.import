@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dwnvvrx4ox16j"
-path="res://.godot/imported/yellow_high_sun.png-a9a1ddcdaf3c0f693c90db783865d38d.ctex"
+uid="uid://dx1qjg5l2xrr0"
+path="res://.godot/imported/yellow_sun_sentinel.png-1c27d3d811c7550a0fcc5af3980aefca.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/yellow_high_sun.png"
-dest_files=["res://.godot/imported/yellow_high_sun.png-a9a1ddcdaf3c0f693c90db783865d38d.ctex"]
+source_file="res://art/yellow_sun_sentinel.png"
+dest_files=["res://.godot/imported/yellow_sun_sentinel.png-1c27d3d811c7550a0fcc5af3980aefca.ctex"]
 
 [params]
 
