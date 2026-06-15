@@ -12,12 +12,14 @@ var _cur
 
 func _initialize() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-	DisplayServer.window_set_size(Vector2i(1100, 680))
+	DisplayServer.window_set_size(Vector2i(1440, 900))
 	# The router owns the shared backdrop in the real app; screens no longer make
 	# their own. Mirror that here so each shot still shows the atmosphere behind it.
 	root.add_child(Backdrop.new())
+	DevKit.ensure_cards()  # LoadoutSelect lists heroes/decks from the card db
 	_shots = [
 		["_menu", func(): return MainMenu.new()],
+		["_loadout", func(): return LoadoutSelect.new()],
 		["_play", func(): return PlayMenu.new()],
 		["_create", func(): return CreateRoom.new()],
 		["_join", func(): return JoinRoom.new()],
