@@ -78,6 +78,30 @@ async def run():
 
         await c0.close()
         await c1.close()
+
+        # Single-player: a bot room starts at once (no waiting), and after the
+        # human ends the turn the server runs the bot's whole turn before the
+        # next view -- so play returns with the turn advanced past the bot. The
+        # bot's own moves each emit a view, so drain to the awaited condition.
+        async def view_until(ws, pred):
+            while True:
+                m = await recv_view(ws)
+                if pred(m):
+                    return m
+
+        cb = await websockets.connect(uri)
+        await cb.send(json.dumps({"action": "createBotRoom", "hero": "hero_prism"}))
+        await expect_type(cb, "matchStart")
+        vb = await view_until(cb, lambda v: v["mulligan"] is True)
+        assert vb["you"] == 0, vb
+        await cb.send(json.dumps({"action": "mulligan", "indices": []}))
+        vb = await view_until(cb, lambda v: v["mulligan"] is False)
+        assert vb["current"] == 0, vb
+        turn0 = vb["turn"]
+        await cb.send(json.dumps({"action": "endTurn"}))
+        vb = await view_until(cb, lambda v: v["current"] == 0 and v["turn"] > turn0)
+        assert vb["turn"] >= turn0 + 2, vb  # the bot took its whole turn
+        await cb.close()
         print("WS smoke test PASSED")
     finally:
         try:

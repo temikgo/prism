@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "json.hpp"
+#include "prism/bot.hpp"
 #include "prism/card.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
@@ -108,12 +109,17 @@ struct Room {
   std::vector<std::string> usedDeck[2];
   std::vector<std::pair<int, std::string>> actionLog;  // (seat, action JSON)
   bool dumped = false;
+  // Single-player: seat 1 is a bot (no socket, fd[1] == -1) driven by pumpBot.
+  bool vsBot = false;
 };
 
 std::unordered_map<int, Client> g_clients;
 std::unordered_map<std::string, Room> g_rooms;
 
-void sendJson(int fd, const json& j) { sendAll(fd, ws::textFrame(j.dump())); }
+void sendJson(int fd, const json& j) {
+  if (fd < 0) return;  // a bot seat has no socket
+  sendAll(fd, ws::textFrame(j.dump()));
+}
 
 void sendType(int fd, const std::string& type) {
   sendJson(fd, json{{"type", type}});
@@ -133,8 +139,8 @@ std::string makeCode(std::mt19937& rng) {
 }
 
 void broadcastRoom(const Room& r) {
-  sendAll(r.fd[0], ws::textFrame(viewJson(*r.game, 0)));
-  sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1)));
+  if (r.fd[0] >= 0) sendAll(r.fd[0], ws::textFrame(viewJson(*r.game, 0)));
+  if (r.fd[1] >= 0) sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1)));
 }
 
 // Write this room's match as a deterministic replay (engine format) once, when
@@ -198,6 +204,20 @@ void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
   std::fflush(stdout);
 }
 
+// Drive the bot (seat 1) for as long as it has a move: its mulligan, then its
+// whole turn once play passes to it. Mutates the game + action log; the caller
+// broadcasts the resulting view. The guard caps a runaway loop (never
+// expected).
+void pumpBot(Room& r, std::mt19937& rng) {
+  if (!r.vsBot || !r.game) return;
+  for (int guard = 0; guard < 2000 && !r.game->isOver(); ++guard) {
+    std::string js = botNextAction(*r.game, 1, rng);
+    if (js.empty()) break;
+    if (!applyAction(*r.game, 1, js)) break;  // safety: never spin on a reject
+    r.actionLog.emplace_back(1, js);
+  }
+}
+
 // Detach a socket from its room without closing it: cancel a waiting room, or
 // end a live match and notify the opponent. The socket returns to the lobby.
 void leaveRoom(int fd) {
@@ -255,6 +275,23 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     sendJson(fd, json{{"type", "roomCreated"}, {"code", code}});
     std::printf("Room %s created\n", code.c_str());
     std::fflush(stdout);
+  } else if (action == "createBotRoom") {
+    // Single-player: no waiting room -- seat 1 is a bot, the match starts now.
+    if (c.phase != Phase::Lobby) return;
+    std::string code = makeCode(rng);
+    Room& r = g_rooms[code];
+    r.fd[0] = fd;
+    r.fd[1] = -1;  // bot seat (no socket)
+    r.vsBot = true;
+    readLoadout(j, r, 0);  // the human's hero + deck; the bot keeps defaults
+    c.phase = Phase::Playing;
+    c.room = code;
+    c.seat = 0;
+    startMatch(r, lib, rng);  // sends matchStart + first views to the human
+    pumpBot(r, rng);          // the bot takes its mulligan
+    broadcastRoom(r);         // reflect the post-mulligan state
+    std::printf("Bot room %s started\n", code.c_str());
+    std::fflush(stdout);
   } else if (action == "joinRoom") {
     if (c.phase != Phase::Lobby) return;
     std::string code = j.value("code", std::string{});
@@ -297,7 +334,8 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
     return;
   }
   const std::string action = j.value("action", std::string{});
-  if (action == "createRoom" || action == "joinRoom" || action == "leaveRoom") {
+  if (action == "createRoom" || action == "createBotRoom" ||
+      action == "joinRoom" || action == "leaveRoom") {
     handleLobby(fd, j, lib, rng);
     return;
   }
@@ -309,6 +347,9 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
   // replay.
   bool applied = applyAction(*it->second.game, c.seat, payload);
   if (applied) it->second.actionLog.emplace_back(c.seat, payload);
+  // Single-player: after the human's move, let the bot take its turn before we
+  // send the next view (so the player sees the bot's full response at once).
+  if (applied && it->second.vsBot) pumpBot(it->second, rng);
   broadcastRoom(it->second);
   if (applied && it->second.game->isOver()) dumpReplay(c.room, it->second);
 }

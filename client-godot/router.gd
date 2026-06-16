@@ -99,8 +99,15 @@ func _go_play() -> void:
 	var p := PlayMenu.new()
 	p.create_pressed.connect(_go_create)
 	p.join_pressed.connect(_go_join)
+	p.train_pressed.connect(_go_train)
 	p.back_pressed.connect(_go_loadout)  # back to re-pick hero/deck
 	_swap(p)
+
+
+# Single-player: ask the server to seat the bot and start the match at once. The
+# match begins via the normal matchStart -> _go_match path (no waiting room).
+func _go_train() -> void:
+	_send(_room_msg("createBotRoom", {}))
 
 
 func _go_create() -> void:

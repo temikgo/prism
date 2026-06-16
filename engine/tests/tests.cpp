@@ -6,10 +6,12 @@
 // implemented keyword/effect. Small self-contained card sets (kTestCards) keep
 // the tests independent of real card balance.
 
+#include <random>
 #include <string>
 #include <vector>
 
 #include "json.hpp"
+#include "prism/bot.hpp"
 #include "prism/card.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
@@ -1146,6 +1148,32 @@ TEST_CASE("scatter on an illusion token hands its card back, not void") {
   for (const auto& ci : g.player(1).hand)
     if (ci.def->id == "splitter") has_split = true;
   CHECK(has_split);  // the token's card returned to its owner's hand
+}
+
+TEST_CASE("a bot emits only legal moves and finishes a bot-vs-bot game") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  g.start();
+  std::mt19937 rng(7);
+  int steps = 0;
+  bool stuck = false;
+  while (!g.isOver() && steps < 5000) {
+    bool acted = false;
+    for (int seat = 0; seat < 2 && !g.isOver(); ++seat) {
+      std::string js = botNextAction(g, seat, rng);
+      if (js.empty()) continue;
+      REQUIRE(applyAction(g, seat, js));  // the bot only emits legal moves
+      acted = true;
+      ++steps;
+    }
+    if (!acted) {
+      stuck = true;
+      break;
+    }
+  }
+  CHECK_FALSE(stuck);   // the bots always have a move until the game ends
+  CHECK(g.isOver());    // and they finish it
+  CHECK(steps < 5000);  // within a sane bound (it terminates)
 }
 
 TEST_CASE("mirage creates a 1 HP illusion copy of a creature") {

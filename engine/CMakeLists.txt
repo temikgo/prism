@@ -9,6 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_library(prism_engine
+  src/bot.cpp
   src/card.cpp
   src/game.cpp
   src/protocol.cpp

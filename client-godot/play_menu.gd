@@ -6,6 +6,7 @@ extends Control
 
 signal create_pressed
 signal join_pressed
+signal train_pressed
 signal back_pressed
 
 var _status: Label = null
@@ -33,6 +34,12 @@ func _ready() -> void:
 	join.pressed.connect(func() -> void: join_pressed.emit())
 	col.add_child(join)
 	col.add_child(Ui.mbtn("Поиск", "muted", Ui.ACC_VIOLET))
+
+	# Single-player: one button starts a match against the bot immediately.
+	var train := Ui.mbtn("Тренировка", "ghost", Ui.ACC_VIOLET)
+	train.pressed.connect(func() -> void: train_pressed.emit())
+	col.add_child(train)
+
 	var back := Ui.mbtn("Назад", "ghost", Ui.COLORLESS)
 	back.pressed.connect(func() -> void: back_pressed.emit())
 	col.add_child(back)
