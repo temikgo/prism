@@ -259,4 +259,6 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
   return g;
 }
 
+std::unique_ptr<Game> Game::clone() const { return fromJson(lib_, toJson()); }
+
 }  // namespace prism

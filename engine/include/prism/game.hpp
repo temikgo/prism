@@ -246,6 +246,10 @@ class Game {
   std::string toJson() const;
   static std::unique_ptr<Game> fromJson(const CardLibrary& lib,
                                         const std::string& json);
+  // A deep, independent copy (used by the bot to simulate moves). Routed
+  // through serialization because raw copy would leave board creatures pointing
+  // into the source's interned token defs; fromJson re-interns them correctly.
+  std::unique_ptr<Game> clone() const;
 
   Player& player(int i) { return players_[i]; }
   const Player& player(int i) const { return players_[i]; }
