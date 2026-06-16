@@ -1,7 +1,11 @@
 #include "prism/bot.hpp"
 
+#include <algorithm>
+#include <memory>
+
 #include "json.hpp"
 #include "prism/game.hpp"
+#include "prism/protocol.hpp"
 
 namespace prism {
 
@@ -61,19 +65,20 @@ double targetBonus(const Game& g, int seat, const Action& a) {
   for (const auto& e : d->effects) {
     if (e.trigger != "on_play") continue;
     const std::string& act = e.action;
+    const bool harmful = act == "damage" || act == "destroy" ||
+                         act == "freeze" || act == "blind" || act == "scatter";
+    if (harmful && mine) return -100.0;     // never aim a harmful effect at own
+    if (harmful && t->warded) return -5.0;  // ward absorbs it -- wasted
     if (act == "damage") {
-      if (mine) return -100.0;  // never burn your own
+      if (t->shield) return -5.0;  // shield eats the damage instance -- wasted
       b += (e.value >= t->hp)
                ? (t->atk + t->hp + 2.0)  // a kill is worth a body
                : e.value;                // else just chip
     } else if (act == "destroy") {
-      if (mine) return -100.0;
-      b += t->atk + t->hp + 3.0;  // remove the biggest threat
+      b += t->atk + t->hp + 3.0;  // remove the biggest threat (ignores shield)
     } else if (act == "freeze" || act == "blind") {
-      if (mine) return -100.0;
       b += t->atk + 1.0;  // neutralize a big attacker
     } else if (act == "scatter") {
-      if (mine) return -100.0;      // bouncing your own loses tempo
       b += (t->atk + t->hp) * 0.5;  // bounce their biggest
     } else if (act == "mirage") {
       b += (t->atk + t->hp) * 0.5;  // copy the biggest, either side
@@ -83,7 +88,7 @@ double targetBonus(const Game& g, int seat, const Action& a) {
 }
 
 // Serialize a chosen Action into the protocol JSON applyAction expects.
-std::string actionJson(const Action& a) {
+std::string serializeAction(const Action& a) {
   json j;
   switch (a.type) {
     case Action::Type::EndTurn:
@@ -127,7 +132,7 @@ std::string actionJson(const Action& a) {
 // the legal set strictly shrinks and the bot always ends its turn. One greedy
 // policy: develop the board, ramp, trade up, and race the hero when ahead.
 double score(const Action& a, const Game& g, int seat, bool lethal,
-             std::mt19937& rng) {
+             int onlyPlayable, std::mt19937& rng) {
   const Player& me = g.player(seat);
   const Player& foe = g.player(1 - seat);
   std::uniform_real_distribution<double> jitter(0.0, 0.5);
@@ -144,6 +149,10 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
       // bodies are the most replaceable). Spells/auras are protected: when only
       // those are in hand the drop drops to low priority, so the bot plays its
       // answers before ever sacrificing one to mana.
+      // Never sacrifice the only card you can actually play this turn -- keep
+      // it to develop the board instead of ramping into a dead (e.g.
+      // colour-screwed) hand.
+      if (a.handIndex == onlyPlayable) return -50.0 + r;
       const CardDef* d = me.hand[a.handIndex].def;
       if (!isCreature(d)) return 0.7 + r;
       return 14.0 - 0.3 * manaValue(d) + r;  // beats any play; cheaper ranks up
@@ -163,34 +172,81 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
       // attacking a creature instead would waste a point of lethal, so rank
       // trades low.
       if (lethal) return 1.0 + r;
+      // A shielded target absorbs the whole hit: we deal no real damage but
+      // still take its swing back -- a bad trade, so rank it low.
+      const bool kills = at->atk >= tg->hp && !tg->shield;
+      const bool dies = tg->atk >= at->hp;
       double v = 4.0;
-      if (at->atk >= tg->hp) v += tg->atk + tg->hp;  // kills their threat
-      if (tg->atk >= at->hp) v -= at->atk + at->hp;  // we lose ours
+      if (kills)
+        v += tg->atk + tg->hp;  // remove their threat
+      else if (tg->shield)
+        v -= 3.0;                       // popped a shield for nothing
+      if (dies) v -= at->atk + at->hp;  // we lose ours
+      // Prefer the cheapest sufficient attacker: a small penalty by body size
+      // so a 2/2 trades before a 6/6 is thrown at the same target (keep the
+      // beaters).
+      v -= 0.15 * (at->atk + at->hp);
+      // Pierce sends the lethal overkill to the enemy hero -- reward it.
+      if (kills && at->def->hasKeyword("pierce")) v += (at->atk - tg->hp) * 0.4;
       return v + r;
     }
     case Action::Type::AttackHero: {
       const Creature* at = find(me, a.attacker);
       const double dmg = at != nullptr ? at->atk : 0.0;
       if (lethal) return 100.0 + dmg;  // close it out: send everything face
-      // Otherwise race only when ahead on board strength; else prefer trading.
-      const bool ahead = boardPower(me) >= boardPower(foe);
+      // Race when ahead on board strength, or when our hero is clearly
+      // healthier (we win the damage race); otherwise prefer trading.
+      const bool ahead =
+          boardPower(me) >= boardPower(foe) || me.heroHp > foe.heroHp + 8;
       return (ahead ? 5.0 : 2.0) + dmg + r;
     }
   }
   return r;
 }
 
-}  // namespace
+// Static position evaluation from `seat`'s point of view (higher = better for
+// seat). Used as the leaf evaluation of the 1-ply search. A finished game is
+// +/- huge. Otherwise: the enemy hero's health is the main axis (closing it
+// wins), plus board presence, card advantage and developed mana.
+double evalState(const Game& g, int seat) {
+  if (g.isOver()) return g.winner() == seat ? 1e6 : -1e6;
+  const Player& me = g.player(seat);
+  const Player& foe = g.player(1 - seat);
+  double v = 0.0;
+  v += 4.0 * (me.heroHp - foe.heroHp);  // race the enemy hero down
+  v += boardPower(me) - boardPower(foe);
+  v += 2.0 * (static_cast<int>(me.board.size()) -
+              static_cast<int>(foe.board.size()));  // board presence
+  v += 1.5 * (static_cast<int>(me.hand.size()) -
+              static_cast<int>(foe.hand.size()));     // card advantage
+  v += 0.8 * (crystalCount(me) - crystalCount(foe));  // developed mana
+  return v;
+}
 
-std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
+// The cheap reflex policy: the single best action by static scoring, or "" if
+// nothing to do / not this seat's move. This is the bot's old greedy brain; the
+// search below uses it to roll a turn out to its end.
+std::string botStepGreedy(const Game& g, int seat, std::mt19937& rng) {
   if (g.isOver()) return "";
-  // Mulligan: toss the cards too dear to play early, keeping a low curve.
+  // Mulligan: toss the cards too dear to play early, keeping a low curve -- but
+  // never throw the WHOLE hand away; keep the two cheapest so there is always
+  // something to do on the opening turns.
   if (g.inMulligan()) {
     if (g.mulliganDone(seat)) return "";
-    json idx = json::array();
     const Player& me = g.player(seat);
-    for (int i = 0; i < static_cast<int>(me.hand.size()); ++i)
-      if (manaValue(me.hand[i].def) >= 4) idx.push_back(i);
+    const int n = static_cast<int>(me.hand.size());
+    std::vector<int> toss;
+    for (int i = 0; i < n; ++i)
+      if (manaValue(me.hand[i].def) >= 4) toss.push_back(i);
+    if (static_cast<int>(toss.size()) == n && n > 0) {
+      std::sort(toss.begin(), toss.end(), [&](int x, int y) {
+        return manaValue(me.hand[x].def) < manaValue(me.hand[y].def);
+      });
+      toss.erase(toss.begin(),
+                 toss.begin() + std::min(2, n));  // keep 2 cheapest
+    }
+    json idx = json::array();
+    for (int i : toss) idx.push_back(i);
     return json{{"action", "mulligan"}, {"indices", idx}}.dump();
   }
   // Scry: bury the cards we cannot cast in the next turn or two, keep the rest
@@ -220,16 +276,80 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   const Player& foe = g.player(1 - seat);
   const bool lethal = faceDmg > 0 && faceDmg >= foe.heroHp + foe.heroArmor;
 
+  // The hand index of the single card the bot can play this turn (-1 if zero or
+  // several). PlaceMana refuses to sacrifice that one card (see score).
+  const Player& me = g.player(seat);
+  std::vector<bool> canPlay(me.hand.size(), false);
+  for (const auto& a : acts)
+    if (a.type == Action::Type::Play && a.handIndex >= 0 &&
+        a.handIndex < static_cast<int>(canPlay.size()))
+      canPlay[a.handIndex] = true;
+  int playableCount = 0, onlyPlayable = -1;
+  for (int i = 0; i < static_cast<int>(canPlay.size()); ++i)
+    if (canPlay[i]) {
+      ++playableCount;
+      onlyPlayable = i;
+    }
+  if (playableCount != 1) onlyPlayable = -1;
+
   const Action* best = &acts.front();
   double bestScore = -1e18;
   for (const auto& a : acts) {
-    const double s = score(a, g, seat, lethal, rng);
+    const double s = score(a, g, seat, lethal, onlyPlayable, rng);
     if (s > bestScore) {
       bestScore = s;
       best = &a;
     }
   }
-  return actionJson(*best);
+  return serializeAction(*best);
+}
+
+// Play out `seat`'s reflex moves on `g` until its turn passes or the game ends.
+void rollout(Game& g, int seat, std::mt19937& rng) {
+  for (int guard = 0; guard < 400 && !g.isOver(); ++guard) {
+    std::string js = botStepGreedy(g, seat, rng);
+    if (js.empty()) break;  // not seat's move any more -> its turn is over
+    applyAction(g, seat, js);
+  }
+}
+
+}  // namespace
+
+std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
+  if (g.isOver()) return "";
+  // Search applies only to the main-phase decision; mulligan/scry/off-turn are
+  // reflexive (nothing to simulate).
+  if (g.inMulligan() || g.inScry() || g.current() != seat)
+    return botStepGreedy(g, seat, rng);
+  std::vector<Action> acts = g.legalActions();
+  if (acts.empty()) return "";
+  if (acts.size() == 1) return serializeAction(acts.front());
+  if (acts.size() > 60) return botStepGreedy(g, seat, rng);  // stay snappy
+
+  // 1-ply search: for each candidate first move, simulate it, finish this turn
+  // greedily, let the opponent take its greedy reply, then evaluate the
+  // position. Pick the candidate leading to the best position. Tempo/ramp pays
+  // off (a bigger play this turn shows in the end state) and overextension is
+  // punished (the opponent's reply is included). Each later tick re-searches,
+  // so the whole turn is search-driven; the greedy reflex is only the rollout
+  // estimator.
+  std::mt19937 lrng(0xC0FFEEu);  // local rng for rollouts; never touch caller's
+  std::uniform_real_distribution<double> tie(0.0, 0.01);
+  const Action* best = &acts.front();
+  double bestVal = -1e18;
+  for (const auto& a : acts) {
+    std::unique_ptr<Game> sim = g.clone();
+    if (!sim) return botStepGreedy(g, seat, rng);  // clone failed -> reflex
+    applyAction(*sim, seat, serializeAction(a));
+    rollout(*sim, seat, lrng);      // finish my turn
+    rollout(*sim, 1 - seat, lrng);  // the opponent's greedy reply
+    const double v = evalState(*sim, seat) + tie(rng);
+    if (v > bestVal) {
+      bestVal = v;
+      best = &a;
+    }
+  }
+  return serializeAction(*best);
 }
 
 }  // namespace prism

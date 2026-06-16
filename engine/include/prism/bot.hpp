@@ -8,9 +8,15 @@
 // no separate redacted view) and returns its next move as an action-JSON string
 // in the exact shape applyAction parses, so it speaks the same protocol as a
 // real client. Call botNextAction repeatedly, applying each move, until it
-// returns "" (the turn passed back to the human, or the game is over). One
-// greedy policy over Game::legalActions() -- plays cheaply, trades up, races
-// when ahead.
+// returns "" (the turn passed back to the human, or the game is over).
+//
+// Policy: a 1-ply search. For each candidate move the bot clones the game (see
+// Game::clone), simulates it, finishes the turn with a fast greedy reflex,
+// lets the opponent take a greedy reply, then scores the resulting position;
+// it picks the move leading to the best position. The greedy reflex (develop,
+// ramp mana-first, trade up, aim removal well, swing on lethal, race when
+// ahead) is the rollout estimator; the search layer fixes overextension and
+// the second-player artifact greedy alone showed.
 
 namespace prism {
 
