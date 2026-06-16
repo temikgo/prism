@@ -21,6 +21,11 @@ target_include_directories(prism_engine PUBLIC include third_party)
 add_executable(prism_replay tools/replay.cpp)
 target_link_libraries(prism_replay PRIVATE prism_engine)
 
+# Dev CLI: run many bot-vs-bot games and report seat/hero/card winrate skew.
+find_package(Threads REQUIRED)
+add_executable(prism_selfplay tools/selfplay.cpp)
+target_link_libraries(prism_selfplay PRIVATE prism_engine Threads::Threads)
+
 enable_testing()
 add_executable(prism_tests tests/tests.cpp)
 target_link_libraries(prism_tests PRIVATE prism_engine)
