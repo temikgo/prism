@@ -1,4 +1,5 @@
 #include <sstream>
+#include <unordered_map>
 
 #include "json.hpp"
 #include "prism/game.hpp"
@@ -259,7 +260,36 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
   return g;
 }
 
-std::unique_ptr<Game> Game::clone() const { return fromJson(lib_, toJson()); }
+std::unique_ptr<Game> Game::clone() const {
+  // Native deep copy -- far cheaper than a JSON round-trip (the bot clones
+  // heavily). The implicit copy constructor duplicates every zone and the token
+  // deque; the only fix-up is the raw CardDef* that board creatures / instances
+  // hold into tokenDefs_ (synthesized sprouts): those still point into THIS
+  // game's deque and must be remapped to the copy's. Library defs are shared
+  // and stable (they live in lib_), so they need no fix-up. tokenDefs_ is a
+  // deque, so element addresses in the copy are stable too.
+  auto g = std::make_unique<Game>(*this);
+  if (tokenDefs_.empty()) return g;  // common case: no synthesized tokens
+  std::unordered_map<const CardDef*, const CardDef*> remap;
+  auto io = tokenDefs_.begin();
+  auto in = g->tokenDefs_.begin();
+  for (; io != tokenDefs_.end(); ++io, ++in) remap[&*io] = &*in;
+  auto fix = [&](const CardDef*& d) {
+    auto it = remap.find(d);
+    if (it != remap.end()) d = it->second;
+  };
+  for (auto& p : g->players_) {
+    for (auto& ci : p.hand) fix(ci.def);
+    for (auto& ci : p.deck) fix(ci.def);
+    for (auto& mc : p.manaRow) fix(mc.card.def);
+    for (auto& c : p.board) fix(c.def);
+    for (auto& a : p.auras) fix(a);
+    for (auto& gd : p.graveyard) fix(gd);
+    for (auto& pe : p.pending) fix(pe.src);
+  }
+  for (auto& ci : g->scryPeek_) fix(ci.def);
+  return g;
+}
 
 std::unique_ptr<Game> Game::determinize(int forSeat, std::mt19937& rng) const {
   std::unique_ptr<Game> g = clone();
