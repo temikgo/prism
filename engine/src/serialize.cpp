@@ -261,4 +261,23 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
 
 std::unique_ptr<Game> Game::clone() const { return fromJson(lib_, toJson()); }
 
+std::unique_ptr<Game> Game::determinize(int forSeat, std::mt19937& rng) const {
+  std::unique_ptr<Game> g = clone();
+  const int opp = 1 - forSeat;
+  Player& p = g->players_[opp];
+  // The plausible pool: every non-hero card (we do not know the opponent's
+  // deck, so any designed card is fair game). v1 samples with replacement -- it
+  // ignores copy limits and cards already seen public; good enough for a first
+  // honest pass. Keep each instance's id (still unique); only its identity is
+  // resampled.
+  std::vector<const CardDef*> pool;
+  for (const auto& d : lib_.all())
+    if (d.type != CardType::Hero) pool.push_back(&d);
+  if (pool.empty()) return g;
+  std::uniform_int_distribution<std::size_t> pick(0, pool.size() - 1);
+  for (auto& ci : p.hand) ci.def = pool[pick(rng)];
+  for (auto& ci : p.deck) ci.def = pool[pick(rng)];
+  return g;
+}
+
 }  // namespace prism

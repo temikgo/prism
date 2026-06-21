@@ -335,15 +335,34 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   // estimator.
   std::mt19937 lrng(0xC0FFEEu);  // local rng for rollouts; never touch caller's
   std::uniform_real_distribution<double> tie(0.0, 0.01);
+
+  // The bot must not read the opponent's real hidden cards. Draw K determinized
+  // worlds up front (the opponent's hand/deck resampled to plausible cards),
+  // the SAME worlds reused across every candidate so the comparison is
+  // apples-to- apples (common random numbers). Each candidate is scored as its
+  // mean leaf value over those worlds -- a Monte-Carlo marginalization over
+  // what the opponent might be holding.
+  constexpr int kWorlds = 4;
+  std::vector<std::unique_ptr<Game>> worlds;
+  for (int k = 0; k < kWorlds; ++k) {
+    std::unique_ptr<Game> w = g.determinize(seat, lrng);
+    if (w) worlds.push_back(std::move(w));
+  }
+  if (worlds.empty())
+    return botStepGreedy(g, seat, rng);  // fell through -> reflex
+
   const Action* best = &acts.front();
   double bestVal = -1e18;
   for (const auto& a : acts) {
-    std::unique_ptr<Game> sim = g.clone();
-    if (!sim) return botStepGreedy(g, seat, rng);  // clone failed -> reflex
-    applyAction(*sim, seat, serializeAction(a));
-    rollout(*sim, seat, lrng);      // finish my turn
-    rollout(*sim, 1 - seat, lrng);  // the opponent's greedy reply
-    const double v = evalState(*sim, seat) + tie(rng);
+    double total = 0.0;
+    for (const auto& w : worlds) {
+      std::unique_ptr<Game> sim = w->clone();
+      applyAction(*sim, seat, serializeAction(a));
+      rollout(*sim, seat, lrng);      // finish my turn
+      rollout(*sim, 1 - seat, lrng);  // the opponent's plausible greedy reply
+      total += evalState(*sim, seat);
+    }
+    const double v = total / static_cast<double>(worlds.size()) + tie(rng);
     if (v > bestVal) {
       bestVal = v;
       best = &a;

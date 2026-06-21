@@ -251,6 +251,15 @@ class Game {
   // into the source's interned token defs; fromJson re-interns them correctly.
   std::unique_ptr<Game> clone() const;
 
+  // A determinized clone for honest (non-cheating) bot search: a deep copy with
+  // the OTHER seat's hidden zones (hand + deck) resampled to plausible cards
+  // from the library pool, so `forSeat`'s search does not read the opponent's
+  // real hand. Public state (boards, crystals, graveyard, heroes, hand/deck
+  // SIZES) is preserved; only the hidden identities change. Sample several and
+  // average to marginalize over the unknown. `forSeat`'s own zones are left
+  // intact.
+  std::unique_ptr<Game> determinize(int forSeat, std::mt19937& rng) const;
+
   Player& player(int i) { return players_[i]; }
   const Player& player(int i) const { return players_[i]; }
   int current() const { return current_; }
