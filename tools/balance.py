@@ -24,22 +24,22 @@ KW = {
     "pierce": lambda a, h, n: 0.4,
     "bypass": lambda a, h, n: 0.8 * (a / 3.0),
     "lingering": lambda a, h, n: 0.2,
-    "regen": lambda a, h, n: 0.2 * n,
+    "regen": lambda a, h, n: 0.45 * n,
     "self_lifesteal": lambda a, h, n: 0.6 * a,
     "provoke": lambda a, h, n: 0.4 + 0.1 * h,
-    "shield": lambda a, h, n: 0.9 + 0.06 * (a + h),
+    "shield": lambda a, h, n: 1.15 + 0.07 * (a + h),
     "ward": lambda a, h, n: 0.6,
     "floodlight": lambda a, h, n: 0.8,
     "photosynthesis": lambda a, h, n: 0.8 * n,
-    "germinate": lambda a, h, n: 0.6 * n,
-    "growth": lambda a, h, n: 1.5 * n,
-    "compost": lambda a, h, n: 0.7 * n,
+    "germinate": lambda a, h, n: 0.85 * n,
+    "growth": lambda a, h, n: 1.75 * n,
+    "compost": lambda a, h, n: 0.9 * n,
     "spores": lambda a, h, n: 0.9 * n,
-    "undergrowth": lambda a, h, n: 0.6 * n,
+    "undergrowth": lambda a, h, n: 0.95 * n,
     "chill": lambda a, h, n: 3.0 * n,
     "delay": lambda a, h, n: -0.3 * n,
     "stealth": lambda a, h, n: 0.2,
-    "split": lambda a, h, n: min(1.8, 0.4 * a + 0.5) * n,
+    "split": lambda a, h, n: min(2.4, 0.55 * a + 0.6) * n,
     "awaken": lambda a, h, n: 0.3,
     "decoy": lambda a, h, n: 0.2 * n,
     "ambush": lambda a, h, n: 0.5,
@@ -89,12 +89,15 @@ def power(card):
         kid = kw["id"]
         n = kw.get("n", 1)
         if kid == "resonance":
-            # Resonance snapshots +n/+n per crystal at summon. On curve you hold
-            # ~mana crystals when you play it, so it adds ~n*mana of stats -- which
-            # is why a high-cost resonance body is a bomb. Cannot be a flat coeff.
+            # Resonance snapshots +n/+n per crystal at summon. A pure n*mana slope
+            # (assuming ~mana crystals on curve) overstated dear bodies and badly
+            # understated cheap ones -- yet self-play shows resonance(1) winning
+            # ~the same (66-71%) at 3/4/6 mana: a cheap body lives longer and keeps
+            # growing as you ramp, offsetting its smaller start. So the curve is
+            # shallow, not proportional. Tier-2 self-play fit: n*(0.7*mana + 1.8).
             c = card.get("cost", {})
             mana = c.get("generic", 0) + sum(v for k, v in c.items() if k != "generic")
-            parts["kw:resonance"] = float(n * mana)
+            parts["kw:resonance"] = float(n * (0.7 * mana + 1.8))
             continue
         fn = KW.get(kid)
         if fn is None:

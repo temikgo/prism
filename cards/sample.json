@@ -320,7 +320,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 3, "green": 2 },
-    "stats": { "atk": 3, "hp": 3 },
+    "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "compost", "n": 2 }, { "id": "spores", "n": 2 }]
   },
   {
@@ -342,7 +342,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 3, "green": 2 },
-    "stats": { "atk": 4, "hp": 6 },
+    "stats": { "atk": 3, "hp": 5 },
     "keywords": [{ "id": "undergrowth", "n": 2 }]
   },
   {
@@ -589,7 +589,7 @@
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 3, "violet": 1 },
-    "stats": { "atk": 2, "hp": 2 },
+    "stats": { "atk": 2, "hp": 1 },
     "keywords": [{ "id": "split", "n": 2 }]
   },
   {
@@ -599,7 +599,7 @@
     "art": "a shifting manyfaced silhouette drawn as flat violet light-lines, not a realistic painted person, its outline fracturing into a whole crowd of faint duplicates fanning out around it",
     "type": "creature",
     "color": ["violet"],
-    "cost": { "generic": 3, "violet": 2 },
+    "cost": { "generic": 4, "violet": 2 },
     "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "split", "n": 3 }]
   },
@@ -881,7 +881,7 @@
     "art": "a young golden seedling of yellow-green light sheathed in a bright protective rind, growing sturdier by the hour",
     "type": "creature",
     "color": ["yellow", "green"],
-    "cost": { "generic": 2, "yellow": 1, "green": 1 },
+    "cost": { "generic": 3, "yellow": 1, "green": 1 },
     "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "shield" }, { "id": "growth", "n": 1 }]
   },
@@ -984,7 +984,7 @@
     "type": "creature",
     "color": ["green", "violet"],
     "cost": { "generic": 2, "green": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 3 },
+    "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "compost", "n": 1 }, { "id": "split", "n": 1 }]
   },
   {
