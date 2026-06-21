@@ -994,7 +994,7 @@
     "art": "a violet-blue mirror-surface of light rippling outward in strong concentric ripples, a creature warping and doubling across the rippling waves, one image washing away while a faint shimmering duplicate rises in its place",
     "type": "spell",
     "color": ["blue", "violet"],
-    "cost": { "generic": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 2, "blue": 1, "violet": 1 },
     "effects": [
       { "trigger": "on_play", "selector": "chosen_any_minion", "action": "mirage" },
       { "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }
