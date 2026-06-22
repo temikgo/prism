@@ -129,6 +129,7 @@ struct Config {
   std::string reportPath = "selfplay-report.json";
   std::string jsonlPath;  // per-game records; empty = none
   bool draft = false;
+  bool vsGreedy = false;  // seat 1 plays the greedy reflex (head-to-head test)
   int deckSize = 40;
   int maxCopies = 2;
 };
@@ -224,7 +225,9 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       stalled = true;
       break;
     }
-    const std::string js = botNextAction(g, seat, botRng);
+    const std::string js = (cfg.vsGreedy && seat == 1)
+                               ? botGreedyAction(g, seat, botRng)
+                               : botNextAction(g, seat, botRng);
     if (js.empty()) {  // nothing to offer mid-turn: force the pass, never spin
       if (!applyAction(g, seat, endTurn)) {
         stalled = true;
@@ -316,6 +319,8 @@ int main(int argc, char** argv) {
     const std::string a = argv[i];
     if (a == "--draft")
       cfg.draft = true;
+    else if (a == "--vsgreedy")
+      cfg.vsGreedy = true;
     else if (a == "--jsonl" && i + 1 < argc)
       cfg.jsonlPath = argv[++i];
     else if (a == "--report" && i + 1 < argc)

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sstream>
 #include <unordered_map>
 
@@ -307,6 +308,12 @@ std::unique_ptr<Game> Game::determinize(int forSeat, std::mt19937& rng) const {
   std::uniform_int_distribution<std::size_t> pick(0, pool.size() - 1);
   for (auto& ci : p.hand) ci.def = pool[pick(rng)];
   for (auto& ci : p.deck) ci.def = pool[pick(rng)];
+  // The bot's OWN deck: a player knows its contents but NOT the draw order, so
+  // reshuffle it (keep the cards, randomize the order). Otherwise the rollout
+  // peeks at its real upcoming draws -- a cheat. Hand stays (you see your
+  // hand).
+  Player& me = g->players_[forSeat];
+  std::shuffle(me.deck.begin(), me.deck.end(), rng);
   return g;
 }
 

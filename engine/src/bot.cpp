@@ -371,4 +371,8 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   return serializeAction(*best);
 }
 
+std::string botGreedyAction(const Game& g, int seat, std::mt19937& rng) {
+  return botStepGreedy(g, seat, rng);
+}
+
 }  // namespace prism

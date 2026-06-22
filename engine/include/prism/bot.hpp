@@ -27,4 +27,8 @@ class Game;
 // order) itself, since those are not in legalActions().
 std::string botNextAction(const Game& g, int seat, std::mt19937& rng);
 
+// The pure greedy reflex (no search): the bot's old brain, exposed as a weaker
+// reference policy for head-to-head strength tests (search should beat it).
+std::string botGreedyAction(const Game& g, int seat, std::mt19937& rng);
+
 }  // namespace prism
