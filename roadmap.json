@@ -1,0 +1,61 @@
+{
+  "title": "Над чем идёт работа",
+  "subtitle": "Белый луч сквозь призму — каждый трек свой луч спектра. Узлы слева направо: прошлое → настоящее → план.",
+  "tracks": [
+    {
+      "id": "engine",
+      "name": "Движок",
+      "hue": 6,
+      "nodes": [
+        { "label": "Игровой цикл и бой", "status": "done" },
+        { "label": "Ключевики и эффекты", "status": "done" },
+        { "label": "Сериализация, нативный clone", "status": "done" },
+        { "label": "Реактивные триггеры", "status": "planned" }
+      ]
+    },
+    {
+      "id": "cards",
+      "name": "Карты",
+      "hue": 45,
+      "nodes": [
+        { "label": "MVP-сет, 5 цветов", "status": "done" },
+        { "label": "Пере-кост 6 карт", "status": "done" },
+        { "label": "Нерф false_ripple", "status": "done" },
+        { "label": "Расширение сета", "status": "active" }
+      ]
+    },
+    {
+      "id": "client",
+      "name": "Клиент",
+      "hue": 135,
+      "nodes": [
+        { "label": "Оболочка: меню/комнаты/матч", "status": "done" },
+        { "label": "Арт-стиль, логотип", "status": "done" },
+        { "label": "Адаптивный UI", "status": "planned" },
+        { "label": "Звук и VFX", "status": "planned" }
+      ]
+    },
+    {
+      "id": "bot",
+      "name": "Бот / ИИ",
+      "hue": 205,
+      "nodes": [
+        { "label": "Жадный рефлекс + 1-ply", "status": "done" },
+        { "label": "Детерминизация (честная игра)", "status": "done" },
+        { "label": "MCTS-поиск", "status": "abandoned", "note": "слабее жадного — откат" },
+        { "label": "PUCT (приоры из эвристики)", "status": "planned" }
+      ]
+    },
+    {
+      "id": "infra",
+      "name": "Инфра / баланс",
+      "hue": 280,
+      "nodes": [
+        { "label": "CI, чеки, тесты", "status": "done" },
+        { "label": "Self-play на драфт-колодах", "status": "done" },
+        { "label": "Регрессия + CRN", "status": "done" },
+        { "label": "Дерево разработки", "status": "active" }
+      ]
+    }
+  ]
+}
