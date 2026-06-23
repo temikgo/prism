@@ -1,16 +1,19 @@
 {
   "title": "Над чем идёт работа",
-  "subtitle": "Белый луч сквозь призму — каждый трек свой луч спектра. Узлы слева направо: прошлое → настоящее → план.",
+  "subtitle": "Призма раскладывает свет в спектр — каждый трек свой луч. Крупные узлы — вехи, мелкие — шаги. Тупики гаснут пунктиром.",
   "tracks": [
     {
       "id": "engine",
       "name": "Движок",
       "hue": 6,
       "nodes": [
-        { "label": "Игровой цикл и бой", "status": "done" },
-        { "label": "Ключевики и эффекты", "status": "done" },
-        { "label": "Сериализация, нативный clone", "status": "done" },
-        { "label": "Реактивные триггеры", "status": "planned" }
+        { "label": "Игровой цикл и бой", "status": "done", "weight": "major" },
+        { "label": "Ключевики и эффекты", "status": "done", "weight": "major" },
+        { "label": "иллюзии/токены", "status": "done", "weight": "minor" },
+        { "label": "континуальные баффы", "status": "done", "weight": "minor" },
+        { "label": "4 героя", "status": "done", "weight": "minor" },
+        { "label": "Сериализация и clone", "status": "done", "weight": "major" },
+        { "label": "Реактивные триггеры", "status": "planned", "weight": "major" }
       ]
     },
     {
@@ -18,10 +21,12 @@
       "name": "Карты",
       "hue": 45,
       "nodes": [
-        { "label": "MVP-сет, 5 цветов", "status": "done" },
-        { "label": "Пере-кост 6 карт", "status": "done" },
-        { "label": "Нерф false_ripple", "status": "done" },
-        { "label": "Расширение сета", "status": "active" }
+        { "label": "MVP-сет, 5 цветов", "status": "done", "weight": "major" },
+        { "label": "деклон, спред N", "status": "done", "weight": "minor" },
+        { "label": "калибровка модели", "status": "done", "weight": "minor" },
+        { "label": "пере-кост 6 карт", "status": "done", "weight": "minor" },
+        { "label": "нерф false_ripple", "status": "done", "weight": "minor" },
+        { "label": "Расширение сета", "status": "active", "weight": "major" }
       ]
     },
     {
@@ -29,10 +34,13 @@
       "name": "Клиент",
       "hue": 135,
       "nodes": [
-        { "label": "Оболочка: меню/комнаты/матч", "status": "done" },
-        { "label": "Арт-стиль, логотип", "status": "done" },
-        { "label": "Адаптивный UI", "status": "planned" },
-        { "label": "Звук и VFX", "status": "planned" }
+        { "label": "Оболочка: меню/матч", "status": "done", "weight": "major" },
+        { "label": "арт-стиль", "status": "done", "weight": "minor" },
+        { "label": "Логотип-wordmark", "status": "done", "weight": "major" },
+        { "label": "рестайл экранов", "status": "done", "weight": "minor" },
+        { "label": "фикс mipmaps", "status": "done", "weight": "minor" },
+        { "label": "Адаптивный UI", "status": "planned", "weight": "major" },
+        { "label": "Звук и VFX", "status": "planned", "weight": "major" }
       ]
     },
     {
@@ -40,10 +48,12 @@
       "name": "Бот / ИИ",
       "hue": 205,
       "nodes": [
-        { "label": "Жадный рефлекс + 1-ply", "status": "done" },
-        { "label": "Детерминизация (честная игра)", "status": "done" },
-        { "label": "MCTS-поиск", "status": "abandoned", "note": "слабее жадного — откат" },
-        { "label": "PUCT (приоры из эвристики)", "status": "planned" }
+        { "label": "Жадный рефлекс", "status": "done", "weight": "major" },
+        { "label": "1-ply поиск", "status": "done", "weight": "minor" },
+        { "label": "режим Тренировка", "status": "done", "weight": "minor" },
+        { "label": "Детерминизация", "status": "done", "weight": "major" },
+        { "label": "MCTS-поиск", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
+        { "label": "PUCT", "status": "planned", "weight": "major" }
       ]
     },
     {
@@ -51,10 +61,12 @@
       "name": "Инфра / баланс",
       "hue": 280,
       "nodes": [
-        { "label": "CI, чеки, тесты", "status": "done" },
-        { "label": "Self-play на драфт-колодах", "status": "done" },
-        { "label": "Регрессия + CRN", "status": "done" },
-        { "label": "Дерево разработки", "status": "active" }
+        { "label": "CI, чеки, тесты", "status": "done", "weight": "major" },
+        { "label": "Self-play (драфт)", "status": "done", "weight": "major" },
+        { "label": "регрессия β", "status": "done", "weight": "minor" },
+        { "label": "CRN-валидатор", "status": "done", "weight": "minor" },
+        { "label": "harness vsgreedy", "status": "done", "weight": "minor" },
+        { "label": "Дерево разработки", "status": "active", "weight": "major" }
       ]
     }
   ]

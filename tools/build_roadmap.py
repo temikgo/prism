@@ -25,13 +25,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "roadmap.json")
 OUT = os.path.join(ROOT, "roadmap.svg")
 
-W = 1180
+W = 1320
 MARGIN_L = 60
 PRISM_X = 96
-LANE_X0 = 250          # where lanes (and the first node) begin
-LANE_X1 = W - 90       # where lanes end
-TOP_Y = 132
-DY = 104               # vertical gap between track lanes
+LANE_X0 = 256          # where lanes (and the first node) begin
+LANE_X1 = W - 96       # where lanes end
+TOP_Y = 134
+DY = 110               # vertical gap between track lanes
 BG = "#0c0d13"
 
 
@@ -42,6 +42,31 @@ def hex_of(hue, sat, light):
 
 def esc(s):
     return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+MAX_NODES = 9  # per-track visible cap; beyond it the oldest minor steps collapse
+
+
+def visible(nodes):
+    """Keep the picture bounded as work piles up: always show milestones (major,
+    active, abandoned) and the most recent minor steps; fold the older minor
+    steps into one "+N steps" marker at the lane start. A no-op while a track has
+    <= MAX_NODES nodes (today), so it scales without changing the current look."""
+    if len(nodes) <= MAX_NODES:
+        return nodes
+    keep = {i for i, n in enumerate(nodes)
+            if n.get("weight") == "major" or n.get("status") in
+            ("active", "abandoned")}
+    minors = [i for i, n in enumerate(nodes) if i not in keep]
+    budget = max(0, MAX_NODES - 1 - len(keep))
+    recent = set(minors[-budget:]) if budget else set()
+    dropped = [i for i in minors if i not in recent]
+    out = []
+    if dropped:
+        out.append({"label": f"+{len(dropped)} шагов", "status": "collapsed",
+                    "weight": "minor"})
+    out += [n for i, n in enumerate(nodes) if i in keep or i in recent]
+    return out
 
 
 def build():
@@ -113,13 +138,22 @@ def build():
         s.append(f'<text x="{LANE_X0}" y="{y - 16}" fill="{bright}" '
                  f'font-size="15.5" font-weight="700">{esc(tr["name"])}</text>')
 
-        nodes = tr["nodes"]
+        nodes = visible(tr["nodes"])
         k = len(nodes)
-        x0, x1 = LANE_X0 + 36, LANE_X1 - 14
+        x0, x1 = LANE_X0 + 40, LANE_X1 - 14
         for j, nd in enumerate(nodes):
             x = x0 + (x1 - x0) * (j / max(1, k - 1))
             st = nd.get("status", "planned")
+            major = nd.get("weight", "minor") == "major"
             label = esc(nd["label"])
+            if st == "collapsed":  # folded older minor steps: a faint "⋯ +N"
+                for d in (-5, 0, 5):
+                    s.append(f'<circle cx="{x + d}" cy="{y}" r="1.7" '
+                             f'fill="{dim}" opacity="0.7"/>')
+                s.append(f'<text x="{x}" y="{y + 22}" fill="#70748a" '
+                         f'font-size="9.5" text-anchor="middle" '
+                         f'opacity="0.7">{label}</text>')
+                continue
             if st == "abandoned":
                 # a pruned branch: forks down off the lane, dies in a dashed x
                 by = y + 30
@@ -143,26 +177,37 @@ def build():
                              f'font-style="italic">{esc(note)}</text>')
                 continue
 
-            # on-lane node, styled by status
-            ty = y + 26
-            anchor = "middle"
-            if st == "done":
-                s.append(f'<circle cx="{x}" cy="{y}" r="7" fill="{bright}" '
-                         f'filter="url(#glow)"/>')
-                fill, op = "#cdd0db", "1"
-            elif st == "active":
+            # on-lane node, styled by STATUS x WEIGHT. Major = a labelled
+            # milestone (big glow); minor = a small step (tiny dot, faint small
+            # label). So a card nerf never looks as weighty as the game loop.
+            if st == "active":  # the live frontier -- always prominent + ringed
                 s.append(f'<circle cx="{x}" cy="{y}" r="14" fill="none" '
                          f'stroke="{bright}" stroke-width="2" opacity="0.7"/>')
                 s.append(f'<circle cx="{x}" cy="{y}" r="8.5" fill="{bright}" '
                          f'filter="url(#glow)"/>')
-                fill, op = "#ffffff", "1"
+                lab_fill, lab_size, lab_op, lab_w = "#ffffff", 12.5, "1", "600"
+            elif st == "done":
+                if major:
+                    s.append(f'<circle cx="{x}" cy="{y}" r="8" fill="{bright}" '
+                             f'filter="url(#glow)"/>')
+                    lab_fill, lab_size, lab_op, lab_w = "#dadce5", 12.5, "1", "600"
+                else:
+                    s.append(f'<circle cx="{x}" cy="{y}" r="3.6" '
+                             f'fill="{dim}"/>')
+                    lab_fill, lab_size, lab_op, lab_w = "#9094a3", 9.5, "0.7", "400"
             else:  # planned
-                s.append(f'<circle cx="{x}" cy="{y}" r="6" fill="{BG}" '
-                         f'stroke="{dim}" stroke-width="2"/>')
-                fill, op = "#8a8ea0", "1"
-            # label below; nudge the first label right so it clears the lane name
-            s.append(f'<text x="{x}" y="{ty}" fill="{fill}" font-size="11.5" '
-                     f'text-anchor="{anchor}" opacity="{op}">{label}</text>')
+                r = 7 if major else 3.2
+                s.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{BG}" '
+                         f'stroke="{dim}" stroke-width="2" '
+                         f'opacity="{0.9 if major else 0.6}"/>')
+                if major:
+                    lab_fill, lab_size, lab_op, lab_w = "#8a8ea0", 12, "0.95", "600"
+                else:
+                    lab_fill, lab_size, lab_op, lab_w = "#70748a", 9.5, "0.6", "400"
+            ty = y + (26 if major or st == "active" else 22)
+            s.append(f'<text x="{x}" y="{ty}" fill="{lab_fill}" '
+                     f'font-size="{lab_size}" font-weight="{lab_w}" '
+                     f'text-anchor="middle" opacity="{lab_op}">{label}</text>')
 
     # --- legend ---
     ly = TOP_Y + (n - 1) * DY + 78
