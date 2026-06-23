@@ -44,6 +44,18 @@
       ]
     },
     {
+      "id": "server",
+      "name": "Сеть / сервер",
+      "hue": 160,
+      "nodes": [
+        { "label": "Протокол: вид под игрока", "status": "done", "weight": "major" },
+        { "label": "WebSocket-сервер", "status": "done", "weight": "major" },
+        { "label": "Комнаты по коду", "status": "done", "weight": "minor" },
+        { "label": "Реплеи матча", "status": "done", "weight": "minor" },
+        { "label": "Аккаунты / матчмейкинг", "status": "planned", "weight": "major" }
+      ]
+    },
+    {
       "id": "bot",
       "name": "Бот / ИИ",
       "hue": 205,
@@ -57,15 +69,23 @@
       ]
     },
     {
-      "id": "infra",
-      "name": "Инфра / баланс",
-      "hue": 280,
+      "id": "balance",
+      "name": "Баланс",
+      "hue": 258,
       "nodes": [
-        { "label": "CI, чеки, тесты", "status": "done", "weight": "major" },
         { "label": "Self-play (драфт)", "status": "done", "weight": "major" },
         { "label": "регрессия β", "status": "done", "weight": "minor" },
         { "label": "CRN-валидатор", "status": "done", "weight": "minor" },
         { "label": "harness vsgreedy", "status": "done", "weight": "minor" },
+        { "label": "Авто-тюнер β", "status": "planned", "weight": "major" }
+      ]
+    },
+    {
+      "id": "infra",
+      "name": "Инфра",
+      "hue": 312,
+      "nodes": [
+        { "label": "CI, чеки, тесты", "status": "done", "weight": "major" },
         { "label": "Дерево разработки", "status": "active", "weight": "major" }
       ]
     }
