@@ -13,6 +13,7 @@
 #include "json.hpp"
 #include "prism/bot.hpp"
 #include "prism/card.hpp"
+#include "prism/deck.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
 #include "prism/types.hpp"
@@ -1958,3 +1959,42 @@ TEST_CASE("an enemy-target spell cannot hit your own creature") {
   CHECK(g.player(0).board[0].frozenTurns == 0);
 }
 #endif
+
+TEST_CASE("deck validation rule (40 cards, <=2 copies, real non-hero ids)") {
+  CardLibrary lib;
+  lib.loadFile(PRISM_SAMPLE);
+  std::vector<std::string> pool;
+  std::string heroId;
+  for (const auto& d : lib.all()) {
+    if (d.type == CardType::Hero) {
+      if (heroId.empty()) heroId = d.id;
+    } else {
+      pool.push_back(d.id);
+    }
+  }
+  REQUIRE(static_cast<int>(pool.size()) * kMaxCopies >= kDeckSize);
+  REQUIRE_FALSE(heroId.empty());
+
+  // A legal deck: kDeckSize cards, kMaxCopies of the first ids.
+  std::vector<std::string> deck;
+  for (int i = 0; i < kDeckSize / kMaxCopies; ++i)
+    for (int c = 0; c < kMaxCopies; ++c) deck.push_back(pool[i]);
+  CHECK(validateDeck(lib, deck).ok);
+
+  std::vector<std::string> small = deck;
+  small.pop_back();
+  CHECK(validateDeck(lib, small).reason == "size");
+
+  std::vector<std::string> tooMany = deck;
+  tooMany[2] = pool[0];
+  tooMany[3] = pool[0];  // pool[0] now appears four times
+  CHECK(validateDeck(lib, tooMany).reason == "copies");
+
+  std::vector<std::string> unknown = deck;
+  unknown[0] = "no_such_card_xyz";
+  CHECK(validateDeck(lib, unknown).reason == "unknown");
+
+  std::vector<std::string> withHero = deck;
+  withHero[0] = heroId;
+  CHECK(validateDeck(lib, withHero).reason == "hero");
+}

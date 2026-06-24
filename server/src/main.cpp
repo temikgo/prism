@@ -22,6 +22,7 @@
 #include "json.hpp"
 #include "prism/bot.hpp"
 #include "prism/card.hpp"
+#include "prism/deck.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
 #include "ws.hpp"
@@ -252,6 +253,22 @@ void readLoadout(const json& j, Room& r, int seat) {
       if (id.is_string()) r.deck[seat].push_back(id.get<std::string>());
 }
 
+// A non-empty deck must be legal before a match can use it -- the server is the
+// authority, so a broken or hostile client cannot start a match with an illegal
+// deck. An empty deck is the dev-sandbox path (startMatch falls back to
+// demoDeck). Returns true if legal; otherwise sends joinError and the caller
+// rolls back any room/seat it set up.
+bool deckOk(int fd, const CardLibrary& lib,
+            const std::vector<std::string>& deck) {
+  if (deck.empty()) return true;
+  DeckCheck dc = validateDeck(lib, deck);
+  if (dc.ok) return true;
+  sendJson(fd, json{{"type", "joinError"},
+                    {"reason", "bad_deck"},
+                    {"detail", dc.reason + ":" + dc.detail}});
+  return false;
+}
+
 // Handle one lobby-phase command (create/join/leave a room).
 void handleLobby(int fd, const json& j, const CardLibrary& lib,
                  std::mt19937& rng) {
@@ -269,6 +286,10 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     r.password = pw;
     r.fd[0] = fd;
     readLoadout(j, r, 0);  // host's chosen hero + deck
+    if (!deckOk(fd, lib, r.deck[0])) {
+      g_rooms.erase(code);
+      return;
+    }
     c.phase = Phase::Waiting;
     c.room = code;
     c.seat = 0;
@@ -284,6 +305,10 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     r.fd[1] = -1;  // bot seat (no socket)
     r.vsBot = true;
     readLoadout(j, r, 0);  // the human's hero + deck; the bot keeps defaults
+    if (!deckOk(fd, lib, r.deck[0])) {
+      g_rooms.erase(code);
+      return;
+    }
     c.phase = Phase::Playing;
     c.room = code;
     c.seat = 0;
@@ -313,6 +338,10 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     }
     r.fd[1] = fd;
     readLoadout(j, r, 1);  // guest's chosen hero + deck
+    if (!deckOk(fd, lib, r.deck[1])) {
+      r.fd[1] = -1;
+      return;
+    }
     c.phase = Phase::Playing;
     c.room = code;
     c.seat = 1;

@@ -11,6 +11,7 @@ endif()
 add_library(prism_engine
   src/bot.cpp
   src/card.cpp
+  src/deck.cpp
   src/game.cpp
   src/protocol.cpp
   src/serialize.cpp
