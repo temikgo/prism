@@ -65,6 +65,7 @@ func _swap(screen: Control) -> void:
 func _go_main() -> void:
 	var m := MainMenu.new()
 	m.play_pressed.connect(_go_loadout)
+	m.decks_pressed.connect(func() -> void: _go_decks())
 	m.settings_pressed.connect(_go_settings)
 	m.quit_pressed.connect(func() -> void: get_tree().quit())
 	_swap(m)
@@ -91,7 +92,38 @@ func _go_loadout() -> void:
 		_save_settings()
 		_go_play())
 	l.back_pressed.connect(_leave_play)  # also drops a socket if one is open
+	l.create_deck.connect(func() -> void: _go_deck_builder("", _go_loadout))
 	_swap(l)
+
+
+# The deck collection (from the main menu or the loadout's "Создать колоду").
+# `return_to` is where Back -- and a finished build -- goes: the screen that
+# opened the collection, not always the main menu.
+func _go_decks(return_to: Callable = Callable()) -> void:
+	var ret := return_to if return_to.is_valid() else _go_main
+	var m := DeckManager.new()
+	# Editing from the collection returns to the collection (preserving its own
+	# return target); the collection's Back goes to whoever opened it.
+	m.edit_deck.connect(func(deck_id: String) -> void:
+		_go_deck_builder(deck_id, func() -> void: _go_decks(ret)))
+	m.back_pressed.connect(ret)
+	_swap(m)
+
+
+# Open the deck builder. `on_done` is where to go after saving or cancelling: back
+# to the collection when opened from it, or straight to the loadout when the
+# loadout's "Создать колоду" jumped here directly. A saved deck is selected.
+func _go_deck_builder(deck_id: String, on_done: Callable) -> void:
+	var b := DeckBuilder.new()
+	if deck_id != "":
+		b.setup(Decks.by_id(deck_id))
+	b.saved.connect(func(deck: Dictionary) -> void:
+		Decks.save_deck(deck)
+		chosen_deck = String(deck["id"])
+		_save_settings()
+		on_done.call())
+	b.back_pressed.connect(on_done)
+	_swap(b)
 
 
 func _go_play() -> void:

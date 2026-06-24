@@ -10,6 +10,7 @@ extends Control
 # soft rise-in on load.
 
 signal play_pressed
+signal decks_pressed
 signal settings_pressed
 signal quit_pressed
 
@@ -47,7 +48,9 @@ func _ready() -> void:
 	var play := Ui.mbtn("Играть", "primary", Ui.SIDE_ME)
 	play.pressed.connect(func() -> void: play_pressed.emit())
 	nav.add_child(play)
-	nav.add_child(Ui.mbtn("Колоды", "muted", Ui.ACC_VIOLET))
+	var decks_btn := Ui.mbtn("Колоды", "ghost", Ui.ACC_VIOLET)
+	decks_btn.pressed.connect(func() -> void: decks_pressed.emit())
+	nav.add_child(decks_btn)
 	var settings := Ui.mbtn("Настройки", "ghost", Ui.COLORLESS)
 	settings.pressed.connect(func() -> void: settings_pressed.emit())
 	nav.add_child(settings)

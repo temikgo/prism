@@ -11,6 +11,7 @@ extends Control
 
 signal confirmed(hero_id: String, deck_id: String)
 signal back_pressed
+signal create_deck  # jump straight to building a new deck
 
 const HERO_HP := 30
 
@@ -212,31 +213,39 @@ func _hero_inner(hero: Dictionary) -> Control:
 
 func _deck_column() -> Control:
 	var decks := Decks.all()
+	var content := VBoxContainer.new()
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 12)
 	if decks.is_empty():
-		var empty := CenterContainer.new()
-		var el := Ui.label("У вас нет колод —\nсобрать бой невозможно.", 16,
-			Color(0.9, 0.55, 0.55), true)
-		empty.add_child(el)
-		return _column_panel("Колоды", "0 пресетов", empty)
+		var center := CenterContainer.new()
+		center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		center.add_child(Ui.label("У вас пока нет колод.\nСоздайте колоду, чтобы играть.",
+			16, Ui.INK_DIM, true))
+		content.add_child(center)
+	else:
+		var list := VBoxContainer.new()
+		list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		list.add_theme_constant_override("separation", 12)
+		for d in decks:
+			var tile := _deck_tile(d)
+			_deck_cards[d["id"]] = tile
+			list.add_child(tile)
+		content.add_child(list)
+	var create := Ui.mbtn("Создать колоду", "ghost", Ui.ACC_VIOLET, 300)
+	create.pressed.connect(func() -> void: create_deck.emit())
+	content.add_child(create)
+	return _column_panel("Колоды", "%d %s" % [decks.size(), _decks_word(decks.size())], content)
 
-	var list := VBoxContainer.new()
-	list.add_theme_constant_override("separation", 12)
-	for d in decks:
-		var tile := _deck_tile(d)
-		_deck_cards[d["id"]] = tile
-		list.add_child(tile)
-	return _column_panel("Колоды", "%d %s" % [decks.size(), _decks_word(decks.size())], list)
 
-
-# Russian plural for "пресет" (1 пресет / 2 пресета / 5 пресетов).
+# Russian plural for "колода" (1 колода / 2 колоды / 5 колод).
 func _decks_word(n: int) -> String:
 	var n10 := n % 10
 	var n100 := n % 100
 	if n10 == 1 and n100 != 11:
-		return "пресет"
+		return "колода"
 	if n10 >= 2 and n10 <= 4 and (n100 < 10 or n100 >= 20):
-		return "пресета"
-	return "пресетов"
+		return "колоды"
+	return "колод"
 
 
 func _deck_tile(deck: Dictionary) -> Control:
