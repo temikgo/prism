@@ -117,6 +117,15 @@ def track_from_subject(s):
     return None
 
 
+def plural_commits(n):
+    n10, n100 = n % 10, n % 100
+    if n10 == 1 and n100 != 11:
+        return "коммит"
+    if 2 <= n10 <= 4 and not 12 <= n100 <= 14:
+        return "коммита"
+    return "коммитов"
+
+
 def get_commits():
     """All commits (oldest first), each assigned to the track whose files it
     touched most. Returns {track_id: [{h,at,s}...]}, t_first, t_now."""
@@ -228,7 +237,8 @@ def render_landing_scene(data, by_track, t_first, t_now):
                  f'font-size="17" font-weight="700" text-anchor="end">'
                  f'{esc(tr["name"])}</text>')
         s.append(f'<text x="{PLOT_X0 - 20}" y="{y + 16}" fill="#7e8295" '
-                 f'font-size="11.5" text-anchor="end">{len(cms)} коммитов</text>')
+                 f'font-size="11.5" text-anchor="end">'
+                 f'{len(cms)} {plural_commits(len(cms))}</text>')
         # a small colour cap where the lane begins, the spectrum lead-in
         s.append(f'<circle cx="{PLOT_X0}" cy="{y}" r="3" fill="{bright}" '
                  f'filter="url(#glow)"/>')
@@ -481,9 +491,6 @@ LANDING_TMPL = """<!DOCTYPE html>
 
   <section class="map">
     <h2>{title}</h2>
-    <p class="lead">Ось — время. Каждая точка — реальный коммит ({ncommits}
-      всего), крупные узлы — этапы проекта. Слева история, справа за линией
-      «сейчас» — план. Крестик — то, что попробовали и откатили.</p>
     <div class="mapbox">
       {svg}
     </div>
