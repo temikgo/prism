@@ -49,6 +49,7 @@ json creatureJson(const Creature& c) {
               {"baseMaxHp", c.baseMaxHp},
               {"sick", c.sick},
               {"attacked", c.attacked},
+              {"strobeUsed", c.strobeUsed},
               {"usedActive", c.usedActive},
               {"frozen", c.frozenTurns},
               {"blind", c.blindTurns},
@@ -85,6 +86,7 @@ json playerJson(const Player& p) {
   j["hero"] = p.hero ? p.hero->id : std::string{};
   j["fatigue"] = p.fatigue;
   j["placedManaThisTurn"] = p.placedManaThisTurn;
+  j["summonedThisTurn"] = p.summonedThisTurn;
   j["heroPowerUses"] = p.heroPowerUses;
   j["mulliganDone"] = p.mulliganDone;
   j["mana"] = {{"crystals", manaArr(p.mana.crystals)},
@@ -202,6 +204,7 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
     p.hero = resolve(pj.value("hero", std::string{}));
     p.fatigue = pj.value("fatigue", 0);
     p.placedManaThisTurn = pj.value("placedManaThisTurn", false);
+    p.summonedThisTurn = pj.value("summonedThisTurn", false);
     p.heroPowerUses = pj.value("heroPowerUses", 0);
     p.mulliganDone = pj.value("mulliganDone", false);
     const json& mj = pj.at("mana");
@@ -234,6 +237,7 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
       c.baseMaxHp = cj.value("baseMaxHp", c.maxHp);
       c.sick = cj.value("sick", false);
       c.attacked = cj.value("attacked", false);
+      c.strobeUsed = cj.value("strobeUsed", false);
       c.usedActive = cj.value("usedActive", false);
       c.frozenTurns = cj.value("frozen", 0);
       c.blindTurns = cj.value("blind", 0);

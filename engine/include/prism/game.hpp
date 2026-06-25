@@ -68,6 +68,7 @@ struct Creature {
                   // base)
   bool sick = true;
   bool attacked = false;
+  bool strobeUsed = false;  // Yellow strobe: spent its bonus (second) attack
   bool usedActive = false;  // spent its activated ability (germinate) this turn
   int frozenTurns = 0;      // Blue freeze: ticks down at the owner's turn end
   int blindTurns = 0;       // Yellow blind: cannot attack while > 0
@@ -82,6 +83,16 @@ struct Creature {
   // walls).
   bool canAttack() const {
     return !sick && !attacked && frozenTurns == 0 && blindTurns == 0 && atk > 0;
+  }
+
+  // Spend one attack. Yellow strobe grants a second strike per turn: the first
+  // attack only burns the strobe bonus, leaving the creature able to attack
+  // once more before `attacked` finally latches.
+  void markAttacked() {
+    if (def->hasKeyword("strobe") && !strobeUsed)
+      strobeUsed = true;
+    else
+      attacked = true;
   }
 };
 
@@ -111,6 +122,7 @@ struct Player {
   const CardDef* hero = nullptr;    // the chosen hero (its passive = a keyword)
   int fatigue = 0;                  // damage of the NEXT empty-deck draw
   bool placedManaThisTurn = false;  // one card -> mana row per turn
+  bool summonedThisTurn = false;    // played a creature yet (Violet glimmer)
   // Per-turn use counter for limited hero passives (spectral_shift, palette,
   // ...). A hero has a single passive, so there is no contention. It resets
   // each turn; a passive fires while uses are below its own per-turn limit (1
@@ -322,6 +334,12 @@ class Game {
   // and legalActions so the two never diverge.
   // Can `p` pay `cost` -- plainly, or via the Prism hero's once-per-turn shift?
   bool affordableToPlay(const Player& p, const Cost& cost) const;
+  // A card's cost as actually paid: base cost plus the Blue haze surcharge that
+  // the opponent's auras add to your spells.
+  Cost effectiveCost(const Player& p, const CardDef* def) const;
+  // Does this player have Blue birefringence (a creature or aura that forks
+  // their targeted effects onto a second target)?
+  bool ownerHasBirefringence(const Player& p) const;
   // The pool that remains after awakening `mc` from p's mana row (its own
   // crystal pays 1 of the cost in its color, decoy may zero it), or nullopt if
   // unaffordable. awaken() commits the returned pool; legalActions just checks.
@@ -341,7 +359,8 @@ class Game {
   // Apply `amount` damage to a creature, honouring shield (absorbs the
   // instance) and lingering (the wound becomes unhealable). Returns damage
   // dealt to hp.
-  int damageCreature(Creature& target, int amount, const Creature* source);
+  int damageCreature(Creature& target, int amount, const Creature* source,
+                     bool pierceShield = false);
   void healCreature(Creature& c, int amount);  // capped by maxHp - unhealable
   void buffStats(Creature& c, int n);  // permanent "+n/+n" (base atk +n)
   // Recompute every creature's effective atk from baseAtk plus the live

@@ -73,10 +73,12 @@ void Game::startTurn() {
   Player& p = players_[current_];
   p.mana.refill();
   p.placedManaThisTurn = false;
+  p.summonedThisTurn = false;
   p.heroPowerUses = 0;  // limited hero passives recharge each turn
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
+    c.strobeUsed = false;
     c.usedActive = false;
   }
   for (auto& mc : p.manaRow) mc.age += 1;  // banked cards age for Violet decoy
@@ -148,6 +150,16 @@ void Game::applyTurnStartTriggers(Player& p) {
   for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
   for (const auto* a : p.auras) ramp += a->keywordN("photosynthesis");
   if (ramp > 0) p.mana.addTemporary(Color::Colorless, ramp);
+  // Green mulch: a slow regrowth field mends your single most-wounded ally.
+  bool hasMulch = false;
+  for (const auto* a : p.auras)
+    if (a->hasKeyword("mulch")) hasMulch = true;
+  if (hasMulch) {
+    Creature* worst = nullptr;
+    for (auto& c : p.board)
+      if (c.hp < c.maxHp && (!worst || c.hp < worst->hp)) worst = &c;
+    if (worst) healCreature(*worst, 1);
+  }
 }
 
 // Freeze and blind tick down at the end of the affected creature's owner's
@@ -245,12 +257,14 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
     return false;
   CardInstance ci = p.hand[handIndex];
   const CardDef* def = ci.def;
+  // Blue haze: an enemy aura surcharges this card's cost if it is a spell.
+  const Cost cost = effectiveCost(p, def);
   // Affordable normally, or via the Prism hero's once-per-turn spectral shift?
-  bool normal = p.mana.canPay(def->cost);
+  bool normal = p.mana.canPay(cost);
   std::optional<ManaPool> shifted;
   if (!normal && p.hero && p.hero->hasKeyword("spectral_shift") &&
       p.heroPowerUses < 1)
-    shifted = shiftedPool(p.mana, def->cost);
+    shifted = shiftedPool(p.mana, cost);
   if (!normal && !shifted) return false;
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
@@ -262,11 +276,10 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
     // Honour the player's chosen generic breakdown if one was given and is
     // valid; otherwise fall back to the greedy default (which is also the only
     // result when the payment is forced).
-    if (!(genericPay && p.mana.pay(def->cost, *genericPay)))
-      p.mana.pay(def->cost);
+    if (!(genericPay && p.mana.pay(cost, *genericPay))) p.mana.pay(cost);
   } else {
     ManaPool np = *shifted;
-    np.pay(def->cost);
+    np.pay(cost);
     p.mana = np;
     p.heroPowerUses += 1;  // the spectral shift counts as a hero-power use
   }
@@ -304,6 +317,14 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
                  ? pos
                  : static_cast<int>(p.board.size());
     p.board.insert(p.board.begin() + at, nc);
+    // Violet glimmer: the first creature you play each turn slips in unseen.
+    if (!p.summonedThisTurn)
+      for (const auto* a : p.auras)
+        if (a->hasKeyword("glimmer")) {
+          p.board[at].stealthed = true;
+          break;
+        }
+    p.summonedThisTurn = true;
     // Violet split: spawn N permanent illusion copies of this card -- same atk
     // and keywords but 1 HP, normal summoning sickness. summonToken does not
     // run on_play/split, so they never re-trigger. Their only weakness is
@@ -433,20 +454,34 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (!a->canAttack()) return false;
   if (b->stealthed) return false;  // a hidden creature cannot be targeted
   if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
+  // Violet refract: an attack aimed at this creature bends onto a random other
+  // enemy creature (the strike never reaches the one that bent it).
+  if (b->def->hasKeyword("refract")) {
+    std::vector<Creature*> others;
+    for (auto& c : opp.board)
+      if (c.id != b->id && !c.stealthed) others.push_back(&c);
+    if (!others.empty()) b = others[rng_() % others.size()];
+  }
   int targetHpBefore = b->hp;
   int dealt = damageCreature(*b, a->atk, a);
   // Blind (Yellow) puts out a creature's combat damage entirely: a blinded
   // defender cannot land its blow, so it deals no retaliation. Freeze (Blue)
   // only stops a creature from initiating -- it still hits back when attacked.
   int retaliation = b->blindTurns > 0 ? 0 : b->atk;
-  damageCreature(*a, retaliation, b);  // simultaneous retaliation
+  // Yellow firststrike: light lands first -- if this blow kills the defender,
+  // it never strikes back.
+  if (a->def->hasKeyword("firststrike") && b->hp <= 0) retaliation = 0;
+  damageCreature(*a, retaliation, b);  // otherwise simultaneous
   if (a->def->hasKeyword("pierce")) {
     int overflow = dealt - targetHpBefore;
     if (overflow > 0) dealHeroDamage(opp, overflow);
   }
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt);
+  // Red cauterize: this creature's combat damage seals the wielder's hero.
+  if (a->def->hasKeyword("cauterize"))
+    me.heroHp = std::min(HeroStartHp, me.heroHp + dealt);
   a->stealthed = false;  // attacking reveals a stealthed creature
-  a->attacked = true;
+  a->markAttacked();
   checkDeaths();
   return true;
 }
@@ -462,8 +497,10 @@ bool Game::attackHero(EntityId attacker) {
   int dmg = a->atk;
   dealHeroDamage(opp, dmg);
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg);
+  if (a->def->hasKeyword("cauterize"))
+    me.heroHp = std::min(HeroStartHp, me.heroHp + dmg);
   a->stealthed = false;
-  a->attacked = true;
+  a->markAttacked();
   // Eclipse 'lighteater' (Erebus): a creature that strikes this hero has its
   // light devoured -- it permanently loses 1 ATK (down to 0).
   if (opp.hero && opp.hero->hasKeyword("lighteater") && a->baseAtk > 0) {
@@ -550,6 +587,19 @@ void Game::reactTo(const Event& e) {
          ++i, ++slot)
       summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1, slot);
   }
+  // Red sear: residual heat reaches the enemy hero as this body dies.
+  int sr = e.card->keywordN("sear");
+  if (sr > 0) dealHeroDamage(players_[1 - e.player], sr);
+  // Yellow flare: a dying flash blinds N random enemy creatures for one turn.
+  int fl = e.card->keywordN("flare");
+  if (fl > 0) {
+    Player& enemy = players_[1 - e.player];
+    std::vector<int> idx(enemy.board.size());
+    for (std::size_t i = 0; i < idx.size(); ++i) idx[i] = static_cast<int>(i);
+    std::shuffle(idx.begin(), idx.end(), rng_);
+    for (int i = 0; i < fl && i < static_cast<int>(idx.size()); ++i)
+      if (!absorbWard(enemy.board[idx[i]])) enemy.board[idx[i]].blindTurns = 1;
+  }
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
@@ -592,9 +642,12 @@ bool Game::absorbWard(Creature& t) {
   return true;
 }
 
-int Game::damageCreature(Creature& target, int amount, const Creature* source) {
+int Game::damageCreature(Creature& target, int amount, const Creature* source,
+                         bool pierceShield) {
   if (amount <= 0) return 0;
-  if (target.shield) {
+  // Blue pinpoint (a spell keyword) threads a needle-fine beam through a
+  // shield.
+  if (target.shield && !pierceShield) {
     target.shield = false;  // divine shield absorbs the whole instance
     return 0;
   }
@@ -627,13 +680,16 @@ void Game::recomputeContinuous() {
     Player& opp = players_[1 - pi];
     int enemyChill = 0;
     for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
+    int myIncand = 0;  // Red Накал: your auras add attack to your whole board
+    for (const auto* a : me.auras) myIncand += a->keywordN("incandescence");
     int allies = static_cast<int>(me.board.size());
     for (auto& c : me.board) {
       // Resonance is a summon-time snapshot (see playResolved); only
-      // undergrowth and enemy chill are live here. Undergrowth is +N per OTHER
-      // ally.
+      // undergrowth, enemy chill and own incandescence are live here.
+      // Undergrowth is +N per OTHER ally.
       int under = c.def->keywordN("undergrowth") * (allies - 1);
-      int eff = c.baseAtk + under - enemyChill;  // chill bites attack only
+      int eff =
+          c.baseAtk + under - enemyChill + myIncand;  // chill -atk, накал +atk
       c.atk = eff < 0 ? 0 : eff;
       // Undergrowth HP is continuous too: recompute the live max and carry the
       // same delta onto current hp, so damage is preserved. A shrinking board
@@ -725,6 +781,15 @@ bool Game::playTargetLegal(const CardDef* def, const Player& owner,
 
 // --- legal-action enumeration (mirrors the mutators above) -------------------
 
+Cost Game::effectiveCost(const Player& p, const CardDef* def) const {
+  Cost c = def->cost;
+  // Blue haze: each enemy haze aura makes your spells cost that much more.
+  if (def->type == CardType::Spell)
+    for (const auto* a : players_[1 - p.index].auras)
+      if (a->hasKeyword("haze")) c.generic += a->keywordN("haze", 1);
+  return c;
+}
+
 bool Game::affordableToPlay(const Player& p, const Cost& cost) const {
   if (p.mana.canPay(cost)) return true;
   // Prism spectral_shift: one foreign pip may be paid by retuning a
@@ -804,7 +869,7 @@ std::vector<Action> Game::legalActions() const {
   // (mirrors playCard). pos and genericPay are free parameters, not enumerated.
   for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
     const CardDef* def = p.hand[i].def;
-    if (!affordableToPlay(p, def->cost)) continue;
+    if (!affordableToPlay(p, effectiveCost(p, def))) continue;
     if (def->type == CardType::Creature &&
         static_cast<int>(p.board.size()) >= BoardLimit)
       continue;
@@ -908,9 +973,10 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
     if (e.selector == "enemy_hero") {
       dealHeroDamage(opp, e.value);
     } else {
+      bool pin = src && src->hasKeyword("pinpoint");  // spell: through Щит+Нимб
       for (Creature* t : selectTargets(e.selector, owner, target))
-        if (!absorbWard(*t))
-          applyLingering(*t, damageCreature(*t, e.value, nullptr), src);
+        if (pin || !absorbWard(*t))
+          applyLingering(*t, damageCreature(*t, e.value, nullptr, pin), src);
     }
   } else if (a == "destroy") {
     for (Creature* t : selectTargets(e.selector, owner, target))
@@ -961,9 +1027,44 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
     for (auto& pl : players_)
       for (auto& c : pl.board) out.push_back(&c);
   } else if (Creature* t = findSelected(selector, owner, target)) {
+    Player& opp = players_[1 - owner.index];
+    // Violet refract: an enemy effect aimed at this creature bends onto a
+    // random other enemy creature instead.
+    if (selector == "chosen_enemy_minion" && t->def->hasKeyword("refract")) {
+      std::vector<Creature*> others;
+      for (auto& c : opp.board)
+        if (c.id != t->id && !c.stealthed) others.push_back(&c);
+      if (!others.empty()) t = others[rng_() % others.size()];
+    }
     out.push_back(t);
+    // Blue birefringence: the caster's targeted effect splits onto a second
+    // random valid target of the same side (the beam is doubly refracted).
+    if (selector.rfind("chosen_", 0) == 0 && ownerHasBirefringence(owner)) {
+      std::vector<Creature*> pool;
+      auto gather = [&](Player& pl) {
+        for (auto& c : pl.board)
+          if (c.id != out[0]->id && !c.stealthed) pool.push_back(&c);
+      };
+      if (selector == "chosen_friendly_minion")
+        gather(owner);
+      else if (selector == "chosen_enemy_minion")
+        gather(opp);
+      else {
+        gather(owner);
+        gather(opp);
+      }
+      if (!pool.empty()) out.push_back(pool[rng_() % pool.size()]);
+    }
   }
   return out;
+}
+
+bool Game::ownerHasBirefringence(const Player& p) const {
+  for (const auto& c : p.board)
+    if (c.def->hasKeyword("birefringence")) return true;
+  for (const auto* a : p.auras)
+    if (a->hasKeyword("birefringence")) return true;
+  return false;
 }
 
 Creature* Game::findSelected(const std::string& selector, Player& owner,

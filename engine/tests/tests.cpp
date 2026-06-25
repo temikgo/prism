@@ -98,6 +98,43 @@ static const char* kTestCards = R"json([
   { "id": "chillaura", "name": { "ru": "Стужа-аура" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
     "keywords": [{ "id": "chill", "n": 1 }] },
+  { "id": "incandaura", "name": { "ru": "Накал-аура" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "incandescence", "n": 1 }] },
+  { "id": "cauterizer", "name": { "ru": "Заживитель" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "cauterize" }] },
+  { "id": "searling", "name": { "ru": "Дожиг" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 },
+    "keywords": [{ "id": "sear", "n": 2 }] },
+  { "id": "flareling", "name": { "ru": "Вспышка" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 },
+    "keywords": [{ "id": "flare", "n": 2 }] },
+  { "id": "firststriker", "name": { "ru": "Опережающий" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "firststrike" }] },
+  { "id": "glasscannon", "name": { "ru": "Хрусталь" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 5, "hp": 1 } },
+  { "id": "strober", "name": { "ru": "Строб" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 5 },
+    "keywords": [{ "id": "strobe" }] },
+  { "id": "mulchaura", "name": { "ru": "Подкормка" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "mulch" }] },
+  { "id": "glimmeraura", "name": { "ru": "Мерцание" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "glimmer" }] },
+  { "id": "hazeaura", "name": { "ru": "Дымка" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "haze", "n": 99 }] },
+  { "id": "refractor", "name": { "ru": "Преломитель" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
+    "keywords": [{ "id": "refract" }] },
+  { "id": "birefaura", "name": { "ru": "Раздвоение" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "birefringence" }] },
+  { "id": "pinpointbolt", "name": { "ru": "Фокус-луч" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "pinpoint" }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "damage", "value": 3 }] },
   { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }] },
@@ -1267,6 +1304,183 @@ TEST_CASE("chill aura lowers enemy attack and reverses when removed") {
   g.player(0).auras.clear();             // aura gone
   g.endTurn();                           // a turn start recomputes
   CHECK(g.player(1).board[0].atk == 3);  // attack restored
+}
+
+TEST_CASE("incandescence aura raises your own creatures' attack and reverses") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("incandaura", 30), repeat("bear", 30), 241);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 plays the накал aura (cost 0)
+  g.player(0).hand.push_back(CardInstance{901, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));  // bear
+  CHECK(g.player(0).board[0].atk == 4);  // 3 + 1 from incandescence
+  g.player(0).auras.clear();             // aura gone
+  g.endTurn();                           // a turn start recomputes
+  CHECK(g.player(0).board[0].atk == 3);  // attack restored
+}
+
+TEST_CASE("cauterize heals your hero by this creature's combat damage") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("cauterizer", 30), repeat("bear", 30), 242);
+  g.start();
+  g.player(0).heroHp = 20;  // wounded, so the heal is visible
+  REQUIRE(g.playCard(0));   // p0 plays the cauterizer (atk 3), sick
+  g.endTurn();
+  g.endTurn();                                     // back to p0, un-sick
+  REQUIRE(g.attackHero(g.player(0).board[0].id));  // 3 to the enemy face
+  CHECK(g.player(0).heroHp == 23);                 // healed by 3
+}
+
+TEST_CASE("sear burns the enemy hero when this creature dies") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("searling", 30), repeat("bear", 30), 243);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 searling (1/1, sear 2)
+  EntityId sid = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 bear (3/4), sick
+  EntityId bid = g.player(1).board[0].id;
+  g.endTurn();                          // p0
+  g.endTurn();                          // p1, bear un-sick
+  REQUIRE(g.attackCreature(bid, sid));  // bear kills searling -> sear
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);
+}
+
+TEST_CASE("flare blinds random enemy creatures when this creature dies") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("flareling", 30), repeat("bear", 30), 244);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 flareling (1/1, flare 2)
+  EntityId fid = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 bear #1
+  g.player(1).hand.push_back(CardInstance{906, lib.find("bear")});
+  REQUIRE(
+      g.playCard(static_cast<int>(g.player(1).hand.size()) - 1));  // bear #2
+  EntityId b1 = g.player(1).board[0].id;
+  g.endTurn();                         // p0
+  g.endTurn();                         // p1, bears un-sick
+  REQUIRE(g.attackCreature(b1, fid));  // kills flareling -> flare blinds 2
+  REQUIRE(g.player(1).board.size() == 2);
+  for (const auto& c : g.player(1).board) CHECK(c.blindTurns == 1);
+}
+
+TEST_CASE("firststrike skips retaliation when it kills the defender") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("firststriker", 30), repeat("glasscannon", 30), 245);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 firststriker (3/4), sick
+  EntityId fs = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 glasscannon (5/1), sick
+  EntityId gc = g.player(1).board[0].id;
+  g.endTurn();                        // p0, firststriker un-sick
+  REQUIRE(g.attackCreature(fs, gc));  // kills it before it can hit back
+  REQUIRE(g.player(1).board.empty());
+  CHECK(g.player(0).board[0].hp == 4);  // took 0, not 5
+}
+
+TEST_CASE("strobe lets a creature attack twice in one turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("strober", 30), repeat("bear", 30), 246);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 strober (2/5), sick
+  EntityId st = g.player(0).board[0].id;
+  g.endTurn();
+  g.endTurn();                // p0, un-sick
+  REQUIRE(g.attackHero(st));  // first hit
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);
+  REQUIRE(g.attackHero(st));  // strobe: second hit
+  CHECK(g.player(1).heroHp == HeroStartHp - 4);
+  CHECK_FALSE(g.attackHero(st));  // no third attack
+}
+
+TEST_CASE("mulch aura heals one wounded ally at the start of your turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("mulchaura", 30), repeat("bear", 30), 247);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 mulch aura
+  g.player(0).hand.push_back(CardInstance{907, lib.find("bear")});
+  REQUIRE(
+      g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));  // bear 3/4
+  g.player(0).board[0].hp = 2;                                     // wound it
+  g.endTurn();
+  g.endTurn();  // back to p0: turn-start mulch heals +1
+  CHECK(g.player(0).board[0].hp == 3);
+}
+
+TEST_CASE("glimmer aura hides only the first creature you play each turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("glimmeraura", 30), repeat("bear", 30), 248);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 glimmer aura
+  g.player(0).hand.push_back(CardInstance{908, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));  // 1st
+  CHECK(g.player(0).board[0].stealthed);
+  g.player(0).hand.push_back(CardInstance{909, lib.find("bear")});
+  REQUIRE(g.playCard(static_cast<int>(g.player(0).hand.size()) - 1));  // 2nd
+  CHECK_FALSE(g.player(0).board[1].stealthed);
+}
+
+TEST_CASE("haze aura surcharges the enemy's spells") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("hazeaura", 30), repeat("boltspell", 30), 249);
+  g.start();
+  REQUIRE(g.playCard(0));      // p0 plays the haze aura (haze 99)
+  g.endTurn();                 // p1's turn; boltspell (cost 0) now costs 99
+  CHECK_FALSE(g.playCard(0));  // p1 cannot afford its bolt
+}
+
+TEST_CASE("refract bends an attack onto a random other creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("refractor", 30), 250);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 bear (the attacker)
+  EntityId atk = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 refractor (1/4, refract)
+  g.player(1).hand.push_back(CardInstance{910, lib.find("bear")});
+  REQUIRE(
+      g.playCard(static_cast<int>(g.player(1).hand.size()) - 1));  // p1 bear
+  EntityId refr = g.player(1).board[0].id;
+  g.endTurn();                           // p0, attacker un-sick
+  REQUIRE(g.attackCreature(atk, refr));  // bends onto the only other creature
+  CHECK(g.player(1).board[0].id == refr);
+  CHECK(g.player(1).board[0].hp == 4);  // refractor untouched
+  CHECK(g.player(1).board[1].hp == 1);  // the bend landed here (4 - 3)
+}
+
+TEST_CASE("birefringence forks a targeted spell onto a second creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("birefaura", 30), repeat("bear", 30), 251);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 birefringence aura
+  g.endTurn();
+  REQUIRE(g.playCard(0));  // p1 bear #1
+  g.player(1).hand.push_back(CardInstance{911, lib.find("bear")});
+  REQUIRE(
+      g.playCard(static_cast<int>(g.player(1).hand.size()) - 1));  // p1 bear #2
+  g.endTurn();                                                     // p0
+  g.player(0).hand.push_back(CardInstance{912, lib.find("meltspell")});
+  EntityId v = g.player(1).board[0].id;
+  REQUIRE(
+      g.playCard(static_cast<int>(g.player(0).hand.size()) - 1, v));  // melt 2
+  CHECK(g.player(1).board[0].hp == 2);  // chosen target
+  CHECK(g.player(1).board[1].hp == 2);  // forked onto the other
+}
+
+TEST_CASE("pinpoint spell threads through shield and ward") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("pinpointbolt", 30), repeat("bear", 30), 252);
+  g.start();
+  g.endTurn();                         // p1's turn
+  REQUIRE(g.playCard(0));              // p1 bear (3/4)
+  g.player(1).board[0].shield = true;  // divine shield
+  g.player(1).board[0].warded = true;  // and a ward
+  EntityId tgt = g.player(1).board[0].id;
+  g.endTurn();                          // p0's turn
+  REQUIRE(g.playCard(0, tgt));          // pinpointbolt: 3 through both layers
+  CHECK(g.player(1).board[0].hp == 1);  // landed despite shield + ward
 }
 
 TEST_CASE("dispel strips an enemy aura and lifts its effect at once") {
