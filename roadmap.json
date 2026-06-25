@@ -13,6 +13,7 @@
         { "label": "континуальные баффы", "status": "done", "weight": "minor" },
         { "label": "4 героя", "status": "done", "weight": "minor" },
         { "label": "Сериализация и clone", "status": "done", "weight": "major" },
+        { "label": "Валидация колод 40/≤2", "status": "done", "weight": "minor" },
         { "label": "Реактивные триггеры", "status": "planned", "weight": "major" }
       ]
     },
@@ -39,6 +40,7 @@
         { "label": "Логотип-wordmark", "status": "done", "weight": "major" },
         { "label": "рестайл экранов", "status": "done", "weight": "minor" },
         { "label": "фикс mipmaps", "status": "done", "weight": "minor" },
+        { "label": "Колодостроитель", "status": "active", "weight": "major" },
         { "label": "Адаптивный UI", "status": "planned", "weight": "major" },
         { "label": "Звук и VFX", "status": "planned", "weight": "major" }
       ]
@@ -86,7 +88,7 @@
       "hue": 312,
       "nodes": [
         { "label": "CI, чеки, тесты", "status": "done", "weight": "major" },
-        { "label": "Дерево разработки", "status": "active", "weight": "major" }
+        { "label": "Дерево разработки", "status": "done", "weight": "major" }
       ]
     }
   ]
