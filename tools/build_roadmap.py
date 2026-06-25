@@ -87,6 +87,36 @@ def is_meta(p):
             or p.startswith("roadmap.") or p == ".gitignore" or p == "LICENSE")
 
 
+def track_from_subject(s):
+    # Fallback for commits that change only docs/journals (no code to score):
+    # route them to the track their MESSAGE is about, so a bot-analysis journal
+    # lands on Бот instead of the Инфра catch-all. Order = specific first; the
+    # keywords are deliberately narrow so plain doc/chore notes stay infra.
+    s = s.lower()
+
+    def has(*ws):
+        return any(w in s for w in ws)
+
+    if has("self-play", "selfplay", "winrate", "noise floor", "crn", "gih",
+           "per-card balance", "balance precision", "balance probe",
+           "balance pass"):
+        return "balance"
+    if has("bot", "mcts", "greedy", "жадн", "determiniz", "детерминиз",
+           "rollout", "puct", "lookahead", "тренировк"):
+        return "bot"
+    if has("websocket", "matchmak", "room manager", "replay", "реплей"):
+        return "server"
+    if has("app shell", "main menu", "vfx", "drag", "layout", "wordmark",
+           "анимац", "screen", "экран"):
+        return "client"
+    if has("card-rework", "keyword set", "keyword catalog", "card pack",
+           "archetype", "архетип", "re-cost", "nerf"):
+        return "cards"
+    if has("serialize", "сериализ", "clone", "combat", "движок"):
+        return "engine"
+    return None
+
+
 def get_commits():
     """All commits (oldest first), each assigned to the track whose files it
     touched most. Returns {track_id: [{h,at,s}...]}, t_first, t_now."""
@@ -114,7 +144,10 @@ def get_commits():
                 cur["w"][t] = cur["w"].get(t, 0) + ch
     by_track = {}
     for c in commits:
-        t = max(c["w"], key=c["w"].get) if c["w"] else "infra"
+        if c["w"]:
+            t = max(c["w"], key=c["w"].get)  # code decides the track
+        else:
+            t = track_from_subject(c["s"]) or "infra"  # no code -> by message
         by_track.setdefault(t, []).append(c)
     t_first = min(c["at"] for c in commits)
     t_now = max(c["at"] for c in commits)
