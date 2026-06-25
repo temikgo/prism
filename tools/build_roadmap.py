@@ -245,18 +245,15 @@ def render_landing_scene(data, by_track, at_of, t_first, t_now):
         s.append(f'<line x1="{PLOT_X0}" y1="{y}" x2="{PLOT_X1}" y2="{y}" '
                  f'stroke="{dim}" stroke-width="1.6" opacity="0.4"/>')
 
-        # commit layer: every commit a small tick in a "rug" just BELOW the lane,
-        # kept OFF the lane line so the milestone markers (drawn on the lane) can
-        # never be miscounted as commits. The count label above matches this rug,
-        # and each done phase sits on the lane right above its commit's tick.
-        ry = y + 11
+        # commit layer: every commit a small dot on the lane (hover for hash +
+        # subject). Each done phase is anchored to a commit, so its milestone
+        # marker sits right on that commit's dot.
         for c in cms:
             x = xt(c["at"])
             sub = attr(f'{c["h"]} · {dmy(c["at"])}')
             s.append(f'<g class="commit" data-label="{attr(c["s"])}" '
                      f'data-sub="{sub}">'
-                     f'<line x1="{x:.1f}" y1="{ry - 3.2:.1f}" x2="{x:.1f}" '
-                     f'y2="{ry + 3.2:.1f}" stroke="{bright}" stroke-width="1.4" '
+                     f'<circle cx="{x:.1f}" cy="{y}" r="2.1" fill="{bright}" '
                      f'opacity="0.5"/></g>')
 
         # phase layer: each done/abandoned milestone sits on the EXACT date of
@@ -270,12 +267,16 @@ def render_landing_scene(data, by_track, at_of, t_first, t_now):
         plan = [nd for nd in nodes if nd.get("status") == "planned"]
         phases = []
         for nd in past:
+            base = STATUS_RU.get(nd.get("status"), nd.get("status"))
             if nd.get("status") == "active":
                 px = NOW_X
+                nd["_sub"] = base
             elif nd.get("at") in at_of:
                 px = xt(at_of[nd["at"]])  # on its commit's real date
+                nd["_sub"] = f'{base} · {nd["at"]} · {dmy(at_of[nd["at"]])}'
             else:
                 px = xt(t_now)  # done but unanchored -> at the frontier
+                nd["_sub"] = base
             phases.append((nd, px))
         for j, nd in enumerate(plan):
             px = NOW_X + (j + 1) / (len(plan) + 1) * (PLOT_X1 - NOW_X)
@@ -336,8 +337,9 @@ def _draw_phases(s, phases, y, bright, dim):
         ly = y - (18 + r * 16)
         st = nd.get("status", "planned")
         note = nd.get("note")
+        sub = nd.get("_sub", STATUS_RU.get(st, st))
         out = [f'<g class="node" tabindex="0" data-label="{attr(nd["label"])}" '
-               f'data-sub="{attr(STATUS_RU.get(st, st))}"'
+               f'data-sub="{attr(sub)}"'
                + (f' data-note="{attr(note)}"' if note else '') + '>'] + parts
         if r > 0:  # leader line from the marker up to the stacked label
             out.append(f'<line x1="{x:.1f}" y1="{y - 9}" x2="{x:.1f}" '
@@ -371,9 +373,8 @@ def _landing_legend(s, ly):
             s.append(f'<circle cx="{gx + 7}" cy="{ly}" r="6" fill="{BG}" '
                      f'stroke="{gh}" stroke-width="2"/>')
         elif st == "commit":
-            s.append(f'<line x1="{gx + 7}" y1="{ly - 4}" x2="{gx + 7}" '
-                     f'y2="{ly + 4}" stroke="{gh}" stroke-width="1.6" '
-                     f'opacity="0.8"/>')
+            s.append(f'<circle cx="{gx + 7}" cy="{ly}" r="2.4" fill="{gh}" '
+                     f'opacity="0.7"/>')
         else:
             s.append(f'<path d="M{gx + 3},{ly - 4} L{gx + 11},{ly + 4} '
                      f'M{gx + 11},{ly - 4} L{gx + 3},{ly + 4}" stroke="{gh}" '
@@ -462,7 +463,7 @@ LANDING_TMPL = """<!DOCTYPE html>
   .node {{ cursor:pointer; outline:none; }}
   .node:hover, .node:focus-visible {{ filter:brightness(1.4); }}
   .commit {{ cursor:pointer; }}
-  .commit:hover line {{ opacity:1; stroke-width:2.6; filter:brightness(1.5); }}
+  .commit:hover circle {{ r:4; opacity:1; filter:brightness(1.5); }}
 
   #tip {{ position:fixed; pointer-events:none; z-index:20; opacity:0;
     transform:translateY(4px); transition:opacity .12s, transform .12s;
