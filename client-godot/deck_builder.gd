@@ -224,7 +224,8 @@ func _tile(id: String) -> Control:
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 4)
 
-	var holder := Control.new()
+	var holder := CardHover.new()  # shows the in-game card tooltip on hover
+	holder.card_id = id
 	holder.custom_minimum_size = Tokens.CARD_SIZE * _scale
 	holder.mouse_filter = Control.MOUSE_FILTER_STOP
 	holder.tooltip_text = CardData.name_of(id)

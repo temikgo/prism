@@ -50,4 +50,7 @@ static func default_theme() -> Theme:
 	var th := Theme.new()
 	th.default_font = REGULAR
 	th.default_font_size = 15
+	# Custom card tooltips (the deck builder) carry their own framed background;
+	# drop Godot's default dark TooltipPanel box behind them, like the board does.
+	th.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new())
 	return th
