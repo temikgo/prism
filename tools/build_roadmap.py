@@ -79,6 +79,14 @@ def track_of_path(p):
     return "infra"
 
 
+def is_meta(p):
+    # Docs / journal / generated meta touched by many commits (BACKLOG.md is
+    # often the biggest diff) -- must NOT decide a commit's track, or e.g. a bot
+    # change with a long journal entry lands in Инфра instead of Бот.
+    return (p.endswith(".md") or p.startswith("docs/")
+            or p.startswith("roadmap.") or p == ".gitignore" or p == "LICENSE")
+
+
 def get_commits():
     """All commits (oldest first), each assigned to the track whose files it
     touched most. Returns {track_id: [{h,at,s}...]}, t_first, t_now."""
@@ -98,6 +106,8 @@ def get_commits():
             parts = line.split("\t")
             if len(parts) == 3:
                 a, d, path = parts
+                if is_meta(path):
+                    continue  # journals/docs don't decide the track
                 ch = (int(a) if a.isdigit() else 0) + \
                      (int(d) if d.isdigit() else 0) + 1
                 t = track_of_path(path)
