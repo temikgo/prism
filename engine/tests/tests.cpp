@@ -121,7 +121,7 @@ static const char* kTestCards = R"json([
                   "action": "damage", "value": 99, "required": true }] },
   { "id": "flashspell", "name": { "ru": "Вспышка" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
-    "effects": [{ "trigger": "on_play", "action": "flash", "value": 1 }] },
+    "effects": [{ "trigger": "on_play", "selector": "all_enemies", "action": "blind", "value": 1 }] },
   { "id": "boltspell", "name": { "ru": "Луч-удар" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "enemy_hero",
@@ -132,7 +132,7 @@ static const char* kTestCards = R"json([
                   "action": "damage", "value": 2 }] },
   { "id": "sweepspell", "name": { "ru": "Выметание" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
-    "effects": [{ "trigger": "on_play", "action": "damage_all", "value": 2 }] },
+    "effects": [{ "trigger": "on_play", "selector": "all_creatures", "action": "damage", "value": 2 }] },
   { "id": "destroyspell", "name": { "ru": "Устранение" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
@@ -1024,7 +1024,7 @@ TEST_CASE("blind stops a creature from attacking for a turn") {
   CHECK_FALSE(g.attackHero(bear));
 }
 
-TEST_CASE("flash blinds every enemy creature") {
+TEST_CASE("blind with all_enemies selector blinds every enemy") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("flashspell", 30), repeat("bear", 30), 208);
   g.start();
@@ -1088,7 +1088,7 @@ TEST_CASE("destroy removes a creature outright") {
   CHECK(g.player(1).board.empty());
 }
 
-TEST_CASE("damage_all hits every creature on both sides") {
+TEST_CASE("damage with all_creatures selector hits both sides") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 30), repeat("smallwall", 30), 213);
   g.start();

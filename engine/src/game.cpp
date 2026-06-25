@@ -899,25 +899,21 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
   Player& opp = players_[1 - owner.index];
   const std::string& a = e.action;
   if (a == "freeze") {
-    if (Creature* t = findSelected(e.selector, owner, target))
+    for (Creature* t : selectTargets(e.selector, owner, target))
       if (!absorbWard(*t)) t->frozenTurns = e.value;
   } else if (a == "blind") {
-    if (Creature* t = findSelected(e.selector, owner, target))
+    for (Creature* t : selectTargets(e.selector, owner, target))
       if (!absorbWard(*t)) t->blindTurns = e.value;
-  } else if (a == "flash") {
-    for (auto& c : opp.board) c.blindTurns = e.value;  // blind every enemy
   } else if (a == "damage") {
-    if (e.selector == "enemy_hero")
+    if (e.selector == "enemy_hero") {
       dealHeroDamage(opp, e.value);
-    else if (Creature* t = findSelected(e.selector, owner, target))
-      if (!absorbWard(*t))
-        applyLingering(*t, damageCreature(*t, e.value, nullptr), src);
-  } else if (a == "damage_all") {
-    for (auto& pl : players_)
-      for (auto& c : pl.board)
-        applyLingering(c, damageCreature(c, e.value, nullptr), src);
+    } else {
+      for (Creature* t : selectTargets(e.selector, owner, target))
+        if (!absorbWard(*t))
+          applyLingering(*t, damageCreature(*t, e.value, nullptr), src);
+    }
   } else if (a == "destroy") {
-    if (Creature* t = findSelected(e.selector, owner, target))
+    for (Creature* t : selectTargets(e.selector, owner, target))
       if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps
   } else if (a == "draw") {
     draw(owner, e.value);
@@ -954,6 +950,20 @@ const Creature* Game::findCreature(const Player& p, EntityId id) const {
   for (const auto& c : p.board)
     if (c.id == id) return &c;
   return nullptr;
+}
+
+std::vector<Creature*> Game::selectTargets(const std::string& selector,
+                                           Player& owner, EntityId target) {
+  std::vector<Creature*> out;
+  if (selector == "all_enemies") {
+    for (auto& c : players_[1 - owner.index].board) out.push_back(&c);
+  } else if (selector == "all_creatures") {
+    for (auto& pl : players_)
+      for (auto& c : pl.board) out.push_back(&c);
+  } else if (Creature* t = findSelected(selector, owner, target)) {
+    out.push_back(t);
+  }
+  return out;
 }
 
 Creature* Game::findSelected(const std::string& selector, Player& owner,

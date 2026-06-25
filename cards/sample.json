@@ -85,7 +85,7 @@
     "color": ["red"],
     "cost": { "generic": 3, "red": 1 },
     "effects": [
-      { "trigger": "on_play", "action": "damage_all", "value": 2 }
+      { "trigger": "on_play", "action": "damage", "selector": "all_creatures", "value": 2 }
     ]
   },
   {
@@ -226,7 +226,7 @@
     "cost": { "generic": 3, "yellow": 1 },
     "stats": { "atk": 2, "hp": 2 },
     "effects": [
-      { "trigger": "on_play", "action": "flash", "value": 1 }
+      { "trigger": "on_play", "action": "blind", "selector": "all_enemies", "value": 1 }
     ]
   },
   {
@@ -239,7 +239,7 @@
     "cost": { "generic": 4, "yellow": 1 },
     "stats": { "atk": 3, "hp": 3 },
     "effects": [
-      { "trigger": "on_play", "action": "flash", "value": 1 }
+      { "trigger": "on_play", "action": "blind", "selector": "all_enemies", "value": 1 }
     ]
   },
   {
@@ -251,7 +251,7 @@
     "color": ["yellow"],
     "cost": { "generic": 2, "yellow": 1 },
     "effects": [
-      { "trigger": "on_play", "action": "flash", "value": 1 }
+      { "trigger": "on_play", "action": "blind", "selector": "all_enemies", "value": 1 }
     ]
   },
   {
@@ -767,7 +767,7 @@
     "stats": { "atk": 7, "hp": 8 },
     "keywords": [{ "id": "pierce" }, { "id": "undergrowth", "n": 1 }, { "id": "awaken" }, { "id": "delay", "n": 1 }],
     "effects": [
-      { "trigger": "on_play", "action": "flash", "value": 1 }
+      { "trigger": "on_play", "action": "blind", "selector": "all_enemies", "value": 1 }
     ]
   },
   {

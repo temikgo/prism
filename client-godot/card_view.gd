@@ -229,7 +229,7 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 		shown[String(kw.get("id", ""))] = true
 		var ci := full.find(":")
 		details.append("[b][color=#%s]%s[/color][/b]%s" % [kc, full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
-	# Effects that apply a named status (freeze/blind/flash) explain that status
+	# Effects that apply a named status (freeze/blind) explain that status
 	# too, even when the card carries no matching keyword.
 	for e in d.get("effects", []):
 		if String(e.get("trigger", "")) != "on_play":

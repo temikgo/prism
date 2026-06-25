@@ -280,6 +280,14 @@ class Game {
   Creature* findSelected(const std::string& selector, Player& owner,
                          EntityId target);
 
+  // Resolve a selector to its full target list. Single-pick selectors yield 0
+  // or 1 creature; the area selectors yield many: "all_enemies" = the
+  // opponent's board, "all_creatures" = both boards. This is what makes AoE a
+  // selector, not a separate action -- so blind/damage/freeze each have one
+  // implementation that scales from one target to a board wipe.
+  std::vector<Creature*> selectTargets(const std::string& selector,
+                                       Player& owner, EntityId target);
+
   // Phase 2: keyword/effect execution.
   void applyTurnStartTriggers(Player& p);  // regen heal, growth, photosynthesis
   void processDelayed(Player& p);    // fire Blue delay effects that are due
