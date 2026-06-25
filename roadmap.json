@@ -14,6 +14,7 @@
         { "label": "4 героя", "at": "ed31b79", "status": "done", "weight": "minor" },
         { "label": "Сериализация и clone", "at": "b26ccc3", "status": "done", "weight": "major" },
         { "label": "Валидация колод 40/≤2", "at": "30832b9", "status": "done", "weight": "minor" },
+        { "label": "Ключевики ×8 на цвет", "at": "0d47360", "status": "done", "weight": "major" },
         { "label": "Реактивные триггеры", "status": "planned", "weight": "major" }
       ]
     },
