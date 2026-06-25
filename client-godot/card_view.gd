@@ -7,7 +7,7 @@ class_name CardView
 
 # Full card visual as a fixed-size Control with everything anchored to corners, so
 # the size is constant regardless of contents (card and drag preview alike).
-static func face(def_id: String, runtime) -> Control:
+static func face(def_id: String, runtime, thumb := false) -> Control:
 	var d: Dictionary = CardData.def(def_id)
 	var has_stats: bool = d.has("stats") or (typeof(runtime) == TYPE_DICTIONARY and runtime.has("atk"))
 	var face_node := Panel.new()
@@ -30,7 +30,7 @@ static func face(def_id: String, runtime) -> Control:
 	face_node.add_child(frame)
 
 	# Art fills the whole card (full-bleed, minus the thin rim).
-	var art := Tokens.art(def_id, 0.0, Palette.primary(d))
+	var art := Tokens.art(def_id, 0.0, Palette.primary(d), thumb)
 	_anchor_inset(art, Tokens.RIM)
 	face_node.add_child(art)
 

@@ -27,7 +27,7 @@
         { "label": "калибровка модели", "status": "done", "weight": "minor" },
         { "label": "пере-кост 6 карт", "status": "done", "weight": "minor" },
         { "label": "нерф false_ripple", "status": "done", "weight": "minor" },
-        { "label": "Расширение сета", "status": "active", "weight": "major" }
+        { "label": "Расширение сета", "status": "planned", "weight": "major" }
       ]
     },
     {

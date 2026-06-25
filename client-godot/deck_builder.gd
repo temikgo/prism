@@ -434,7 +434,7 @@ func _build_face(id: String) -> void:
 	var t: Dictionary = _tiles[id]
 	if t["face"] != null:
 		return
-	var face := CardView.face(id, null)
+	var face := CardView.face(id, null, true)  # small mipmapped art_thumb
 	face.scale = Vector2(_scale, _scale)
 	t["holder"].add_child(face)
 	t["holder"].move_child(face, 0)  # behind the count badge
@@ -442,7 +442,9 @@ func _build_face(id: String) -> void:
 
 
 func _art_path(id: String) -> String:
-	return "res://art/%s.png" % CardData.display_id(id)
+	var did := CardData.display_id(id)
+	var t := "res://art_thumb/%s.png" % did  # preload the same small copy the face uses
+	return t if ResourceLoader.exists(t) else "res://art/%s.png" % did
 
 
 func _passes(id: String) -> bool:

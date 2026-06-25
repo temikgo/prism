@@ -40,8 +40,16 @@ static func gem(text: String, ring: Color, size: float, font: int = 0,
 # full-bleed (the caller anchors it). Falls back to a tinted rect if the png is
 # missing. `card_id` is resolved through the token-family fallback.
 static func art(card_id: String, px: float = 0.0,
-		fallback: Color = Color(0.1, 0.1, 0.14)) -> Control:
-	var path := "res://art/%s.png" % CardData.display_id(card_id)
+		fallback: Color = Color(0.1, 0.1, 0.14), thumb := false) -> Control:
+	# `thumb` reads a small downscaled copy (art_thumb/, mipmapped) instead of the
+	# 896x1344 master -- for grids of many cards (the deck builder) where the full
+	# art's VRAM/upload cost stalls; identical at card size. Falls back to master.
+	var did := CardData.display_id(card_id)
+	var path := "res://art/%s.png" % did
+	if thumb:
+		var tpath := "res://art_thumb/%s.png" % did
+		if ResourceLoader.exists(tpath):
+			path = tpath
 	if ResourceLoader.exists(path):
 		var tex := TextureRect.new()
 		tex.texture = load(path)
