@@ -32,7 +32,8 @@ var _f_kw := ""
 var _q := ""
 
 var _all_ids: Array = []
-var _tiles := {}          # card_id -> { root: PanelContainer, badge: Label, count: Label }
+var _scale := TILE_SCALE  # current card scale (recomputed by _relayout to fill width)
+var _tiles := {}          # card_id -> { root, holder, badge, name, face }
 var _empty_note: Label = null
 var _pool_scroll: ScrollContainer = null
 var _grid: GridContainer = null
@@ -88,6 +89,7 @@ func _ready() -> void:
 	_refresh_pool()
 	_refresh_deck()
 	call_deferred("_relayout")  # once real sizes exist, scale cards to fill the width
+	_start_preload()  # decode art off-thread, then build faces a few per frame
 
 
 # --- left: filters + scrollable pool ---------------------------------------
@@ -223,12 +225,11 @@ func _tile(id: String) -> Control:
 	col.add_theme_constant_override("separation", 4)
 
 	var holder := Control.new()
-	holder.custom_minimum_size = Tokens.CARD_SIZE * TILE_SCALE
+	holder.custom_minimum_size = Tokens.CARD_SIZE * _scale
 	holder.mouse_filter = Control.MOUSE_FILTER_STOP
 	holder.tooltip_text = CardData.name_of(id)
-	var face := CardView.face(id, null)
-	face.scale = Vector2(TILE_SCALE, TILE_SCALE)
-	holder.add_child(face)
+	# The heavy card face is built later by _start_preload, once its art has been
+	# decoded on a background thread, so opening never blocks on 85 texture loads.
 
 	# count badge, top-right over the art
 	var chip := Panel.new()
@@ -255,10 +256,10 @@ func _tile(id: String) -> Control:
 
 	var nm := Ui.label(CardData.name_of(id), 12, Ui.INK, true)
 	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	nm.custom_minimum_size = Vector2(Tokens.CARD_SIZE.x * TILE_SCALE, 0)
+	nm.custom_minimum_size = Vector2(Tokens.CARD_SIZE.x * _scale, 0)
 	col.add_child(nm)
 
-	_tiles[id] = {"root": col, "holder": holder, "badge": badge, "face": face, "name": nm}
+	_tiles[id] = {"root": col, "holder": holder, "badge": badge, "face": null, "name": nm}
 	return col
 
 
@@ -388,12 +389,59 @@ func _relayout() -> void:
 	if avail <= 0.0:
 		return
 	var cell := (avail - float(cols - 1) * hsep) / float(cols)
-	var scale := clampf(cell / Tokens.CARD_SIZE.x, 0.4, 1.0)
+	_scale = clampf(cell / Tokens.CARD_SIZE.x, 0.4, 1.0)
 	for id in _tiles:
 		var t: Dictionary = _tiles[id]
-		t["face"].scale = Vector2(scale, scale)
-		t["holder"].custom_minimum_size = Tokens.CARD_SIZE * scale
-		t["name"].custom_minimum_size = Vector2(Tokens.CARD_SIZE.x * scale, 0)
+		if t["face"] != null:  # faces are built as their art finishes decoding
+			t["face"].scale = Vector2(_scale, _scale)
+		t["holder"].custom_minimum_size = Tokens.CARD_SIZE * _scale
+		t["name"].custom_minimum_size = Vector2(Tokens.CARD_SIZE.x * _scale, 0)
+
+
+# Decode every card's art on background threads, then build the (now cheap) card
+# faces a few per frame. The screen opens instantly; the heavy PNG decode never
+# runs on the main thread, so there is no load freeze and the scroll stays smooth.
+func _start_preload() -> void:
+	var pending: Array = []
+	for id in _all_ids:
+		var path := _art_path(String(id))
+		if path != "" and ResourceLoader.exists(path):
+			ResourceLoader.load_threaded_request(path)
+			pending.append(id)
+		else:
+			_build_face(String(id))  # no art file -> cheap placeholder face now
+	while not pending.is_empty():
+		if not is_inside_tree():
+			return  # screen left mid-load; pending decodes finish harmlessly
+		var built := 0
+		var still: Array = []
+		for id in pending:
+			var path := _art_path(String(id))
+			var st := ResourceLoader.load_threaded_get_status(path)
+			if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS or built >= 4:
+				still.append(id)
+			else:
+				if st == ResourceLoader.THREAD_LOAD_LOADED:
+					ResourceLoader.load_threaded_get(path)  # finalize into the cache
+				_build_face(String(id))  # CardView.face's load() now hits the cache
+				built += 1
+		pending = still
+		await get_tree().process_frame
+
+
+func _build_face(id: String) -> void:
+	var t: Dictionary = _tiles[id]
+	if t["face"] != null:
+		return
+	var face := CardView.face(id, null)
+	face.scale = Vector2(_scale, _scale)
+	t["holder"].add_child(face)
+	t["holder"].move_child(face, 0)  # behind the count badge
+	t["face"] = face
+
+
+func _art_path(id: String) -> String:
+	return "res://art/%s.png" % CardData.display_id(id)
 
 
 func _passes(id: String) -> bool:
