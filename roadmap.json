@@ -7,13 +7,13 @@
       "name": "Движок",
       "hue": 6,
       "nodes": [
-        { "label": "Игровой цикл и бой", "status": "done", "weight": "major" },
-        { "label": "Ключевики и эффекты", "status": "done", "weight": "major" },
-        { "label": "иллюзии/токены", "status": "done", "weight": "minor" },
-        { "label": "континуальные баффы", "status": "done", "weight": "minor" },
-        { "label": "4 героя", "status": "done", "weight": "minor" },
-        { "label": "Сериализация и clone", "status": "done", "weight": "major" },
-        { "label": "Валидация колод 40/≤2", "status": "done", "weight": "minor" },
+        { "label": "Игровой цикл и бой", "at": "8486646", "status": "done", "weight": "major" },
+        { "label": "Ключевики и эффекты", "at": "6a7ea81", "status": "done", "weight": "major" },
+        { "label": "иллюзии/токены", "at": "8560488", "status": "done", "weight": "minor" },
+        { "label": "континуальные баффы", "at": "b3f7ba6", "status": "done", "weight": "minor" },
+        { "label": "4 героя", "at": "ed31b79", "status": "done", "weight": "minor" },
+        { "label": "Сериализация и clone", "at": "b26ccc3", "status": "done", "weight": "major" },
+        { "label": "Валидация колод 40/≤2", "at": "30832b9", "status": "done", "weight": "minor" },
         { "label": "Реактивные триггеры", "status": "planned", "weight": "major" }
       ]
     },
@@ -22,11 +22,12 @@
       "name": "Карты",
       "hue": 45,
       "nodes": [
-        { "label": "MVP-сет, 5 цветов", "status": "done", "weight": "major" },
-        { "label": "деклон, спред N", "status": "done", "weight": "minor" },
-        { "label": "калибровка модели", "status": "done", "weight": "minor" },
-        { "label": "пере-кост 6 карт", "status": "done", "weight": "minor" },
-        { "label": "нерф false_ripple", "status": "done", "weight": "minor" },
+        { "label": "MVP-сет, 5 цветов", "at": "be519e7", "status": "done", "weight": "major" },
+        { "label": "деклон, спред N", "at": "43cc615", "status": "done", "weight": "minor" },
+        { "label": "калибровка модели", "at": "fd70d63", "status": "done", "weight": "minor" },
+        { "label": "пере-кост 6 карт", "at": "eda4719", "status": "done", "weight": "minor" },
+        { "label": "нерф false_ripple", "at": "164921d", "status": "done", "weight": "minor" },
+        { "label": "Авто-тюнер β", "status": "planned", "weight": "major" },
         { "label": "Расширение сета", "status": "planned", "weight": "major" }
       ]
     },
@@ -35,11 +36,11 @@
       "name": "Клиент",
       "hue": 135,
       "nodes": [
-        { "label": "Оболочка: меню/матч", "status": "done", "weight": "major" },
-        { "label": "арт-стиль", "status": "done", "weight": "minor" },
-        { "label": "Логотип-wordmark", "status": "done", "weight": "major" },
-        { "label": "рестайл экранов", "status": "done", "weight": "minor" },
-        { "label": "фикс mipmaps", "status": "done", "weight": "minor" },
+        { "label": "Оболочка: меню/матч", "at": "6013f76", "status": "done", "weight": "major" },
+        { "label": "арт-стиль", "at": "50704c4", "status": "done", "weight": "minor" },
+        { "label": "Логотип-wordmark", "at": "f1dd76d", "status": "done", "weight": "major" },
+        { "label": "рестайл экранов", "at": "a85559b", "status": "done", "weight": "minor" },
+        { "label": "фикс mipmaps", "at": "058cd63", "status": "done", "weight": "minor" },
         { "label": "Колодостроитель", "status": "active", "weight": "major" },
         { "label": "Адаптивный UI", "status": "planned", "weight": "major" },
         { "label": "Звук и VFX", "status": "planned", "weight": "major" }
@@ -50,10 +51,10 @@
       "name": "Сеть / сервер",
       "hue": 160,
       "nodes": [
-        { "label": "Протокол: вид под игрока", "status": "done", "weight": "major" },
-        { "label": "WebSocket-сервер", "status": "done", "weight": "major" },
-        { "label": "Комнаты по коду", "status": "done", "weight": "minor" },
-        { "label": "Реплеи матча", "status": "done", "weight": "minor" },
+        { "label": "Протокол: вид под игрока", "at": "7ee5add", "status": "done", "weight": "major" },
+        { "label": "WebSocket-сервер", "at": "2c244bb", "status": "done", "weight": "major" },
+        { "label": "Комнаты по коду", "at": "7b3c5fe", "status": "done", "weight": "minor" },
+        { "label": "Реплеи матча", "at": "8edfeb8", "status": "done", "weight": "minor" },
         { "label": "Аккаунты / матчмейкинг", "status": "planned", "weight": "major" }
       ]
     },
@@ -62,24 +63,13 @@
       "name": "Бот / ИИ",
       "hue": 205,
       "nodes": [
-        { "label": "Жадный рефлекс", "status": "done", "weight": "major" },
-        { "label": "1-ply поиск", "status": "done", "weight": "minor" },
-        { "label": "режим Тренировка", "status": "done", "weight": "minor" },
-        { "label": "Детерминизация", "status": "done", "weight": "major" },
-        { "label": "MCTS-поиск", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
+        { "label": "Жадный рефлекс", "at": "50e237b", "status": "done", "weight": "major" },
+        { "label": "режим Тренировка", "at": "50e237b", "status": "done", "weight": "minor" },
+        { "label": "1-ply поиск", "at": "ec2f361", "status": "done", "weight": "minor" },
+        { "label": "Self-play баланс-проба", "at": "9bbe8aa", "status": "done", "weight": "minor" },
+        { "label": "Детерминизация", "at": "02a8302", "status": "done", "weight": "major" },
+        { "label": "MCTS-поиск", "at": "f09e0fa", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
         { "label": "PUCT", "status": "planned", "weight": "major" }
-      ]
-    },
-    {
-      "id": "balance",
-      "name": "Баланс",
-      "hue": 258,
-      "nodes": [
-        { "label": "Self-play (драфт)", "status": "done", "weight": "major" },
-        { "label": "регрессия β", "status": "done", "weight": "minor" },
-        { "label": "CRN-валидатор", "status": "done", "weight": "minor" },
-        { "label": "harness vsgreedy", "status": "done", "weight": "minor" },
-        { "label": "Авто-тюнер β", "status": "planned", "weight": "major" }
       ]
     },
     {
@@ -87,8 +77,8 @@
       "name": "Инфра",
       "hue": 312,
       "nodes": [
-        { "label": "CI, чеки, тесты", "status": "done", "weight": "major" },
-        { "label": "Дерево разработки", "status": "done", "weight": "major" }
+        { "label": "CI, чеки, тесты", "at": "af8e1f1", "status": "done", "weight": "major" },
+        { "label": "Дерево разработки", "at": "5f153c6", "status": "done", "weight": "major" }
       ]
     }
   ]

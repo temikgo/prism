@@ -66,7 +66,7 @@ def track_of_path(p):
     if p.endswith("bot.cpp") or p.endswith("bot.hpp"):
         return "bot"
     if "balance" in p or "selfplay" in p:
-        return "balance"
+        return "bot"  # self-play / balance harness is bot-vs-bot machinery
     if p.startswith("server/") or "protocol" in p or p.startswith("replays/"):
         return "server"
     if p.endswith("cards.json") or p.startswith("cards/") or p in (
@@ -99,10 +99,8 @@ def track_from_subject(s):
 
     if has("self-play", "selfplay", "winrate", "noise floor", "crn", "gih",
            "per-card balance", "balance precision", "balance probe",
-           "balance pass"):
-        return "balance"
-    if has("bot", "mcts", "greedy", "жадн", "determiniz", "детерминиз",
-           "rollout", "puct", "lookahead", "тренировк"):
+           "balance pass", "bot", "mcts", "greedy", "жадн", "determiniz",
+           "детерминиз", "rollout", "puct", "lookahead", "тренировк"):
         return "bot"
     if has("websocket", "matchmak", "room manager", "replay", "реплей"):
         return "server"
@@ -158,12 +156,13 @@ def get_commits():
         else:
             t = track_from_subject(c["s"]) or "infra"  # no code -> by message
         by_track.setdefault(t, []).append(c)
+    at_of = {c["h"]: c["at"] for c in commits}  # phase anchor -> commit date
     t_first = min(c["at"] for c in commits)
     t_now = max(c["at"] for c in commits)
-    return by_track, t_first, t_now
+    return by_track, at_of, t_first, t_now
 
 
-def render_landing_scene(data, by_track, t_first, t_now):
+def render_landing_scene(data, by_track, at_of, t_first, t_now):
     import datetime
     tracks = data["tracks"]
     n = len(tracks)
@@ -246,31 +245,37 @@ def render_landing_scene(data, by_track, t_first, t_now):
         s.append(f'<line x1="{PLOT_X0}" y1="{y}" x2="{PLOT_X1}" y2="{y}" '
                  f'stroke="{dim}" stroke-width="1.6" opacity="0.4"/>')
 
-        # commit layer: every commit a dot on the lane (hover for detail)
+        # commit layer: every commit a small tick in a "rug" just BELOW the lane,
+        # kept OFF the lane line so the milestone markers (drawn on the lane) can
+        # never be miscounted as commits. The count label above matches this rug,
+        # and each done phase sits on the lane right above its commit's tick.
+        ry = y + 11
         for c in cms:
             x = xt(c["at"])
             sub = attr(f'{c["h"]} · {dmy(c["at"])}')
             s.append(f'<g class="commit" data-label="{attr(c["s"])}" '
                      f'data-sub="{sub}">'
-                     f'<circle cx="{x:.1f}" cy="{y}" r="2.1" fill="{bright}" '
+                     f'<line x1="{x:.1f}" y1="{ry - 3.2:.1f}" x2="{x:.1f}" '
+                     f'y2="{ry + 3.2:.1f}" stroke="{bright}" stroke-width="1.4" '
                      f'opacity="0.5"/></g>')
 
-        # phase layer: milestones anchored to the track's real time region
-        # (so the bot's phases sit on the right, where the bot work actually
-        # happened); planned phases in the future zone. Overlap is resolved by
-        # vertically stacking labels, NOT by moving them off their time.
+        # phase layer: each done/abandoned milestone sits on the EXACT date of
+        # the commit that delivered it ("at" hash in roadmap.json) -- so a phase
+        # never floats away from its commit. Active phases sit on the now-line;
+        # planned phases spread across the future zone. Label overlap is resolved
+        # by vertically stacking, NOT by moving a marker off its commit's time.
         nodes = tr["nodes"]
         past = [nd for nd in nodes if nd.get("status") in
                 ("done", "active", "abandoned")]
         plan = [nd for nd in nodes if nd.get("status") == "planned"]
-        t_track = cms[0]["at"] if cms else t_first
         phases = []
-        for j, nd in enumerate(past):
+        for nd in past:
             if nd.get("status") == "active":
                 px = NOW_X
+            elif nd.get("at") in at_of:
+                px = xt(at_of[nd["at"]])  # on its commit's real date
             else:
-                frac = (j + 1) / (len(past) + 1)
-                px = xt(t_track + frac * (t_now - t_track))
+                px = xt(t_now)  # done but unanchored -> at the frontier
             phases.append((nd, px))
         for j, nd in enumerate(plan):
             px = NOW_X + (j + 1) / (len(plan) + 1) * (PLOT_X1 - NOW_X)
@@ -366,8 +371,9 @@ def _landing_legend(s, ly):
             s.append(f'<circle cx="{gx + 7}" cy="{ly}" r="6" fill="{BG}" '
                      f'stroke="{gh}" stroke-width="2"/>')
         elif st == "commit":
-            s.append(f'<circle cx="{gx + 7}" cy="{ly}" r="2.4" fill="{gh}" '
-                     f'opacity="0.7"/>')
+            s.append(f'<line x1="{gx + 7}" y1="{ly - 4}" x2="{gx + 7}" '
+                     f'y2="{ly + 4}" stroke="{gh}" stroke-width="1.6" '
+                     f'opacity="0.8"/>')
         else:
             s.append(f'<path d="M{gx + 3},{ly - 4} L{gx + 11},{ly + 4} '
                      f'M{gx + 11},{ly - 4} L{gx + 3},{ly + 4}" stroke="{gh}" '
@@ -379,8 +385,8 @@ def _landing_legend(s, ly):
 
 def build_landing():
     data = json.load(open(DATA, encoding="utf-8"))
-    by_track, t_first, t_now = get_commits()
-    inner, height = render_landing_scene(data, by_track, t_first, t_now)
+    by_track, at_of, t_first, t_now = get_commits()
+    inner, height = render_landing_scene(data, by_track, at_of, t_first, t_now)
     svg = (f'<svg id="map" viewBox="0 0 {LANDING_W} {height}" '
            f'xmlns="http://www.w3.org/2000/svg" '
            f'font-family="Segoe UI, Helvetica, Arial, sans-serif" '
@@ -456,7 +462,7 @@ LANDING_TMPL = """<!DOCTYPE html>
   .node {{ cursor:pointer; outline:none; }}
   .node:hover, .node:focus-visible {{ filter:brightness(1.4); }}
   .commit {{ cursor:pointer; }}
-  .commit:hover circle {{ r:4; opacity:1; filter:brightness(1.5); }}
+  .commit:hover line {{ opacity:1; stroke-width:2.6; filter:brightness(1.5); }}
 
   #tip {{ position:fixed; pointer-events:none; z-index:20; opacity:0;
     transform:translateY(4px); transition:opacity .12s, transform .12s;
