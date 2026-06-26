@@ -426,21 +426,28 @@ bool Game::activate(EntityId id) {
   if (over_) return false;
   Player& p = players_[current_];
   Creature* c = findCreature(p, id);
-  if (!c) return false;
-  int n = c->def->keywordN("germinate");
-  if (n <= 0 || c->usedActive) return false;
-  if (static_cast<int>(p.board.size()) >= BoardLimit) return false;
+  if (!c || c->usedActive) return false;
+  int germ = c->def->keywordN("germinate");
+  int spark = c->def->keywordN("spark");
+  if (germ <= 0 && spark <= 0) return false;
+  // Germinate needs an open board slot; spark (a bolt to the face) does not.
+  if (germ > 0 && static_cast<int>(p.board.size()) >= BoardLimit) return false;
   Cost one;
-  one.generic = 1;  // costs 1 crystal of any color
+  one.generic = 1;  // every activated ability costs 1 crystal of any color
   if (!p.mana.canPay(one)) return false;
   p.mana.pay(one);
   c->usedActive = true;
-  // The sprout enters right beside the creature that germinated it.
-  int idx = static_cast<int>(c - p.board.data());
-  const CardDef* sprout =
-      internToken("token_sprout" + std::to_string(n), Stats{n, n});
-  summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1, idx + 1);
-  recomputeContinuous();  // the new body shifts undergrowth totals
+  if (germ > 0) {
+    // Green germinate: a sprout enters right beside the creature.
+    int idx = static_cast<int>(c - p.board.data());
+    const CardDef* sprout =
+        internToken("token_sprout" + std::to_string(germ), Stats{germ, germ});
+    summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1, idx + 1);
+    recomputeContinuous();  // the new body shifts undergrowth totals
+  } else {
+    // Red spark: flick a glowing ember at the enemy hero for N.
+    dealHeroDamage(players_[1 - p.index], spark);
+  }
   return true;
 }
 
@@ -904,18 +911,23 @@ std::vector<Action> Game::legalActions() const {
     }
   }
 
-  // activate: Green germinate (mirrors activate). Costs 1 crystal of any color.
+  // activate: Green germinate (needs an open slot) or Red spark (just mana).
+  // Both cost 1 crystal of any colour, once per turn.
   Cost one;
   one.generic = 1;
   bool boardFull = static_cast<int>(p.board.size()) >= BoardLimit;
-  if (!boardFull && p.mana.canPay(one)) {
-    for (const Creature& c : p.board)
-      if (c.def->keywordN("germinate") > 0 && !c.usedActive) {
+  if (p.mana.canPay(one)) {
+    for (const Creature& c : p.board) {
+      if (c.usedActive) continue;
+      bool germ = c.def->keywordN("germinate") > 0 && !boardFull;
+      bool spark = c.def->keywordN("spark") > 0;
+      if (germ || spark) {
         Action a;
         a.type = Action::Type::Activate;
         a.id = c.id;
         out.push_back(a);
       }
+    }
   }
 
   // attacks: each ready creature onto any legal target, or the face (mirrors

@@ -135,6 +135,9 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "pinpoint" }],
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
                   "action": "damage", "value": 3 }] },
+  { "id": "sparker", "name": { "ru": "Искра-зверь" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 },
+    "keywords": [{ "id": "spark", "n": 2 }] },
   { "id": "dispelspell", "name": { "ru": "Разрыв" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }] },
@@ -1481,6 +1484,19 @@ TEST_CASE("pinpoint spell threads through shield and ward") {
   g.endTurn();                          // p0's turn
   REQUIRE(g.playCard(0, tgt));          // pinpointbolt: 3 through both layers
   CHECK(g.player(1).board[0].hp == 1);  // landed despite shield + ward
+}
+
+TEST_CASE("spark activates for N damage to the enemy hero, once per turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("sparker", 30), repeat("bear", 30), 253);
+  g.start();
+  REQUIRE(g.playCard(0));  // p0 sparker (cost 0, spark 2)
+  EntityId sp = g.player(0).board[0].id;
+  g.player(0).mana.addCrystal(Color::Colorless);  // one crystal to spend
+  REQUIRE(g.activate(sp));                        // pay 1 -> 2 to the face
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);
+  g.player(0).mana.addCrystal(Color::Colorless);
+  CHECK_FALSE(g.activate(sp));  // already spent its activation this turn
 }
 
 TEST_CASE("dispel strips an enemy aura and lifts its effect at once") {
