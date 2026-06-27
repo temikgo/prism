@@ -1678,7 +1678,7 @@
     "id": "prismatic_the_truce",
     "name": { "ru": "Перемирие", "en": "The Truce" },
     "text": { "ru": "Опусти клинок — и оба уйдём богаче." },
-    "art": "two rival duelists of light lowering their weapons and clasping hands across a glowing five-colour prism, a rainbow truce-banner above -- red, yellow, green, blue and violet in balance, none dominant",
+    "art": "two crossed weapons of light lowering as a rainbow truce-banner unfurls between two glowing camps -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
@@ -1687,7 +1687,7 @@
     "id": "prismatic_the_split",
     "name": { "ru": "Делёж", "en": "The Split" },
     "text": { "ru": "Я делю — ты выбираешь. Дели честно." },
-    "art": "a pair of hands dividing a hoard of glowing five-colour cards into two equal stacks and offering one forward -- balanced red, yellow, green, blue and violet light, none dominant",
+    "art": "a hoard of glowing five-colour cards cleanly split into two equal stacks by a beam of light, one stack pushed forward -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
@@ -1724,7 +1724,7 @@
     "id": "prismatic_prism_mirror",
     "name": { "ru": "Призма-Зеркало", "en": "Prism Mirror" },
     "text": { "ru": "Бей в лицо — попадёшь в своё." },
-    "art": "a towering mirror-creature of five-colour glass that hurls every blow back as a beam of the same hue at the attacker -- balanced red, yellow, green, blue and violet, none dominant",
+    "art": "a towering mirror-golem construct of five-colour glass that hurls every blow back as a beam of the same hue at the attacker -- balanced red, yellow, green, blue and violet, none dominant",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
@@ -1734,7 +1734,7 @@
     "id": "prismatic_the_standoff",
     "name": { "ru": "Противостояние", "en": "The Standoff" },
     "text": { "ru": "Удар или защита — оба гадают." },
-    "art": "two duelists facing off across a tense five-colour line, each hand hidden -- strike or guard, a prismatic standoff in balanced red, yellow, green, blue and violet, none dominant",
+    "art": "two crossed five-colour beams locked hard against each other across a tense glowing line -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
@@ -1743,7 +1743,7 @@
     "id": "prismatic_prism_vanguard",
     "name": { "ru": "Призма-Авангард", "en": "Prism Vanguard" },
     "text": { "ru": "Под его знаменем всякий новобранец — гигант." },
-    "art": "a rainbow vanguard-commander of light raising a banner, lesser light-soldiers swelling larger in its presence -- balanced red, yellow, green, blue and violet, none dominant",
+    "art": "a rainbow vanguard-commander of light raising a banner, lesser light-soldiers swelling larger in its presence -- balanced red, yellow, green, blue and violet, none dominant, the whole scene drawn as flat glowing light-lines, not realistic painted persons",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
@@ -1762,7 +1762,7 @@
     "id": "prismatic_the_auction",
     "name": { "ru": "Аукцион", "en": "The Auction" },
     "text": { "ru": "Сколько здоровья не жалко за победу?" },
-    "art": "an auctioneer-figure of five-colour light raising a gavel over a glowing prize, bids of life-light rising from two rival bidders -- balanced red, yellow, green, blue and violet, none dominant",
+    "art": "a glowing five-colour gavel raised over a radiant prize, two rising columns of life-light as competing bids -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
