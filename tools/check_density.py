@@ -130,7 +130,9 @@ def main():
     # clone. Stats differentiate creatures, so this mostly catches auras/spells.
     nseen = {}
     for c in cards:
-        if c.get("type") == "hero":
+        # pentas are bespoke stubs (uniqueness lives in their engine effect, not
+        # the JSON), so empty 5-colour stubs are exempt from the near-dup rule.
+        if c.get("type") == "hero" or len(c.get("color", [])) >= 5:
             continue
         sig = json.dumps({
             "type": c.get("type"), "color": sorted(c.get("color", [])),
