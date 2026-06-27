@@ -923,10 +923,10 @@
     "keywords": [{ "id": "awaken" }]
   },
   {
-    "id": "violet_sleeper_agent",
-    "name": { "ru": "Спящий Лазутчик", "en": "Sleeper Agent" },
+    "id": "violet_latent_prowler",
+    "name": { "ru": "Дремлющий Лазутчик", "en": "Latent Prowler" },
     "text": { "ru": "Прячется среди кристаллов, как свой." },
-    "art": "a cloaked infiltrator-beast of violet ray-light disguised among the mana crystals, ready to wake",
+    "art": "a prowling cloaked beast of violet ray-light lying low among the mana crystals, ready to wake",
     "type": "creature",
     "color": ["violet"],
     "cost": { "generic": 2, "violet": 1 },
