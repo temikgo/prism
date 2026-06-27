@@ -28,6 +28,7 @@
         { "label": "калибровка модели", "at": "fd70d63", "status": "done", "weight": "minor" },
         { "label": "пере-кост 6 карт", "at": "eda4719", "status": "done", "weight": "minor" },
         { "label": "нерф false_ripple", "at": "164921d", "status": "done", "weight": "minor" },
+        { "label": "Сет v2: 150 карт, баланс без выбросов", "at": "432629c", "status": "done", "weight": "major" },
         { "label": "Авто-тюнер β", "status": "planned", "weight": "major" },
         { "label": "Расширение сета", "status": "planned", "weight": "major" }
       ]
@@ -70,6 +71,7 @@
         { "label": "Self-play баланс-проба", "at": "9bbe8aa", "status": "done", "weight": "minor" },
         { "label": "Детерминизация", "at": "02a8302", "status": "done", "weight": "major" },
         { "label": "MCTS-поиск", "at": "f09e0fa", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
+        { "label": "Метрика confirmed=0 + бот-фиксы", "at": "432629c", "status": "done", "weight": "major" },
         { "label": "PUCT", "status": "planned", "weight": "major" }
       ]
     },
