@@ -2075,36 +2075,49 @@ TEST_CASE("fuzz: random games hold invariants and legalActions stays sound") {
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
   lib.loadFile(PRISM_SAMPLE);
-  CHECK(lib.size() >= 6);  // monos, bicolor pairs, neutrals, penta and heroes
-  const CardDef* glint = lib.find("red_stinging_glint");
-  REQUIRE(glint != nullptr);
-  CHECK(glint->type == CardType::Creature);
-  CHECK(glint->cost.generic == 0);
-  CHECK(glint->cost.pips[idx(Color::Red)] == 1);
-  CHECK(glint->stats.atk == 2);
-  CHECK(glint->stats.hp == 1);
-  REQUIRE(glint->keywords.size() == 1);
-  CHECK(glint->keywords[0].id == "pierce");
+  CHECK(lib.size() >=
+        160);  // 4 heroes + 160 cards (mono/bicolor/colorless/penta)
 
-  const CardDef* bonfire = lib.find("red_undying_bonfire");
-  REQUIRE(bonfire != nullptr);
-  REQUIRE(bonfire->keywords.size() == 2);
-  CHECK(bonfire->keywords[0].id == "regen");
-  REQUIRE(bonfire->keywords[0].n.has_value());
-  CHECK(bonfire->keywords[0].n.value() == 2);
+  // mono creature carrying a single keyword
+  const CardDef* wasp = lib.find("red_barbed_wasp");
+  REQUIRE(wasp != nullptr);
+  CHECK(wasp->type == CardType::Creature);
+  CHECK(wasp->colors.size() == 1);
+  CHECK(wasp->colors[0] == Color::Red);
+  CHECK(wasp->cost.generic == 1);
+  CHECK(wasp->cost.pips[idx(Color::Red)] == 1);
+  CHECK(wasp->stats.atk == 2);
+  CHECK(wasp->stats.hp == 1);
+  REQUIRE(wasp->keywords.size() == 1);
+  CHECK(wasp->keywords[0].id == "pierce");
 
-  const CardDef* gleam = lib.find("violet_dim_gleam");
-  REQUIRE(gleam != nullptr);
-  CHECK(gleam->colors.size() == 1);
-  CHECK(gleam->colors[0] == Color::Violet);
-  CHECK(gleam->cost.pips[idx(Color::Violet)] == 1);
+  // two-colour creature with an N-keyword
+  const CardDef* golem = lib.find("green_violet_amethyst_golem");
+  REQUIRE(golem != nullptr);
+  CHECK(golem->colors.size() == 2);
+  CHECK(golem->cost.generic == 2);
+  CHECK(golem->cost.pips[idx(Color::Green)] == 1);
+  CHECK(golem->cost.pips[idx(Color::Violet)] == 1);
+  REQUIRE(golem->keywords.size() == 2);
+  CHECK(golem->keywords[0].id == "resonance");
+  REQUIRE(golem->keywords[0].n.has_value());
+  CHECK(golem->keywords[0].n.value() == 1);
 
-  const CardDef* knight = lib.find("red_yellow_sunset_knight");
-  REQUIRE(knight != nullptr);
-  CHECK(knight->colors.size() == 2);
-  CHECK(knight->cost.generic == 1);
-  CHECK(knight->cost.pips[idx(Color::Red)] == 1);
-  CHECK(knight->cost.pips[idx(Color::Yellow)] == 1);
+  // colourless body (no colour pips)
+  const CardDef* pebble = lib.find("neutral_pebble_golem");
+  REQUIRE(pebble != nullptr);
+  CHECK(pebble->colors.size() == 0);
+  CHECK(pebble->cost.generic == 0);
+
+  // five-colour penta
+  const CardDef* echo = lib.find("prismatic_echo_beast");
+  REQUIRE(echo != nullptr);
+  CHECK(echo->colors.size() == 5);
+  CHECK(echo->cost.generic == 3);
+  CHECK(echo->cost.pips[idx(Color::Red)] == 1);
+  CHECK(echo->cost.pips[idx(Color::Violet)] == 1);
+  CHECK(echo->stats.atk == 3);
+  CHECK(echo->stats.hp == 4);
 }
 
 TEST_CASE("a duplicate aura cannot be played") {

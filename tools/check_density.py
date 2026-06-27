@@ -1,10 +1,11 @@
 import json
 import os
+import re
 import sys
 from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT = os.path.join(ROOT, "cards", "sample_v2.json")
+DEFAULT = os.path.join(ROOT, "cards", "sample.json")
 
 CATALOG = {
     "red": ["pierce", "bypass", "regen", "self_lifesteal", "incandescence", "cauterize", "sear", "spark"],
@@ -109,10 +110,13 @@ def main():
             counts[k] += 1
             per_tier[tier][k] += 1
 
-    # clones (R5): identical full package
+    # clones (R5): identical full package. Pentas are bespoke stubs whose
+    # uniqueness lives in their engine effect, not the JSON, so two empty
+    # 5-colour stubs that happen to share a cost are not real clones -- exempt
+    # them here exactly as the near-dup check below does.
     seen = {}
     for c in cards:
-        if c.get("type") == "hero":
+        if c.get("type") == "hero" or len(c.get("color", [])) >= 5:
             continue
         sig = json.dumps({
             "type": c.get("type"), "color": sorted(c.get("color", [])),
@@ -143,6 +147,30 @@ def main():
         if sig in nseen:
             errors.append(f"near-duplicate (differ only by cost): {c['id']} ~ {nseen[sig]}")
         nseen[sig] = c["id"]
+
+    # name reflection: every significant word of a card's EN name must be echoed
+    # in its art subject, so the picture actually depicts the name (no "Vampire
+    # Moth" drawn as a plain moth, no "Thick Fog" without fog). Applies to
+    # creatures, spells and auras. Pentas are bespoke stubs (no art subject yet),
+    # heroes exempt.
+    NAME_STOP = {"of", "the", "a", "an", "and", "to", "in", "on", "with", "at", "its", "it"}
+
+    def nwords(s):
+        return [w for w in re.findall(r"[a-z']+", s.lower()) if w not in NAME_STOP]
+
+    def nstem(w):
+        return w.rstrip("s") if len(w) > 4 else w
+
+    for c in cards:
+        if c.get("type") not in ("creature", "spell", "aura") or len(c.get("color", [])) >= 5:
+            continue
+        en = (c.get("name") or {}).get("en", "")
+        art = c.get("art", "").lower()
+        artw = {nstem(w) for w in nwords(art)}
+        for w in nwords(en):
+            s = nstem(w)
+            if s not in artw and not any(s in a or a in s for a in artw):
+                errors.append(f"{c['id']}: name word '{w}' not reflected in art")
 
     # report
     n = len([c for c in cards if c.get("type") != "hero"])

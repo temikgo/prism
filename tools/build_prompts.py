@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +33,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TONE = {
     "red": "red and crimson",
     "yellow": "gold and amber",
-    "green": "emerald green",
+    "green": "lime green and grass green",
     "blue": "deep blue and cyan",
     "violet": "violet and purple",
 }
@@ -82,12 +83,13 @@ CREATURE_HEAD = (
     "tracing its shape, "
 )
 EFFECT_HEAD = (
-    "a " + _FLAT + " of an effect of pure {g}light, an abstract phenomenon of "
-    "{g}rays and {g}energy with no creature, "
+    "a " + _FLAT + " of glowing {g}light, the subject rendered in bold {g}light "
+    "and {g}energy, no creature or person, "
 )
 TAIL = (
     ", on a deep moody flat background of swirling {g}energy in the same palette "
-    "with drifting {g}light-motes, clean and graphic, centered composition"
+    "with drifting {g}light-motes, clean and graphic, the subject large and "
+    "centered, filling the frame"
 )
 HERO_STYLE = (
     "a " + _FLAT + " character portrait, glowing light accents tracing the "
@@ -116,11 +118,10 @@ TOKENS = [
 
 def palette(colors):
     if not colors:
-        return "a strict pure white and silver monochrome palette, no strong hue, no other colours"
+        return "a clean monochrome palette of pure bright neutral white and soft pale grey, crisp neutral white, no other hue"
     if len(colors) >= 5:
         return "the full spectrum in balanced rainbow, every colour of light, none dominant"
     if len(colors) == 1:
-        # mono: any shade of the colour, freely varied
         return "a palette of " + RANGE[colors[0]] + ", and no other colour"
     # Multicolor: enforce balance so a colour-skewed subject can't render mono.
     tones = " and ".join(TONE[c] for c in colors)
@@ -134,8 +135,12 @@ def _glow(cols):
     if len(cols) >= 5:
         return "rainbow "
     if not cols:
-        return "white "
-    return ""                      # two-colour: the balanced palette handles it
+        return "neutral white "
+    # two-colour: bind BOTH colours onto every "light/energy/motes" mention.
+    # An empty glow let MJ default the positive light to blue and let whichever
+    # colour the subject implied dominate; naming both, evenly, is what actually
+    # locks a balanced two-tone (a soft --no never could).
+    return " and ".join(cols) + " "
 
 
 def style_for(card):
@@ -144,9 +149,33 @@ def style_for(card):
     is_effect = card["type"] in ("spell", "aura")
     head = (EFFECT_HEAD if is_effect else CREATURE_HEAD).format(g=g)
     flags = EFFECT_FLAGS if is_effect else FLAGS
-    if len(cols) == 1:
-        flags = flags + ", " + ", ".join(NEG[c] for c in NEG if c != cols[0])
-    return head + palette(cols) + TAIL.format(g=g), flags
+    # Colour lock for 1- and 2-colour cards: exclude every colour NOT in the
+    # card's identity, plus the grey/steel tones the moody background drifts into
+    # (e.g. red+yellow leaking a blue-grey). Colourless (white/silver) and penta
+    # (rainbow) keep their own palettes, so they get no colour --no list.
+    if len(cols) < 5:
+        # Bar every hue NOT in the card's identity. Colourless (white/silver) bars
+        # all five; coloured cards also bar the grey drift. Penta keeps its rainbow.
+        excl = [NEG[c] for c in NEG if c not in cols]
+        if cols:
+            excl.append("grey")
+        # Green sits next to cyan; without blue in the identity MJ drifts green
+        # into teal (worst with yellow). Bar the cyan family -- but only when blue
+        # is absent, so green-blue and mono-blue keep their teal.
+        if "green" in cols and "blue" not in cols:
+            excl += ["cyan", "teal"]
+        flags = flags + ", " + ", ".join(excl)
+    # NOTE: deliberately NO positive "no blue" clause. MJ does not honour negation
+    # in the prompt body -- the literal token "blue" there biases TOWARD blue, so
+    # earlier "never a blue background" wording actively summoned it. Blue is
+    # banned only where negation works: the --no list above.
+    # A card whose SUBJECT is a built structure (wall/rampart/barricade) must not
+    # also --no "building, architecture" -- that fights its own subject. Drop those
+    # two terms for such cards.
+    if any(w in card.get("art", "").lower() for w in ("wall", "rampart", "barricade", "lighthouse", "tower")):
+        flags = flags.replace("building, architecture, ", "")
+    body = head + palette(cols) + TAIL.format(g=g)
+    return body, flags
 
 
 def entry(card, style, flags):
@@ -162,6 +191,32 @@ def entry(card, style, flags):
         "```",
         "",
     ]
+
+
+_BLUE_RE = re.compile(r"\b(blue|cyan|teal|azure|turquoise)\b")
+
+
+def verify_blue(cards):
+    """Self-certify the prompt-side blue defence for every non-blue, non-penta
+    card: (1) NO blue/cyan/teal word anywhere in the subject+body (negation lives
+    only in --no, since the token in the body biases toward blue), (2) --no bars
+    blue, (3) a green card without blue also bars cyan/teal. Returns violations so
+    a regression fails loudly at generation time."""
+    bad = []
+    for c in cards:
+        cols = c.get("color", [])
+        if c.get("type") == "hero" or len(cols) >= 5 or "blue" in cols:
+            continue
+        body, flags = style_for(c)
+        subj = (c.get("art", "") + ", " + body).lower()
+        neg = flags.split("--no", 1)[1] if "--no" in flags else ""
+        if _BLUE_RE.search(subj):
+            bad.append((c["id"], "blue word in subject/body"))
+        if "blue" not in neg:
+            bad.append((c["id"], "--no missing blue"))
+        if "green" in cols and ("cyan" not in neg or "teal" not in neg):
+            bad.append((c["id"], "green w/o cyan+teal exclusion"))
+    return bad
 
 
 def main():
@@ -203,6 +258,14 @@ def main():
     dest = os.path.join(ROOT, "ART_PROMPTS.md")
     open(dest, "w", encoding="utf-8").write("\n".join(out))
     print("wrote " + dest + " with " + str(n) + " prompts")
+
+    issues = verify_blue(pool + TOKENS)
+    if issues:
+        print("blue-defence: " + str(len(issues)) + " issue(s)")
+        for cid, why in issues:
+            print("  - " + cid + ": " + why)
+    else:
+        print("blue-defence: OK (every non-blue card locked against blue)")
 
 
 if __name__ == "__main__":
