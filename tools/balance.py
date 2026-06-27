@@ -45,6 +45,19 @@ KW = {
     "ambush": lambda a, h, n: 0.5,
     "refract": lambda a, h, n: 0.6,
     "haunt": lambda a, h, n: min(1.5, 0.45 * a + 0.2),
+    # Set-v2 keywords (Tier-1 anchors; self-play beta is the real arbiter).
+    "incandescence": lambda a, h, n: 2.2 * n,   # aura: +n atk to your whole board
+    "cauterize": lambda a, h, n: 0.5 * a,       # combat dmg heals your hero
+    "sear": lambda a, h, n: 0.5 * n,            # on death: n to enemy hero
+    "spark": lambda a, h, n: 0.9 * n,           # active reach, repeatable
+    "firststrike": lambda a, h, n: 0.4 + 0.12 * a,
+    "strobe": lambda a, h, n: 0.6 * a,          # attacks twice
+    "flare": lambda a, h, n: 0.4 * n,           # on death: blind n random
+    "mulch": lambda a, h, n: 0.6,               # aura: heal a wounded ally each turn
+    "haze": lambda a, h, n: 0.7 * n,            # aura: enemy spells cost +n
+    "birefringence": lambda a, h, n: 0.6,       # your targeted spells fork
+    "pinpoint": lambda a, h, n: 0.3,            # spell dmg ignores shield/ward
+    "glimmer": lambda a, h, n: 0.5,             # aura: first summon each turn stealthed
     "spectral_shift": lambda a, h, n: 0.0,
     "umbra": lambda a, h, n: 0.0,
     "clairvoyance": lambda a, h, n: 0.0,
@@ -94,10 +107,13 @@ def power(card):
             # understated cheap ones -- yet self-play shows resonance(1) winning
             # ~the same (66-71%) at 3/4/6 mana: a cheap body lives longer and keeps
             # growing as you ramp, offsetting its smaller start. So the curve is
-            # shallow, not proportional. Tier-2 self-play fit: n*(0.7*mana + 1.8).
+            # shallow, not proportional. The old base (n*(0.7*mana+1.8)) read every
+            # resonance(1) body at +1.5 R -- but 66-71% is a payoff, not "broken";
+            # a flatter n*(0.5*mana+0.6) lands resonance(1) near fair while a cheap
+            # body still scores a touch above a dear one.
             c = card.get("cost", {})
             mana = c.get("generic", 0) + sum(v for k, v in c.items() if k != "generic")
-            parts["kw:resonance"] = float(n * (0.7 * mana + 1.8))
+            parts["kw:resonance"] = float(n * (0.5 * mana + 0.6))
             continue
         fn = KW.get(kid)
         if fn is None:
@@ -107,9 +123,15 @@ def power(card):
     for eff in card.get("effects", []):
         a = eff["action"]
         v = eff.get("value", 0)
+        sel = eff.get("selector", "")
         fn = EFF.get(a)
         key = "eff:" + a
         val = fn(v) if fn else 0.0
+        # AoE multiplier: the EFF table prices single-target; a board-wide
+        # selector hits ~2-3 bodies, so it is worth much more (a 4-to-all wipe is
+        # not a 4-to-one bolt). Without this the formula badly under-rates wipes.
+        if sel in ("all_creatures", "all_enemies"):
+            val *= 2.4
         parts[key] = parts.get(key, 0.0) + val
     return sum(parts.values()), parts
 

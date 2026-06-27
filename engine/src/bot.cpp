@@ -161,9 +161,20 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
       return 2.0 + r;  // germinate a sprout: free board
     case Action::Type::Awaken:
       return 3.5 + r;
-    case Action::Type::Play:
-      return 3.0 + 0.5 * statSum(me.hand[a.handIndex].def) +
-             targetBonus(g, seat, a) + r;
+    case Action::Type::Play: {
+      const CardDef* d = me.hand[a.handIndex].def;
+      // Reach the 1-ply leaf under-credits: burn aimed at the enemy hero and
+      // on-death face damage (sear) are guaranteed payoff the greedy rollout
+      // would otherwise deprioritize (targetBonus only scores creature
+      // targets).
+      double reach = 0.0;
+      for (const auto& e : d->effects)
+        if (e.trigger == "on_play" && e.action == "damage" &&
+            e.selector == "enemy_hero")
+          reach += e.value;
+      if (d->hasKeyword("sear")) reach += 0.5 * d->keywordN("sear", 1);
+      return 3.0 + 0.5 * statSum(d) + targetBonus(g, seat, a) + reach + r;
+    }
     case Action::Type::AttackCreature: {
       const Creature* at = find(me, a.attacker);
       const Creature* tg = find(foe, a.target);
@@ -194,11 +205,13 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
       const Creature* at = find(me, a.attacker);
       const double dmg = at != nullptr ? at->atk : 0.0;
       if (lethal) return 100.0 + dmg;  // close it out: send everything face
-      // Race when ahead on board strength, or when our hero is clearly
-      // healthier (we win the damage race); otherwise prefer trading.
+      // Race only with a CLEAR board lead or a healthy hero-race margin;
+      // otherwise prefer trading to stabilise. At mere board parity the old
+      // bot rushed face, which let cheap aggression self-validate -- now
+      // over-aggression is answered by efficient trades instead.
       const bool ahead =
-          boardPower(me) >= boardPower(foe) || me.heroHp > foe.heroHp + 8;
-      return (ahead ? 5.0 : 2.0) + dmg + r;
+          boardPower(me) > boardPower(foe) + 4 || me.heroHp > foe.heroHp + 10;
+      return (ahead ? 5.0 : 1.5) + dmg + r;
     }
   }
   return r;
@@ -214,9 +227,15 @@ double evalState(const Game& g, int seat) {
   const Player& foe = g.player(1 - seat);
   double v = 0.0;
   v += 4.0 * (me.heroHp - foe.heroHp);  // race the enemy hero down
+  // Hero HP is convex near death: a low own hero is dangerous
+  // (defend/stabilise), a low enemy is worth pressing. The linear race stays,
+  // but letting our own hero get raced down is punished -- so aggression must
+  // be answered, not free.
+  v -= 1.5 * std::max(0, 12 - me.heroHp);
+  v += 1.5 * std::max(0, 12 - foe.heroHp);
   v += boardPower(me) - boardPower(foe);
-  v += 2.0 * (static_cast<int>(me.board.size()) -
-              static_cast<int>(foe.board.size()));  // board presence
+  v += 1.2 * (static_cast<int>(me.board.size()) -
+              static_cast<int>(foe.board.size()));  // board presence (count)
   v += 1.5 * (static_cast<int>(me.hand.size()) -
               static_cast<int>(foe.hand.size()));     // card advantage
   v += 0.8 * (crystalCount(me) - crystalCount(foe));  // developed mana

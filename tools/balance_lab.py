@@ -130,17 +130,38 @@ def two_sided_p(z):
 
 
 def cost_residual(card_beta, card_se, card_ids, cards):
-    """Residual of beta against a cost trend only: beta ~ mana_value (weighted by
-    1/se^2). It answers "is this card off FOR ITS COST". We deliberately do NOT
-    subtract a card-TYPE effect: a whole class being weak can be real design, not
-    a bot artifact -- auras genuinely underperform here because dispel is cheap
-    and plentiful, and the dispel spells that answer them are correspondingly
-    mediocre. Subtracting the type would hide that real weakness and make a merely
-    neutral aura look like a star. So raw beta is the honest marginal value, and
-    this residual is only the cost-normalised secondary lens. (Trend-fit
-    uncertainty is small over ~85 cards, so resid_z ~= resid/se_card.)"""
+    """Residual of beta against what a VANILLA body of the same cost AND stats
+    would score. Trend basis: cubic in mana value (1, mv, mv^2, mv^3) PLUS board
+    stat-sum (atk+hp; 0 for spells/auras), weighted by 1/se^2.
+
+    Beta over greedy self-play has TWO confounds, each needing its own control:
+      1. NON-LINEAR COST -- the cheapest cards tower (smooth curve / always a
+         play). The cubic-in-mv term absorbs this (a 0-mana 1/1 stops reading
+         +5.8pp). A linear trend could not bend to that cheap spike.
+      2. BODY vs SPELL TEMPO -- at equal cost a body beats a spell regardless of
+         power (board presence wins greedy games). Proof: a 2/1@1 vanilla and a
+         2/1@1 + keyword score the same beta -- the keyword adds ~0. The stat-sum
+         term absorbs this: each card is compared to a vanilla of its OWN stats,
+         so a 2/1 vanilla lands ~0 and a 2/1 + keyword shows only the keyword's
+         measured value.
+    So this residual = self-play value ABOVE a same-cost, same-stat vanilla --
+    the worth of the card's keywords/effects. Vanilla bodies read ~0 by
+    construction (they ARE the baseline); a 2/1@1 is weak filler, not a star.
+
+    Division of labour with Tier-1 (`balance.py` R = power - cost): subtracting
+    stats here would hide a card broken purely by OVER-STATTING (6/6@3), but
+    Tier-1's power model owns that axis (it counts stats). So Tier-2 (this
+    residual) catches mis-valued KEYWORDS/EFFECTS; Tier-1 catches mis-statted/
+    mis-costed bodies. A real outlier is flagged by the RIGHT tier.
+    """
     mv = np.array([mana_value(cards[c]) for c in card_ids], float)
-    T = np.column_stack([np.ones(len(card_ids)), mv])
+
+    def statsum(c):
+        s = cards[c].get("stats") or {}
+        return float(s.get("atk", 0) + s.get("hp", 0))
+
+    ss = np.array([statsum(c) for c in card_ids])
+    T = np.column_stack([np.ones(len(card_ids)), mv, mv ** 2, mv ** 3, ss])
     w = 1.0 / np.maximum(card_se ** 2, 1e-9)
     WT = T * w[:, None]
     coef = np.linalg.solve(T.T @ WT, WT.T @ card_beta)
@@ -240,7 +261,15 @@ def screen(jsonl_path, cards_path, alpha, n_boot, seed, out_prefix):
         cd = cards[cid]
         p, _ = bal.power(cd)
         c_cost, _, _ = bal.cost(cd)
+        R = float(p - c_cost)
         wi, wo, n_contrast = uni[cid]
+        # Confirmed = both tiers agree: Tier-2 (resid FDR) flags it AND Tier-1
+        # (balance.py R) is off in the SAME direction by >=0.75 mana. This drops
+        # the vanilla/cheap-body false positives (Tier-2 over-rates cheap tempo;
+        # Tier-1 correctly rates a 2/1@1 as fair, R~=0) while keeping cards both
+        # the formula and self-play call broken. Tier-2-only flags stay advisory.
+        confirmed = bool(card_flag[i] and abs(R) >= 0.75 and
+                         (resid[i] > 0) == (R > 0))
         rows.append({
             "id": cid,
             "beta_pp": round(float(card_beta[i]), 2),
@@ -250,10 +279,11 @@ def screen(jsonl_path, cards_path, alpha, n_boot, seed, out_prefix):
             "resid_z": round(float(resid_z[i]), 2),
             "p": float(card_p[i]),
             "fdr_outlier": bool(card_flag[i]),
+            "confirmed": confirmed,
             "n_present": present[cid],
             "mana_value": mana_value(cd),
             "type": cd.get("type"),
-            "R": round(float(p - c_cost), 2),
+            "R": round(R, 2),
             "wr_in": round(wi, 1) if wi == wi else None,
             "wr_out": round(wo, 1) if wo == wo else None,
         })
