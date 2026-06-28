@@ -210,6 +210,11 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 		elif is_creature:
 			when = "[b]При выходе:[/b] "
 		head += when + joined
+	# Bespoke cards (pentas) carry an explicit printed rules string instead of a
+	# generated keyword/effect line -- append it so it reads as the card's rules.
+	var printed := CardData.rules_of(def_id)
+	if printed != "":
+		head += " " + printed
 	head = head.strip_edges()
 	if head != "":
 		v.add_child(HSeparator.new())

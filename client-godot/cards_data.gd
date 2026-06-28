@@ -49,6 +49,14 @@ static func text_of(card_id: String) -> String:
 	return ""
 
 
+# Printed rules text for bespoke cards (the pentas), whose effect has no generated
+# keyword/effect line. Localised like name/text; "" when the card has none.
+static func rules_of(card_id: String) -> String:
+	if db.has(card_id) and db[card_id].has("rules"):
+		return db[card_id]["rules"].get("ru", "")
+	return ""
+
+
 static func is_creature(card_id: String) -> bool:
 	return String(db.get(card_id, {}).get("type", "")) == "creature"
 
