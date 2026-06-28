@@ -22,6 +22,10 @@ ACTION_KW = {"blind", "freeze", "scry", "scatter", "mirage"}
 
 HERO_KW = {"spectral_shift", "lighteater", "palette", "facet", "clairvoyance", "dawnlight", "halo"}
 
+# Bespoke penta (5-colour) keywords: legal vocabulary, but outside the catalog so
+# they do NOT count toward the 4x density (card_kw_instances only sums KW_COLOR).
+PENTA_KW = {"echo", "mirror", "vanguard"}
+
 ALLOWED_ACTIONS = {"freeze", "blind", "damage", "destroy", "draw", "dispel", "scry", "scatter", "mirage"}
 ALLOWED_SELECTORS = {"enemy_hero", "chosen_enemy_minion", "chosen_friendly_minion",
                      "chosen_any_minion", "all_enemies", "all_creatures"}
@@ -69,7 +73,7 @@ def main():
         # R13: legal vocabulary
         for kw in c.get("keywords", []):
             kid = kw.get("id")
-            if kid not in KW_COLOR and kid not in HERO_KW:
+            if kid not in KW_COLOR and kid not in HERO_KW and kid not in PENTA_KW:
                 errors.append(f"{cid}: unknown keyword '{kid}'")
         for eff in c.get("effects", []):
             a = eff.get("action")

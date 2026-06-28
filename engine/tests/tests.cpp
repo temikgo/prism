@@ -223,6 +223,15 @@ static const char* kTestCards = R"json([
   { "id": "dual", "name": { "ru": "Двуцвет" }, "type": "creature",
     "color": ["red", "blue"], "cost": { "red": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 2 } },
+  { "id": "echobeast", "name": { "ru": "Эхо-Зверь" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "echo" }] },
+  { "id": "mirrorman", "name": { "ru": "Зеркало" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 9 },
+    "keywords": [{ "id": "mirror" }] },
+  { "id": "vanguarder", "name": { "ru": "Авангард" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 4, "hp": 4 },
+    "keywords": [{ "id": "vanguard" }] },
   { "id": "hero_prism", "name": { "ru": "Ирида" }, "type": "hero",
     "keywords": [{ "id": "spectral_shift" }] },
   { "id": "hero_palette", "name": { "ru": "Тициана" }, "type": "hero",
@@ -2118,6 +2127,50 @@ TEST_CASE("sample.json loads with expected schema") {
   CHECK(echo->cost.pips[idx(Color::Violet)] == 1);
   CHECK(echo->stats.atk == 3);
   CHECK(echo->stats.hp == 4);
+}
+
+TEST_CASE("penta Echo Beast doubles your spell") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echobeast", "boltspell", "bear", "bear"}, repeat("bear", 30),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echobeast")));
+  int before = g.player(1).heroHp;
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "boltspell")));  // 3 to enemy hero, doubled
+  CHECK(g.player(1).heroHp == before - 6);
+}
+
+TEST_CASE("penta Prism Mirror reflects hero damage to the enemy hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"mirrorman", "bear", "bear", "bear"},
+         {"boltspell", "bear", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "mirrorman")));
+  g.endTurn();  // -> player 1
+  int h0 = g.player(0).heroHp;
+  int h1 = g.player(1).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 1, "boltspell")));  // 3 to p0, mirrored to p1
+  CHECK(g.player(0).heroHp == h0 - 3);
+  CHECK(g.player(1).heroHp == h1 - 3);
+}
+
+TEST_CASE("penta Prism Vanguard snowballs the creatures you play") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"vanguarder", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "vanguarder")));  // first one: no self-buff
+  CHECK(g.player(0).board[0].atk == 4);
+  CHECK(g.player(0).board[0].hp == 4);
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "bear")));  // +1/+1 (1 other: the vanguard)
+  CHECK(g.player(0).board.back().atk == 4);
+  CHECK(g.player(0).board.back().hp == 5);
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "bear")));  // +2/+2 (vanguard + first bear)
+  CHECK(g.player(0).board.back().atk == 5);
+  CHECK(g.player(0).board.back().hp == 6);
 }
 
 TEST_CASE("a duplicate aura cannot be played") {

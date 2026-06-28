@@ -177,7 +177,7 @@ void Game::draw(Player& p, int n) {
       // Fatigue: each draw from an empty deck hurts the hero for an
       // ever-increasing amount (1, 2, 3, ...), guaranteeing the game ends.
       p.fatigue += 1;
-      dealHeroDamage(p, p.fatigue);
+      dealHeroDamage(p, p.fatigue, /*fromOpponent=*/false);
     } else {
       CardInstance ci = p.deck.back();
       p.deck.pop_back();
@@ -191,7 +191,7 @@ void Game::draw(Player& p, int n) {
   }
 }
 
-void Game::dealHeroDamage(Player& p, int amount) {
+void Game::dealHeroDamage(Player& p, int amount, bool fromOpponent) {
   int remaining = amount;
   int absorbed = remaining < p.heroArmor ? remaining : p.heroArmor;
   p.heroArmor -= absorbed;
@@ -200,6 +200,24 @@ void Game::dealHeroDamage(Player& p, int amount) {
   if (p.heroHp <= 0 && !over_) {
     over_ = true;
     winner_ = 1 - p.index;
+  }
+  // Penta Prism Mirror: while it lives, damage the OPPONENT deals to its
+  // controller's hero is mirrored onto the enemy hero. The reflect flag stops
+  // it looping (so a mirror on each side does not bounce forever, and the
+  // reflected hit does not re-trigger). Self-inflicted damage (fatigue) is not
+  // reflected.
+  if (fromOpponent && !mirrorReflecting_ && amount > 0) {
+    bool hasMirror = false;
+    for (const auto& c : p.board)
+      if (c.def->hasKeyword("mirror")) {
+        hasMirror = true;
+        break;
+      }
+    if (hasMirror) {
+      mirrorReflecting_ = true;
+      dealHeroDamage(players_[1 - p.index], amount);
+      mirrorReflecting_ = false;
+    }
   }
 }
 
@@ -312,6 +330,25 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
       nc.maxHp += resBonus;
       nc.hp += resBonus;
     }
+    // Penta Prism Vanguard: while one is in play, a creature you play enters
+    // with +1/+1 per OTHER creature you already control -- a snapshot at
+    // summon, like resonance. The Vanguard must already be on board, so the
+    // first one does not buff itself; tokens are summoned past this path and so
+    // do not.
+    bool hasVanguard = false;
+    for (const auto& c : p.board)
+      if (c.def->hasKeyword("vanguard")) {
+        hasVanguard = true;
+        break;
+      }
+    if (hasVanguard) {
+      int others = static_cast<int>(p.board.size());  // nc not inserted yet
+      nc.baseAtk += others;
+      nc.atk += others;
+      nc.baseMaxHp += others;
+      nc.maxHp += others;
+      nc.hp += others;
+    }
     // Insert at the chosen slot (default: append to the right).
     int at = (pos >= 0 && pos <= static_cast<int>(p.board.size()))
                  ? pos
@@ -347,6 +384,19 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
         p.pending.push_back(DelayedEffect{e, n, target, def});
   } else {
     resolveOnPlay(def, p, target);
+    // Penta Echo Beast: while it lives, your spells resolve a second time on
+    // the same target. Only hard-cast spells double here (delayed/awakened
+    // paths are separate); a target killed by the first pass simply yields no
+    // second hit.
+    if (def->type == CardType::Spell) {
+      bool hasEcho = false;
+      for (const auto& c : p.board)
+        if (c.def->hasKeyword("echo")) {
+          hasEcho = true;
+          break;
+        }
+      if (hasEcho) resolveOnPlay(def, p, target);
+    }
   }
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
   checkDeaths();  // an on_play effect may have damaged or destroyed creatures

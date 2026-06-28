@@ -282,7 +282,9 @@ class Game {
  private:
   void startTurn();  // refill mana, unsick creatures, start triggers, draw one
   void draw(Player& p, int n);
-  void dealHeroDamage(Player& p, int amount);  // armor first, then hp; may win
+  // armor first, then hp; may win. fromOpponent=false marks self-inflicted
+  // damage (fatigue) so Prism Mirror does not reflect it.
+  void dealHeroDamage(Player& p, int amount, bool fromOpponent = true);
   void checkDeaths();  // move creatures at <=0 hp to the graveyard
   Creature* findCreature(Player& p, EntityId id);
   const Creature* findCreature(const Player& p, EntityId id) const;
@@ -386,8 +388,9 @@ class Game {
   int current_ = 0;
   int turn_ = 0;
   bool over_ = false;
-  bool mulliganPhase_ = false;  // true between dealing and the first turn
-  int scryPlayer_ = -1;         // who is mid-scry (-1 = nobody)
+  bool mirrorReflecting_ = false;  // guards Prism Mirror's reflect from looping
+  bool mulliganPhase_ = false;     // true between dealing and the first turn
+  int scryPlayer_ = -1;            // who is mid-scry (-1 = nobody)
   std::vector<CardInstance> scryPeek_;  // top cards peeked, awaiting a choice
   int winner_ = -1;
   EntityId nextId_ = 1;

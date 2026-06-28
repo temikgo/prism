@@ -1700,7 +1700,8 @@
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 4 }
+    "stats": { "atk": 3, "hp": 4 },
+    "keywords": [{ "id": "echo" }]
   },
   {
     "id": "prismatic_censorship",
@@ -1718,7 +1719,7 @@
     "art": "a glowing five-colour card pinned face-up beneath a chained lock, a ticking ransom of rainbow light -- balanced red, yellow, green, blue and violet, none dominant",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
   },
   {
     "id": "prismatic_prism_mirror",
@@ -1728,7 +1729,8 @@
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 9 }
+    "stats": { "atk": 3, "hp": 9 },
+    "keywords": [{ "id": "mirror" }]
   },
   {
     "id": "prismatic_the_standoff",
@@ -1747,7 +1749,8 @@
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 4, "hp": 4 }
+    "stats": { "atk": 4, "hp": 4 },
+    "keywords": [{ "id": "vanguard" }]
   },
   {
     "id": "prismatic_draft_pick",
