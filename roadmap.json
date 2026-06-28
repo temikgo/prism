@@ -44,7 +44,8 @@
         { "label": "Логотип-wordmark", "at": "f1dd76d", "status": "done", "weight": "major" },
         { "label": "рестайл экранов", "at": "a85559b", "status": "done", "weight": "minor" },
         { "label": "фикс mipmaps", "at": "058cd63", "status": "done", "weight": "minor" },
-        { "label": "Колодостроитель", "status": "active", "weight": "major" },
+        { "label": "Колодостроитель + автоколода", "at": "0014aea", "status": "done", "weight": "major" },
+        { "label": "Батч багфиксов: dispel/искра/дымка/decoy и др.", "at": "b93ac55", "status": "done", "weight": "major" },
         { "label": "Адаптивный UI", "status": "planned", "weight": "major" },
         { "label": "Звук и VFX", "status": "planned", "weight": "major" }
       ]
