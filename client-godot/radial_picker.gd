@@ -53,7 +53,7 @@ func _gui_input(event: InputEvent) -> void:
 		if h != _hover:
 			_hover = h
 			if h == -1:
-				_label.text = "✕"
+				_label.text = "отмена"
 			elif h >= 0:
 				_label.text = Palette.ru(String(colors[h]))
 			else:
