@@ -175,6 +175,99 @@ func _filters() -> Control:
 	return panel
 
 
+# Open the modal color picker; its `generate` carries the chosen colors back.
+func _open_gen_dialog() -> void:
+	var dlg := GenDialog.new()
+	dlg.generate.connect(_generate_deck)
+	add_child(dlg)
+	dlg.setup()
+
+
+# Build a legal 40-card deck from the picked colors. Eligible = every color of the
+# card is among the picked pips (so colorless always fits; a card needs ALL its
+# colors picked): 0 = colorless only, 1 = that mono + colorless, 2-4 = those
+# colors' monos/bicolors + colorless, 5 = everything incl. pentas. Filled
+# creature-leaning along a mana curve, <=2 copies each. The deck counter shows the
+# under-40 case when a thin color pick cannot reach a full deck.
+func _generate_deck(colors: Array) -> void:
+	var creatures: Array = []
+	var others: Array = []
+	for id in _all_ids:
+		if not _gen_eligible(String(id), colors):
+			continue
+		if CardData.is_creature(String(id)):
+			creatures.append(id)
+		else:
+			others.append(id)
+	var deck := {}
+	_gen_fill(deck, creatures, 24)
+	_gen_fill(deck, others, 16)
+	_gen_top_up(deck, creatures + others, DeckRules.DECK_SIZE)
+	_deck = deck
+	_refresh_all_badges()
+	_refresh_deck()
+
+
+func _gen_eligible(id: String, colors: Array) -> bool:
+	for c in CardData.def(id).get("color", []):
+		if not colors.has(c):
+			return false
+	return true
+
+
+func _gen_mv_bucket(id: String) -> int:
+	return clampi(CardData.total_cost(CardData.def(id).get("cost", {})), 1, 6)
+
+
+# Weighted fill along a mana curve; up to `target` cards, <=2 copies each.
+func _gen_fill(deck: Dictionary, pool: Array, target: int) -> void:
+	var buckets := {1: [], 2: [], 3: [], 4: [], 5: [], 6: []}
+	for id in pool:
+		buckets[_gen_mv_bucket(String(id))].append(id)
+	var weights := {1: 3, 2: 5, 3: 5, 4: 4, 5: 3, 6: 2}
+	var wsum := 0
+	for b in weights:
+		wsum += int(weights[b])
+	for b in range(1, 7):
+		var want := int(round(float(target) * float(weights[b]) / float(wsum)))
+		var ids: Array = buckets[b].duplicate()
+		ids.shuffle()
+		var i := 0
+		while want > 0 and i < ids.size():
+			var id := String(ids[i])
+			var cur := int(deck.get(id, 0))
+			var can: int = mini(DeckRules.MAX_COPIES - cur, mini(2, want))
+			if can > 0:
+				deck[id] = cur + can
+				want -= can
+			i += 1
+
+
+# Bring the deck to exactly `size`: add from the pool if short, trim if over.
+func _gen_top_up(deck: Dictionary, pool: Array, size: int) -> void:
+	var total := DeckRules.total(deck)
+	if total < size and not pool.is_empty():
+		var ids: Array = pool.duplicate()
+		ids.shuffle()
+		var guard := ids.size() * DeckRules.MAX_COPIES + 1
+		var i := 0
+		while total < size and guard > 0:
+			var id := String(ids[i % ids.size()])
+			var cur := int(deck.get(id, 0))
+			if cur < DeckRules.MAX_COPIES:
+				deck[id] = cur + 1
+				total += 1
+			i += 1
+			guard -= 1
+	while total > size:
+		var keys := deck.keys()
+		var id := String(keys[randi() % keys.size()])
+		deck[id] = int(deck[id]) - 1
+		if int(deck[id]) <= 0:
+			deck.erase(id)
+		total -= 1
+
+
 func _filter_row(label_text: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 7)
@@ -351,21 +444,27 @@ func _right() -> Control:
 	list_scroll.add_child(_list_box)
 	col.add_child(list_scroll)
 
-	_save_btn = Ui.mbtn("Сохранить", "primary", Ui.SIDE_ME, 348)
+	# Compact 2x2 action grid: Save / Generate on top, Clear / Back below.
+	var actions := GridContainer.new()
+	actions.columns = 2
+	actions.add_theme_constant_override("h_separation", 10)
+	actions.add_theme_constant_override("v_separation", 10)
+	_save_btn = Ui.mbtn("Сохранить", "primary", Ui.SIDE_ME, 169)
 	_save_btn.pressed.connect(_on_save)
-	col.add_child(_save_btn)
-	var brow := HBoxContainer.new()
-	brow.add_theme_constant_override("separation", 10)
-	var clear := Ui.mbtn("Очистить", "ghost", Ui.SIDE_ME, 168)
+	var gen := Ui.mbtn("Сгенерировать", "ghost", Ui.SIDE_ME, 169)
+	gen.pressed.connect(_open_gen_dialog)
+	var clear := Ui.mbtn("Очистить", "ghost", Ui.SIDE_ME, 169)
 	clear.pressed.connect(func() -> void:
 		_deck = {}
 		_refresh_all_badges()
 		_refresh_deck())
-	var back := Ui.mbtn("Назад", "ghost", Ui.SIDE_ME, 168)
+	var back := Ui.mbtn("Назад", "ghost", Ui.SIDE_ME, 169)
 	back.pressed.connect(func() -> void: back_pressed.emit())
-	brow.add_child(clear)
-	brow.add_child(back)
-	col.add_child(brow)
+	actions.add_child(_save_btn)
+	actions.add_child(gen)
+	actions.add_child(clear)
+	actions.add_child(back)
+	col.add_child(actions)
 	return panel
 
 
