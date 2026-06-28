@@ -73,6 +73,7 @@
         { "label": "Детерминизация", "at": "02a8302", "status": "done", "weight": "major" },
         { "label": "MCTS-поиск", "at": "f09e0fa", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
         { "label": "Метрика confirmed=0 + бот-фиксы", "at": "432629c", "status": "done", "weight": "major" },
+        { "label": "Когерентная колода бота + рамп-фикс", "at": "b93ac55", "status": "done", "weight": "major" },
         { "label": "PUCT", "status": "planned", "weight": "major" }
       ]
     },
