@@ -106,11 +106,20 @@ func _deck_row(deck: Dictionary) -> Control:
 	edit.pressed.connect(func() -> void: edit_deck.emit(did))
 	row.add_child(edit)
 	var del := Ui.mbtn("Удалить", "ghost", Ui.SIDE_FOE, 130)
-	del.pressed.connect(func() -> void:
-		Decks.delete_deck(did)
-		_rebuild())
+	del.pressed.connect(func() -> void: _confirm_delete(deck))
 	row.add_child(del)
 	return panel
+
+
+func _confirm_delete(deck: Dictionary) -> void:
+	var did := String(deck["id"])
+	var dlg := ConfirmDialog.new()
+	dlg.confirmed.connect(func() -> void:
+		Decks.delete_deck(did)
+		_rebuild())
+	add_child(dlg)
+	dlg.setup("Удалить колоду?", ["«%s» будет удалена безвозвратно." % String(deck["name"])],
+		"Удалить", "Отмена", Color(0.92, 0.30, 0.34))
 
 
 # A small spectrum bar of the colours present in the deck (its identity).

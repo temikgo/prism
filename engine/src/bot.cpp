@@ -245,6 +245,47 @@ double evalState(const Game& g, int seat) {
 // The cheap reflex policy: the single best action by static scoring, or "" if
 // nothing to do / not this seat's move. This is the bot's old greedy brain; the
 // search below uses it to roll a turn out to its end.
+// The greedy main-phase pick: the highest static-score legal action (computing
+// the lethal flag and the single-playable card that score() needs). Assumes
+// acts is non-empty and it is seat's main phase. Shared by the reflex policy
+// and the search (which uses it to keep mana ramp off the myopic 1-ply leaf).
+Action greedyMainChoice(const Game& g, int seat,
+                        const std::vector<Action>& acts, std::mt19937& rng) {
+  int faceDmg = 0;
+  for (const auto& a : acts)
+    if (a.type == Action::Type::AttackHero) {
+      const Creature* at = find(g.player(seat), a.attacker);
+      if (at != nullptr) faceDmg += at->atk;
+    }
+  const Player& foe = g.player(1 - seat);
+  const bool lethal = faceDmg > 0 && faceDmg >= foe.heroHp + foe.heroArmor;
+
+  const Player& me = g.player(seat);
+  std::vector<bool> canPlay(me.hand.size(), false);
+  for (const auto& a : acts)
+    if (a.type == Action::Type::Play && a.handIndex >= 0 &&
+        a.handIndex < static_cast<int>(canPlay.size()))
+      canPlay[a.handIndex] = true;
+  int playableCount = 0, onlyPlayable = -1;
+  for (int i = 0; i < static_cast<int>(canPlay.size()); ++i)
+    if (canPlay[i]) {
+      ++playableCount;
+      onlyPlayable = i;
+    }
+  if (playableCount != 1) onlyPlayable = -1;
+
+  const Action* best = &acts.front();
+  double bestScore = -1e18;
+  for (const auto& a : acts) {
+    const double s = score(a, g, seat, lethal, onlyPlayable, rng);
+    if (s > bestScore) {
+      bestScore = s;
+      best = &a;
+    }
+  }
+  return *best;
+}
+
 std::string botStepGreedy(const Game& g, int seat, std::mt19937& rng) {
   if (g.isOver()) return "";
   // Mulligan: toss the cards too dear to play early, keeping a low curve -- but
@@ -284,43 +325,7 @@ std::string botStepGreedy(const Game& g, int seat, std::mt19937& rng) {
   if (g.current() != seat) return "";
   std::vector<Action> acts = g.legalActions();
   if (acts.empty()) return "";
-  // Lethal check: if every creature that can hit the face together deals enough
-  // to kill the enemy hero this turn, swing everything in (handled in score).
-  int faceDmg = 0;
-  for (const auto& a : acts)
-    if (a.type == Action::Type::AttackHero) {
-      const Creature* at = find(g.player(seat), a.attacker);
-      if (at != nullptr) faceDmg += at->atk;
-    }
-  const Player& foe = g.player(1 - seat);
-  const bool lethal = faceDmg > 0 && faceDmg >= foe.heroHp + foe.heroArmor;
-
-  // The hand index of the single card the bot can play this turn (-1 if zero or
-  // several). PlaceMana refuses to sacrifice that one card (see score).
-  const Player& me = g.player(seat);
-  std::vector<bool> canPlay(me.hand.size(), false);
-  for (const auto& a : acts)
-    if (a.type == Action::Type::Play && a.handIndex >= 0 &&
-        a.handIndex < static_cast<int>(canPlay.size()))
-      canPlay[a.handIndex] = true;
-  int playableCount = 0, onlyPlayable = -1;
-  for (int i = 0; i < static_cast<int>(canPlay.size()); ++i)
-    if (canPlay[i]) {
-      ++playableCount;
-      onlyPlayable = i;
-    }
-  if (playableCount != 1) onlyPlayable = -1;
-
-  const Action* best = &acts.front();
-  double bestScore = -1e18;
-  for (const auto& a : acts) {
-    const double s = score(a, g, seat, lethal, onlyPlayable, rng);
-    if (s > bestScore) {
-      bestScore = s;
-      best = &a;
-    }
-  }
-  return serializeAction(*best);
+  return serializeAction(greedyMainChoice(g, seat, acts, rng));
 }
 
 // Play out `seat`'s reflex moves on `g` until its turn passes or the game ends.
@@ -343,7 +348,17 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   std::vector<Action> acts = g.legalActions();
   if (acts.empty()) return "";
   if (acts.size() == 1) return serializeAction(acts.front());
-  if (acts.size() > 60) return botStepGreedy(g, seat, rng);  // stay snappy
+
+  // Mana ramp is a strategic constant, not a tactical choice: the once-per-turn
+  // crystal pays off many turns out, far past the 1-ply leaf -- whose static
+  // eval values a hand card (1.5) above a crystal (0.8) and so myopically
+  // hoards the card whenever the new mana cannot be cashed into a play THIS
+  // turn. Decide the mana drop with the greedy reflex (which ramps almost every
+  // turn, sparing only score()'s exceptions), and only hand the tactical
+  // plays/attacks to search.
+  const Action gb = greedyMainChoice(g, seat, acts, rng);
+  if (gb.type == Action::Type::PlaceMana || acts.size() > 60)
+    return serializeAction(gb);  // ramp now (or stay snappy on huge branching)
 
   // 1-ply search: for each candidate first move, simulate it, finish this turn
   // greedily, let the opponent take its greedy reply, then evaluate the

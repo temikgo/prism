@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "prism/bot.hpp"
 #include "prism/card.hpp"
+#include "prism/deck.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
 
@@ -82,45 +83,8 @@ std::uint32_t mixSeed(std::uint64_t x) {
   return static_cast<std::uint32_t>(x);
 }
 
-// Draft a colour-coherent deck. Pick a colour count weighted toward 2-3 (a mono
-// deck cannot fill 40 at <=2 copies; a 4-5 colour tail keeps rainbow/prismatic
-// cards sampled), pick that many colours, then fill `deckSize` slots from cards
-// whose every colour is in the chosen set, each at most `maxCopies` times.
-// Deterministic in `rng`.
-std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
-                                   int deckSize, int maxCopies,
-                                   std::mt19937& rng) {
-  static const int kCounts[] = {2, 3, 4, 5};
-  static const double kCum[] = {0.40, 0.75, 0.90, 1.00};
-  std::uniform_real_distribution<double> u(0.0, 1.0);
-  const double r = u(rng);
-  int k = 5;
-  for (int i = 0; i < 4; ++i)
-    if (r <= kCum[i]) {
-      k = kCounts[i];
-      break;
-    }
-  std::array<Color, 5> colors = {Color::Red, Color::Yellow, Color::Green,
-                                 Color::Blue, Color::Violet};
-  std::shuffle(colors.begin(), colors.end(), rng);
-  std::array<bool, ColorCount> allowed{};
-  for (int i = 0; i < k; ++i) allowed[static_cast<int>(colors[i])] = true;
-
-  std::vector<std::string> bag;
-  for (const CardDef* d : nonHero) {
-    bool ok = true;
-    for (Color c : d->colors)
-      if (!allowed[static_cast<int>(c)]) {
-        ok = false;
-        break;
-      }
-    if (ok)
-      for (int i = 0; i < maxCopies; ++i) bag.push_back(d->id);
-  }
-  std::shuffle(bag.begin(), bag.end(), rng);
-  if (static_cast<int>(bag.size()) > deckSize) bag.resize(deckSize);
-  return bag;
-}
+// draftDeck (colour-coherent deck draft) now lives in the engine lib
+// (prism/deck.hpp) so the server can give its bot the same coherent decks.
 
 struct Config {
   long games = 1000;

@@ -37,12 +37,34 @@ static func hero_has(p: Dictionary, passive_id: String) -> bool:
 # Playable right now: your turn, affordable (incl. Prism spectral_shift), and (for
 # creatures) the board has room; auras you already control are blocked; a targeted
 # spell with no legal target is still playable unless the target is a required cost.
+# Blue haze: each enemy haze aura makes YOUR spells cost that much more generic
+# (mirrors Game::playCard). 0 for non-spells or when there is no enemy haze.
+static func haze_surcharge(view: Dictionary, card_id: String) -> int:
+	if view.is_empty() or not CardData.is_spell(card_id):
+		return 0
+	var you := int(view["you"])
+	var opp: Dictionary = view["players"][1 - you]
+	var n := 0
+	for a in opp.get("auras", []):
+		n += CardData.keyword_n(String(a.get("card", "")), "haze")
+	return n
+
+
+# The card's cost as it must actually be paid right now: base cost + haze.
+static func effective_cost(view: Dictionary, card_id: String) -> Dictionary:
+	var cost: Dictionary = (CardData.def(card_id).get("cost", {})).duplicate(true)
+	var hz := haze_surcharge(view, card_id)
+	if hz > 0:
+		cost["generic"] = int(cost.get("generic", 0)) + hz
+	return cost
+
+
 static func is_playable(view: Dictionary, card_id: String) -> bool:
 	if not my_turn(view):
 		return false
 	var you := int(view["you"])
 	var me: Dictionary = view["players"][you]
-	var cost: Dictionary = CardData.def(card_id).get("cost", {})
+	var cost: Dictionary = effective_cost(view, card_id)
 	var avail: Dictionary = me["mana"].get("available", {})
 	var shift_ready: bool = hero_has(me, "spectral_shift") and not bool(me.get("heroPowerUsed", false))
 	if not CardData.can_afford(cost, avail) and not (shift_ready and CardData.can_afford_with_shift(cost, avail)):
@@ -73,7 +95,25 @@ static func has_legal_target(view: Dictionary, card_id: String) -> bool:
 	if side == "friendly" or side == "any":
 		if not me.get("board", []).is_empty():
 			return true
+	if side == "enemy_aura":
+		return not opp.get("auras", []).is_empty()
 	return false
+
+
+# True if the dragged card targets an ENEMY AURA (dispel-choose). The aura tiles
+# become its drop targets, reporting the aura's index as the play target.
+static func can_cast_on_aura(data: Variant) -> bool:
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	if not (data.get("kind", "") in ["hand", "awaken"]):
+		return false
+	if not bool(data.get("needs_target", false)):
+		return false
+	if String(data.get("target_side", "")) != "enemy_aura":
+		return false
+	if data.get("kind", "") == "hand" and not bool(data.get("playable", true)):
+		return false
+	return true
 
 
 # Does the enemy control a (visible) provoker, forcing attacks onto it?
@@ -161,7 +201,7 @@ static func can_awaken(view: Dictionary, card_id: String, color: String, age: in
 static func generic_choices(view: Dictionary, card_id: String) -> Dictionary:
 	if card_id == "" or view.is_empty():
 		return {}
-	var cost: Dictionary = CardData.def(card_id).get("cost", {})
+	var cost: Dictionary = effective_cost(view, card_id)  # base + haze surcharge
 	var generic := int(cost.get("generic", 0))
 	if generic <= 0:
 		return {}

@@ -8,7 +8,8 @@ extends Control
 signal confirmed
 
 
-func setup(title: String, lines: Array, yes_text := "Разыграть", no_text := "Отмена") -> void:
+func setup(title: String, lines: Array, yes_text := "Разыграть", no_text := "Отмена",
+		accent := Color(0.95, 0.78, 0.36)) -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	position = Vector2.ZERO
 	size = get_viewport_rect().size
@@ -30,7 +31,7 @@ func setup(title: String, lines: Array, yes_text := "Разыграть", no_tex
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.glass(Color(0.95, 0.78, 0.36), 0.72))
+	panel.add_theme_stylebox_override("panel", Ui.glass(accent, 0.72))
 	center.add_child(panel)
 
 	var col := VBoxContainer.new()
@@ -54,7 +55,7 @@ func setup(title: String, lines: Array, yes_text := "Разыграть", no_tex
 	no.custom_minimum_size = Vector2(150, 40)
 	no.pressed.connect(func() -> void: queue_free())
 	row.add_child(no)
-	var yes := Ui.neon_button(yes_text, Color(0.95, 0.7, 0.4))
+	var yes := Ui.neon_button(yes_text, accent)
 	yes.custom_minimum_size = Vector2(150, 40)
 	yes.pressed.connect(func() -> void:
 		confirmed.emit()

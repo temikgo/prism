@@ -65,8 +65,12 @@ static json playerJson(const Player& p, bool self, bool revealMana,
   json row = json::array();
   for (const auto& mc : p.manaRow) {
     json slot = {{"color", std::string(colorName(mc.color))}};
-    // You may peek your own awaken cards; floodlight reveals all of an enemy's.
-    if ((self && mc.card.def->hasKeyword("awaken")) || facet || revealMana)
+    // You may peek your own wakeable cards (awaken OR decoy -- both can be
+    // woken from the mana row, see Game::awaken); floodlight reveals all of an
+    // enemy's.
+    const bool wakeable =
+        mc.card.def->hasKeyword("awaken") || mc.card.def->hasKeyword("decoy");
+    if ((self && wakeable) || facet || revealMana)
       slot["card"] = mc.card.def->id;
     if (self) slot["age"] = mc.age;  // turns banked, for the decoy discount
     row.push_back(slot);

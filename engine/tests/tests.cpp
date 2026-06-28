@@ -223,6 +223,10 @@ static const char* kTestCards = R"json([
   { "id": "dual", "name": { "ru": "Двуцвет" }, "type": "creature",
     "color": ["red", "blue"], "cost": { "red": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 2 } },
+  { "id": "auradispel", "name": { "ru": "Развей" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1,
+                  "selector": "chosen_enemy_aura" }] },
   { "id": "echobeast", "name": { "ru": "Эхо-Зверь" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 },
     "keywords": [{ "id": "echo" }] },
@@ -2127,6 +2131,36 @@ TEST_CASE("sample.json loads with expected schema") {
   CHECK(echo->cost.pips[idx(Color::Violet)] == 1);
   CHECK(echo->stats.atk == 3);
   CHECK(echo->stats.hp == 4);
+}
+
+TEST_CASE("dispel destroys the chosen enemy aura by index") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"auradispel", "bear", "bear", "bear"},
+         {"photoaura", "floodaura", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();                                        // seat 1's turn
+  CHECK(g.playCard(handIndexOf(g, 1, "photoaura")));  // enemy aura index 0
+  CHECK(g.playCard(handIndexOf(g, 1, "floodaura")));  // enemy aura index 1
+  REQUIRE(g.player(1).auras.size() == 2);
+  g.endTurn();                                            // seat 0's turn
+  CHECK(g.playCard(handIndexOf(g, 0, "auradispel"), 0));  // target aura index 0
+  REQUIRE(g.player(1).auras.size() == 1);
+  CHECK(g.player(1).auras[0]->id ==
+        "floodaura");  // index 1 survived, shifted down
+}
+
+TEST_CASE("bot ramps: its searched turn opens by dropping a card to mana") {
+  // Regression guard for the 1-ply search hoarding a card instead of ramping:
+  // mana payoff is past the leaf horizon, so the search must defer the mana
+  // drop to the greedy reflex. With creatures in hand and no mana spent yet,
+  // the bot's first action of its turn must be placeMana.
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  begin(g);
+  g.endTurn();  // pass to seat 1 (the bot)
+  std::mt19937 rng(123);
+  auto j = nlohmann::json::parse(botNextAction(g, 1, rng));
+  CHECK(j["action"] == "placeMana");
 }
 
 TEST_CASE("penta Echo Beast doubles your spell") {

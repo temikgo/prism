@@ -88,6 +88,8 @@ static func target_side(card_id: String) -> String:
 				return "friendly"
 			"chosen_any_minion":
 				return "any"
+			"chosen_enemy_aura":
+				return "enemy_aura"
 	return ""
 
 

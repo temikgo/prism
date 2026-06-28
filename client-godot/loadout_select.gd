@@ -45,7 +45,10 @@ func _apply_defaults() -> void:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_apply_defaults()  # first run (no saved choice): preselect a sensible loadout
+	_build()
 
+
+func _build() -> void:
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 16)
 	var margin := MarginContainer.new()
@@ -68,6 +71,14 @@ func _ready() -> void:
 
 	root.add_child(_foot())
 	_refresh()
+
+
+# Tear down and rebuild (after deleting a deck, so the list reflows).
+func _rebuild() -> void:
+	_deck_cards.clear()
+	for c in get_children():
+		c.queue_free()
+	_build()
 
 
 # --- bottom bar: back + summary + next --------------------------------------
@@ -248,7 +259,59 @@ func _decks_word(n: int) -> String:
 	return "колод"
 
 
+func _is_user_deck(did: String) -> bool:
+	for d in Decks.user_decks():
+		if String(d["id"]) == did:
+			return true
+	return false
+
+
+func _confirm_delete(deck: Dictionary) -> void:
+	var did := String(deck["id"])
+	var dlg := ConfirmDialog.new()
+	dlg.confirmed.connect(func() -> void:
+		Decks.delete_deck(did)
+		if _deck_id == did:
+			_deck_id = ""
+			_apply_defaults()
+		_rebuild())
+	add_child(dlg)
+	dlg.setup("Удалить колоду?", ["«%s» будет удалена безвозвратно." % String(deck["name"])],
+		"Удалить", "Отмена", Color(0.92, 0.30, 0.34))
+
+
 func _deck_tile(deck: Dictionary) -> Control:
+	var did0 := String(deck["id"])
+	if not _is_user_deck(did0):
+		return _deck_panel(deck)
+	# User decks get a delete button overlaid top-right; wrap the panel in a plain
+	# Control so the button can float over it without the container reflowing it.
+	var wrap := Control.new()
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var panel := _deck_panel(deck, wrap)  # hover scales the wrap so the button rides along
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrap.add_child(panel)
+	var del := Button.new()
+	del.icon = load("res://icons/trash.svg")
+	del.expand_icon = true
+	del.custom_minimum_size = Vector2(30, 30)
+	del.focus_mode = Control.FOCUS_NONE
+	del.flat = true
+	del.tooltip_text = "Удалить колоду"
+	del.add_theme_color_override("icon_normal_color", Color(0.7, 0.5, 0.55))
+	del.add_theme_color_override("icon_hover_color", Color(0.95, 0.4, 0.45))
+	del.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	del.offset_left = -38
+	del.offset_top = 8
+	del.offset_right = -8
+	del.offset_bottom = 38
+	del.pressed.connect(func() -> void: _confirm_delete(deck))
+	wrap.add_child(del)
+	return wrap
+
+
+func _deck_panel(deck: Dictionary, scale_target: Control = null) -> Control:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -269,7 +332,7 @@ func _deck_tile(deck: Dictionary) -> Control:
 		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
 			_deck_id = did
 			_refresh())
-	_hook_hover(panel, func() -> bool: return did == _deck_id)
+	_hook_hover(panel, func() -> bool: return did == _deck_id, scale_target)
 	return panel
 
 
@@ -326,20 +389,24 @@ func _refresh() -> void:
 # Wire hover feedback on a selectable tile: a pointing cursor, a brighter border
 # glow, and a small lift (Control.scale is a visual transform -- it overlaps
 # neighbours without reflowing the grid). The selected style always wins.
-func _hook_hover(panel: Control, selected_fn: Callable) -> void:
+# `scale_target` is the node that scales/lifts on hover (defaults to the panel
+# itself; a wrapped user-deck tile passes its wrapper so the delete button scales
+# and stays on top with the panel instead of falling behind it).
+func _hook_hover(panel: Control, selected_fn: Callable, scale_target: Control = null) -> void:
+	var st: Control = scale_target if scale_target != null else panel
 	panel.set_meta("hovered", false)
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	panel.mouse_entered.connect(func() -> void:
 		panel.set_meta("hovered", true)
 		_restyle(panel, selected_fn.call())
-		panel.pivot_offset = panel.size / 2.0
-		panel.z_index = 10
-		panel.create_tween().tween_property(panel, "scale", Vector2(1.03, 1.03), 0.08))
+		st.pivot_offset = st.size / 2.0
+		st.z_index = 10
+		st.create_tween().tween_property(st, "scale", Vector2(1.03, 1.03), 0.08))
 	panel.mouse_exited.connect(func() -> void:
 		panel.set_meta("hovered", false)
 		_restyle(panel, selected_fn.call())
-		panel.z_index = 0
-		panel.create_tween().tween_property(panel, "scale", Vector2.ONE, 0.08))
+		st.z_index = 0
+		st.create_tween().tween_property(st, "scale", Vector2.ONE, 0.08))
 
 
 func _restyle(panel: Control, selected: bool) -> void:

@@ -42,9 +42,9 @@ func setup() -> void:
 	col.custom_minimum_size = Vector2(380, 0)
 	panel.add_child(col)
 
-	col.add_child(Ui.label("Сгенерировать колоду", 22, Color(0.94, 0.96, 1.0), true, true))
+	col.add_child(Ui.label("Догенерировать колоду", 22, Color(0.94, 0.96, 1.0), true, true))
 	var hint := Ui.label(
-		"Выбери цвета: пусто — бесцветная, один — моно, все пять — с пятицветками.",
+		"Уже набранные карты сохранятся — добор до 40. Цвета: пусто — бесцветная, один — моно, все пять — с пятицветками.",
 		15, Ui.INK_DIM, true)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.custom_minimum_size = Vector2(380, 0)
@@ -60,7 +60,7 @@ func setup() -> void:
 	var brow := HBoxContainer.new()
 	brow.alignment = BoxContainer.ALIGNMENT_CENTER
 	brow.add_theme_constant_override("separation", 10)
-	var go := Ui.mbtn("Сгенерировать", "primary", Ui.SIDE_ME, 210)
+	var go := Ui.mbtn("Догенерировать", "primary", Ui.SIDE_ME, 210)
 	go.pressed.connect(func() -> void:
 		var picked: Array = []
 		for c in CardData.COLORS:

@@ -49,11 +49,11 @@ func _draw() -> void:
 	var col := crystal_color
 	var alpha := 1.0
 	if spent:
-		# Spent this turn: drain the colour to a dark stone so available vs spent
-		# reads as bright vs dark (matches the redesign's grayscale+dim treatment).
-		var g := col.get_luminance()
-		col = Color(g, g, g).lerp(col, 0.25).darkened(0.55)
-		alpha = 0.5
+		# Spent this turn: keep the hue clearly readable (so you can still tell which
+		# colours you have spent and plan ahead), just darken and drop the halo/glow
+		# so available vs spent still reads as bright vs dim.
+		col = col.darkened(0.42)
+		alpha = 0.72
 
 	var body := PackedVector2Array([_p(TOP), _p(RIGHT), _p(BOTTOM), _p(LEFT)])
 

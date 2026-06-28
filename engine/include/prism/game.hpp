@@ -22,6 +22,7 @@ namespace prism {
 inline constexpr int HeroStartHp = 30;
 inline constexpr int HandLimit = 10;     // overdraw past this is burned unseen
 inline constexpr int BoardLimit = 8;     // max creatures a player may have
+inline constexpr int AuraLimit = 5;      // max auras a player may have (UI cap)
 inline constexpr int OpeningFirst = 4;   // first player's opening hand
 inline constexpr int OpeningSecond = 5;  // second player's hand (its only comp)
 

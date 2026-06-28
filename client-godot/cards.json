@@ -1576,12 +1576,12 @@
   {
     "id": "neutral_disperse",
     "name": { "ru": "Развеивание", "en": "Disperse" },
-    "text": { "ru": "Сдуть последнюю наведённую дымку." },
-    "art": "a gust of colorless light that disperses and scatters the most recent glowing aura off the field",
+    "text": { "ru": "Сдуть выбранную чужую ауру." },
+    "art": "a gust of colorless light that disperses and scatters a chosen glowing aura off the field",
     "type": "spell",
     "color": [],
     "cost": { "generic": 1 },
-    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }]
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1, "selector": "chosen_enemy_aura" }]
   },
   {
     "id": "neutral_purge",

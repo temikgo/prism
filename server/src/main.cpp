@@ -304,7 +304,15 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     r.fd[0] = fd;
     r.fd[1] = -1;  // bot seat (no socket)
     r.vsBot = true;
-    readLoadout(j, r, 0);  // the human's hero + deck; the bot keeps defaults
+    readLoadout(j, r, 0);  // the human's hero + deck
+    // Give the bot a coherent drafted deck (1-3 colours) rather than the full
+    // pool: the demoDeck fallback is a 160-card rainbow pile it cannot curve
+    // out or even cast (5 colours + uncastable pentas), which made it lose at
+    // once.
+    std::vector<const CardDef*> nonHero;
+    for (const auto& d : lib.all())
+      if (d.type != CardType::Hero) nonHero.push_back(&d);
+    r.deck[1] = draftDeck(nonHero, kDeckSize, kMaxCopies, rng, /*maxColors=*/3);
     if (!deckOk(fd, lib, r.deck[0])) {
       g_rooms.erase(code);
       return;

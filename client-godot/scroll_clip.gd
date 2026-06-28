@@ -47,17 +47,25 @@ func _relayout() -> void:
 	queue_redraw()
 
 
-func _gui_input(e: InputEvent) -> void:
-	if _content == null or not (e is InputEventMouseButton) or not e.pressed:
+# Handled in _input (not _gui_input) so child chips with MOUSE_FILTER_STOP cannot
+# swallow the wheel/pan before it reaches us -- the same reason the deck pool went
+# to _input. Acts only when the cursor is over us and there is overflow.
+func _input(e: InputEvent) -> void:
+	if _content == null or not is_visible_in_tree() or _content_h() <= size.y:
+		return
+	if not get_global_rect().has_point(get_global_mouse_position()):
 		return
 	var dir := 0.0
-	if e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-		dir = -1.0
-	elif e.button_index == MOUSE_BUTTON_WHEEL_UP:
-		dir = 1.0
-	if dir == 0.0 or _content_h() <= size.y:
-		return  # nothing to scroll
-	accept_event()
+	if e is InputEventPanGesture:
+		dir = -signf(e.delta.y) if absf(e.delta.y) > 0.01 else 0.0
+	elif e is InputEventMouseButton and e.pressed:
+		if e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			dir = -1.0
+		elif e.button_index == MOUSE_BUTTON_WHEEL_UP:
+			dir = 1.0
+	if dir == 0.0:
+		return
+	get_viewport().set_input_as_handled()
 	_target_y = clampf(_target_y + dir * STEP, _min_y(), 0.0)
 	if _tween != null and _tween.is_valid():
 		_tween.kill()

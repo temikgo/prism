@@ -188,9 +188,9 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	# Delay is shown as the effect's timing, not as a separate keyword.
 	var fold_delay := delay_n > 0 and not effs.is_empty()
 
-	# Keyword names are highlighted in the card's own colour so the rules read
-	# with hierarchy (the name pops, the explanation stays calm).
-	var kc := col.lightened(0.42).to_html(false)
+	# Keyword names are highlighted in their OWN colour so a multicolour card reads
+	# each keyword in its colour (e.g. red Накал, blue Стужа), not one shared hue.
+	# Non-catalog keywords fall back to the card's primary colour.
 	var head := ""
 	for kw in d.get("keywords", []):
 		var hid := String(kw.get("id", ""))
@@ -200,6 +200,7 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 			continue
 		var nm := Glossary.keyword_name(kw)
 		if nm != "":
+			var kc := Palette.keyword_color(hid, col).lightened(0.42).to_html(false)
 			head += "[b][color=#%s]%s[/color][/b]. " % [kc, nm]
 	if not effs.is_empty():
 		var joined: String = " ".join(effs)
@@ -228,7 +229,8 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 			continue
 		shown[String(kw.get("id", ""))] = true
 		var ci := full.find(":")
-		details.append("[b][color=#%s]%s[/color][/b]%s" % [kc, full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
+		var dkc := Palette.keyword_color(did, col).lightened(0.42).to_html(false)
+		details.append("[b][color=#%s]%s[/color][/b]%s" % [dkc, full.substr(0, ci), full.substr(ci)] if ci > 0 else full)
 	# Effects that apply a named status (freeze/blind) explain that status
 	# too, even when the card carries no matching keyword.
 	for e in d.get("effects", []):
@@ -240,7 +242,8 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 		shown[act] = true
 		var fx: String = Glossary.keyword({"id": act, "n": int(e.get("value", 0))})
 		var cix := fx.find(":")
-		details.append("[b][color=#%s]%s[/color][/b]%s" % [kc, fx.substr(0, cix), fx.substr(cix)] if cix > 0 else fx)
+		var fkc := Palette.keyword_color(act, col).lightened(0.42).to_html(false)
+		details.append("[b][color=#%s]%s[/color][/b]%s" % [fkc, fx.substr(0, cix), fx.substr(cix)] if cix > 0 else fx)
 	if not details.is_empty():
 		for dline in details:
 			v.add_child(rich(dline, 12, Color(0.74, 0.8, 0.64)))

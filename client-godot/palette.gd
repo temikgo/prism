@@ -19,9 +19,31 @@ const RU := {
 	"blue": "синий", "violet": "фиолетовый", "colorless": "бесцветный",
 }
 
+# Which colour owns each catalog keyword (mirrors tools/check_density.py CATALOG).
+# Lets a multicolour card paint each keyword name in its own colour rather than
+# one shared hue.
+const KW_COLOR := {
+	"pierce": "red", "bypass": "red", "regen": "red", "self_lifesteal": "red",
+	"incandescence": "red", "cauterize": "red", "sear": "red", "spark": "red",
+	"floodlight": "yellow", "blind": "yellow", "provoke": "yellow", "shield": "yellow",
+	"ward": "yellow", "firststrike": "yellow", "strobe": "yellow", "flare": "yellow",
+	"photosynthesis": "green", "germinate": "green", "growth": "green", "compost": "green",
+	"spores": "green", "undergrowth": "green", "resonance": "green", "mulch": "green",
+	"freeze": "blue", "chill": "blue", "delay": "blue", "scry": "blue",
+	"scatter": "blue", "haze": "blue", "birefringence": "blue", "pinpoint": "blue",
+	"awaken": "violet", "decoy": "violet", "stealth": "violet", "refract": "violet",
+	"split": "violet", "mirage": "violet", "haunt": "violet", "glimmer": "violet",
+}
+
 
 static func color_for(name: String) -> Color:
 	return MAP.get(name, MAP["colorless"])
+
+
+# The colour of a keyword (its catalog colour), or `fallback` when it is not a
+# catalog keyword (penta/hero keywords, inline effects).
+static func keyword_color(kid: String, fallback: Color) -> Color:
+	return color_for(KW_COLOR[kid]) if KW_COLOR.has(kid) else fallback
 
 
 # The card's frame/glow color: its first color, or neutral if it has none.

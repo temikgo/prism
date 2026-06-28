@@ -82,12 +82,12 @@ func _aura_shelf(auras: Array, mine: bool) -> Control:
 	var tag := Ui.label("ВАШИ АУРЫ" if mine else "АУРЫ ВРАГА", 10, Color(0.6, 0.64, 0.74))
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(tag)
-	for a in auras:
-		box.add_child(_aura_tile(String(a.get("card", ""))))
+	for i in auras.size():
+		box.add_child(_aura_tile(String(auras[i].get("card", "")), i, mine))
 	return box
 
 
-func _aura_tile(card_id: String) -> Control:
+func _aura_tile(card_id: String, index: int, mine: bool) -> Control:
 	# Art-only square tile (name + rules on hover) so it never wraps/overflows.
 	var col := Palette.primary(CardData.def(card_id))
 	var tile := UiCard.new()
@@ -105,6 +105,12 @@ func _aura_tile(card_id: String) -> Control:
 	tile.tooltip_builder = func() -> Control: return CardView.tooltip(card_id, null)
 	tile.hoverable = true
 	tile.add_child(Tokens.art(card_id, 50, col))
+	# An enemy aura is a drop target for a dispel-choose spell: aim the arrow at it
+	# and it reports its index as the play target (like aiming at a creature).
+	if not mine:
+		tile.can_drop_fn = func(data: Variant) -> bool: return Rules.can_cast_on_aura(data)
+		tile.highlight_check = func(data: Variant) -> bool: return Rules.can_cast_on_aura(data)
+		tile.drop_fn = func(data: Variant) -> void: cast_requested.emit(data, index)
 	return tile
 
 
@@ -224,6 +230,8 @@ static func _ability_meta(kid: String) -> Dictionary:
 	match kid:
 		"germinate":
 			return {"icon": "leaf", "accent": Color(0.38, 0.82, 0.46)}
+		"spark":
+			return {"icon": "spark", "accent": Color(0.95, 0.43, 0.36)}
 	return {}
 
 
@@ -295,13 +303,20 @@ func _ability_reason(cr: Dictionary, kid: String) -> String:
 		"germinate":
 			if int(me.get("board", []).size()) >= Rules.BOARD_LIMIT:
 				return "Стол заполнен (%d существ)." % Rules.BOARD_LIMIT
-			var avail: Dictionary = me["mana"].get("available", {})
-			var total := 0
-			for c in CardData.ALL_COLORS:
-				total += int(avail.get(c, 0))
-			if total < 1:
+			if _mana_total(me) < 1:
+				return "Нет свободного кристалла (нужен 1)."
+		"spark":
+			if _mana_total(me) < 1:
 				return "Нет свободного кристалла (нужен 1)."
 	return ""
+
+
+func _mana_total(me: Dictionary) -> int:
+	var avail: Dictionary = me["mana"].get("available", {})
+	var total := 0
+	for c in CardData.ALL_COLORS:
+		total += int(avail.get(c, 0))
+	return total
 
 
 func _ability_tooltip_panel(cr: Dictionary, kid: String, used: bool) -> Control:

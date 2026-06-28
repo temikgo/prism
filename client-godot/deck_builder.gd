@@ -33,6 +33,7 @@ var _f_types: Array = []
 var _f_costs: Array = []
 var _f_kw := ""
 var _q := ""
+var _f_strict := false  # strict colour: show only cards whose colours == the picked set
 
 var _all_ids: Array = []
 var _scale := TILE_SCALE  # current card scale (recomputed by _relayout to fill width)
@@ -139,6 +140,9 @@ func _filters() -> Control:
 	for c in COLORS:
 		r1.add_child(_chip(Palette.ru(c).capitalize(), Palette.color_for(c),
 			func(on: bool) -> void: _toggle(_f_colors, c, on)))
+	r1.add_child(_chip("Строго", Ui.SIDE_ME, func(on: bool) -> void:
+		_f_strict = on
+		_refresh_pool()))
 	rows.add_child(r1)
 
 	# types + costs
@@ -199,10 +203,13 @@ func _generate_deck(colors: Array) -> void:
 			creatures.append(id)
 		else:
 			others.append(id)
-	var deck := {}
-	_gen_fill(deck, creatures, 24)
-	_gen_fill(deck, others, 16)
-	_gen_top_up(deck, creatures + others, DeckRules.DECK_SIZE)
+	# Top up the CURRENT deck rather than rebuilding it: cards you kept stay, only
+	# the empty slots are filled to 40 (a fresh/empty deck fills the whole 40).
+	var deck := _deck.duplicate()
+	var need := DeckRules.DECK_SIZE - DeckRules.total(deck)
+	if need > 0:
+		_gen_fill(deck, creatures, int(round(need * 0.6)))  # ~60% creatures
+		_gen_top_up(deck, creatures + others, DeckRules.DECK_SIZE)
 	_deck = deck
 	_refresh_all_badges()
 	_refresh_deck()
@@ -451,7 +458,7 @@ func _right() -> Control:
 	actions.add_theme_constant_override("v_separation", 10)
 	_save_btn = Ui.mbtn("Сохранить", "primary", Ui.SIDE_ME, 169)
 	_save_btn.pressed.connect(_on_save)
-	var gen := Ui.mbtn("Сгенерировать", "ghost", Ui.SIDE_ME, 169)
+	var gen := Ui.mbtn("Догенерировать", "ghost", Ui.SIDE_ME, 169)
 	gen.pressed.connect(_open_gen_dialog)
 	var clear := Ui.mbtn("Очистить", "ghost", Ui.SIDE_ME, 169)
 	clear.pressed.connect(func() -> void:
@@ -590,8 +597,11 @@ func _passes(id: String) -> bool:
 	var d := CardData.def(id)
 	if not _f_colors.is_empty():
 		# AND: the card must carry every selected colour (e.g. red+blue -> only
-		# cards that are both), not merely one of them.
+		# cards that are both), not merely one of them. Strict also requires the
+		# card carry NO other colour (red -> only mono red, not red bicolours).
 		var cols := _card_colors(d)
+		if _f_strict and cols.size() != _f_colors.size():
+			return false
 		for fc in _f_colors:
 			if not cols.has(fc):
 				return false
@@ -777,11 +787,18 @@ func _kw_short(kw: String) -> String:
 
 
 # Keyword ids actually present in the pool, sorted by their Russian short name.
+# Internal/bespoke keywords with no player-facing glossary entry (penta cards):
+# they must not appear in the keyword filter as raw ids.
+const HIDDEN_KW := ["echo", "mirror", "vanguard"]
+
+
 func _pool_keywords() -> Array:
 	var seen := {}
 	for id in _all_ids:
 		for k in CardData.def(id).get("keywords", []):
-			seen[String(k.get("id", ""))] = true
+			var kid := String(k.get("id", ""))
+			if not HIDDEN_KW.has(kid):
+				seen[kid] = true
 	var ids := seen.keys()
 	ids.sort_custom(func(a, b): return _kw_short(a) < _kw_short(b))
 	return ids

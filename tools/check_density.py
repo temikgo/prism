@@ -28,7 +28,8 @@ PENTA_KW = {"echo", "mirror", "vanguard"}
 
 ALLOWED_ACTIONS = {"freeze", "blind", "damage", "destroy", "draw", "dispel", "scry", "scatter", "mirage"}
 ALLOWED_SELECTORS = {"enemy_hero", "chosen_enemy_minion", "chosen_friendly_minion",
-                     "chosen_any_minion", "all_enemies", "all_creatures"}
+                     "chosen_any_minion", "all_enemies", "all_creatures",
+                     "chosen_enemy_aura"}
 COLORLESS_ACTIONS = {"damage", "destroy", "draw", "dispel"}  # never colour a card
 
 TARGET = 4

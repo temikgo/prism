@@ -644,6 +644,38 @@ func _refresh_hand_card(card: UiCard, cid: String, index: int) -> void:
 	else:
 		card.modulate = Color(0.62, 0.62, 0.68, 0.92)
 		card.rest_modulate = Color(0.62, 0.62, 0.68, 0.92)
+	# Blue haze: enemy auras surcharge your spells -- show "+N" so the higher cost
+	# is visible at rest (the dim/playable state and the pay-picker already use it).
+	_apply_haze_badge(card, cid)
+
+
+func _apply_haze_badge(card: UiCard, cid: String) -> void:
+	var existing := card.get_node_or_null("HazeBadge")
+	var hz := Rules.haze_surcharge(view, cid)
+	if hz <= 0:
+		if existing:
+			existing.queue_free()
+		return
+	if existing == null:
+		var chip := PanelContainer.new()
+		chip.name = "HazeBadge"
+		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.add_theme_stylebox_override("panel",
+			Ui.bordered(Color(0.08, 0.14, 0.26, 0.95), 8, 1, Palette.color_for("blue"), 4))
+		chip.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		chip.offset_left = -36
+		chip.offset_top = 5
+		chip.offset_right = -5
+		chip.offset_bottom = 28
+		chip.tooltip_text = "Дымка: это заклинание стоит на %d дороже." % hz
+		var lbl := Ui.label("+%d" % hz, 15, Palette.color_for("blue").lightened(0.45), true, true)
+		lbl.name = "L"
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.add_child(lbl)
+		card.add_child(chip)
+	else:
+		existing.get_node("L").text = "+%d" % hz
+		existing.tooltip_text = "Дымка: это заклинание стоит на %d дороже." % hz
 
 
 # --- card visual -------------------------------------------------------------

@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include <string>
 #include <vector>
 
@@ -25,5 +26,16 @@ struct DeckCheck {
 // violation found, or {true,"",""} if legal.
 DeckCheck validateDeck(const CardLibrary& lib,
                        const std::vector<std::string>& ids);
+
+// Draft a colour-coherent deck: pick a colour count (weighted toward 2-3,
+// capped at maxColors), choose that many colours, then fill `deckSize` slots
+// from cards whose every colour is in the chosen set (colourless always
+// qualifies), each at most `maxCopies` times. Deterministic in `rng`. The bot
+// drafts with maxColors=3 -- coherent and castable, and it excludes 5-colour
+// pentas (they need all five colours allowed). Self-play uses maxColors=5 to
+// keep sampling rainbow/penta cards.
+std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
+                                   int deckSize, int maxCopies,
+                                   std::mt19937& rng, int maxColors = 5);
 
 }  // namespace prism

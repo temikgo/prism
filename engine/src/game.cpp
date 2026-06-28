@@ -287,7 +287,9 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
-  if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
+  if (def->type == CardType::Aura &&
+      (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
+    return false;
   if (!playTargetLegal(def, p, target)) return false;
   // Pay last, after every legality check, so a rejected play never spends mana.
   if (normal) {
@@ -435,7 +437,9 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   if (def->type == CardType::Creature &&
       static_cast<int>(p.board.size()) >= BoardLimit)
     return false;
-  if (def->type == CardType::Aura && hasAura(p, def->id)) return false;
+  if (def->type == CardType::Aura &&
+      (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
+    return false;
   if (!playTargetLegal(def, p, target)) return false;
   // The banked crystal + discount math lives in awakenCost (shared with
   // legalActions); it returns the resulting pool, or nullopt if unaffordable.
@@ -930,7 +934,9 @@ std::vector<Action> Game::legalActions() const {
     if (def->type == CardType::Creature &&
         static_cast<int>(p.board.size()) >= BoardLimit)
       continue;
-    if (def->type == CardType::Aura && hasAura(p, def->id)) continue;
+    if (def->type == CardType::Aura &&
+        (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
+      continue;
     for (EntityId t : legalTargets(def, p)) {
       Action a;
       a.type = Action::Type::Play;
@@ -950,7 +956,9 @@ std::vector<Action> Game::legalActions() const {
     if (def->type == CardType::Creature &&
         static_cast<int>(p.board.size()) >= BoardLimit)
       continue;
-    if (def->type == CardType::Aura && hasAura(p, def->id)) continue;
+    if (def->type == CardType::Aura &&
+        (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
+      continue;
     if (!awakenCost(p, mc)) continue;
     for (EntityId t : legalTargets(def, p)) {
       Action a;
@@ -1056,15 +1064,20 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
   } else if (a == "mirage") {
     makeMirage(owner, target);
   } else if (a == "dispel") {
-    // A universal answer to auras (which otherwise never leave play): strip the
-    // opponent's auras, newest first. value <= 0 clears all; value N removes
-    // the N most recent. The trailing checkDeaths/recomputeContinuous lifts any
-    // chill this removed, so a suppressed attack returns at once.
-    if (e.value <= 0)
-      opp.auras.clear();
-    else
+    // A universal answer to auras (which otherwise never leave play). The
+    // trailing checkDeaths/recomputeContinuous lifts any chill this removed, so
+    // a suppressed attack returns at once.
+    if (e.selector == "chosen_enemy_aura") {
+      // The player chose which enemy aura: `target` is its index in opp.auras.
+      if (target >= 0 && target < static_cast<int>(opp.auras.size()))
+        opp.auras.erase(opp.auras.begin() + target);
+    } else if (e.value <= 0) {
+      opp.auras.clear();  // strip them all
+    } else {
+      // value N removes the N most recent (newest first).
       for (int k = 0; k < e.value && !opp.auras.empty(); ++k)
         opp.auras.pop_back();
+    }
   }
 }
 

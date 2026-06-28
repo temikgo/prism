@@ -1,5 +1,7 @@
 #include "prism/deck.hpp"
 
+#include <algorithm>
+#include <array>
 #include <unordered_map>
 
 namespace prism {
@@ -17,6 +19,43 @@ DeckCheck validateDeck(const CardLibrary& lib,
     if (++counts[id] > kMaxCopies) return {false, "copies", id};
   }
   return {true, "", ""};
+}
+
+std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
+                                   int deckSize, int maxCopies,
+                                   std::mt19937& rng, int maxColors) {
+  static const int kCounts[] = {2, 3, 4, 5};
+  static const double kCum[] = {0.40, 0.75, 0.90, 1.00};
+  std::uniform_real_distribution<double> u(0.0, 1.0);
+  const double r = u(rng);
+  int k = 5;
+  for (int i = 0; i < 4; ++i)
+    if (r <= kCum[i]) {
+      k = kCounts[i];
+      break;
+    }
+  if (k > maxColors) k = maxColors;
+  if (k < 1) k = 1;
+  std::array<Color, 5> colors = {Color::Red, Color::Yellow, Color::Green,
+                                 Color::Blue, Color::Violet};
+  std::shuffle(colors.begin(), colors.end(), rng);
+  std::array<bool, ColorCount> allowed{};
+  for (int i = 0; i < k; ++i) allowed[static_cast<int>(colors[i])] = true;
+
+  std::vector<std::string> bag;
+  for (const CardDef* d : nonHero) {
+    bool ok = true;
+    for (Color c : d->colors)
+      if (!allowed[static_cast<int>(c)]) {
+        ok = false;
+        break;
+      }
+    if (ok)
+      for (int i = 0; i < maxCopies; ++i) bag.push_back(d->id);
+  }
+  std::shuffle(bag.begin(), bag.end(), rng);
+  if (static_cast<int>(bag.size()) > deckSize) bag.resize(deckSize);
+  return bag;
 }
 
 }  // namespace prism
