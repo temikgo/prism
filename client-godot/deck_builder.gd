@@ -705,6 +705,8 @@ func _list_row(id: String) -> Control:
 	var nm := Ui.label(CardData.name_of(id), 13, Ui.INK)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nm.clip_text = true
+	nm.tooltip_text = CardData.name_of(id)  # a clipped long name is still readable on hover
+	nm.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(nm)
 	var minus := _step_btn("−")
 	minus.pressed.connect(func() -> void: _remove(id))
