@@ -701,11 +701,7 @@ func _rebuild_list() -> void:
 func _list_row(id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 7)
-	var sw := Panel.new()
-	sw.custom_minimum_size = Vector2(10, 18)
-	var c := Palette.primary(CardData.def(id))
-	sw.add_theme_stylebox_override("panel", Ui.bordered(c, 3, 0, c))
-	row.add_child(sw)
+	row.add_child(_color_swatch(id))
 	var nm := Ui.label(CardData.name_of(id), 13, Ui.INK)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nm.clip_text = true
@@ -723,6 +719,24 @@ func _list_row(id: String) -> Control:
 	plus.pressed.connect(func() -> void: _add(id))
 	row.add_child(plus)
 	return row
+
+
+# A vertical multi-stripe swatch: one colour bar per card colour, so a multicolour
+# card reads as several colours (colourless = one neutral bar).
+func _color_swatch(id: String) -> Control:
+	var cols: Array = CardData.def(id).get("color", [])
+	if cols.is_empty():
+		cols = ["colorless"]
+	var box := VBoxContainer.new()
+	box.custom_minimum_size = Vector2(10, 18)
+	box.add_theme_constant_override("separation", 1)
+	for cn in cols:
+		var seg := Panel.new()
+		seg.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var c := Palette.color_for(String(cn))
+		seg.add_theme_stylebox_override("panel", Ui.bordered(c, 2, 0, c))
+		box.add_child(seg)
+	return box
 
 
 func _step_btn(glyph: String) -> Button:

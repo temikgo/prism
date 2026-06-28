@@ -12,6 +12,7 @@ extends Control
 signal confirmed(hero_id: String, deck_id: String)
 signal back_pressed
 signal create_deck  # jump straight to building a new deck
+signal edit_deck(deck_id: String)  # open the deck builder on an existing deck
 
 const HERO_HP := 30
 
@@ -238,9 +239,7 @@ func _deck_column() -> Control:
 		list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		list.add_theme_constant_override("separation", 12)
 		for d in decks:
-			var tile := _deck_tile(d)
-			_deck_cards[d["id"]] = tile
-			list.add_child(tile)
+			list.add_child(_deck_tile(d))  # registers the panel in _deck_cards itself
 		content.add_child(list)
 	var create := Ui.mbtn("Создать колоду", "ghost", Ui.ACC_VIOLET, 300)
 	create.pressed.connect(func() -> void: create_deck.emit())
@@ -283,32 +282,48 @@ func _confirm_delete(deck: Dictionary) -> void:
 func _deck_tile(deck: Dictionary) -> Control:
 	var did0 := String(deck["id"])
 	if not _is_user_deck(did0):
-		return _deck_panel(deck)
-	# User decks get a delete button overlaid top-right; wrap the panel in a plain
-	# Control so the button can float over it without the container reflowing it.
+		var p := _deck_panel(deck)
+		_deck_cards[did0] = p  # the panel is what _restyle re-styles on (re)select
+		return p
+	# User decks get edit + delete buttons overlaid top-right; wrap the panel in a
+	# plain Control so the buttons float over it without the container reflowing it.
 	var wrap := Control.new()
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var panel := _deck_panel(deck, wrap)  # hover scales the wrap so the button rides along
+	var panel := _deck_panel(deck, wrap)  # hover scales the wrap so the buttons ride along
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	wrap.add_child(panel)
-	var del := Button.new()
-	del.icon = load("res://icons/trash.svg")
-	del.expand_icon = true
-	del.custom_minimum_size = Vector2(30, 30)
-	del.focus_mode = Control.FOCUS_NONE
-	del.flat = true
-	del.tooltip_text = "Удалить колоду"
-	del.add_theme_color_override("icon_normal_color", Color(0.7, 0.5, 0.55))
-	del.add_theme_color_override("icon_hover_color", Color(0.95, 0.4, 0.45))
-	del.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	del.offset_left = -38
-	del.offset_top = 8
-	del.offset_right = -8
-	del.offset_bottom = 38
+	_deck_cards[did0] = panel  # _refresh re-styles THIS, so selection stays exclusive
+	var edit := _corner_button("res://icons/pencil.svg", "Изменить колоду",
+		Color(0.6, 0.7, 0.85), Ui.SIDE_ME, -72)
+	edit.pressed.connect(func() -> void: edit_deck.emit(did0))
+	wrap.add_child(edit)
+	var del := _corner_button("res://icons/trash.svg", "Удалить колоду",
+		Color(0.7, 0.5, 0.55), Color(0.95, 0.4, 0.45), -38)
 	del.pressed.connect(func() -> void: _confirm_delete(deck))
 	wrap.add_child(del)
 	return wrap
+
+
+# A small flat icon button pinned to the tile's top-right; `left` is the left
+# offset from the right edge (so two buttons sit side by side).
+func _corner_button(icon_path: String, tip: String, normal: Color, hover: Color,
+		left: int) -> Button:
+	var b := Button.new()
+	b.icon = load(icon_path)
+	b.expand_icon = true
+	b.custom_minimum_size = Vector2(30, 30)
+	b.focus_mode = Control.FOCUS_NONE
+	b.flat = true
+	b.tooltip_text = tip
+	b.add_theme_color_override("icon_normal_color", normal)
+	b.add_theme_color_override("icon_hover_color", hover)
+	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	b.offset_left = left
+	b.offset_top = 8
+	b.offset_right = left + 30
+	b.offset_bottom = 38
+	return b
 
 
 func _deck_panel(deck: Dictionary, scale_target: Control = null) -> Control:

@@ -93,6 +93,7 @@ func _go_loadout() -> void:
 		_go_play())
 	l.back_pressed.connect(_leave_play)  # also drops a socket if one is open
 	l.create_deck.connect(func() -> void: _go_deck_builder("", _go_loadout))
+	l.edit_deck.connect(func(deck_id: String) -> void: _go_deck_builder(deck_id, _go_loadout))
 	_swap(l)
 
 
