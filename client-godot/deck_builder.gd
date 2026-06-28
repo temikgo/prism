@@ -17,6 +17,9 @@ const TYPES := [["creature", "Существо"], ["spell", "Заклинани�
 const COSTS := ["0", "1", "2", "3", "4", "5", "6+"]
 const POOL_COLUMNS := 6
 const TILE_SCALE := 0.78  # in-game card face (176x246) scaled down for the pool
+const POOL_WHEEL_PX := 80.0
+const POOL_PAN_PX := 14.0
+const POOL_SMOOTH := 22.0
 
 const OK_COLOR := Color(0.26, 0.82, 0.44)
 const BAD_COLOR := Color(0.92, 0.36, 0.42)
@@ -36,6 +39,7 @@ var _scale := TILE_SCALE  # current card scale (recomputed by _relayout to fill 
 var _tiles := {}          # card_id -> { root, holder, badge, name, face }
 var _empty_note: Label = null
 var _pool_scroll: ScrollContainer = null
+var _pool_scroll_target := -1.0
 var _grid: GridContainer = null
 var _name_edit: LineEdit = null
 var _counter: HBoxContainer = null
@@ -270,6 +274,42 @@ func _on_tile_input(e: InputEvent, id: String) -> void:
 			_add(id)
 		elif e.button_index == MOUSE_BUTTON_RIGHT:
 			_remove(id)
+
+
+func _input(e: InputEvent) -> void:
+	if _pool_scroll == null or not is_visible_in_tree():
+		return
+	if not _pool_scroll.get_global_rect().has_point(_pool_scroll.get_global_mouse_position()):
+		return
+	var dy := 0.0
+	if e is InputEventPanGesture:
+		dy = e.delta.y * POOL_PAN_PX
+	elif e is InputEventMouseButton and e.pressed:
+		var f: float = e.factor if e.factor > 0.0 else 1.0
+		if e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			dy = POOL_WHEEL_PX * f
+		elif e.button_index == MOUSE_BUTTON_WHEEL_UP:
+			dy = -POOL_WHEEL_PX * f
+	if dy == 0.0:
+		return
+	var bar := _pool_scroll.get_v_scroll_bar()
+	var max_y: float = maxf(0.0, bar.max_value - bar.page)
+	var base: float = _pool_scroll_target if _pool_scroll_target >= 0.0 else float(_pool_scroll.scroll_vertical)
+	_pool_scroll_target = clampf(base + dy, 0.0, max_y)
+	get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if _pool_scroll == null or _pool_scroll_target < 0.0:
+		return
+	var cur := float(_pool_scroll.scroll_vertical)
+	var diff := _pool_scroll_target - cur
+	if absf(diff) < 0.5:
+		_pool_scroll.scroll_vertical = int(round(_pool_scroll_target))
+		_pool_scroll_target = -1.0
+		return
+	var t: float = clampf(POOL_SMOOTH * delta, 0.0, 1.0)
+	_pool_scroll.scroll_vertical = int(round(cur + diff * t))
 
 
 # --- right: the deck under construction ------------------------------------
