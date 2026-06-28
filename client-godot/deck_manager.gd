@@ -158,32 +158,9 @@ func _modal(title: String) -> Dictionary:
 
 
 func _open_share(deck: Dictionary) -> void:
-	var m := _modal("Код колоды «%s»" % String(deck["name"]))
-	var col: VBoxContainer = m["col"]
-	var hint := Ui.label("Скопируйте код и отправьте другу — он вставит его через «Импорт по коду».",
-		13, Ui.INK_DIM, true)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.custom_minimum_size = Vector2(500, 0)
-	col.add_child(hint)
-	var code := Decks.export_code(deck)
-	var box := TextEdit.new()
-	box.text = code
-	box.editable = false
-	box.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	box.custom_minimum_size = Vector2(500, 120)
-	col.add_child(box)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 10)
-	var copy := Ui.mbtn("Скопировать", "primary", Ui.ACC_VIOLET, 220)
-	copy.pressed.connect(func() -> void:
-		DisplayServer.clipboard_set(code)
-		copy.text = "Скопировано")
-	var close := Ui.mbtn("Закрыть", "ghost", Ui.COLORLESS, 160)
-	close.pressed.connect(func() -> void: m["overlay"].queue_free())
-	row.add_child(copy)
-	row.add_child(close)
-	col.add_child(row)
+	var dlg := ShareDialog.new()
+	add_child(dlg)
+	dlg.setup(deck)
 
 
 func _open_import() -> void:

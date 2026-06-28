@@ -294,11 +294,18 @@ func _deck_tile(deck: Dictionary) -> Control:
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	wrap.add_child(panel)
 	_deck_cards[did0] = panel  # _refresh re-styles THIS, so selection stays exclusive
-	var edit := _corner_button("res://icons/pencil.svg", "Изменить колоду",
+	var share := _corner_button("res://icons/share.svg",
+		Color(0.55, 0.7, 0.7), Color(0.5, 0.92, 0.92), -106)
+	share.pressed.connect(func() -> void:
+		var dlg := ShareDialog.new()
+		add_child(dlg)
+		dlg.setup(deck))
+	wrap.add_child(share)
+	var edit := _corner_button("res://icons/pencil.svg",
 		Color(0.6, 0.7, 0.85), Ui.SIDE_ME, -72)
 	edit.pressed.connect(func() -> void: edit_deck.emit(did0))
 	wrap.add_child(edit)
-	var del := _corner_button("res://icons/trash.svg", "Удалить колоду",
+	var del := _corner_button("res://icons/trash.svg",
 		Color(0.7, 0.5, 0.55), Color(0.95, 0.4, 0.45), -38)
 	del.pressed.connect(func() -> void: _confirm_delete(deck))
 	wrap.add_child(del)
@@ -306,16 +313,14 @@ func _deck_tile(deck: Dictionary) -> Control:
 
 
 # A small flat icon button pinned to the tile's top-right; `left` is the left
-# offset from the right edge (so two buttons sit side by side).
-func _corner_button(icon_path: String, tip: String, normal: Color, hover: Color,
-		left: int) -> Button:
+# offset from the right edge (so the buttons sit side by side). No tooltip.
+func _corner_button(icon_path: String, normal: Color, hover: Color, left: int) -> Button:
 	var b := Button.new()
 	b.icon = load(icon_path)
 	b.expand_icon = true
 	b.custom_minimum_size = Vector2(30, 30)
 	b.focus_mode = Control.FOCUS_NONE
 	b.flat = true
-	b.tooltip_text = tip
 	b.add_theme_color_override("icon_normal_color", normal)
 	b.add_theme_color_override("icon_hover_color", hover)
 	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
