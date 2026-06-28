@@ -658,8 +658,14 @@ void Game::reactTo(const Event& e) {
     std::vector<int> idx(enemy.board.size());
     for (std::size_t i = 0; i < idx.size(); ++i) idx[i] = static_cast<int>(i);
     std::shuffle(idx.begin(), idx.end(), rng_);
+    // +1 when flare fires on the enemy's OWN turn (they killed this creature):
+    // the end-of-turn tick would otherwise clear the blind before they ever sit
+    // out, wasting it. With the +1 a flare always costs the enemy one turn of
+    // attacks, whichever turn it died on.
+    int dur = (enemy.index == current_) ? 2 : 1;
     for (int i = 0; i < fl && i < static_cast<int>(idx.size()); ++i)
-      if (!absorbWard(enemy.board[idx[i]])) enemy.board[idx[i]].blindTurns = 1;
+      if (!absorbWard(enemy.board[idx[i]]))
+        enemy.board[idx[i]].blindTurns = dur;
   }
 }
 

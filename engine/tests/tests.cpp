@@ -1378,7 +1378,14 @@ TEST_CASE("flare blinds random enemy creatures when this creature dies") {
   g.endTurn();                         // p1, bears un-sick
   REQUIRE(g.attackCreature(b1, fid));  // kills flareling -> flare blinds 2
   REQUIRE(g.player(1).board.size() == 2);
-  for (const auto& c : g.player(1).board) CHECK(c.blindTurns == 1);
+  // Flare fired on p1's OWN turn, so the blind is 2: it survives p1's
+  // end-of-turn tick and still costs them their next attack (the bug was a flat
+  // 1 that the same turn's tick cleared, making flare-on-your-turn useless).
+  for (const auto& c : g.player(1).board) CHECK(c.blindTurns == 2);
+  g.endTurn();  // p1 ends -> tick p1 blind 2->1; now p0
+  CHECK(g.player(1).board[0].blindTurns == 1);
+  g.endTurn();  // p0 ends; p1's turn -- creatures un-sick but still blind
+  CHECK_FALSE(g.attackHero(g.player(1).board[0].id));  // blind: cannot attack
 }
 
 TEST_CASE("firststrike skips retaliation when it kills the defender") {
