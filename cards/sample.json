@@ -271,7 +271,7 @@
     "color": ["yellow"],
     "cost": { "generic": 1, "yellow": 1 },
     "keywords": [{ "id": "floodlight" }],
-    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }]
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1, "selector": "chosen_enemy_aura" }]
   },
   {
     "id": "yellow_signal_fire",
@@ -1118,7 +1118,7 @@
     "color": ["violet"],
     "cost": { "generic": 0, "violet": 1 },
     "keywords": [{ "id": "glimmer" }],
-    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1 }]
+    "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1, "selector": "chosen_enemy_aura" }]
   },
   {
     "id": "violet_fading_light",
