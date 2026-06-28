@@ -59,3 +59,34 @@ static func delete_deck(deck_id: String) -> void:
 	if cfg.has_section_key("decks", deck_id):
 		cfg.erase_section_key("decks", deck_id)
 		cfg.save(USER_PATH)
+
+
+# A shareable code for a deck: base64 of its {name, cards} JSON. Card ids are
+# kept verbatim so a code is portable to any client with the same card set.
+static func export_code(deck: Dictionary) -> String:
+	var payload := {"n": String(deck.get("name", "Колода")), "c": deck.get("cards", [])}
+	return Marshalls.utf8_to_base64(JSON.stringify(payload))
+
+
+# Decode a share code, save it as a NEW user deck, and return it (or {} if the
+# code is malformed or names a card this client does not have).
+static func import_code(code: String) -> Dictionary:
+	var raw := Marshalls.base64_to_utf8(code.strip_edges())
+	if raw == "":
+		return {}
+	var parsed = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("c"):
+		return {}
+	var cards: Array = parsed.get("c", [])
+	if cards.is_empty():
+		return {}
+	for cid in cards:
+		if CardData.def(String(cid)).is_empty():
+			return {}  # unknown card (different set/version) -> reject
+	var deck := {
+		"id": "user_%d_%d" % [int(Time.get_unix_time_from_system()), randi() % 1000],
+		"name": String(parsed.get("n", "Импорт")),
+		"cards": cards,
+	}
+	save_deck(deck)
+	return deck

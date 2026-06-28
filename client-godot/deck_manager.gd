@@ -54,6 +54,9 @@ func _ready() -> void:
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	foot.add_child(sp)
+	var imp := Ui.mbtn("Импорт по коду", "ghost", Ui.ACC_VIOLET, 240)
+	imp.pressed.connect(_open_import)
+	foot.add_child(imp)
 	var create := Ui.mbtn("＋ Создать колоду", "primary", Ui.SIDE_ME, 320)
 	create.pressed.connect(func() -> void: edit_deck.emit(""))
 	foot.add_child(create)
@@ -102,6 +105,9 @@ func _deck_row(deck: Dictionary) -> Control:
 	row.add_child(info)
 
 	var did := String(deck["id"])
+	var share := Ui.mbtn("Поделиться", "ghost", Ui.ACC_VIOLET, 150)
+	share.pressed.connect(func() -> void: _open_share(deck))
+	row.add_child(share)
 	var edit := Ui.mbtn("Изменить", "ghost", Ui.SIDE_ME, 150)
 	edit.pressed.connect(func() -> void: edit_deck.emit(did))
 	row.add_child(edit)
@@ -120,6 +126,95 @@ func _confirm_delete(deck: Dictionary) -> void:
 	add_child(dlg)
 	dlg.setup("Удалить колоду?", ["«%s» будет удалена безвозвратно." % String(deck["name"])],
 		"Удалить", "Отмена", Color(0.92, 0.30, 0.34))
+
+
+# A dim-backdrop centered modal; returns { overlay, col } to fill with content.
+func _modal(title: String) -> Dictionary:
+	var overlay := Control.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.z_index = 4096
+	var dim := ColorRect.new()
+	dim.color = Color(0.0, 0.0, 0.02, 0.6)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed:
+			overlay.queue_free())
+	overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Ui.glass(Ui.ACC_VIOLET, 0.72))
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	col.custom_minimum_size = Vector2(500, 0)
+	panel.add_child(col)
+	col.add_child(Ui.label(title, 20, Color(0.94, 0.96, 1.0), true, true))
+	add_child(overlay)
+	return {"overlay": overlay, "col": col}
+
+
+func _open_share(deck: Dictionary) -> void:
+	var m := _modal("Код колоды «%s»" % String(deck["name"]))
+	var col: VBoxContainer = m["col"]
+	var hint := Ui.label("Скопируйте код и отправьте другу — он вставит его через «Импорт по коду».",
+		13, Ui.INK_DIM, true)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size = Vector2(500, 0)
+	col.add_child(hint)
+	var code := Decks.export_code(deck)
+	var box := TextEdit.new()
+	box.text = code
+	box.editable = false
+	box.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	box.custom_minimum_size = Vector2(500, 120)
+	col.add_child(box)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+	var copy := Ui.mbtn("Скопировать", "primary", Ui.ACC_VIOLET, 220)
+	copy.pressed.connect(func() -> void:
+		DisplayServer.clipboard_set(code)
+		copy.text = "Скопировано")
+	var close := Ui.mbtn("Закрыть", "ghost", Ui.COLORLESS, 160)
+	close.pressed.connect(func() -> void: m["overlay"].queue_free())
+	row.add_child(copy)
+	row.add_child(close)
+	col.add_child(row)
+
+
+func _open_import() -> void:
+	var m := _modal("Импорт колоды по коду")
+	var col: VBoxContainer = m["col"]
+	col.add_child(Ui.label("Вставьте код колоды, полученный от друга.", 13, Ui.INK_DIM, true))
+	var box := TextEdit.new()
+	box.placeholder_text = "вставьте код сюда…"
+	box.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	box.custom_minimum_size = Vector2(500, 120)
+	col.add_child(box)
+	var err := Ui.label("", 13, Color(0.95, 0.4, 0.45), true)
+	err.visible = false
+	col.add_child(err)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+	var imp := Ui.mbtn("Импортировать", "primary", Ui.ACC_VIOLET, 220)
+	imp.pressed.connect(func() -> void:
+		var d := Decks.import_code(box.text)
+		if d.is_empty():
+			err.text = "Неверный код или карты из другого набора."
+			err.visible = true
+		else:
+			m["overlay"].queue_free()
+			_rebuild())
+	var cancel := Ui.mbtn("Отмена", "ghost", Ui.COLORLESS, 160)
+	cancel.pressed.connect(func() -> void: m["overlay"].queue_free())
+	row.add_child(imp)
+	row.add_child(cancel)
+	col.add_child(row)
 
 
 # A small spectrum bar of the colours present in the deck (its identity).
