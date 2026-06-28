@@ -6,6 +6,8 @@ extends Control
 
 func setup(deck: Dictionary) -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	position = Vector2.ZERO
+	size = get_viewport_rect().size
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	z_as_relative = false
 	z_index = 4096

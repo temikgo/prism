@@ -443,15 +443,15 @@ func _tile_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 	sb.border_width_top = 2
 	sb.set_content_margin_all(12)
 	if selected:
+		# Selection reads from the bright background tint + blue border alone; no
+		# blue glow halo behind the tile (it looked like a stray frame).
 		sb.bg_color = Color(0.086, 0.118, 0.2, 0.92)
 		sb.border_color = Ui.SIDE_ME
-		sb.shadow_size = 24
-		sb.shadow_color = Color(Ui.SIDE_ME.r, Ui.SIDE_ME.g, Ui.SIDE_ME.b, 0.5)
+		sb.shadow_size = 0
 	elif hovered:
 		sb.bg_color = Color(0.063, 0.082, 0.149, 0.85)
 		sb.border_color = Ui.PANEL_STROKE.lerp(Ui.SIDE_ME, 0.55)
-		sb.shadow_size = 16
-		sb.shadow_color = Color(Ui.SIDE_ME.r, Ui.SIDE_ME.g, Ui.SIDE_ME.b, 0.3)
+		sb.shadow_size = 0
 	else:
 		sb.bg_color = Color(0.043, 0.051, 0.094, 0.7)
 		sb.border_color = Ui.PANEL_STROKE
