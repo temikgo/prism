@@ -82,7 +82,15 @@ func _rebuild() -> void:
 
 func _deck_row(deck: Dictionary) -> Control:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", Ui.panel_glass())
+	# A plain dark slab, NOT panel_glass -- the latter's blue-tinted border + blue
+	# shadow read as a stray translucent frame behind each deck.
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.055, 0.063, 0.11, 0.7)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(1)
+	sb.border_color = Ui.PANEL_STROKE
+	sb.set_content_margin_all(16)
+	panel.add_theme_stylebox_override("panel", sb)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 16)
 	panel.add_child(row)
