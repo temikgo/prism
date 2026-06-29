@@ -24,12 +24,15 @@ DeckCheck validateDeck(const CardLibrary& lib,
 std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
                                    int deckSize, int maxCopies,
                                    std::mt19937& rng, int maxColors) {
-  static const int kCounts[] = {2, 3, 4, 5};
-  static const double kCum[] = {0.40, 0.75, 0.90, 1.00};
+  // Colour count picked like a human deckbuilder: mostly mono/two-colour, with
+  // a thin tail to greedy 4-5 colour piles. mono 30% / 2-colour 35% / 3 20% / 4
+  // 5% / 5 10%.
+  static const int kCounts[] = {1, 2, 3, 4, 5};
+  static const double kCum[] = {0.30, 0.65, 0.85, 0.90, 1.00};
   std::uniform_real_distribution<double> u(0.0, 1.0);
   const double r = u(rng);
   int k = 5;
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < 5; ++i)
     if (r <= kCum[i]) {
       k = kCounts[i];
       break;

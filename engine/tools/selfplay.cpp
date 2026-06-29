@@ -94,6 +94,8 @@ struct Config {
   std::string jsonlPath;  // per-game records; empty = none
   bool draft = false;
   bool vsGreedy = false;  // seat 1 plays the greedy reflex (head-to-head test)
+  bool vsBlind =
+      false;  // A/B: aware bot vs keyword-blind bot (alternating seats)
   int deckSize = 40;
   int maxCopies = 2;
 };
@@ -109,6 +111,8 @@ struct RunStats {
   long draws = 0;       // reached over_ with no winner (rare)
   long incomplete = 0;  // hit the step guard without finishing
   long seatWins[2] = {0, 0};
+  long awareWins = 0;  // --vsblind: games won by the keyword-aware bot
+  long blindWins = 0;  // --vsblind: games won by the keyword-blind bot
   long long totalTurns = 0;
   std::map<std::string, Tally> heroes;
   std::map<std::string, Tally> cards;
@@ -119,6 +123,8 @@ struct RunStats {
     incomplete += o.incomplete;
     seatWins[0] += o.seatWins[0];
     seatWins[1] += o.seatWins[1];
+    awareWins += o.awareWins;
+    blindWins += o.blindWins;
     totalTurns += o.totalTurns;
     for (const auto& [k, t] : o.heroes) {
       heroes[k].games += t.games;
@@ -176,6 +182,9 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
   // the same seed feeds the bot the same stream (CRN) -- divergence comes only
   // from the card change, not from RNG drift.
   std::mt19937 botRng(gameSeed ^ 0x9E3779B9u);
+  // --vsblind: one seat plays keyword-aware, the other blind; the aware seat
+  // alternates by seed parity so first-player advantage cancels out.
+  const int awareSeat = static_cast<int>(gameSeed & 1u);
 
   std::array<std::set<std::string>, 2>
       seen;  // cards each seat ever held in hand
@@ -189,6 +198,7 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       stalled = true;
       break;
     }
+    if (cfg.vsBlind) setBotKeywordScale(seat == awareSeat ? 1.0 : 0.0);
     const std::string js = (cfg.vsGreedy && seat == 1)
                                ? botGreedyAction(g, seat, botRng)
                                : botNextAction(g, seat, botRng);
@@ -221,6 +231,12 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
     acc.draws++;
   else
     acc.seatWins[w]++;
+  if (cfg.vsBlind && w >= 0) {
+    if (w == awareSeat)
+      acc.awareWins++;
+    else
+      acc.blindWins++;
+  }
   const std::array<std::string, 2> hero = {h0, h1};
   for (int seat = 0; seat < 2; ++seat) {
     if (!hero[seat].empty()) {
@@ -259,6 +275,11 @@ void writeJson(const std::string& path, const RunStats& s, const Config& cfg,
   j["seconds"] = secs;
   const long decided = s.seatWins[0] + s.seatWins[1];
   j["first_player_winrate"] = pct(s.seatWins[0], decided);
+  if (cfg.vsBlind) {
+    const long ab = s.awareWins + s.blindWins;
+    j["aware_winrate"] = pct(s.awareWins, ab);
+    j["aware_games"] = ab;
+  }
   j["avg_turns"] =
       s.completed + s.incomplete > 0
           ? static_cast<double>(s.totalTurns) / (s.completed + s.incomplete)
@@ -285,6 +306,8 @@ int main(int argc, char** argv) {
       cfg.draft = true;
     else if (a == "--vsgreedy")
       cfg.vsGreedy = true;
+    else if (a == "--vsblind")
+      cfg.vsBlind = true;
     else if (a == "--jsonl" && i + 1 < argc)
       cfg.jsonlPath = argv[++i];
     else if (a == "--report" && i + 1 < argc)

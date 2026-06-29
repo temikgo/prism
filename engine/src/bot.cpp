@@ -11,6 +11,12 @@ namespace prism {
 
 using nlohmann::json;
 
+// Per-thread keyword-awareness scale: 1 = full, 0 = blind to v2 keywords. Set
+// by the --vsblind A/B harness per moving seat; default full. thread_local so
+// self-play worker threads stay independent.
+static thread_local double g_kwScale = 1.0;
+void setBotKeywordScale(double scale) { g_kwScale = scale; }
+
 namespace {
 
 const Creature* find(const Player& p, EntityId id) {
@@ -126,13 +132,57 @@ std::string serializeAction(const Action& a) {
   return j.dump();
 }
 
+// Standalone heuristic value of a card's keywords that raw atk+hp and the LIVE
+// continuous recompute do NOT already capture: repeatable/compounding engines,
+// reach, persistent control auras, death payoffs, combat utility. Magnitudes
+// are in "effective stat points" (same unit as boardPower). The live anthems
+// (incandescence / chill / undergrowth / resonance) return 0 here -- they are
+// already folded into boardPower, so crediting them again would double-count.
+// Used by both score(Play) (play priority) and evalState (board/aura presence).
+double keywordValue(const CardDef* d) {
+  if (d == nullptr) return 0.0;
+  auto kw = [&](const char* id) {
+    return d->hasKeyword(id) ? std::max(1, d->keywordN(id, 1)) : 0;
+  };
+  double v = 0.0;
+  // Compounding / repeatable engines:
+  v += 2.5 * kw("photosynthesis");  // ramp, compounds every turn
+  v += 2.0 * kw("growth");          // +N/+N each turn
+  v += 1.0 * kw("compost");         // grows on ally death
+  v += 1.5 * kw("germinate");       // a fresh body each turn
+  v += 0.8 * kw("mulch");           // heal a wounded ally each turn
+  // Reach / inevitability (ignores the board):
+  v += 2.0 * kw("spark");  // repeatable face damage
+  v += 0.5 * kw("sear");   // on-death face damage
+  v += 0.6 * kw("flare");  // on-death blind
+  // Death / persistence payoffs:
+  v += 0.9 * kw("spores");  // death -> sprouts
+  v += 1.2 * kw("haunt");   // reborn once
+  v += 0.5 * kw("split");   // illusory copies
+  // Combat survivability / utility:
+  v += 0.6 * kw("regen");
+  v += 1.0 * kw("self_lifesteal") + 1.0 * kw("cauterize");
+  v += 1.0 * kw("provoke") + 1.5 * kw("shield") + 1.0 * kw("ward");
+  v += 0.8 * kw("stealth") + 0.9 * kw("firststrike") + 1.2 * kw("strobe");
+  v += 0.5 * kw("pierce") + 0.6 * kw("bypass");
+  // Control / utility auras (persistent, not in boardPower):
+  v += 1.5 * kw("haze");  // taxes enemy spells
+  v += 0.6 * kw("glimmer") + 0.8 * kw("refract");
+  v += 0.3 * kw("birefringence") +
+       0.3 * kw("pinpoint");  // spell support (few spells)
+  v += 0.3 * kw("awaken") + 0.4 * kw("decoy");
+  v += 0.1 * kw("floodlight");  // near-useless tech
+  return v * g_kwScale;         // blind bot (scale 0) values no keywords
+}
+
 // Score a move (higher = take sooner). EndTurn scores ~0, so it is the fallback
 // once nothing else scores positive. Every other action spends a one-shot
 // resource (a hand card, a creature's attack, the once-per-turn mana drop), so
 // the legal set strictly shrinks and the bot always ends its turn. One greedy
 // policy: develop the board, ramp, trade up, and race the hero when ahead.
 double score(const Action& a, const Game& g, int seat, bool lethal,
-             int onlyPlayable, std::mt19937& rng) {
+             int onlyPlayable, const std::vector<bool>& canPlay,
+             std::mt19937& rng) {
   const Player& me = g.player(seat);
   const Player& foe = g.player(1 - seat);
   std::uniform_real_distribution<double> jitter(0.0, 0.5);
@@ -142,20 +192,28 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
     case Action::Type::EndTurn:
       return 0.0;
     case Action::Type::PlaceMana: {
-      // Mana grows ONLY by sacrificing one card per turn, so the bot ramps
-      // every turn -- and does it FIRST: the fresh crystal is usable this turn
-      // and the drop never blocks a play (it only adds mana for the
-      // plays/answers that follow). It gives up its cheapest CREATURE (cheap
-      // bodies are the most replaceable). Spells/auras are protected: when only
-      // those are in hand the drop drops to low priority, so the bot plays its
-      // answers before ever sacrificing one to mana.
-      // Never sacrifice the only card you can actually play this turn -- keep
-      // it to develop the board instead of ramping into a dead (e.g.
-      // colour-screwed) hand.
-      if (a.handIndex == onlyPlayable) return -50.0 + r;
+      // Mana grows ONLY by sacrificing one card per turn. Feed that ramp with
+      // the LEAST useful card so the castable curve stays in hand to develop
+      // the board (the old "sac the cheapest creature" threw away exactly what
+      // we could have played). Best fuel: cards dead THIS turn (unaffordable
+      // now) and low-value cards; spare cheap playable bodies and high-value
+      // bombs. When everything in hand is castable and good, sac scores fall
+      // below plays, so the bot develops instead of ramping -- as a human stops
+      // ramping once flush.
+      if (a.handIndex == onlyPlayable) return -50.0 + r;  // keep the only play
       const CardDef* d = me.hand[a.handIndex].def;
-      if (!isCreature(d)) return 0.7 + r;
-      return 14.0 - 0.3 * manaValue(d) + r;  // beats any play; cheaper ranks up
+      const bool playableNow = a.handIndex < static_cast<int>(canPlay.size()) &&
+                               canPlay[a.handIndex];
+      double s = 9.0;             // ramp still beats most plays
+      if (playableNow) s -= 3.0;  // keep what we can play now
+      if (isCreature(d) && playableNow) s -= 2.0;  // especially castable bodies
+      s -= 0.4 * (keywordValue(d) + 0.5 * statSum(d));  // spare our best cards
+      // Colour: among this card's colours, prefer the one we have least of, so
+      // a two-colour deck unsticks its casting instead of flooding one colour.
+      int least = me.mana.crystals[0];
+      for (int v : me.mana.crystals) least = std::min(least, v);
+      if (me.mana.crystals[static_cast<int>(a.color)] == least) s += 0.6;
+      return s + r;
     }
     case Action::Type::Activate:
       return 2.0 + r;  // germinate a sprout: free board
@@ -163,17 +221,19 @@ double score(const Action& a, const Game& g, int seat, bool lethal,
       return 3.5 + r;
     case Action::Type::Play: {
       const CardDef* d = me.hand[a.handIndex].def;
-      // Reach the 1-ply leaf under-credits: burn aimed at the enemy hero and
-      // on-death face damage (sear) are guaranteed payoff the greedy rollout
-      // would otherwise deprioritize (targetBonus only scores creature
-      // targets).
+      // Reach the 1-ply leaf under-credits: burn aimed at the enemy hero is
+      // guaranteed payoff the greedy rollout would otherwise deprioritize
+      // (targetBonus only scores creature targets). keywordValue() then adds
+      // the engine/control/keyword worth (ramp, spark reach, death payoffs,
+      // combat utility, sear, ...) that raw stats miss, so the bot prioritizes
+      // those.
       double reach = 0.0;
       for (const auto& e : d->effects)
         if (e.trigger == "on_play" && e.action == "damage" &&
             e.selector == "enemy_hero")
           reach += e.value;
-      if (d->hasKeyword("sear")) reach += 0.5 * d->keywordN("sear", 1);
-      return 3.0 + 0.5 * statSum(d) + targetBonus(g, seat, a) + reach + r;
+      return 3.0 + 0.5 * statSum(d) + targetBonus(g, seat, a) + reach +
+             keywordValue(d) + r;
     }
     case Action::Type::AttackCreature: {
       const Creature* at = find(me, a.attacker);
@@ -239,6 +299,16 @@ double evalState(const Game& g, int seat) {
   v += 1.5 * (static_cast<int>(me.hand.size()) -
               static_cast<int>(foe.hand.size()));     // card advantage
   v += 0.8 * (crystalCount(me) - crystalCount(foe));  // developed mana
+  // Persistent keyword worth (engines / control / auras) that boardPower's raw
+  // atk+hp does not capture. Owner-beneficial, so mine adds and foe subtracts.
+  for (const auto& c : me.board) v += keywordValue(c.def);
+  for (const auto& c : foe.board) v -= keywordValue(c.def);
+  for (const auto* a : me.auras) v += keywordValue(a);
+  for (const auto* a : foe.auras) v -= keywordValue(a);
+  // A frozen/blinded enemy cannot attack this turn -- discount its threat,
+  // since boardPower still counts its full attack.
+  for (const auto& c : foe.board)
+    if (c.frozenTurns > 0 || c.blindTurns > 0) v += 0.5 * c.atk;
   return v;
 }
 
@@ -277,7 +347,7 @@ Action greedyMainChoice(const Game& g, int seat,
   const Action* best = &acts.front();
   double bestScore = -1e18;
   for (const auto& a : acts) {
-    const double s = score(a, g, seat, lethal, onlyPlayable, rng);
+    const double s = score(a, g, seat, lethal, onlyPlayable, canPlay, rng);
     if (s > bestScore) {
       bestScore = s;
       best = &a;

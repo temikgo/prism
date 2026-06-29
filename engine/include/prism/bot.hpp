@@ -23,12 +23,19 @@ namespace prism {
 class Game;
 
 // The bot's next action as protocol JSON, or "" if it is not the bot's turn and
-// it has nothing pending. Handles mulligan (keeps all) and scry (keeps the peek
-// order) itself, since those are not in legalActions().
+// it has nothing pending. Handles mulligan (tosses cards too dear to cast
+// early, keeping a low curve) and scry (buries cards it cannot cast soon)
+// itself, since those are not in legalActions().
 std::string botNextAction(const Game& g, int seat, std::mt19937& rng);
 
 // The pure greedy reflex (no search): the bot's old brain, exposed as a weaker
 // reference policy for head-to-head strength tests (search should beat it).
 std::string botGreedyAction(const Game& g, int seat, std::mt19937& rng);
+
+// Scale the bot's v2-keyword valuation for the CURRENT thread: 1 = full
+// awareness (default), 0 = blind to keywords (the pre-B0 brain). Lets a
+// head-to- head harness pit an aware bot against a blind one to measure the
+// eval change.
+void setBotKeywordScale(double scale);
 
 }  // namespace prism
