@@ -242,7 +242,9 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   p.manaRow.push_back(ManaCard{card, color});  // keep identity for awaken
   p.mana.addCrystal(color);
   p.placedManaThisTurn = true;
-  recomputeContinuous();  // crystal count changed -> refresh resonance
+  // Refresh the live continuous layers (chill / incandescence / undergrowth).
+  // Resonance is NOT live: it is snapshotted at summon (see playResolved).
+  recomputeContinuous();
   return true;
 }
 

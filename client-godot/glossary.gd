@@ -27,7 +27,7 @@ const KW := {
 	"compost": "Компост N: когда ваше существо умирает, +N/+N этому.",
 	"spores": "Споры N: при смерти призывает N ростков 1/1.",
 	"undergrowth": "Подлесок N: +N/+N за каждое другое ваше существо.",
-	"resonance": "Резонанс N: +N/+N за каждый ваш кристалл.",
+	"resonance": "Резонанс N: при выходе получает +N/+N за каждый ваш кристалл.",
 	"mulch": "Подкормка: в начале вашего хода одно ваше раненое существо +1 HP.",
 	"freeze": "Заморозка N: N ход(ов) не может атаковать, но в защите бьёт в ответ.",
 	"chill": "Стужа N: вражеские существа -N к атаке, пока аура в игре.",
@@ -68,13 +68,42 @@ const EFFECT := {
 }
 
 
+# Russian numeral agreement: pick the form for n (1 / 2-4 / 5+, with the 11-14
+# exception). Returns just the noun phrase; the caller prefixes the number.
+static func _pl(n: int, one: String, few: String, many: String) -> String:
+	var a := n % 10
+	var b := n % 100
+	if a == 1 and b != 11:
+		return one
+	if a >= 2 and a <= 4 and not (b >= 12 and b <= 14):
+		return few
+	return many
+
+
+# The rules templates leave count-nouns as crude fixed forms ("карт(ы)", "ход(ов)").
+# Decline them against the number that was just substituted for N so the printed
+# text reads grammatically. Each placeholder occurs at most once per sentence.
+static func _fix_plurals(s: String, n: int) -> String:
+	s = s.replace("ход(ов)", _pl(n, "ход", "хода", "ходов"))
+	s = s.replace("карт(ы)", _pl(n, "карту", "карты", "карт"))
+	s = s.replace("бесцветных кристалла(ов)", _pl(n, "бесцветный кристалл", "бесцветных кристалла", "бесцветных кристаллов"))
+	s = s.replace("кристалл(ов)", _pl(n, "кристалл", "кристалла", "кристаллов"))
+	s = s.replace("случайных врагов", _pl(n, "случайного врага", "случайных врага", "случайных врагов"))
+	s = s.replace("иллюзий", _pl(n, "иллюзию", "иллюзии", "иллюзий"))
+	s = s.replace("ростков", _pl(n, "росток", "ростка", "ростков"))
+	s = s.replace("верхних карт колоды", _pl(n, "верхнюю карту колоды", "верхние карты колоды", "верхних карт колоды"))
+	s = s.replace("ваших ходов", _pl(n, "ваш ход", "ваших хода", "ваших ходов"))
+	return s
+
+
 static func keyword(kw: Dictionary) -> String:
 	var id := String(kw.get("id", ""))
 	if not KW.has(id):
 		return ""
 	var s: String = KW[id]
 	if kw.has("n"):
-		s = s.replace("N", str(int(kw["n"])))
+		var n := int(kw["n"])
+		s = _fix_plurals(s.replace("N", str(n)), n)
 	return s
 
 
@@ -136,7 +165,8 @@ static func effect_text(e: Dictionary) -> String:
 			else:
 				s = "Уничтожьте N ауры."
 	if e.has("value"):
-		s = s.replace("N", str(int(e["value"])))
+		var n := int(e["value"])
+		s = _fix_plurals(s.replace("N", str(n)), n)
 	return s
 
 
@@ -147,10 +177,10 @@ static func status_lines(runtime) -> Array:
 		return out
 	var fr := int(runtime.get("frozen", 0))
 	if fr > 0:
-		out.append("Заморожен: ещё %d ход(ов) — не атакует, но даёт сдачу в защите." % fr)
+		out.append("Заморожен: ещё %d %s — не атакует, но даёт сдачу в защите." % [fr, _pl(fr, "ход", "хода", "ходов")])
 	var bl := int(runtime.get("blind", 0))
 	if bl > 0:
-		out.append("Ослеплён: ещё %d ход(ов) — не атакует и не наносит урон в бою (даже в ответ)." % bl)
+		out.append("Ослеплён: ещё %d %s — не атакует и не наносит урон в бою (даже в ответ)." % [bl, _pl(bl, "ход", "хода", "ходов")])
 	if bool(runtime.get("shield", false)):
 		out.append("Щит: поглотит следующий источник урона целиком.")
 	if bool(runtime.get("ward", false)):
