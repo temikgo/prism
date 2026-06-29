@@ -133,6 +133,7 @@ func _go_play() -> void:
 	p.create_pressed.connect(_go_create)
 	p.join_pressed.connect(_go_join)
 	p.train_pressed.connect(_go_train)
+	p.mirror_train_pressed.connect(_go_mirror_train)
 	p.back_pressed.connect(_go_loadout)  # back to re-pick hero/deck
 	_swap(p)
 
@@ -141,6 +142,12 @@ func _go_play() -> void:
 # match begins via the normal matchStart -> _go_match path (no waiting room).
 func _go_train() -> void:
 	_send(_room_msg("createBotRoom", {}))
+
+
+# Mirror training: the bot is seated with the player's exact deck and hero (only
+# the shuffle differs), so it is a pure play-skill test.
+func _go_mirror_train() -> void:
+	_send(_room_msg("createBotRoom", {"mirror": true}))
 
 
 func _go_create() -> void:

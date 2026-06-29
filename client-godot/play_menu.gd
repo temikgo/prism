@@ -7,6 +7,7 @@ extends Control
 signal create_pressed
 signal join_pressed
 signal train_pressed
+signal mirror_train_pressed
 signal back_pressed
 
 var _status: Label = null
@@ -39,6 +40,10 @@ func _ready() -> void:
 	var train := Ui.mbtn("Тренировка", "ghost", Ui.ACC_VIOLET)
 	train.pressed.connect(func() -> void: train_pressed.emit())
 	col.add_child(train)
+	# Mirror training: bot gets your exact deck + hero, only the shuffle differs.
+	var mirror := Ui.mbtn("Зеркальная тренировка", "ghost", Ui.ACC_VIOLET)
+	mirror.pressed.connect(func() -> void: mirror_train_pressed.emit())
+	col.add_child(mirror)
 
 	var back := Ui.mbtn("Назад", "ghost", Ui.COLORLESS)
 	back.pressed.connect(func() -> void: back_pressed.emit())

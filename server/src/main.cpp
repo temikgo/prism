@@ -305,14 +305,28 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     r.fd[1] = -1;  // bot seat (no socket)
     r.vsBot = true;
     readLoadout(j, r, 0);  // the human's hero + deck
-    // Give the bot a coherent drafted deck (1-3 colours) rather than the full
-    // pool: the demoDeck fallback is a 160-card rainbow pile it cannot curve
-    // out or even cast (5 colours + uncastable pentas), which made it lose at
-    // once.
     std::vector<const CardDef*> nonHero;
     for (const auto& d : lib.all())
       if (d.type != CardType::Hero) nonHero.push_back(&d);
-    r.deck[1] = draftDeck(nonHero, kDeckSize, kMaxCopies, rng, /*maxColors=*/3);
+    if (j.value("mirror", false)) {
+      // Mirror training: BOTH seats get the SAME freshly-generated random deck
+      // and hero (the player's own pick is ignored here); only the shuffle
+      // differs (the engine shuffles each seat in turn). A pure play-skill test
+      // on a random deck neither side built, different every match.
+      std::vector<std::string> deck =
+          draftDeck(nonHero, kDeckSize, kMaxCopies, rng);
+      std::vector<std::string> heroes = heroPool(lib);
+      std::string hero =
+          heroes.empty() ? std::string{} : heroes[rng() % heroes.size()];
+      r.deck[0] = r.deck[1] = deck;
+      r.hero[0] = r.hero[1] = hero;
+    } else {
+      // Otherwise the bot drafts its own deck like a human deckbuilder picks
+      // (colour count mono 30% / 2 35% / 3 20% / 4 5% / 5 10%) rather than the
+      // full pool: the demoDeck fallback is a 160-card rainbow pile it cannot
+      // curve out or even cast (5 colours + uncastable pentas).
+      r.deck[1] = draftDeck(nonHero, kDeckSize, kMaxCopies, rng);
+    }
     if (!deckOk(fd, lib, r.deck[0])) {
       g_rooms.erase(code);
       return;
