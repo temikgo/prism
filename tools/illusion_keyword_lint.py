@@ -1,9 +1,6 @@
-import json
-import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT = os.path.join(ROOT, "cards", "sample.json")
+import _common
 
 # resonance snapshots a scaling bonus (+N/+N per crystal) at the moment the body
 # is summoned. Anything that re-summons the body from base stats throws that
@@ -19,20 +16,15 @@ RESUMMON_KW = {"haunt", "split"}
 ILLUSION_COLOR = "violet"
 
 
-def card_kws(card):
-    return {k.get("id") for k in card.get("keywords", [])}
-
-
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
-    cards = json.load(open(path, encoding="utf-8"))
+    cards = _common.load_cards()
 
     errors = []
     checked = 0
     for c in cards:
         if c.get("type") != "creature":
             continue
-        kws = card_kws(c)
+        kws = _common.card_kws(c)
         snap = kws & SNAPSHOT_KW
         if not snap:
             continue

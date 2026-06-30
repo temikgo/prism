@@ -1,9 +1,6 @@
-import json
-import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT = os.path.join(ROOT, "cards", "sample.json")
+import _common
 
 # A keyword that references a card TYPE in its payoff is only as live as that
 # type's population. Few spells -> spell-matters keywords are dead (the audit:
@@ -17,14 +14,9 @@ TYPE_KEYWORDS = {
 }
 
 
-def card_kws(card):
-    return {k.get("id") for k in card.get("keywords", [])}
-
-
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
-    cards = json.load(open(path, encoding="utf-8"))
-    nonhero = [c for c in cards if c.get("type") != "hero"]
+    cards = _common.load_cards()
+    nonhero = _common.nonhero(cards)
     by_type = {}
     for c in nonhero:
         by_type[c.get("type")] = by_type.get(c.get("type"), 0) + 1
@@ -32,7 +24,7 @@ def main():
 
     carriers = {}
     for c in nonhero:
-        for kid in card_kws(c):
+        for kid in _common.card_kws(c):
             if kid in TYPE_KEYWORDS:
                 carriers.setdefault(kid, []).append(c["id"])
 

@@ -1,9 +1,7 @@
-import json
-import os
 import re
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import _common
 
 
 def snake(s):
@@ -22,8 +20,7 @@ def expected_id(card):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "cards", "sample.json")
-    cards = json.load(open(path, encoding="utf-8"))
+    cards = _common.load_cards()
     bad = []
     for c in cards:
         if c["type"] == "hero":
@@ -35,7 +32,7 @@ def main():
         exp = expected_id(c)
         if c["id"] != exp:
             bad.append((c["id"], "should be  " + exp))
-    n = len([c for c in cards if c["type"] != "hero"])
+    n = len(_common.nonhero(cards))
     if bad:
         print("ID MISMATCHES (%d/%d):" % (len(bad), n))
         for i, m in bad:

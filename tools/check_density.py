@@ -1,11 +1,9 @@
 import json
-import os
 import re
 import sys
 from collections import Counter, defaultdict
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT = os.path.join(ROOT, "cards", "sample.json")
+import _common
 
 CATALOG = {
     "red": ["pierce", "bypass", "regen", "self_lifesteal", "incandescence", "cauterize", "sear", "spark"],
@@ -51,8 +49,7 @@ def card_kw_instances(card):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
-    cards = json.load(open(path, encoding="utf-8"))
+    cards = _common.load_cards()
     errors = []
     counts = Counter()          # keyword -> total instances
     per_tier = defaultdict(Counter)
@@ -178,7 +175,7 @@ def main():
                 errors.append(f"{c['id']}: name word '{w}' not reflected in art")
 
     # report
-    n = len([c for c in cards if c.get("type") != "hero"])
+    n = len(_common.nonhero(cards))
     print(f"cards (non-hero): {n}")
     tiers = Counter()
     for c in cards:

@@ -1,9 +1,6 @@
-import json
-import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT = os.path.join(ROOT, "cards", "sample.json")
+import _common
 
 COLOR_ORDER = ["red", "yellow", "green", "blue", "violet"]
 
@@ -66,9 +63,8 @@ def dominates(b, a):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
-    cards = json.load(open(path, encoding="utf-8"))
-    pool = [c for c in cards if c.get("type") != "hero" and len(c.get("color", [])) < 5]
+    cards = _common.load_cards()
+    pool = [c for c in _common.nonhero(cards) if len(c.get("color", [])) < 5]
 
     dead = []
     for a in pool:

@@ -1,11 +1,10 @@
-import json
 import os
 import re
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GLOSSARY = os.path.join(ROOT, "client-godot", "glossary.gd")
-CARDS = os.path.join(ROOT, "cards", "sample.json")
+import _common
+
+GLOSSARY = os.path.join(_common.ROOT, "client-godot", "glossary.gd")
 
 # A crude plural template the rules generator leaves for _fix_plurals to decline,
 # e.g. "ход(ов)", "карт(ы)", "кристалл(ов)". A Cyrillic word glued to a
@@ -41,7 +40,7 @@ def main():
         for m in PLACEHOLDER.findall(lit):
             errors.append("glossary.gd: unrendered placeholder '%s' in \"%s\"" % (m, lit))
 
-    cards = json.load(open(CARDS, encoding="utf-8"))
+    cards = _common.load_cards()
     for c in cards:
         fields = []
         nm = c.get("name", {}) or {}
