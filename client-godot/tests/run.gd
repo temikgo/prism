@@ -52,14 +52,14 @@ func _test_devkit() -> void:
 
 func _test_card_data() -> void:
 	# target side / needs_target on real cards
-	_eq(CardData.target_side("blue_frost_shackles"), "enemy", "frost_shackles targets enemy")
-	_eq(CardData.target_side("blue_ebbing_tide"), "any", "ebbing_tide targets any")
-	_eq(CardData.target_side("red_stinging_glint"), "", "plain creature has no target")
-	_ok(CardData.needs_target("blue_frost_shackles"), "frost_shackles needs a target")
-	_ok(not CardData.needs_target("red_stinging_glint"), "plain creature needs no target")
+	_eq(CardData.target_side("blue_frost_grip"), "enemy", "frost_grip targets enemy")
+	_eq(CardData.target_side("blue_undertow"), "any", "undertow targets any")
+	_eq(CardData.target_side("red_barbed_wasp"), "", "plain creature has no target")
+	_ok(CardData.needs_target("blue_frost_grip"), "frost_grip needs a target")
+	_ok(not CardData.needs_target("red_barbed_wasp"), "plain creature needs no target")
 
 	# target_required: no current card is a required-target cost -> all false...
-	_ok(not CardData.target_required("blue_frost_shackles"), "optional target not required")
+	_ok(not CardData.target_required("blue_frost_grip"), "optional target not required")
 	# ...but the flag is honored when present (synthetic fixture).
 	CardData.db["__test_sacrifice"] = {
 		"id": "__test_sacrifice", "type": "spell", "name": {"ru": "T"},
@@ -70,8 +70,8 @@ func _test_card_data() -> void:
 	CardData.db.erase("__test_sacrifice")
 
 	# type predicates
-	_ok(CardData.is_creature("red_stinging_glint"), "stinging_glint is a creature")
-	_ok(CardData.is_spell("blue_frost_shackles"), "frost_shackles is a spell")
+	_ok(CardData.is_creature("red_barbed_wasp"), "barbed_wasp is a creature")
+	_ok(CardData.is_spell("blue_frost_grip"), "frost_grip is a spell")
 
 	# token display id falls back to the base family
 	_eq(CardData.display_id("token_sprout2"), "token_sprout", "numbered token -> base family")
@@ -93,8 +93,8 @@ func _test_card_data() -> void:
 
 func _test_game_state() -> void:
 	var v := DevKit.view(
-		DevKit.player({"board": [DevKit.creature(11, "red_stinging_glint", 2, 2, 3)]}),
-		DevKit.player({"board": [DevKit.creature(21, "yellow_steadfast_warden", 0, 3, 4)]}))
+		DevKit.player({"board": [DevKit.creature(11, "red_barbed_wasp", 2, 2, 3)]}),
+		DevKit.player({"board": [DevKit.creature(21, "yellow_gilded_sentry", 0, 3, 4)]}))
 	var d := GameState.diff({11: 3, 99: 5}, v)
 	_eq(int(d["hp"][11]), 2, "diff records current hp")
 	_eq(int(d["dmg"][11]), 1, "creature 11 took 1 damage (3->2)")
@@ -106,8 +106,8 @@ func _test_game_state() -> void:
 func _test_rules() -> void:
 	# A live board: your turn, you have mixed crystals, enemy has a provoker (warden)
 	# and a stealthed creature.
-	var enemy_board := [DevKit.creature(21, "yellow_steadfast_warden", 0, 4, 4),
-		DevKit.creature(22, "violet_restless_phantom", 2, 3, 3, {"stealth": true})]
+	var enemy_board := [DevKit.creature(21, "yellow_gilded_sentry", 0, 4, 4),
+		DevKit.creature(22, "violet_lurking_shade", 2, 3, 3, {"stealth": true})]
 	var v := DevKit.view(
 		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),
 		DevKit.player({"board": enemy_board}))
@@ -115,20 +115,20 @@ func _test_rules() -> void:
 	_ok(Rules.my_turn(v), "you=0, current=0 -> your turn")
 	_ok(not Rules.my_turn(DevKit.view(DevKit.player({}), DevKit.player({}), {"current": 1})),
 		"current=1 -> not your turn")
-	_ok(Rules.has_legal_target(v, "blue_frost_shackles"), "enemy has a non-stealth target")
+	_ok(Rules.has_legal_target(v, "blue_frost_grip"), "enemy has a non-stealth target")
 	_ok(Rules.enemy_has_provoke(v), "warden provokes")
 	_ok(Rules.valid_attack_target(v, enemy_board[0]), "the provoker is a valid attack target")
 	_ok(not Rules.valid_attack_target(v, enemy_board[1]), "stealth/non-provoker is not")
 
 	# generic-spend choice: needs >generic free crystals across >=2 colors
-	_ok(not Rules.generic_choices(v, "red_scarlet_slash").is_empty(),
+	_ok(not Rules.generic_choices(v, "red_lance_beetle").is_empty(),
 		"two+ free colors -> offer a generic-spend choice")
 	var v1 := v.duplicate(true)
 	v1["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
-	_eq(Rules.generic_choices(v1, "red_scarlet_slash"), {}, "one color free -> no choice")
+	_eq(Rules.generic_choices(v1, "red_lance_beetle"), {}, "one color free -> no choice")
 
 	# no legal target when the enemy board is empty
-	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frost_shackles"),
+	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frost_grip"),
 		"empty enemy board -> no target")
 
 	# can_play_here / can_cast_on operate on the drag payload
