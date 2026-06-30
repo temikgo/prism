@@ -40,6 +40,12 @@ static func color_for(name: String) -> Color:
 	return MAP.get(name, MAP["colorless"])
 
 
+# A drawn mana crystal's fill: colourless wears the neutral prism tint, every
+# colour wears its own.
+static func crystal_color(color: String) -> Color:
+	return Color(0.85, 0.87, 0.96) if color == "colorless" else color_for(color)
+
+
 # The colour of a keyword (its catalog colour), or `fallback` when it is not a
 # catalog keyword (penta/hero keywords, inline effects).
 static func keyword_color(kid: String, fallback: Color) -> Color:

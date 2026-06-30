@@ -170,7 +170,7 @@ func _floodlit_crystal(color: String, card_id: String, available: bool) -> Contr
 	if peekable:
 		cell.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var cr := CrystalNode.new()
-	cr.crystal_color = Color(0.85, 0.87, 0.96) if color == "colorless" else Palette.color_for(color)
+	cr.crystal_color = Palette.crystal_color(color)
 	cr.spent = not available
 	cr.floodlit = peekable
 	cr.set_anchors_preset(Control.PRESET_FULL_RECT)

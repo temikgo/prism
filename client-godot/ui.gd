@@ -325,9 +325,8 @@ static func icon(icon_name: String, px: float, color: Color) -> TextureRect:
 # spent (drained + dim); `temp` rings it green for bonus ramp mana. Colourless uses
 # the neutral prism tint, every colour shares the same kite cut.
 static func mana_pip(color: String, filled: bool, temp := false) -> Control:
-	var is_neutral := color == "colorless"
 	var crystal := CrystalNode.new()
-	crystal.crystal_color = Color(0.85, 0.87, 0.96) if is_neutral else Palette.color_for(color)
+	crystal.crystal_color = Palette.crystal_color(color)
 	crystal.spent = not filled
 	crystal.temp = temp
 	crystal.custom_minimum_size = Vector2(22, 30)

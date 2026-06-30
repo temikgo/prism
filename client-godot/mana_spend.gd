@@ -105,7 +105,7 @@ func _pip(color: String, locked: bool, chosen: bool) -> Control:
 	cell.custom_minimum_size = Vector2(34, 46)
 	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE if locked else Control.MOUSE_FILTER_STOP
 	var cr := CrystalNode.new()
-	cr.crystal_color = Color(0.85, 0.87, 0.96) if color == "colorless" else Palette.color_for(color)
+	cr.crystal_color = Palette.crystal_color(color)
 	cr.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cell.add_child(cr)
