@@ -435,7 +435,7 @@ func _rebuild() -> void:
 	if bool(view.get("over", false)):
 		var go := GameOverPanel.new()
 		go.to_menu.connect(func() -> void: exit_to_menu.emit())
-		go.setup(int(view.get("winner", -1)) == you)
+		go.setup(_verdict(you))
 		_overlay.add_child(go)
 	elif bool(view.get("mulligan", false)):
 		var mp := MulliganPanel.new()
@@ -490,11 +490,25 @@ func _send_scry() -> void:
 	_scry_sel.clear()
 
 
+# The match outcome from `you`'s point of view: "win" | "lose" | "draw".
+# Only meaningful once view.over is true (winner -1 then means a double-KO draw).
+func _verdict(you: int) -> String:
+	var w := int(view.get("winner", -1))
+	return "draw" if w < 0 else ("win" if w == you else "lose")
+
+
 func _banner(you: int) -> Control:
 	if bool(view.get("over", false)):
-		var win := int(view.get("winner", -1)) == you
-		return Chrome.turn_pill("ПОБЕДА" if win else "ПОРАЖЕНИЕ", 0,
-			Color(0.5, 0.95, 0.6) if win else Color(0.95, 0.45, 0.45))
+		var res := _verdict(you)
+		var word := "ПОБЕДА"
+		var col := Color(0.5, 0.95, 0.6)
+		if res == "draw":
+			word = "НИЧЬЯ"
+			col = Color(0.85, 0.8, 0.5)
+		elif res == "lose":
+			word = "ПОРАЖЕНИЕ"
+			col = Color(0.95, 0.45, 0.45)
+		return Chrome.turn_pill(word, 0, col)
 	if bool(view.get("mulligan", false)):
 		return Chrome.turn_pill("МУЛИГАН", 0, Color(0.45, 0.85, 1.0))
 	# Normal turn: on your turn the pill IS the end-turn button (indicator + action

@@ -511,6 +511,25 @@ TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {
   CHECK(g.player(0).board.size() == 1);  // only the original haunter remains
 }
 
+TEST_CASE("Prism Mirror reflecting a lethal hit is a draw, not a loss") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("mirrorman", 30), repeat("bruiser", 30), 4);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mirrorman")));  // seat 0's mirror
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 attacker
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();  // bruiser awakes
+  // Both heroes at exactly the bruiser's attack: the hit kills seat 0, the
+  // mirror reflects it onto seat 1, and both fall at once -> a draw.
+  g.player(0).heroHp = 4;
+  g.player(1).heroHp = 4;
+  REQUIRE(g.attackHero(br));
+  CHECK(g.isOver());
+  CHECK(g.winner() == -1);
+}
+
 TEST_CASE("regen heals at the owner's turn start up to max") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("regenbear", 30), repeat("bear", 30), 11);

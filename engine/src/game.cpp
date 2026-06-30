@@ -197,13 +197,11 @@ void Game::dealHeroDamage(Player& p, int amount, bool fromOpponent) {
   p.heroArmor -= absorbed;
   remaining -= absorbed;
   p.heroHp -= remaining;
-  if (p.heroHp <= 0 && !over_) {
-    over_ = true;
-    winner_ = 1 - p.index;
-  }
   // Penta Prism Mirror: while it lives, damage the OPPONENT deals to its
-  // controller's hero is mirrored onto the enemy hero. The reflect flag stops
-  // it looping (so a mirror on each side does not bounce forever, and the
+  // controller's hero is mirrored onto the enemy hero. Reflect BEFORE deciding
+  // the outcome, so a lethal hit that drops BOTH heroes at once reads as a draw
+  // rather than a win for whichever hero was processed first. The reflect flag
+  // stops it looping (a mirror on each side does not bounce forever, and the
   // reflected hit does not re-trigger). Self-inflicted damage (fatigue) is not
   // reflected.
   if (fromOpponent && !mirrorReflecting_ && amount > 0) {
@@ -218,6 +216,12 @@ void Game::dealHeroDamage(Player& p, int amount, bool fromOpponent) {
       dealHeroDamage(players_[1 - p.index], amount);
       mirrorReflecting_ = false;
     }
+  }
+  // Decide the outcome only after every reflected/chained hit has landed: both
+  // heroes dead is a draw (winner -1), otherwise the survivor's owner wins.
+  if (p.heroHp <= 0 && !over_) {
+    over_ = true;
+    winner_ = players_[1 - p.index].heroHp <= 0 ? -1 : 1 - p.index;
   }
 }
 
