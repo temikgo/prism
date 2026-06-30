@@ -30,6 +30,7 @@
         { "label": "нерф false_ripple", "at": "164921d", "status": "done", "weight": "minor" },
         { "label": "Сет v2: 150 карт, баланс без выбросов", "at": "432629c", "status": "done", "weight": "major" },
         { "label": "Сет v2 в проде: 160 карт + арты", "at": "14fe2b8", "status": "done", "weight": "major" },
+        { "label": "Реворк синего в контроль (Brittle/Lens)", "at": "7f7dab1", "status": "done", "weight": "major" },
         { "label": "Авто-тюнер β", "status": "planned", "weight": "major" },
         { "label": "Расширение сета", "status": "planned", "weight": "major" }
       ]
