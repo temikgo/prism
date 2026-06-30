@@ -354,6 +354,18 @@ save: `client-godot/art/blue_mirror_ray.png`
 a mirror ray, a flat manta-ray creature of polished blue crystal that splits a beam of light into two diverging rays, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, red, gold, green, violet, grey
 ```
 
+## Глубинный Левиафан — `blue_deep_leviathan`
+save: `client-godot/art/blue_deep_leviathan.png`
+```
+a deep leviathan, a colossal deep-sea serpent-beast of dark blue water and jagged ice scales rising from the black abyss, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, red, gold, green, violet, grey
+```
+
+## Инеистый Колосс — `blue_hoarfrost_colossus`
+save: `client-godot/art/blue_hoarfrost_colossus.png`
+```
+a hoarfrost colossus, a towering immovable giant golem of blue rime and frost-caked ice bristling with icicles, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, red, gold, green, violet, grey
+```
+
 ## Затаившаяся Тень — `violet_lurking_shade`
 save: `client-godot/art/violet_lurking_shade.png`
 ```
@@ -798,6 +810,18 @@ a late thaw, blue meltwater trickling and pooling across cracking ice, slowly ga
 save: `client-godot/art/blue_slow_frost.png`
 ```
 a slow frost, delicate blue ice crystals and rime spreading and branching slowly across a surface, biting deeper, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of glowing blue light, the subject rendered in bold blue light and blue energy, no creature or person, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Зимний Поток — `blue_winter_stream`
+save: `client-godot/art/blue_winter_stream.png`
+```
+a winter stream, a wide flowing current of clear blue meltwater winding through cracked ice, carrying drifting glints of pale light, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of glowing blue light, the subject rendered in bold blue light and blue energy, no creature or person, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Ледяной Гроб — `blue_ice_tomb`
+save: `client-godot/art/blue_ice_tomb.png`
+```
+an ice tomb, a great solid block of deep blue ice sealing and encasing everything within, frosted over and impenetrable, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of glowing blue light, the subject rendered in bold blue light and blue energy, no creature or person, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep moody flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
 ```
 
 ## Сокрытое Проклятие — `violet_hidden_curse`
