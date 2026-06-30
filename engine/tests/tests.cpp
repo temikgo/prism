@@ -661,6 +661,22 @@ TEST_CASE("germinate spends a crystal for an N/N sprout, once per turn") {
   CHECK_FALSE(g.activate(gid));                   // only once per turn
 }
 
+TEST_CASE("an activated ability spends the crystal color the player chose") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"germinator", "bear", "bear", "bear"}, repeat("bear", 30), 22);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "germinator")));
+  EntityId gid = g.player(0).board[0].id;
+  auto& mana = g.player(0).mana;
+  mana.available[idx(Color::Colorless)] = 0;
+  mana.available[idx(Color::Red)] = 1;
+  mana.available[idx(Color::Green)] = 1;
+  REQUIRE(g.activate(gid, Color::Red));
+  CHECK(mana.available[idx(Color::Red)] == 0);  // the chosen crystal was burned
+  CHECK(mana.available[idx(Color::Green)] == 1);  // the other color was kept
+}
+
 TEST_CASE("floodlight reveals the enemy's banked mana cards") {
   CardLibrary lib = testLib();
   Game g(lib, {"floodaura", "bear", "bear", "bear"}, repeat("bear", 30), 31);

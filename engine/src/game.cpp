@@ -485,7 +485,7 @@ bool Game::hasAura(const Player& p, const std::string& id) const {
 // provoker; Pierce sends lethal excess to the enemy hero; Stealth hides a
 // creature from being targeted; lifesteal heals the attacker for the damage it
 // dealt.
-bool Game::activate(EntityId id) {
+bool Game::activate(EntityId id, Color payColor) {
   if (over_) return false;
   Player& p = players_[current_];
   Creature* c = findCreature(p, id);
@@ -498,7 +498,17 @@ bool Game::activate(EntityId id) {
   Cost one;
   one.generic = 1;  // every activated ability costs 1 crystal of any color
   if (!p.mana.canPay(one)) return false;
-  p.mana.pay(one);
+  // The player chooses which crystal to burn (payColor); Colorless falls back
+  // to the greedy default (Colorless-first), which is also what picking
+  // colorless would do. A named color the player has no crystal of is ignored
+  // (greedy).
+  if (payColor != Color::Colorless && p.mana.available[idx(payColor)] > 0) {
+    std::array<int, ColorCount> genericPay{};
+    genericPay[idx(payColor)] = 1;
+    p.mana.pay(one, genericPay);
+  } else {
+    p.mana.pay(one);
+  }
   c->usedActive = true;
   if (germ > 0) {
     // Green germinate: a sprout enters right beside the creature.

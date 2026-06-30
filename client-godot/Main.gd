@@ -595,7 +595,7 @@ func _board_row(board: Array, auras: Array, mine: bool) -> Control:
 	row.play_requested.connect(_play_at_drop)
 	row.cast_requested.connect(_play_payload)
 	row.attack_requested.connect(_attack_creature)
-	row.activate_requested.connect(func(cid: int) -> void: _send({"action": "activate", "id": cid}))
+	row.activate_requested.connect(_activate)
 	row.setup(board, auras, mine, view, _ensure_layer(mine), _anim)
 	if mine:
 		_my_board_zone = row  # for the drag-over hit test
@@ -836,6 +836,30 @@ func _show_color_picker(idx: int, colors: Array) -> void:
 	var picker := ManaPicker.new()
 	picker.picked.connect(func(cid: String) -> void:
 		_send({"action": "placeMana", "handIndex": idx, "color": cid}))
+	picker.tree_exited.connect(func() -> void: _picker = null)
+	add_child(picker)
+	picker.setup(colors, get_global_mouse_position(), size)
+	_picker = picker
+
+
+# An activated ability costs 1 crystal of any color. Let the player pick which
+# crystal to spend (same chooser as placing mana); skip the prompt when there is
+# only one kind of crystal to spend.
+func _activate(cid: int) -> void:
+	var you := int(view.get("you", 0))
+	var avail: Dictionary = view["players"][you].get("mana", {}).get("available", {})
+	var colors: Array = []
+	for col in avail:
+		if int(avail[col]) > 0:
+			colors.append(col)
+	if colors.size() <= 1:
+		var c: String = String(colors[0]) if colors.size() == 1 else "colorless"
+		_send({"action": "activate", "id": cid, "color": c})
+		return
+	_close_picker()
+	var picker := ManaPicker.new()
+	picker.picked.connect(func(col: String) -> void:
+		_send({"action": "activate", "id": cid, "color": col}))
 	picker.tree_exited.connect(func() -> void: _picker = null)
 	add_child(picker)
 	picker.setup(colors, get_global_mouse_position(), size)

@@ -161,7 +161,7 @@ struct Action {
     PlaceMana,       // handIndex, color
     Play,            // handIndex, target (0 = none)
     Awaken,          // manaRowIndex, target (0 = none)
-    Activate,        // id (the germinating creature)
+    Activate,        // id (the creature), color (which crystal to spend)
     AttackCreature,  // attacker, target (the enemy creature)
     AttackHero,      // attacker
   };
@@ -229,11 +229,14 @@ class Game {
   // that crystal/slot is consumed. Only cards carrying the `awaken` keyword
   // qualify.
   bool awaken(int manaRowIndex, EntityId target = 0, int pos = -1);
-  // Green germinate: a creature's activated ability. Spend 1 crystal (any
-  // color) to summon an N/N sprout, once per turn. False if the creature has no
-  // germinate, already used it this turn, you have no spare crystal, or the
-  // board is full.
-  bool activate(EntityId id);
+  // Green germinate / red spark: a creature's activated ability. Spend 1
+  // crystal to summon an N/N sprout (germinate) or flick N at the enemy hero
+  // (spark), once per turn. `payColor` chooses which crystal to spend (the
+  // player's call, mirrors placeMana); Colorless means "let the engine pick
+  // greedily". False if the creature has no ability, already used it this turn,
+  // you have no spare crystal (of `payColor`, if named), or germinate has no
+  // board slot.
+  bool activate(EntityId id, Color payColor = Color::Colorless);
   // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes do not fight back).
