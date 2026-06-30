@@ -134,6 +134,8 @@ static func effect_text(e: Dictionary) -> String:
 			s = "Нанесите N урона вражескому герою."
 		elif sel == "all_creatures":
 			s = "Нанесите N урона всем существам."
+		elif sel == "all_enemies":
+			s = "Нанесите N урона всем врагам."
 		elif sel == "chosen_enemy_minion":
 			s = "Нанесите N урона вражескому существу."
 	elif a == "blind":

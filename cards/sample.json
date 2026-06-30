@@ -903,9 +903,9 @@
     "art": "a slow frost, delicate blue ice crystals and rime spreading and branching slowly across a surface, biting deeper",
     "type": "spell",
     "color": ["blue"],
-    "cost": { "generic": 0, "blue": 1 },
+    "cost": { "generic": 2, "blue": 1 },
     "keywords": [{ "id": "delay", "n": 1 }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 }]
+    "effects": [{ "trigger": "on_play", "selector": "all_enemies", "action": "damage", "value": 3 }]
   },
 
   {
