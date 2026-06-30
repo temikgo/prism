@@ -127,6 +127,7 @@ struct Player {
   int fatigue = 0;                  // damage of the NEXT empty-deck draw
   bool placedManaThisTurn = false;  // one card -> mana row per turn
   bool summonedThisTurn = false;    // played a creature yet (Violet glimmer)
+  bool lensUsedThisTurn = false;    // Blue Lens: first spell each turn focused
   // Per-turn use counter for limited hero passives (spectral_shift, palette,
   // ...). A hero has a single passive, so there is no contention. It resets
   // each turn; a passive fires while uses are below its own per-turn limit (1
@@ -318,6 +319,13 @@ class Game {
       const Player& opp) const;  // taunt: must be attacked first
   bool hasAura(const Player& p,
                const std::string& id) const;  // already controls this aura?
+  // Blue Lens: this player has a Lens source in play (its first spell each turn
+  // resolves with +1 to its effect values).
+  bool hasLens(const Player& p) const;
+  // Blue Brittle: a frozen creature shatters (dies) on any damage when the
+  // OPPONENT of its owner has a Brittle source in play. True if `target` is
+  // frozen and should be shattered by incoming damage.
+  bool brittleShatters(const Creature& target) const;
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target,
                      const CardDef* src = nullptr);

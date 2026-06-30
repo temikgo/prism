@@ -613,8 +613,8 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
-    "stats": { "atk": 2, "hp": 3 },
-    "keywords": [{ "id": "undergrowth", "n": 1 }]
+    "stats": { "atk": 1, "hp": 2 },
+    "keywords": [{ "id": "resonance" }]
   },
   {
     "id": "green_bramble_warden",
@@ -694,78 +694,142 @@
   },
 
   {
-    "id": "blue_frost_lance",
-    "name": { "ru": "Морозное Копьё", "en": "Frost Lance" },
-    "text": { "ru": "Пронзит — и примёрзнет к месту." },
-    "art": "a hurled lance of blue frost and ice that locks its target in a frozen sheath of frost",
+    "id": "blue_frost_sentinel",
+    "name": { "ru": "Морозный Часовой", "en": "Frost Sentinel" },
+    "text": { "ru": "Встал на посту — и всё перед ним стынет." },
+    "art": "a frost sentinel of pale blue ice standing guard, breathing a freezing mist that locks an enemy in a sheath of rime",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 1 },
+    "stats": { "atk": 1, "hp": 4 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }]
+  },
+  {
+    "id": "blue_frost_grip",
+    "name": { "ru": "Морозный Захват", "en": "Frost Grip" },
+    "text": { "ru": "Хватка стужи держит крепче цепей." },
+    "art": "a grasping claw of blue frost gripping a target and locking it in ice",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 0, "blue": 1 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }]
+  },
+  {
+    "id": "blue_deep_freeze",
+    "name": { "ru": "Глубокая Заморозка", "en": "Deep Freeze" },
+    "text": { "ru": "Один вдох зимы — и поле застывает целиком." },
+    "art": "a deep freeze sweeping the field, a wave of blue cold flash-freezing every enemy into solid ice",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 2, "blue": 1 },
+    "effects": [{ "trigger": "on_play", "selector": "all_enemies", "action": "freeze", "value": 2 }]
+  },
+  {
+    "id": "blue_rime_warden",
+    "name": { "ru": "Инеистый Страж", "en": "Rime Warden" },
+    "text": { "ru": "Под его взглядом мёрзлое крошится в пыль." },
+    "art": "a towering rime warden of frost-crusted blue ice, a defensive wall whose chill makes frozen foes splinter at a touch",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 2, "blue": 1 },
+    "stats": { "atk": 1, "hp": 5 },
+    "keywords": [{ "id": "brittle" }]
+  },
+  {
+    "id": "blue_brittle_ice",
+    "name": { "ru": "Хрупкий Лёд", "en": "Brittle Ice" },
+    "text": { "ru": "Лёд красив, пока не тронешь." },
+    "art": "a field of thin brittle blue ice spreading underfoot, frozen enemies riddled with hairline cracks ready to shatter",
+    "type": "aura",
+    "color": ["blue"],
+    "cost": { "generic": 0, "blue": 1 },
+    "keywords": [{ "id": "brittle" }]
+  },
+  {
+    "id": "blue_cold_shatter",
+    "name": { "ru": "Раскол Стужи", "en": "Cold Shatter" },
+    "text": { "ru": "Замёрзшее не рубят — раскалывают." },
+    "art": "a cold shatter of blue force striking a frozen target, shattering the ice through and through",
     "type": "spell",
     "color": ["blue"],
     "cost": { "generic": 1, "blue": 1 },
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 2 }]
+    "keywords": [{ "id": "brittle" }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 }]
   },
   {
-    "id": "blue_cold_snap",
-    "name": { "ru": "Похолодание", "en": "Cold Snap" },
-    "text": { "ru": "На холоде у врага немеют руки." },
-    "art": "a sudden cold snap of blue frost spreading fast across the field, sharp jagged ice crystals and white rime creeping over everything, frozen breath-fog hanging in the air, the deep chill numbing every enemy",
-    "type": "aura",
-    "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "chill", "n": 1 }]
-  },
-  {
-    "id": "blue_deep_winter",
-    "name": { "ru": "Глубокая Зима", "en": "Deep Winter" },
-    "text": { "ru": "Всё стынет, и удар врага слабеет." },
-    "art": "a deep blue winter settling over the whole field, frost dragging down every enemy's strength",
-    "type": "aura",
-    "color": ["blue"],
-    "cost": { "generic": 5, "blue": 1 },
-    "keywords": [{ "id": "chill", "n": 2 }]
-  },
-  {
-    "id": "blue_slow_frost",
-    "name": { "ru": "Ленивый Мороз", "en": "Slow Frost" },
-    "text": { "ru": "Подкрадывается медленно, но бьёт наверняка." },
-    "art": "creeping blue frost slowly entombing its target in a thickening shell of jagged ice and white rime, frost crystals climbing higher, a delayed freeze building up to crack and shatter a turn later",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "keywords": [{ "id": "delay", "n": 1 }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 3 }]
-  },
-  {
-    "id": "blue_late_thaw",
-    "name": { "ru": "Поздняя Оттепель", "en": "Late Thaw" },
-    "text": { "ru": "Чуть выждать — и хлынет потоком." },
-    "art": "a late winter thaw, a sheet of blue ice softening and breaking apart into drifting floes, long icicles dripping steadily, trickles of meltwater pooling below as the deep freeze finally gives way",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "delay", "n": 2 }],
-    "effects": [{ "trigger": "on_play", "action": "draw", "value": 2 }]
-  },
-  {
-    "id": "blue_timed_surge",
-    "name": { "ru": "Выверенный Прилив", "en": "Timed Surge" },
-    "text": { "ru": "Волна придёт точно по часам." },
-    "art": "a timed blue surge, a measured tide gathering offshore on a delayed timer, set to surge and crash across the whole field next turn",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "delay", "n": 1 }],
-    "effects": [{ "trigger": "on_play", "selector": "all_creatures", "action": "damage", "value": 2 }]
-  },
-  {
-    "id": "blue_tide_seer",
-    "name": { "ru": "Прорицатель Прилива", "en": "Tide Seer" },
-    "text": { "ru": "Читает воду, как открытую книгу." },
-    "art": "a robed tide-seer beast of blue ray-light gazing into a still tidal pool, reading the cards yet to come",
+    "id": "blue_tide_warden",
+    "name": { "ru": "Приливный Страж", "en": "Tide Warden" },
+    "text": { "ru": "Прилив приходит и уносит чужих обратно." },
+    "art": "a tide warden of rolling blue water, a broad bulwark that sweeps an enemy back out to sea with a surge",
     "type": "creature",
     "color": ["blue"],
     "cost": { "generic": 2, "blue": 1 },
     "stats": { "atk": 2, "hp": 3 },
-    "effects": [{ "trigger": "on_play", "action": "scry", "value": 2 }]
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }]
+  },
+  {
+    "id": "blue_ebb_spirit",
+    "name": { "ru": "Отливный Дух", "en": "Ebb Spirit" },
+    "text": { "ru": "Отступает, чтобы вернуться целым." },
+    "art": "a slender ebb spirit of receding blue water, pulling a friendly creature back into the wave to spare it",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 1 },
+    "stats": { "atk": 1, "hp": 1 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion", "action": "scatter" }]
+  },
+  {
+    "id": "blue_undertow",
+    "name": { "ru": "Подводное Течение", "en": "Undertow" },
+    "text": { "ru": "Тихо снизу — и нет на поле." },
+    "art": "a hidden blue undertow dragging a creature off the field and back beneath the surface",
+    "type": "spell",
+    "color": ["blue"],
+    "cost": { "generic": 0, "blue": 1 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }]
+  },
+  {
+    "id": "blue_focusing_lens",
+    "name": { "ru": "Фокусная Линза", "en": "Focusing Lens" },
+    "text": { "ru": "Свет, собранный в точку, жжёт вдвое." },
+    "art": "a great floating blue focusing lens gathering scattered light into a single bright burning focal point",
+    "type": "aura",
+    "color": ["blue"],
+    "cost": { "generic": 0, "blue": 1 },
+    "keywords": [{ "id": "lens" }]
+  },
+  {
+    "id": "blue_prism_ray",
+    "name": { "ru": "Призменный Скат", "en": "Prism Ray" },
+    "text": { "ru": "Сквозь него любой луч бьёт прицельно." },
+    "art": "a prism ray, a flat manta of clear blue crystal that bends passing light into a sharpened focused beam",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 2, "blue": 1 },
+    "stats": { "atk": 2, "hp": 4 },
+    "keywords": [{ "id": "lens" }]
+  },
+  {
+    "id": "blue_focal_drake",
+    "name": { "ru": "Фокусный Дрейк", "en": "Focal Drake" },
+    "text": { "ru": "Его глаз — линза, и он не мажет." },
+    "art": "a small focal drake with a single great lens-like eye that concentrates blue light into a precise lance",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 1 },
+    "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "lens" }]
+  },
+  {
+    "id": "blue_glacier_wall",
+    "name": { "ru": "Ледниковая Стена", "en": "Glacier Wall" },
+    "text": { "ru": "За ледяной толщей видно будущее." },
+    "art": "a vast glacier wall of deep blue ice, immovable, its clear depths showing the cards yet to come",
+    "type": "creature",
+    "color": ["blue"],
+    "cost": { "generic": 1, "blue": 1 },
+    "stats": { "atk": 0, "hp": 6 },
+    "effects": [{ "trigger": "on_play", "action": "scry", "value": 1 }]
   },
   {
     "id": "blue_farsight",
@@ -774,82 +838,37 @@
     "art": "a blue lens of far-seeing light unrolling the top of the deck, then pulling a card into hand",
     "type": "spell",
     "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
+    "cost": { "generic": 1, "blue": 1 },
     "effects": [
       { "trigger": "on_play", "action": "scry", "value": 2 },
       { "trigger": "on_play", "action": "draw", "value": 1 }
     ]
   },
   {
-    "id": "blue_undertow",
-    "name": { "ru": "Подводное Течение", "en": "Undertow" },
-    "text": { "ru": "Утянет любого назад, в руку хозяину." },
-    "art": "a blue undertow of ray-light dragging a creature off the field and back into its owner's hand",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "effects": [{ "trigger": "on_play", "selector": "chosen_any_minion", "action": "scatter" }]
-  },
-  {
-    "id": "blue_riptide_eel",
-    "name": { "ru": "Отбойный Угорь", "en": "Riptide Eel" },
-    "text": { "ru": "Скользнёт мимо — и врага смыло волной." },
-    "art": "a long eel of blue ray-light coiling past a foe, its riptide washing the enemy back to hand",
-    "type": "creature",
-    "color": ["blue"],
-    "cost": { "generic": 3, "blue": 1 },
-    "stats": { "atk": 2, "hp": 3 },
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }]
-  },
-  {
-    "id": "blue_ebb_spirit",
-    "name": { "ru": "Дух Отлива", "en": "Ebb Spirit" },
-    "text": { "ru": "Отхлынет и заберёт своего — чтобы вернуть посвежевшим." },
-    "art": "a wispy tide-spirit of blue ray-light drawing a friendly creature back into hand on the ebb",
-    "type": "creature",
-    "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "stats": { "atk": 1, "hp": 2 },
-    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion", "action": "scatter" }]
-  },
-
-  {
-    "id": "blue_murk_veil",
-    "name": { "ru": "Мглистая Завеса", "en": "Murk Veil" },
-    "text": { "ru": "Гуще мгла — дороже заклинания." },
-    "art": "a heavy hanging veil of dark blue murk drawn across the field, a dense curtain of roiling shadowy fog and haze, thick gloom swallowing everything behind it",
+    "id": "blue_cold_snap",
+    "name": { "ru": "Похолодание", "en": "Cold Snap" },
+    "text": { "ru": "На холоде у врага немеют руки." },
+    "art": "a sudden cold snap of blue frost spreading across the field, white rime numbing every enemy and blunting its strength",
     "type": "aura",
     "color": ["blue"],
-    "cost": { "generic": 0, "blue": 1 },
-    "keywords": [{ "id": "haze", "n": 2 }]
+    "cost": { "generic": 2, "blue": 1 },
+    "keywords": [{ "id": "chill", "n": 1 }]
   },
   {
-    "id": "blue_sea_mist",
-    "name": { "ru": "Морская Морось", "en": "Sea Mist" },
-    "text": { "ru": "Лёгкая взвесь, а чары уже вязнут." },
-    "art": "a fine blue sea mist drifting low over rolling ocean waves, soft salt spray and thin wispy fog curling off the water's surface, a light airy haze hanging in the damp sea air",
+    "id": "blue_deep_winter",
+    "name": { "ru": "Лютая Зима", "en": "Deep Winter" },
+    "text": { "ru": "Долгая зима ломает любой напор." },
+    "art": "a deep winter of relentless blue cold burying the whole field in snow and ice, every enemy slowed and weakened to the bone",
     "type": "aura",
     "color": ["blue"],
-    "cost": { "generic": 0, "blue": 1 },
-    "keywords": [{ "id": "haze", "n": 1 }]
-  },
-
-  {
-    "id": "blue_thick_fog",
-    "name": { "ru": "Густой Туман", "en": "Thick Fog" },
-    "text": { "ru": "В тумане чужие чары вязнут, а свой взгляд видит дальше." },
-    "art": "a thick dense bank of blue fog rolling low and billowing across the entire field, heavy rolling fog and mist blotting out everything in deep murky haze",
-    "type": "aura",
-    "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "keywords": [{ "id": "haze", "n": 1 }],
-    "effects": [{ "trigger": "on_play", "action": "draw", "value": 1 }]
+    "cost": { "generic": 5, "blue": 1 },
+    "keywords": [{ "id": "chill", "n": 2 }]
   },
   {
-    "id": "blue_lens_jelly",
-    "name": { "ru": "Линзовая Медуза", "en": "Lens Jelly" },
-    "text": { "ru": "Сквозь неё луч двоится надвое." },
-    "art": "a translucent jellyfish of blue ray-light acting as a living lens, splitting your beams in two",
+    "id": "blue_mirror_ray",
+    "name": { "ru": "Зеркальный Скат", "en": "Mirror Ray" },
+    "text": { "ru": "Один луч — а целей две." },
+    "art": "a mirror ray, a flat blue crystalline manta that splits every passing beam into two diverging rays",
     "type": "creature",
     "color": ["blue"],
     "cost": { "generic": 2, "blue": 1 },
@@ -857,58 +876,36 @@
     "keywords": [{ "id": "birefringence" }]
   },
   {
-    "id": "blue_faceted_ray",
-    "name": { "ru": "Гранёный Скат", "en": "Faceted Ray" },
-    "text": { "ru": "Каждый его взмах раздваивает свет." },
-    "art": "a broad ray-fish of blue light with a faceted crystal hide that forks every spell-beam you cast",
-    "type": "creature",
-    "color": ["blue"],
-    "cost": { "generic": 4, "blue": 1 },
-    "stats": { "atk": 4, "hp": 5 },
-    "keywords": [{ "id": "birefringence" }]
-  },
-  {
     "id": "blue_double_vision",
     "name": { "ru": "Двойное Зрение", "en": "Double Vision" },
-    "text": { "ru": "Глядишь в одно — а целей две." },
-    "art": "a shimmering blue double-vision distortion over the field, the world seen doubled, splitting every targeted beam onto a second mark",
+    "text": { "ru": "В этом тумане всё двоится." },
+    "art": "a shimmering blue field of doubled vision, every shape refracted into two overlapping ghost-images",
     "type": "aura",
     "color": ["blue"],
     "cost": { "generic": 0, "blue": 1 },
     "keywords": [{ "id": "birefringence" }]
   },
   {
-    "id": "blue_needle_beam",
-    "name": { "ru": "Игольный Луч", "en": "Needle Beam" },
-    "text": { "ru": "Тонок настолько, что проходит сквозь любой щит." },
-    "art": "a needle-thin beam of focused blue light, a piercing needle-beam threading straight through shield and halo alike",
+    "id": "blue_late_thaw",
+    "name": { "ru": "Поздняя Оттепель", "en": "Late Thaw" },
+    "text": { "ru": "Оттепель придёт — и принесёт сполна." },
+    "art": "a late blue thaw seeping slowly across frozen ground, meltwater gathering to be drawn up when it finally breaks",
     "type": "spell",
     "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "pinpoint" }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 3 }]
+    "cost": { "generic": 0, "blue": 1 },
+    "keywords": [{ "id": "delay", "n": 2 }],
+    "effects": [{ "trigger": "on_play", "action": "draw", "value": 2 }]
   },
   {
-    "id": "blue_light_lance",
-    "name": { "ru": "Жало Света", "en": "Light Lance" },
-    "text": { "ru": "Бьёт точно в шов брони." },
-    "art": "a slim lance of concentrated blue light striking a precise point no guard can absorb",
+    "id": "blue_slow_frost",
+    "name": { "ru": "Медленный Мороз", "en": "Slow Frost" },
+    "text": { "ru": "Мороз крепчает не сразу." },
+    "art": "a creeping blue frost spreading slowly over a target, biting deeper until it bites for good",
     "type": "spell",
     "color": ["blue"],
-    "cost": { "generic": 1, "blue": 1 },
-    "keywords": [{ "id": "pinpoint" }],
+    "cost": { "generic": 0, "blue": 1 },
+    "keywords": [{ "id": "delay", "n": 1 }],
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 }]
-  },
-  {
-    "id": "blue_piercing_ray",
-    "name": { "ru": "Пронзающий Луч", "en": "Piercing Ray" },
-    "text": { "ru": "Ни щит, ни нимб его не остановят." },
-    "art": "a single hard piercing blue ray punching a clean burning hole straight through a glowing shield barrier, the pierced shield cracking and splintering around the breach as the ray drives on to its target",
-    "type": "spell",
-    "color": ["blue"],
-    "cost": { "generic": 2, "blue": 1 },
-    "keywords": [{ "id": "pinpoint" }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 4 }]
   },
 
   {
@@ -1225,7 +1222,7 @@
     "art": "a red-blue oracle-beast of ray-light reading the deck's depths, embers flaring at the foe as it dies",
     "type": "creature",
     "color": ["red", "blue"],
-    "cost": { "generic": 2, "red": 1, "blue": 1 },
+    "cost": { "generic": 1, "red": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 4 },
     "keywords": [{ "id": "sear", "n": 2 }],
     "effects": [{ "trigger": "on_play", "action": "scry", "value": 2 }]
@@ -1318,10 +1315,9 @@
     "art": "a tall yellow-blue sentinel-beast of ray-light daring foes to strike it, lancing one with an unblockable beam",
     "type": "creature",
     "color": ["yellow", "blue"],
-    "cost": { "generic": 3, "yellow": 1, "blue": 1 },
-    "stats": { "atk": 2, "hp": 5 },
-    "keywords": [{ "id": "provoke" }, { "id": "pinpoint" }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 }]
+    "cost": { "generic": 1, "yellow": 1, "blue": 1 },
+    "stats": { "atk": 2, "hp": 4 },
+    "keywords": [{ "id": "provoke" }, { "id": "lens" }]
   },
   {
     "id": "yellow_blue_mirror_stargazer",
@@ -1330,7 +1326,7 @@
     "art": "a yellow-blue stargazer-beast of ray-light peering at the deck's stars from behind a mirror-bright shield",
     "type": "creature",
     "color": ["yellow", "blue"],
-    "cost": { "generic": 2, "yellow": 1, "blue": 1 },
+    "cost": { "generic": 1, "yellow": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 3 },
     "keywords": [{ "id": "shield" }],
     "effects": [{ "trigger": "on_play", "action": "scry", "value": 2 }]
@@ -1398,10 +1394,10 @@
     "art": "a green-blue frostweed tangle-beast of ray-light, a frost-rimed weed stronger amid its kin, freezing a foe in icy briars",
     "type": "creature",
     "color": ["green", "blue"],
-    "cost": { "generic": 2, "green": 1, "blue": 1 },
+    "cost": { "generic": 1, "green": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 3 },
-    "keywords": [{ "id": "undergrowth", "n": 1 }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }]
+    "keywords": [{ "id": "undergrowth", "n": 1 }, { "id": "delay", "n": 1 }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "damage", "value": 2 }]
   },
   {
     "id": "green_violet_amethyst_golem",
@@ -1410,9 +1406,9 @@
     "art": "a green-violet amethyst golem of crystalline ray-light swelling with every crystal you hold, leaving an illusory shade when slain",
     "type": "creature",
     "color": ["green", "violet"],
-    "cost": { "generic": 2, "green": 1, "violet": 1 },
+    "cost": { "generic": 0, "green": 1, "violet": 1 },
     "stats": { "atk": 1, "hp": 2 },
-    "keywords": [{ "id": "resonance", "n": 1 }, { "id": "haunt" }]
+    "keywords": [{ "id": "undergrowth", "n": 1 }, { "id": "haunt" }]
   },
   {
     "id": "green_violet_spectral_puffball",
@@ -1443,10 +1439,9 @@
     "art": "a ghostly violet wraith-phantom of ray-light hidden from sight, its translucent violet body and trailing violet shroud the main mass, wreathed only at the edges in pale blue frost and ice that locks a foe as it strikes unseen from nowhere",
     "type": "creature",
     "color": ["blue", "violet"],
-    "cost": { "generic": 1, "blue": 1, "violet": 1 },
+    "cost": { "generic": 0, "blue": 1, "violet": 1 },
     "stats": { "atk": 3, "hp": 2 },
-    "keywords": [{ "id": "stealth" }],
-    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "freeze", "value": 1 }]
+    "keywords": [{ "id": "stealth" }, { "id": "brittle" }]
   },
   {
     "id": "blue_violet_smoky_dusk",
@@ -1456,7 +1451,7 @@
     "type": "aura",
     "color": ["blue", "violet"],
     "cost": { "generic": 0, "blue": 1, "violet": 1 },
-    "keywords": [{ "id": "haze", "n": 2 }, { "id": "glimmer" }]
+    "keywords": [{ "id": "birefringence" }, { "id": "glimmer" }]
   },
   {
     "id": "blue_violet_veiled_snatcher",
@@ -1465,7 +1460,7 @@
     "art": "a veiled snatcher-beast of ray-light hidden from sight, its form split into two boldly contrasting halves, one half glowing bright vivid electric blue and the other half glowing bright vivid violet, the two colours kept crisp and sharply distinct rather than blended, sweeping a foe off the field back into the hand in one unseen motion",
     "type": "creature",
     "color": ["blue", "violet"],
-    "cost": { "generic": 2, "blue": 1, "violet": 1 },
+    "cost": { "generic": 1, "blue": 1, "violet": 1 },
     "stats": { "atk": 3, "hp": 2 },
     "keywords": [{ "id": "stealth" }],
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "scatter" }]

@@ -74,7 +74,8 @@ void Game::startTurn() {
   p.mana.refill();
   p.placedManaThisTurn = false;
   p.summonedThisTurn = false;
-  p.heroPowerUses = 0;  // limited hero passives recharge each turn
+  p.lensUsedThisTurn = false;  // Lens focuses the first spell of each turn
+  p.heroPowerUses = 0;         // limited hero passives recharge each turn
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
@@ -744,6 +745,9 @@ int Game::damageCreature(Creature& target, int amount, const Creature* source,
   target.hp -= amount;
   if (source && source->def && source->def->hasKeyword("lingering"))
     target.unhealable = std::min(target.maxHp, target.unhealable + amount);
+  // Blue Brittle: a frozen creature shatters on ANY damage when its owner's foe
+  // fields Brittle. checkDeaths (run by the caller) reaps the body.
+  if (target.hp > 0 && brittleShatters(target)) target.hp = 0;
   return amount;
 }
 
@@ -1046,8 +1050,46 @@ std::vector<Action> Game::legalActions() const {
 // implemented; adding a new action is a new branch here plus a new selector
 // case if needed.
 void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
+  // Blue Lens: the first spell each turn is focused -- +1 to its effect values.
+  // Only spells (the spell-theme payoff), once per turn, and only the hard cast
+  // claims it (a repeat via echo finds the lens already spent).
+  int bonus = 0;
+  if (def->type == CardType::Spell && !owner.lensUsedThisTurn &&
+      hasLens(owner)) {
+    bonus = 1;
+    owner.lensUsedThisTurn = true;
+  }
   for (const auto& e : def->effects)
-    if (e.trigger == "on_play") executeAction(e, owner, target, def);
+    if (e.trigger == "on_play") {
+      EffectDef ee = e;
+      ee.value += bonus;
+      executeAction(ee, owner, target, def);
+    }
+}
+
+bool Game::hasLens(const Player& p) const {
+  for (const auto* a : p.auras)
+    if (a->hasKeyword("lens")) return true;
+  for (const auto& c : p.board)
+    if (c.def->hasKeyword("lens")) return true;
+  return false;
+}
+
+bool Game::brittleShatters(const Creature& target) const {
+  if (target.frozenTurns <= 0) return false;
+  // Find the target's owner, then check whether its opponent fields Brittle.
+  for (int pi = 0; pi < 2; ++pi) {
+    for (const auto& c : players_[pi].board) {
+      if (c.id != target.id) continue;
+      const Player& foe = players_[1 - pi];
+      for (const auto* a : foe.auras)
+        if (a->hasKeyword("brittle")) return true;
+      for (const auto& fc : foe.board)
+        if (fc.def->hasKeyword("brittle")) return true;
+      return false;
+    }
+  }
+  return false;
 }
 
 // Mark spell/effect damage as unhealable when the source card has lingering
@@ -1073,9 +1115,14 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
       dealHeroDamage(opp, e.value);
     } else {
       bool pin = src && src->hasKeyword("pinpoint");  // spell: through Щит+Нимб
+      // Blue Brittle on a spell: its own damage shatters a frozen target (the
+      // spell is the source for this hit, so it needs no creature/aura field).
+      bool brittleSrc = src && src->hasKeyword("brittle");
       for (Creature* t : selectTargets(e.selector, owner, target))
-        if (pin || !absorbWard(*t))
+        if (pin || !absorbWard(*t)) {
           applyLingering(*t, damageCreature(*t, e.value, nullptr, pin), src);
+          if (brittleSrc && t->hp > 0 && t->frozenTurns > 0) t->hp = 0;
+        }
     }
   } else if (a == "destroy") {
     for (Creature* t : selectTargets(e.selector, owner, target))

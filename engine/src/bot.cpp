@@ -170,6 +170,9 @@ double keywordValue(const CardDef* d) {
   v += 0.6 * kw("glimmer") + 0.8 * kw("refract");
   v += 0.3 * kw("birefringence") +
        0.3 * kw("pinpoint");  // spell support (few spells)
+  v += 0.8 *
+       kw("brittle");     // frozen enemy shatters on any damage (freeze->kill)
+  v += 0.6 * kw("lens");  // first spell each turn +1
   v += 0.3 * kw("awaken") + 0.4 * kw("decoy");
   v += 0.1 * kw("floodlight");  // near-useless tech
   return v * g_kwScale;         // blind bot (scale 0) values no keywords

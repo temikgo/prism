@@ -11,7 +11,7 @@ CATALOG = {
     "red": ["pierce", "bypass", "regen", "self_lifesteal", "incandescence", "cauterize", "sear", "spark"],
     "yellow": ["floodlight", "blind", "provoke", "shield", "ward", "firststrike", "strobe", "flare"],
     "green": ["photosynthesis", "germinate", "growth", "compost", "spores", "undergrowth", "resonance", "mulch"],
-    "blue": ["freeze", "chill", "delay", "scry", "scatter", "haze", "birefringence", "pinpoint"],
+    "blue": ["freeze", "chill", "delay", "scry", "scatter", "haze", "birefringence", "pinpoint", "brittle", "lens"],
     "violet": ["awaken", "decoy", "stealth", "refract", "split", "mirage", "haunt", "glimmer"],
 }
 KW_COLOR = {kw: col for col, kws in CATALOG.items() for kw in kws}

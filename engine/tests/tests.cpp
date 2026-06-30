@@ -131,6 +131,16 @@ static const char* kTestCards = R"json([
   { "id": "birefaura", "name": { "ru": "Раздвоение" }, "type": "aura",
     "color": [], "cost": { "generic": 0 },
     "keywords": [{ "id": "birefringence" }] },
+  { "id": "brittleaura", "name": { "ru": "Хрупкость" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "brittle" }] },
+  { "id": "lensaura", "name": { "ru": "Линза" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "keywords": [{ "id": "lens" }] },
+  { "id": "brittlebolt", "name": { "ru": "Хруп-луч" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "brittle" }],
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "damage", "value": 1 }] },
   { "id": "pinpointbolt", "name": { "ru": "Фокус-луч" }, "type": "spell",
     "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "pinpoint" }],
     "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
@@ -675,6 +685,68 @@ TEST_CASE("an activated ability spends the crystal color the player chose") {
   REQUIRE(g.activate(gid, Color::Red));
   CHECK(mana.available[idx(Color::Red)] == 0);  // the chosen crystal was burned
   CHECK(mana.available[idx(Color::Green)] == 1);  // the other color was kept
+}
+
+TEST_CASE("Brittle shatters a frozen creature on any damage") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"brittleaura", "frost1", "meltspell", "bear"},
+         repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "brittleaura")));  // P0 fields Brittle
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // P1 plays a 3/4 body
+  EntityId bid = g.player(1).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "frost1"), bid));  // freeze it
+  REQUIRE(g.player(1).board[0].frozenTurns > 0);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "meltspell"), bid));  // 2 dmg to 4 hp
+  CHECK(g.player(1).board.empty());  // shattered, not left at 3/2
+}
+
+TEST_CASE("Brittle is inert while the creature is not frozen") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"brittleaura", "meltspell", "bear", "bear"}, repeat("bear", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "brittleaura")));
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));
+  EntityId bid = g.player(1).board[0].id;
+  g.endTurn();
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "meltspell"), bid));  // 2 dmg, NOT frozen
+  CHECK(g.player(1).board[0].hp == 2);  // survives; Brittle does nothing
+}
+
+TEST_CASE("Lens focuses the first spell of the turn, once") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"lensaura", "meltspell", "meltspell", "bear"},
+         repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "lensaura")));  // P0 fields Lens
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // bear A
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // bear B
+  EntityId a = g.player(1).board[0].id;
+  EntityId b = g.player(1).board[1].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "meltspell"), a));  // focused: 2+1 = 3
+  REQUIRE(g.playCard(handIndexOf(g, 0, "meltspell"), b));  // lens spent: 2
+  CHECK(g.player(1).board[0].hp == 1);                     // 4 - 3
+  CHECK(g.player(1).board[1].hp == 2);                     // 4 - 2
+}
+
+TEST_CASE("a Brittle spell shatters a frozen target with its own damage") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"frost1", "brittlebolt", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // P1's 3/4 body
+  EntityId bid = g.player(1).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 0, "frost1"), bid));       // freeze it
+  REQUIRE(g.playCard(handIndexOf(g, 0, "brittlebolt"), bid));  // 1 dmg, brittle
+  CHECK(g.player(1).board.empty());  // shattered by a 1-damage spell
 }
 
 TEST_CASE("floodlight reveals the enemy's banked mana cards") {
@@ -2198,11 +2270,11 @@ TEST_CASE("sample.json loads with expected schema") {
   const CardDef* golem = lib.find("green_violet_amethyst_golem");
   REQUIRE(golem != nullptr);
   CHECK(golem->colors.size() == 2);
-  CHECK(golem->cost.generic == 2);
+  CHECK(golem->cost.generic == 0);
   CHECK(golem->cost.pips[idx(Color::Green)] == 1);
   CHECK(golem->cost.pips[idx(Color::Violet)] == 1);
   REQUIRE(golem->keywords.size() == 2);
-  CHECK(golem->keywords[0].id == "resonance");
+  CHECK(golem->keywords[0].id == "undergrowth");
   REQUIRE(golem->keywords[0].n.has_value());
   CHECK(golem->keywords[0].n.value() == 1);
 

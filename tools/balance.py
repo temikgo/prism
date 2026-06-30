@@ -37,7 +37,10 @@ KW = {
     "spores": lambda a, h, n: 0.9 * n,
     "undergrowth": lambda a, h, n: 0.95 * n,
     "chill": lambda a, h, n: 3.0 * n,
-    "delay": lambda a, h, n: -0.3 * n,
+    # delay is priced AFTER the effects in power(): a delayed effect must be
+    # (1+N)x an immediate one to be fair, so it is worth E/(1+N). The flat -0.3*n
+    # here badly under-priced a brutal downside. Captured below, not in this loop.
+    "delay": lambda a, h, n: 0.0,
     "stealth": lambda a, h, n: 0.2,
     "split": lambda a, h, n: min(2.4, 0.55 * a + 0.6) * n,
     "awaken": lambda a, h, n: 0.3,
@@ -55,8 +58,12 @@ KW = {
     "flare": lambda a, h, n: 0.4 * n,           # on death: blind n random
     "mulch": lambda a, h, n: 0.6,               # aura: heal a wounded ally each turn
     "haze": lambda a, h, n: 0.7 * n,            # aura: enemy spells cost +n
-    "birefringence": lambda a, h, n: 0.6,       # your targeted spells fork
+    # Blue control keywords valued below worth (under-extracted in greedy play),
+    # see the EFF note: the discount is paid back to the card as stats.
+    "birefringence": lambda a, h, n: 0.3,       # your targeted spells fork
     "pinpoint": lambda a, h, n: 0.3,            # spell dmg ignores shield/ward
+    "brittle": lambda a, h, n: 0.4,             # frozen enemy shatters on any damage
+    "lens": lambda a, h, n: 0.3,                # first spell each turn +1
     "glimmer": lambda a, h, n: 0.5,             # aura: first summon each turn stealthed
     "spectral_shift": lambda a, h, n: 0.0,
     "umbra": lambda a, h, n: 0.0,
@@ -69,14 +76,18 @@ KW = {
 EFF = {
     "damage": lambda v: 0.7 * v,
     "damage_all": lambda v: 2.0 * v,
-    "freeze": lambda v: 1.0 * v,
+    # Blue control effects are valued BELOW their theoretical worth: greedy play
+    # (and the bot) under-extract tempo control, so the model credits them less
+    # and the saved cost is handed back as stats -- a deliberate control premium
+    # that lands blue near the rest of the field in self-play.
+    "freeze": lambda v: 0.6 * v,
     "blind": lambda v: 1.2 * v,
     "flash": lambda v: 2.8 * v,
     "draw": lambda v: 1.5 * v,
     "destroy": lambda v: 4.0,
     "dispel": lambda v: 1.5 if v == 0 else 0.8 * v,
-    "scry": lambda v: 0.4 * v,
-    "scatter": lambda v: 1.8,
+    "scry": lambda v: 0.25 * v,
+    "scatter": lambda v: 1.1,
     "mirage": lambda v: 1.8,
     "add_crystal": lambda v: 1.5 * v,
 }
@@ -96,11 +107,15 @@ def power(card):
     atk = card.get("stats", {}).get("atk", 0)
     hp = card.get("stats", {}).get("hp", 0)
     parts = {}
+    delay_n = 0
     if card["type"] == "creature":
         parts["stats"] = W_ATK * atk + W_HP * hp + STAT_B
     for kw in card.get("keywords", []):
         kid = kw["id"]
         n = kw.get("n", 1)
+        if kid == "delay":
+            delay_n = n  # priced after the effects (discounts the gated effect)
+            continue
         if kid == "resonance":
             # Resonance snapshots +n/+n per crystal at summon. A pure n*mana slope
             # (assuming ~mana crystals on curve) overstated dear bodies and badly
@@ -120,6 +135,7 @@ def power(card):
             parts["?" + kid] = 0.0
         else:
             parts["kw:" + kid] = fn(atk, hp, n)
+    eff_total = 0.0
     for eff in card.get("effects", []):
         a = eff["action"]
         v = eff.get("value", 0)
@@ -133,6 +149,12 @@ def power(card):
         if sel in ("all_creatures", "all_enemies"):
             val *= 2.4
         parts[key] = parts.get(key, 0.0) + val
+        eff_total += val
+    # Blue delay: the effect fires N turns late -- a brutal downside. A delayed
+    # effect must be (1+N)x an immediate one to be fair, so it is worth E/(1+N);
+    # the shortfall E*N/(1+N) is the delay penalty, shown as its own term.
+    if delay_n > 0 and eff_total != 0.0:
+        parts["kw:delay"] = -eff_total * delay_n / (1 + delay_n)
     return sum(parts.values()), parts
 
 
