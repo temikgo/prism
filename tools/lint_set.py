@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LINTERS = [
     ("check_ids", True),
     ("grammar_lint", True),
+    ("balance_drift_lint", True),
     ("domination_lint", False),
     ("type_keyword_lint", False),
     ("illusion_keyword_lint", False),

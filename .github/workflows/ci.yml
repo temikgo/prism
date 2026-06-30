@@ -15,6 +15,8 @@ jobs:
         run: python3 tools/check_ids.py
       - name: Generated rules grammar (no undeclined templates / leaked placeholders)
         run: python3 tools/grammar_lint.py
+      - name: Balance coefficient drift (no phantom KW/EFF -- carded or implemented)
+        run: python3 tools/balance_drift_lint.py
       - name: Art imports (mipmaps on, sidecar present)
         run: python3 tools/check_art.py
 

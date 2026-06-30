@@ -50,7 +50,6 @@ KW = {
     "split": lambda a, h, n: min(2.4, 0.55 * a + 0.6) * n,
     "awaken": lambda a, h, n: 0.3,
     "decoy": lambda a, h, n: 0.2 * n,
-    "ambush": lambda a, h, n: 0.5,
     "refract": lambda a, h, n: 0.6,
     "haunt": lambda a, h, n: min(1.5, 0.45 * a + 0.2),
     # Set-v2 keywords (Tier-1 anchors; self-play beta is the real arbiter).
@@ -71,8 +70,6 @@ KW = {
     "lens": lambda a, h, n: 0.3,                # first spell each turn +1
     "glimmer": lambda a, h, n: 0.5,             # aura: first summon each turn stealthed
     "spectral_shift": lambda a, h, n: 0.0,
-    "umbra": lambda a, h, n: 0.0,
-    "clairvoyance": lambda a, h, n: 0.0,
     "palette": lambda a, h, n: 0.0,
     "facet": lambda a, h, n: 0.0,
     "lighteater": lambda a, h, n: 0.0,
@@ -80,14 +77,12 @@ KW = {
 
 EFF = {
     "damage": lambda v: 0.7 * v,
-    "damage_all": lambda v: 2.0 * v,
     # Blue control effects are valued BELOW their theoretical worth: greedy play
     # (and the bot) under-extract tempo control, so the model credits them less
     # and the saved cost is handed back as stats -- a deliberate control premium
     # that lands blue near the rest of the field in self-play.
     "freeze": lambda v: 0.6 * v,
     "blind": lambda v: 1.2 * v,
-    "flash": lambda v: 2.8 * v,
     "draw": lambda v: 1.5 * v,
     "destroy": lambda v: 4.0,
     "dispel": lambda v: 1.5 if v == 0 else 0.8 * v,
