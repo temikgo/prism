@@ -73,7 +73,9 @@ struct Creature {
   bool usedActive = false;  // spent its activated ability (germinate) this turn
   int frozenTurns = 0;      // Blue freeze: ticks down at the owner's turn end
   int blindTurns = 0;       // Yellow blind: cannot attack while > 0
-  bool token = false;   // created by an ability (e.g. illusions), not a deck
+  bool token = false;  // created by an ability (e.g. illusions), not a deck
+  bool hauntGhost =
+      false;  // a Violet haunt rebirth: this body must not haunt again
   bool shield = false;  // Yellow shield: absorbs the next instance of damage
   bool warded = false;  // Yellow ward: absorbs the next harmful targeted effect
   bool stealthed = false;  // Violet stealth: untargetable until it attacks
@@ -112,6 +114,7 @@ struct Event {
   const CardDef* card = nullptr;  // the source card, kept valid after removal
   int pos = -1;  // board slot the source occupied (for death-summon placement)
   bool token = false;  // the dead body was a token/illusion, not a real card
+  bool hauntGhost = false;  // the dead body was a haunt rebirth (no re-haunt)
 };
 
 // Everything one player owns. Hidden information (hand/deck) is kept here; a
@@ -355,7 +358,7 @@ class Game {
 
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,
-                        int hpOverride);
+                        int hpOverride, bool hauntGhost = false);
   // Yellow ward: if `t` is warded, spend the ward and return true (the harmful
   // targeted effect is absorbed); otherwise return false.
   bool absorbWard(Creature& t);
@@ -377,7 +380,7 @@ class Game {
   // Tokens, illusions, and the death-event queue.
   // `at` is the board slot to insert at; -1 appends to the right.
   EntityId summonToken(Player& p, const CardDef* def, bool sick, int hpOverride,
-                       int at = -1);
+                       int at = -1, bool hauntGhost = false);
   const CardDef* internToken(const std::string& id,
                              Stats s);  // owns a token def
   void emit(const Event& e) { events_.push_back(e); }

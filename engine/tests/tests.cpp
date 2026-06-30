@@ -478,6 +478,39 @@ TEST_CASE("a token's death adds its card to the graveyard") {
         1);  // the dead token counts in the pile
 }
 
+TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("haunter", 30), repeat("bruiser", 30), 4);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "haunter")));  // real 2/2 haunter
+  EntityId real = g.player(0).board[0].id;
+  g.player(0).hand.push_back(CardInstance{901, lib.find("miragespell")});
+  REQUIRE(g.playCard(handIndexOf(g, 0, "miragespell"), real));  // copy it
+  REQUIRE(g.player(0).board.size() == 2);  // haunter + a 1-HP illusion copy
+  EntityId copy = -1;
+  for (const auto& c : g.player(0).board)
+    if (c.token) copy = c.id;
+  REQUIRE(copy != -1);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 to do the killing
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                          // bruiser awakes
+  REQUIRE(g.attackCreature(br, copy));  // the copy dies
+  // The faithful copy haunts: it leaves its own 1-HP ghost, so seat 0 keeps the
+  // haunter plus a fresh ghost.
+  REQUIRE(g.player(0).board.size() == 2);
+  EntityId ghost = -1;
+  for (const auto& c : g.player(0).board)
+    if (c.token) ghost = c.id;
+  REQUIRE(ghost != -1);
+  // The ghost is a haunt rebirth: killing it spawns nothing more.
+  g.endTurn();
+  g.endTurn();
+  REQUIRE(g.attackCreature(br, ghost));
+  CHECK(g.player(0).board.size() == 1);  // only the original haunter remains
+}
+
 TEST_CASE("regen heals at the owner's turn start up to max") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("regenbear", 30), repeat("bear", 30), 11);
@@ -520,6 +553,21 @@ TEST_CASE("provoke forces attackers onto the provoker") {
   CHECK_FALSE(g.attackHero(atk));
   CHECK_FALSE(g.attackCreature(atk, plainId));
   CHECK(g.attackCreature(atk, guardId));
+}
+
+TEST_CASE("a stealthed provoker compels nothing until it reveals") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("guard", 30), 33);
+  g.start();
+  REQUIRE(g.playCard(0));
+  EntityId atk = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(0));                 // seat 1 plays a guard (provoke)
+  g.player(1).board[0].stealthed = true;  // ...but it is hidden
+  EntityId hidden = g.player(1).board[0].id;
+  g.endTurn();
+  CHECK_FALSE(g.attackCreature(atk, hidden));  // hidden -> still untargetable
+  CHECK(g.attackHero(atk));  // and the hidden provoker does not block the face
 }
 
 TEST_CASE("freeze stops a creature from attacking, then thaws") {
@@ -2156,18 +2204,25 @@ TEST_CASE("dispel destroys the chosen enemy aura by index") {
         "floodaura");  // index 1 survived, shifted down
 }
 
-TEST_CASE("bot ramps: its searched turn opens by dropping a card to mana") {
+TEST_CASE("bot ramps every turn (defers the mana drop, never hoards)") {
   // Regression guard for the 1-ply search hoarding a card instead of ramping:
-  // mana payoff is past the leaf horizon, so the search must defer the mana
-  // drop to the greedy reflex. With creatures in hand and no mana spent yet,
-  // the bot's first action of its turn must be placeMana.
+  // mana payoff is past the leaf horizon, so the search defers the mana drop to
+  // the greedy reflex. The bot's hand is all redpip (a 2-cost card it cannot
+  // yet afford), so nothing is playable -- it must drop a card to mana, not
+  // sit.
   CardLibrary lib = testLib();
-  Game g(lib, repeat("bear", 30), repeat("bear", 30), 7);
+  Game g(lib, repeat("bear", 30), repeat("redpip", 30), 7);
   begin(g);
   g.endTurn();  // pass to seat 1 (the bot)
   std::mt19937 rng(123);
-  auto j = nlohmann::json::parse(botNextAction(g, 1, rng));
-  CHECK(j["action"] == "placeMana");
+  bool ramped = false;
+  for (int guard = 0; guard < 60; ++guard) {
+    std::string js = botNextAction(g, 1, rng);
+    if (js.empty()) break;  // the bot's turn has ended
+    if (nlohmann::json::parse(js)["action"] == "placeMana") ramped = true;
+    REQUIRE(applyAction(g, 1, js));  // the bot only emits legal moves
+  }
+  CHECK(ramped);
 }
 
 TEST_CASE("penta Echo Beast doubles your spell") {

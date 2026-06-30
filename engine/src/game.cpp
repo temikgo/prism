@@ -463,7 +463,10 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
 
 bool Game::enemyHasProvoke(const Player& opp) const {
   for (const auto& c : opp.board)
-    if (c.def->hasKeyword("provoke")) return true;
+    // A stealthed provoker cannot be targeted, so it cannot compel attacks
+    // until it reveals itself by attacking -- otherwise it soft-locks the
+    // opponent (forced to attack a creature they are forbidden from targeting).
+    if (c.def->hasKeyword("provoke") && !c.stealthed) return true;
   return false;
 }
 
@@ -597,7 +600,7 @@ void Game::checkDeaths() {
           // triggered token (spores/haunt) lands where the creature was.
           int slot = static_cast<int>(survivors.size());
           deaths.push_back(Event{EventType::Died, c.id, 0, 0, p.index, c.def,
-                                 slot, c.token});
+                                 slot, c.token, c.hauntGhost});
         }
       }
       p.board.swap(survivors);
@@ -632,14 +635,16 @@ void Game::reactTo(const Event& e) {
   }
   // Bodies are spawned where the creature died, filling rightward from `slot`.
   int slot = e.pos;
-  // Violet haunt: a 1 HP illusion of the creature itself. Only a real creature
-  // haunts -- the illusion it leaves is a token and does not haunt again, so a
-  // creature is reborn exactly once. Spawned BEFORE spores so that, when the
-  // board is nearly full, the self-copy keeps its slot and the sprouts fill
-  // whatever remains (priority decided with the user).
-  if (!e.token && e.card->hasKeyword("haunt") &&
+  // Violet haunt: a 1 HP illusion of the creature itself. A real creature OR a
+  // faithful copy (mirage/split) of a haunt creature leaves one ghost; that
+  // ghost is marked hauntGhost and does not haunt again, so any one body is
+  // reborn exactly once (no infinite chain). Spawned BEFORE spores so that,
+  // when the board is nearly full, the self-copy keeps its slot and the sprouts
+  // fill whatever remains.
+  if (!e.hauntGhost && e.card->hasKeyword("haunt") &&
       static_cast<int>(owner.board.size()) < BoardLimit) {
-    summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1, slot);
+    summonToken(owner, e.card, /*sick=*/true, /*hpOverride=*/1, slot,
+                /*hauntGhost=*/true);
     ++slot;
   }
   // Green spores: N 1/1 sprouts beside where it died, after the self-copy.
@@ -672,9 +677,10 @@ void Game::reactTo(const Event& e) {
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
-                           int hpOverride, int at) {
+                           int hpOverride, int at, bool hauntGhost) {
   EntityId id = nextId_++;
-  Creature nc = makeCreature(id, def, sick, /*token=*/true, hpOverride);
+  Creature nc =
+      makeCreature(id, def, sick, /*token=*/true, hpOverride, hauntGhost);
   // Place next to the source (`at`) so spawned bodies appear where they belong,
   // not always at the far right. Out-of-range / -1 falls back to appending.
   if (at >= 0 && at <= static_cast<int>(p.board.size()))
@@ -685,7 +691,7 @@ EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
 }
 
 Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
-                            bool token, int hpOverride) {
+                            bool token, int hpOverride, bool hauntGhost) {
   int hp = hpOverride >= 0 ? hpOverride : def->stats.hp;
   Creature c{};
   c.id = id;
@@ -697,6 +703,7 @@ Creature Game::makeCreature(EntityId id, const CardDef* def, bool sick,
   c.baseMaxHp = hp;
   c.sick = sick;
   c.token = token;
+  c.hauntGhost = hauntGhost;
   // Illusions reference the original card, so they inherit its keywords -- that
   // is the point of illusions. (Sprouts use a vanilla token def, so none.)
   c.shield = def->hasKeyword("shield");
