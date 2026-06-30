@@ -37,7 +37,15 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CARDS = os.path.join(ROOT, "cards", "sample.json")
-SELFPLAY = os.path.join(ROOT, "build", "engine", "prism_selfplay")
+def _selfplay_bin():
+    # Prefer the Release build (build-release/) -- self-play in Debug is ~8x
+    # slower, which makes the screen unusably slow. Fall back to build/.
+    rel = os.path.join(ROOT, "build-release", "engine", "prism_selfplay")
+    dbg = os.path.join(ROOT, "build", "engine", "prism_selfplay")
+    return rel if os.path.exists(rel) else dbg
+
+
+SELFPLAY = _selfplay_bin()
 
 
 def load_balance_model():

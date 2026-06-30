@@ -1,6 +1,7 @@
 #include "prism/bot.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 
 #include "json.hpp"
@@ -16,6 +17,17 @@ using nlohmann::json;
 // self-play worker threads stay independent.
 static thread_local double g_kwScale = 1.0;
 void setBotKeywordScale(double scale) { g_kwScale = scale; }
+
+// Determinized-world budget for the main-phase search (see botNextAction). Per
+// thread so self-play workers stay independent. The speed<->strength knob.
+static thread_local int g_searchWorlds = 4;
+void setBotSearchWorlds(int n) { g_searchWorlds = n < 1 ? 1 : n; }
+
+// How many turn-plays the search leaf rolls both sides out before reading the
+// result (0 = no rollout, just the static eval). Per thread. Speed<->depth
+// knob.
+static thread_local int g_rolloutDepth = 4;
+void setBotRolloutDepth(int n) { g_rolloutDepth = n < 0 ? 0 : n; }
 
 namespace {
 
@@ -410,6 +422,20 @@ void rollout(Game& g, int seat, std::mt19937& rng) {
   }
 }
 
+// Value of a position from `seat`'s view: play both sides out with the greedy
+// reflex for up to `turnCap` turn-plays, then read the result. A finished game
+// is +1 win / 0 draw / -1 loss; a truncated one falls back to a squashed static
+// eval (bounded, so it never outweighs a real decisive outcome). This is the
+// search leaf -- value emerges from the rules actually resolving the cards, so
+// it stays correct as the card set changes (no per-card tuning).
+double rolloutValue(Game& g, int seat, std::mt19937& rng, int turnCap) {
+  for (int t = 0, actor = seat; t < turnCap && !g.isOver(); ++t, actor ^= 1)
+    rollout(g, actor, rng);
+  if (g.isOver())
+    return g.winner() == seat ? 1.0 : (g.winner() < 0 ? 0.0 : -1.0);
+  return std::tanh(evalState(g, seat) / 50.0);
+}
+
 }  // namespace
 
 std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
@@ -449,7 +475,7 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   // apples-to- apples (common random numbers). Each candidate is scored as its
   // mean leaf value over those worlds -- a Monte-Carlo marginalization over
   // what the opponent might be holding.
-  constexpr int kWorlds = 4;
+  const int kWorlds = g_searchWorlds;
   std::vector<std::unique_ptr<Game>> worlds;
   for (int k = 0; k < kWorlds; ++k) {
     std::unique_ptr<Game> w = g.determinize(seat, lrng);
@@ -465,9 +491,7 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
     for (const auto& w : worlds) {
       std::unique_ptr<Game> sim = w->clone();
       applyAction(*sim, seat, serializeAction(a));
-      rollout(*sim, seat, lrng);      // finish my turn
-      rollout(*sim, 1 - seat, lrng);  // the opponent's plausible greedy reply
-      total += evalState(*sim, seat);
+      total += rolloutValue(*sim, seat, lrng, g_rolloutDepth);
     }
     const double v = total / static_cast<double>(worlds.size()) + tie(rng);
     if (v > bestVal) {

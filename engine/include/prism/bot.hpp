@@ -38,4 +38,14 @@ std::string botGreedyAction(const Game& g, int seat, std::mt19937& rng);
 // eval change.
 void setBotKeywordScale(double scale);
 
+// Set how many determinized worlds the main-phase search averages over for the
+// CURRENT thread (default 4). The budget knob for the speed<->strength
+// trade-off: 1 = fastest/noisiest, more = stronger/slower.
+void setBotSearchWorlds(int n);
+
+// Set how many turn-plays the main-phase search rolls both sides out with the
+// greedy reflex before scoring the leaf, for the CURRENT thread (default 10;
+// 0 = pure static eval). Deeper = truer value, slower. Speed<->depth knob.
+void setBotRolloutDepth(int n);
+
 }  // namespace prism

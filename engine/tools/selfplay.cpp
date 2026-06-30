@@ -98,6 +98,10 @@ struct Config {
       false;  // A/B: aware bot vs keyword-blind bot (alternating seats)
   int deckSize = 40;
   int maxCopies = 2;
+  int searchWorlds =
+      4;  // determinized worlds the search averages (budget knob)
+  int rolloutDepth = 4;  // turn-plays the search leaf rolls out (0 = static)
+  bool mirror = false;  // --vsgreedy: alternate the tested bot's seat by parity
 };
 
 // games seen and games won, for one hero or one card.
@@ -111,8 +115,10 @@ struct RunStats {
   long draws = 0;       // reached over_ with no winner (rare)
   long incomplete = 0;  // hit the step guard without finishing
   long seatWins[2] = {0, 0};
-  long awareWins = 0;  // --vsblind: games won by the keyword-aware bot
-  long blindWins = 0;  // --vsblind: games won by the keyword-blind bot
+  long awareWins = 0;   // --vsblind: games won by the keyword-aware bot
+  long blindWins = 0;   // --vsblind: games won by the keyword-blind bot
+  long testedWins = 0;  // --vsgreedy: games won by the tested (search) bot
+  long greedyWins = 0;  // --vsgreedy: games won by the greedy reference
   long long totalTurns = 0;
   std::map<std::string, Tally> heroes;
   std::map<std::string, Tally> cards;
@@ -125,6 +131,8 @@ struct RunStats {
     seatWins[1] += o.seatWins[1];
     awareWins += o.awareWins;
     blindWins += o.blindWins;
+    testedWins += o.testedWins;
+    greedyWins += o.greedyWins;
     totalTurns += o.totalTurns;
     for (const auto& [k, t] : o.heroes) {
       heroes[k].games += t.games;
@@ -185,6 +193,11 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
   // --vsblind: one seat plays keyword-aware, the other blind; the aware seat
   // alternates by seed parity so first-player advantage cancels out.
   const int awareSeat = static_cast<int>(gameSeed & 1u);
+  // --vsgreedy: which seat the tested (search) bot sits on. Default seat 0;
+  // --mirror alternates by seed parity so the first-player edge cancels.
+  const int testedSeat = cfg.mirror ? static_cast<int>(gameSeed & 1u) : 0;
+  setBotSearchWorlds(cfg.searchWorlds);
+  setBotRolloutDepth(cfg.rolloutDepth);
 
   std::array<std::set<std::string>, 2>
       seen;  // cards each seat ever held in hand
@@ -199,7 +212,7 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       break;
     }
     if (cfg.vsBlind) setBotKeywordScale(seat == awareSeat ? 1.0 : 0.0);
-    const std::string js = (cfg.vsGreedy && seat == 1)
+    const std::string js = (cfg.vsGreedy && seat != testedSeat)
                                ? botGreedyAction(g, seat, botRng)
                                : botNextAction(g, seat, botRng);
     if (js.empty()) {  // nothing to offer mid-turn: force the pass, never spin
@@ -236,6 +249,12 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       acc.awareWins++;
     else
       acc.blindWins++;
+  }
+  if (cfg.vsGreedy && w >= 0) {
+    if (w == testedSeat)
+      acc.testedWins++;
+    else
+      acc.greedyWins++;
   }
   const std::array<std::string, 2> hero = {h0, h1};
   for (int seat = 0; seat < 2; ++seat) {
@@ -280,6 +299,11 @@ void writeJson(const std::string& path, const RunStats& s, const Config& cfg,
     j["aware_winrate"] = pct(s.awareWins, ab);
     j["aware_games"] = ab;
   }
+  if (cfg.vsGreedy) {
+    const long td = s.testedWins + s.greedyWins;
+    j["tested_bot_winrate"] = pct(s.testedWins, td);
+    j["tested_bot_games"] = td;
+  }
   j["avg_turns"] =
       s.completed + s.incomplete > 0
           ? static_cast<double>(s.totalTurns) / (s.completed + s.incomplete)
@@ -308,6 +332,12 @@ int main(int argc, char** argv) {
       cfg.vsGreedy = true;
     else if (a == "--vsblind")
       cfg.vsBlind = true;
+    else if (a == "--mirror")
+      cfg.mirror = true;
+    else if (a == "--worlds" && i + 1 < argc)
+      cfg.searchWorlds = std::atoi(argv[++i]);
+    else if (a == "--rollout-depth" && i + 1 < argc)
+      cfg.rolloutDepth = std::atoi(argv[++i]);
     else if (a == "--jsonl" && i + 1 < argc)
       cfg.jsonlPath = argv[++i];
     else if (a == "--report" && i + 1 < argc)
@@ -395,6 +425,12 @@ int main(int argc, char** argv) {
   std::printf("seat skew: P1 %.1f%%  P2 %.1f%%  (first-player edge %+.1f pp)\n",
               pct(s.seatWins[0], decided), pct(s.seatWins[1], decided),
               pct(s.seatWins[0], decided) - 50.0);
+  if (cfg.vsGreedy) {
+    const long td = s.testedWins + s.greedyWins;
+    std::printf("vs greedy: tested bot %.1f%%  (n=%ld, worlds=%d%s)\n",
+                pct(s.testedWins, td), td, cfg.searchWorlds,
+                cfg.mirror ? ", seat-mirrored" : ", tested=seat0");
+  }
   if (s.completed + s.incomplete > 0)
     std::printf(
         "avg game length: %.1f turns\n",
