@@ -525,7 +525,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 1, "green": 1 },
-    "stats": { "atk": 2, "hp": 2 },
+    "stats": { "atk": 2, "hp": 1 },
     "keywords": [{ "id": "germinate", "n": 1 }]
   },
   {
@@ -547,7 +547,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
-    "stats": { "atk": 2, "hp": 3 },
+    "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "growth", "n": 1 }]
   },
   {
@@ -558,7 +558,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 5, "green": 1 },
-    "stats": { "atk": 3, "hp": 4 },
+    "stats": { "atk": 3, "hp": 2 },
     "keywords": [{ "id": "growth", "n": 2 }]
   },
   {
@@ -580,7 +580,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 4, "green": 1 },
-    "stats": { "atk": 3, "hp": 5 },
+    "stats": { "atk": 3, "hp": 2 },
     "keywords": [{ "id": "compost", "n": 2 }]
   },
   {
@@ -591,7 +591,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
-    "stats": { "atk": 2, "hp": 2 },
+    "stats": { "atk": 1, "hp": 1 },
     "keywords": [{ "id": "spores", "n": 2 }]
   },
   {
@@ -602,7 +602,7 @@
     "type": "creature",
     "color": ["green"],
     "cost": { "generic": 3, "green": 1 },
-    "stats": { "atk": 3, "hp": 2 },
+    "stats": { "atk": 3, "hp": 1 },
     "keywords": [{ "id": "spores", "n": 2 }]
   },
   {
@@ -1215,7 +1215,7 @@
     "type": "creature",
     "color": ["red", "green"],
     "cost": { "generic": 3, "red": 1, "green": 1 },
-    "stats": { "atk": 3, "hp": 4 },
+    "stats": { "atk": 3, "hp": 3 },
     "keywords": [{ "id": "cauterize" }, { "id": "compost", "n": 1 }]
   },
   {
@@ -1474,7 +1474,7 @@
     "type": "creature",
     "color": ["green", "violet"],
     "cost": { "generic": 3, "green": 1, "violet": 1 },
-    "stats": { "atk": 2, "hp": 3 },
+    "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "spores", "n": 2 }, { "id": "split", "n": 1 }]
   },
   {

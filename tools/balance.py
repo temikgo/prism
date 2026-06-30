@@ -30,11 +30,16 @@ KW = {
     "shield": lambda a, h, n: 1.15 + 0.07 * (a + h),
     "ward": lambda a, h, n: 0.6,
     "floodlight": lambda a, h, n: 0.8,
+    # Green de-snowball via STEEPER per-n slopes (these keywords' value is linear in
+    # n, so the slope is what was under-priced -- a higher-n card must be nerfed
+    # proportionally more, not by a flat constant). Magnitudes by self-play beta:
+    # photosynthesis(ramp) and undergrowth read fair -> untouched; compost (top, +4.0)
+    # steepest, then spores, then germinate/growth. N itself is never reduced.
     "photosynthesis": lambda a, h, n: 0.8 * n,
-    "germinate": lambda a, h, n: 0.85 * n,
-    "growth": lambda a, h, n: 1.75 * n,
-    "compost": lambda a, h, n: 0.9 * n,
-    "spores": lambda a, h, n: 0.9 * n,
+    "germinate": lambda a, h, n: 1.1 * n,
+    "growth": lambda a, h, n: 2.0 * n,
+    "compost": lambda a, h, n: 1.5 * n,
+    "spores": lambda a, h, n: 1.25 * n,
     "undergrowth": lambda a, h, n: 0.95 * n,
     "chill": lambda a, h, n: 3.0 * n,
     # delay is priced AFTER the effects in power(): a delayed effect must be
@@ -128,7 +133,13 @@ def power(card):
             # body still scores a touch above a dear one.
             c = card.get("cost", {})
             mana = c.get("generic", 0) + sum(v for k, v in c.items() if k != "generic")
-            parts["kw:resonance"] = float(n * (0.5 * mana + 0.6))
+            # De-snowball resonance (top green overperformer: amber_grub +4.8,
+            # geode_toad +2.5 pp, also audit-flagged). Its value scales with the
+            # card's OWN mana, so steepening the mana slope makes raising the cost
+            # raise the value -> uncostable runaway. So bump the per-n CONSTANT
+            # (0.6 -> 1.0) and let the re-cost shrink the body (stats), keeping the
+            # gentle 0.5 mana slope so the card stays costable.
+            parts["kw:resonance"] = float(n * (0.5 * mana + 1.0))
             continue
         fn = KW.get(kid)
         if fn is None:
