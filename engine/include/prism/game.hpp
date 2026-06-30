@@ -302,6 +302,11 @@ class Game {
   Creature* findSelected(const std::string& selector, Player& owner,
                          EntityId target);
 
+  // Violet refract: a hit aimed at `hit` (an enemy creature) bends onto a
+  // random other non-stealthed creature on `opp`'s board; returns the new
+  // target, or `hit` unchanged when there is no other creature to bend onto.
+  Creature* refractTarget(Player& opp, Creature* hit);
+
   // Resolve a selector to its full target list. Single-pick selectors yield 0
   // or 1 creature; the area selectors yield many: "all_enemies" = the
   // opponent's board, "all_creatures" = both boards. This is what makes AoE a
@@ -366,6 +371,15 @@ class Game {
   // required target blocks it). Used to enumerate play/awaken targets.
   std::vector<EntityId> legalTargets(const CardDef* def,
                                      const Player& owner) const;
+  // legalActions() enumerates each action kind into `out` through these
+  // per-kind appenders, called in the order the mutators apply so the move list
+  // stays deterministic; they keep the enumerator a short, readable dispatch.
+  void appendManaActions(std::vector<Action>& out, const Player& p) const;
+  void appendPlayActions(std::vector<Action>& out, const Player& p) const;
+  void appendAwakenActions(std::vector<Action>& out, const Player& p) const;
+  void appendActivateActions(std::vector<Action>& out, const Player& p) const;
+  void appendAttackActions(std::vector<Action>& out, const Player& p,
+                           const Player& opp) const;
 
   // Combat / stat helpers.
   Creature makeCreature(EntityId id, const CardDef* def, bool sick, bool token,

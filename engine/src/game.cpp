@@ -537,12 +537,7 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
   // Violet refract: an attack aimed at this creature bends onto a random other
   // enemy creature (the strike never reaches the one that bent it).
-  if (b->def->hasKeyword("refract")) {
-    std::vector<Creature*> others;
-    for (auto& c : opp.board)
-      if (c.id != b->id && !c.stealthed) others.push_back(&c);
-    if (!others.empty()) b = others[rng_() % others.size()];
-  }
+  if (b->def->hasKeyword("refract")) b = refractTarget(opp, b);
   int targetHpBefore = b->hp;
   int dealt = damageCreature(*b, a->atk, a);
   // Blind (Yellow) puts out a creature's combat damage entirely: a blinded
@@ -938,29 +933,38 @@ std::vector<Action> Game::legalActions() const {
 
   out.push_back(Action{Action::Type::EndTurn});
 
-  // placeMana: one card -> the mana row per turn (mirrors placeCardToMana). A
-  // neutral card can only become Colorless; a colored card any one of its
-  // colors.
-  if (!p.placedManaThisTurn) {
-    for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
-      const CardDef* def = p.hand[i].def;
-      Action a;
-      a.type = Action::Type::PlaceMana;
-      a.handIndex = i;
-      if (def->colors.empty()) {
-        a.color = Color::Colorless;
+  appendManaActions(out, p);
+  appendPlayActions(out, p);
+  appendAwakenActions(out, p);
+  appendActivateActions(out, p);
+  appendAttackActions(out, p, opp);
+  return out;
+}
+
+// placeMana: one card -> the mana row per turn (mirrors placeCardToMana). A
+// neutral card can only become Colorless; a colored card any one of its colors.
+void Game::appendManaActions(std::vector<Action>& out, const Player& p) const {
+  if (p.placedManaThisTurn) return;
+  for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
+    const CardDef* def = p.hand[i].def;
+    Action a;
+    a.type = Action::Type::PlaceMana;
+    a.handIndex = i;
+    if (def->colors.empty()) {
+      a.color = Color::Colorless;
+      out.push_back(a);
+    } else {
+      for (Color col : def->colors) {
+        a.color = col;
         out.push_back(a);
-      } else {
-        for (Color col : def->colors) {
-          a.color = col;
-          out.push_back(a);
-        }
       }
     }
   }
+}
 
-  // play: affordable (incl. spectral shift), board/aura room, per legal target
-  // (mirrors playCard). pos and genericPay are free parameters, not enumerated.
+// play: affordable (incl. spectral shift), board/aura room, per legal target
+// (mirrors playCard). pos and genericPay are free parameters, not enumerated.
+void Game::appendPlayActions(std::vector<Action>& out, const Player& p) const {
   for (int i = 0; i < static_cast<int>(p.hand.size()); ++i) {
     const CardDef* def = p.hand[i].def;
     if (!affordableToPlay(p, effectiveCost(p, def))) continue;
@@ -978,8 +982,11 @@ std::vector<Action> Game::legalActions() const {
       out.push_back(a);
     }
   }
+}
 
-  // awaken: a banked card from the mana row (mirrors awaken).
+// awaken: a banked card from the mana row (mirrors awaken).
+void Game::appendAwakenActions(std::vector<Action>& out,
+                               const Player& p) const {
   bool facet = p.hero && p.hero->hasKeyword("facet");
   for (int i = 0; i < static_cast<int>(p.manaRow.size()); ++i) {
     const ManaCard& mc = p.manaRow[i];
@@ -1001,28 +1008,33 @@ std::vector<Action> Game::legalActions() const {
       out.push_back(a);
     }
   }
+}
 
-  // activate: Green germinate (needs an open slot) or Red spark (just mana).
-  // Both cost 1 crystal of any colour, once per turn.
+// activate: Green germinate (needs an open slot) or Red spark (just mana). Both
+// cost 1 crystal of any colour, once per turn.
+void Game::appendActivateActions(std::vector<Action>& out,
+                                 const Player& p) const {
   Cost one;
   one.generic = 1;
   bool boardFull = static_cast<int>(p.board.size()) >= BoardLimit;
-  if (p.mana.canPay(one)) {
-    for (const Creature& c : p.board) {
-      if (c.usedActive) continue;
-      bool germ = c.def->keywordN("germinate") > 0 && !boardFull;
-      bool spark = c.def->keywordN("spark") > 0;
-      if (germ || spark) {
-        Action a;
-        a.type = Action::Type::Activate;
-        a.id = c.id;
-        out.push_back(a);
-      }
+  if (!p.mana.canPay(one)) return;
+  for (const Creature& c : p.board) {
+    if (c.usedActive) continue;
+    bool germ = c.def->keywordN("germinate") > 0 && !boardFull;
+    bool spark = c.def->keywordN("spark") > 0;
+    if (germ || spark) {
+      Action a;
+      a.type = Action::Type::Activate;
+      a.id = c.id;
+      out.push_back(a);
     }
   }
+}
 
-  // attacks: each ready creature onto any legal target, or the face (mirrors
-  // attackCreature / attackHero, incl. provoke / stealth / bypass).
+// attacks: each ready creature onto any legal target, or the face (mirrors
+// attackCreature / attackHero, incl. provoke / stealth / bypass).
+void Game::appendAttackActions(std::vector<Action>& out, const Player& p,
+                               const Player& opp) const {
   bool prov = enemyHasProvoke(opp);
   for (const Creature& a0 : p.board) {
     if (!a0.canAttack()) continue;
@@ -1042,7 +1054,6 @@ std::vector<Action> Game::legalActions() const {
       out.push_back(a);
     }
   }
-  return out;
 }
 
 // Dispatch the inline effect grammar (DESIGN §8):
@@ -1169,6 +1180,14 @@ const Creature* Game::findCreature(const Player& p, EntityId id) const {
   return nullptr;
 }
 
+Creature* Game::refractTarget(Player& opp, Creature* hit) {
+  std::vector<Creature*> others;
+  for (auto& c : opp.board)
+    if (c.id != hit->id && !c.stealthed) others.push_back(&c);
+  if (others.empty()) return hit;
+  return others[rng_() % others.size()];
+}
+
 std::vector<Creature*> Game::selectTargets(const std::string& selector,
                                            Player& owner, EntityId target) {
   std::vector<Creature*> out;
@@ -1181,12 +1200,8 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
     Player& opp = players_[1 - owner.index];
     // Violet refract: an enemy effect aimed at this creature bends onto a
     // random other enemy creature instead.
-    if (selector == "chosen_enemy_minion" && t->def->hasKeyword("refract")) {
-      std::vector<Creature*> others;
-      for (auto& c : opp.board)
-        if (c.id != t->id && !c.stealthed) others.push_back(&c);
-      if (!others.empty()) t = others[rng_() % others.size()];
-    }
+    if (selector == "chosen_enemy_minion" && t->def->hasKeyword("refract"))
+      t = refractTarget(opp, t);
     out.push_back(t);
     // Blue birefringence: the caster's targeted effect splits onto a second
     // random valid target of the same side (the beam is doubly refracted).
