@@ -719,8 +719,7 @@ func _play_payload(data: Variant, target: int) -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	if data.get("kind", "") == "awaken":
-		_spell_cast_fx(data)
-		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": target})
+		_send_awaken(int(data["manaRowIndex"]), target, -1, data)
 		return
 	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": target})
 
@@ -744,8 +743,7 @@ func _play_at_drop(data: Variant) -> void:
 		return
 	var pos := _drop_insert_index()
 	if data.get("kind", "") == "awaken":
-		_spell_cast_fx(data)
-		_send({"action": "awaken", "manaRowIndex": int(data["manaRowIndex"]), "target": 0, "pos": pos})
+		_send_awaken(int(data["manaRowIndex"]), 0, pos, data)
 		return
 	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": 0, "pos": pos})
 
@@ -783,6 +781,34 @@ func _dispatch_play_mana(data: Variant, msg: Dictionary) -> void:
 	add_child(picker)
 	picker.setup(int(choices["generic"]), choices["avail"], choices["pips"])
 	_picker = picker
+
+
+# Send an awaken. When the generic part of its post-banked-crystal cost can be
+# paid more than one way, prompt which crystals to spend first (parity with how a
+# hard cast is handled in _dispatch_play_mana); otherwise send immediately. `fx`
+# is the drag payload for the cast dissolve (pass {} for the click fallback).
+func _send_awaken(mr_index: int, target: int, pos: int, fx: Variant) -> void:
+	var msg := {"action": "awaken", "manaRowIndex": mr_index, "target": target, "pos": pos}
+	var you := int(view["you"])
+	var row: Array = view["players"][you].get("manaRow", [])
+	if mr_index >= 0 and mr_index < row.size():
+		var slot: Dictionary = row[mr_index]
+		var choices := Rules.awaken_generic_choices(view, String(slot.get("card", "")),
+			String(slot.get("color", "")), int(slot.get("age", 0)))
+		if not choices.is_empty():
+			_close_picker()
+			var picker := ManaSpendPicker.new()
+			picker.picked.connect(func(generic_pay: Dictionary) -> void:
+				_spell_cast_fx(fx)
+				msg["genericPay"] = generic_pay
+				_send(msg))
+			picker.tree_exited.connect(func() -> void: _picker = null)
+			add_child(picker)
+			picker.setup(int(choices["generic"]), choices["avail"], choices["pips"])
+			_picker = picker
+			return
+	_spell_cast_fx(fx)
+	_send(msg)
 
 
 # Warn that playing this card now loses its targeted effect(s) -- no valid target.
@@ -923,4 +949,4 @@ func _on_awaken_clicked(p: Dictionary) -> void:
 	if not _my_turn():
 		return
 	if not bool(p.get("needs_target", false)):
-		_send({"action": "awaken", "manaRowIndex": int(p["manaRowIndex"]), "target": 0})
+		_send_awaken(int(p["manaRowIndex"]), 0, -1, {})

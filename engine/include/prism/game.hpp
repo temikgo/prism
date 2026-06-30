@@ -229,7 +229,9 @@ class Game {
   // required); the remainder is paid from your other available crystals, and
   // that crystal/slot is consumed. Only cards carrying the `awaken` keyword
   // qualify.
-  bool awaken(int manaRowIndex, EntityId target = 0, int pos = -1);
+  bool awaken(
+      int manaRowIndex, EntityId target = 0, int pos = -1,
+      std::optional<std::array<int, ColorCount>> genericPay = std::nullopt);
   // Green germinate / red spark: a creature's activated ability. Spend 1
   // crystal to summon an N/N sprout (germinate) or flick N at the enemy hero
   // (spark), once per turn. `payColor` chooses which crystal to spend (the
@@ -365,7 +367,9 @@ class Game {
   // The pool that remains after awakening `mc` from p's mana row (its own
   // crystal pays 1 of the cost in its color, decoy may zero it), or nullopt if
   // unaffordable. awaken() commits the returned pool; legalActions just checks.
-  std::optional<ManaPool> awakenCost(const Player& p, const ManaCard& mc) const;
+  std::optional<ManaPool> awakenCost(const Player& p, const ManaCard& mc,
+                                     std::optional<std::array<int, ColorCount>>
+                                         genericPay = std::nullopt) const;
   // The set of legal `target` values for the card's on_play effects: {0} plus
   // every creature id that playTargetLegal accepts (0 stays only when no
   // required target blocks it). Used to enumerate play/awaken targets.

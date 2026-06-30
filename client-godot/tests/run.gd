@@ -127,6 +127,17 @@ func _test_rules() -> void:
 	v1["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
 	_eq(Rules.generic_choices(v1, "red_lance_beetle"), {}, "one color free -> no choice")
 
+	# awaken's generic (after the banked crystal pays its pip) is payable >1 way
+	var awv := DevKit.view(
+		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 1, 1, 0, 0), DevKit.pool(2, 0, 1, 1, 0, 0))}),
+		DevKit.player({}))
+	_ok(not Rules.awaken_generic_choices(awv, "blue_deep_freeze", "blue", 0).is_empty(),
+		"awaken: free crystals across colors -> generic choice")
+	var awv1 := awv.duplicate(true)
+	awv1["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
+	_eq(Rules.awaken_generic_choices(awv1, "blue_deep_freeze", "blue", 0), {},
+		"awaken: one color free -> no choice")
+
 	# no legal target when the enemy board is empty
 	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frost_grip"),
 		"empty enemy board -> no target")

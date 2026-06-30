@@ -426,7 +426,8 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
 // consumed -- it pays 1 of the cost in its own color (or 1 generic if that
 // color isn't required), and the remainder is paid from the player's other
 // available crystals. Net cost: (cost - 1) plus the lost slot.
-bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
+bool Game::awaken(int manaRowIndex, EntityId target, int pos,
+                  std::optional<std::array<int, ColorCount>> genericPay) {
   if (over_) return false;
   Player& p = players_[current_];
   if (manaRowIndex < 0 || manaRowIndex >= static_cast<int>(p.manaRow.size()))
@@ -450,7 +451,7 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos) {
   if (!playTargetLegal(def, p, target)) return false;
   // The banked crystal + discount math lives in awakenCost (shared with
   // legalActions); it returns the resulting pool, or nullopt if unaffordable.
-  std::optional<ManaPool> sim = awakenCost(p, mc);
+  std::optional<ManaPool> sim = awakenCost(p, mc, genericPay);
   if (!sim) return false;  // remainder unaffordable -> nothing changes
   p.mana = *sim;
   p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
@@ -887,8 +888,9 @@ bool Game::affordableToPlay(const Player& p, const Cost& cost) const {
          p.heroPowerUses < 1 && shiftedPool(p.mana, cost).has_value();
 }
 
-std::optional<ManaPool> Game::awakenCost(const Player& p,
-                                         const ManaCard& mc) const {
+std::optional<ManaPool> Game::awakenCost(
+    const Player& p, const ManaCard& mc,
+    std::optional<std::array<int, ColorCount>> genericPay) const {
   const CardDef* def = mc.card.def;
   int c = idx(mc.color);
   if (p.mana.available[c] < 1) return std::nullopt;  // own crystal must be free
@@ -905,6 +907,9 @@ std::optional<ManaPool> Game::awakenCost(const Player& p,
   ManaPool sim = p.mana;
   sim.crystals[c] -= 1;  // the banked crystal leaves the pool
   sim.available[c] -= 1;
+  // Honour the player's chosen generic breakdown for the remainder if it is
+  // valid; otherwise pay greedily (mirrors playCard, and the forced case).
+  if (genericPay && sim.pay(eff, *genericPay)) return sim;
   if (!sim.pay(eff)) return std::nullopt;
   return sim;
 }

@@ -229,9 +229,19 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     return g.playCard(j.value("handIndex", -1), j.value("target", 0),
                       j.value("pos", -1), genericPay);
   }
-  if (a == "awaken")
+  if (a == "awaken") {
+    std::optional<std::array<int, ColorCount>> genericPay;
+    if (j.contains("genericPay") && j["genericPay"].is_object()) {
+      std::array<int, ColorCount> gp{};
+      for (auto it = j["genericPay"].begin(); it != j["genericPay"].end(); ++it)
+        if (auto col = colorFromString(it.key());
+            col && it.value().is_number_integer())
+          gp[idx(*col)] += it.value().get<int>();
+      genericPay = gp;
+    }
     return g.awaken(j.value("manaRowIndex", -1), j.value("target", 0),
-                    j.value("pos", -1));
+                    j.value("pos", -1), genericPay);
+  }
   if (a == "activate")
     return g.activate(j.value("id", 0),
                       colorFromString(j.value("color", std::string{}))

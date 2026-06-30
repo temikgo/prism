@@ -219,3 +219,37 @@ static func generic_choices(view: Dictionary, card_id: String) -> Dictionary:
 	if total_free > generic and colors_with_free >= 2:
 		return {"generic": generic, "avail": avail, "pips": pips}
 	return {}
+
+
+# Like generic_choices, but for awakening a banked card. The cost is the card's
+# own (awaken pays def->cost, no haze surcharge), reduced by the banked crystal
+# (1 of its colour, else 1 generic), and the available pool has that crystal
+# already spent. An aged decoy awakens for free, so it never prompts.
+static func awaken_generic_choices(view: Dictionary, card_id: String, color: String, age: int) -> Dictionary:
+	if card_id == "" or view.is_empty():
+		return {}
+	if CardData.has_keyword(card_id, "decoy") and age >= CardData.keyword_n(card_id, "decoy"):
+		return {}
+	var cost: Dictionary = (CardData.def(card_id).get("cost", {})).duplicate(true)
+	if int(cost.get(color, 0)) > 0:
+		cost[color] = int(cost[color]) - 1
+	elif int(cost.get("generic", 0)) > 0:
+		cost["generic"] = int(cost["generic"]) - 1
+	var generic := int(cost.get("generic", 0))
+	if generic <= 0:
+		return {}
+	var you := int(view["you"])
+	var avail: Dictionary = (view["players"][you].get("mana", {}).get("available", {})).duplicate(true)
+	avail[color] = int(avail.get(color, 0)) - 1  # the banked crystal is consumed
+	var total_free := 0
+	var colors_with_free := 0
+	var pips := {}
+	for c in CardData.ALL_COLORS:
+		pips[c] = int(cost.get(c, 0))
+		var f: int = maxi(0, int(avail.get(c, 0)) - int(pips[c]))
+		total_free += f
+		if f > 0:
+			colors_with_free += 1
+	if total_free > generic and colors_with_free >= 2:
+		return {"generic": generic, "avail": avail, "pips": pips}
+	return {}
