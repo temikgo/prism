@@ -1454,7 +1454,7 @@
     "text": { "ru": "В дыму чужие чары вязнут, а свой первый шаг невидим." },
     "art": "an overwhelmingly violet smoky dusk flooding the whole field, dense deep violet and bright purple and magenta haze and twilight smoke everywhere, almost entirely violet with only the barest faint hint of blue, fouling enemy spells while cloaking your first summon unseen",
     "type": "aura",
-    "color": ["violet", "blue"],
+    "color": ["blue", "violet"],
     "cost": { "generic": 0, "blue": 1, "violet": 1 },
     "keywords": [{ "id": "haze", "n": 2 }, { "id": "glimmer" }]
   },
