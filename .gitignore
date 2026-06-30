@@ -1,5 +1,6 @@
 engine/build/
 build/
+build-release/
 *.o
 *.a
 __pycache__/

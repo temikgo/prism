@@ -87,7 +87,8 @@
       "nodes": [
         { "label": "CI, чеки, тесты", "at": "af8e1f1", "status": "done", "weight": "major" },
         { "label": "Дерево разработки", "at": "5f153c6", "status": "done", "weight": "major" },
-        { "label": "Структурные линтеры баланса", "at": "392cf6f", "status": "done", "weight": "minor" }
+        { "label": "Структурные линтеры баланса", "at": "392cf6f", "status": "done", "weight": "minor" },
+        { "label": "Чистка кода + дрифт-линтер баланса", "at": "e16b893", "status": "done", "weight": "minor" }
       ]
     }
   ]
