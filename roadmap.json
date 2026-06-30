@@ -75,6 +75,7 @@
         { "label": "MCTS-поиск", "at": "f09e0fa", "status": "abandoned", "weight": "major", "note": "слабее жадного — откат" },
         { "label": "Метрика confirmed=0 + бот-фиксы", "at": "432629c", "status": "done", "weight": "major" },
         { "label": "Когерентная колода бота + рамп-фикс", "at": "b93ac55", "status": "done", "weight": "major" },
+        { "label": "Бот ценит ключевики (B0)", "at": "f07d8a9", "status": "done", "weight": "major" },
         { "label": "PUCT", "status": "planned", "weight": "major" }
       ]
     },
@@ -84,7 +85,8 @@
       "hue": 312,
       "nodes": [
         { "label": "CI, чеки, тесты", "at": "af8e1f1", "status": "done", "weight": "major" },
-        { "label": "Дерево разработки", "at": "5f153c6", "status": "done", "weight": "major" }
+        { "label": "Дерево разработки", "at": "5f153c6", "status": "done", "weight": "major" },
+        { "label": "Структурные линтеры баланса", "at": "392cf6f", "status": "done", "weight": "minor" }
       ]
     }
   ]
