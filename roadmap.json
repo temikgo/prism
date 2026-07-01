@@ -77,7 +77,9 @@
         { "label": "Метрика confirmed=0 + бот-фиксы", "at": "432629c", "status": "done", "weight": "major" },
         { "label": "Когерентная колода бота + рамп-фикс", "at": "b93ac55", "status": "done", "weight": "major" },
         { "label": "Бот ценит ключевики (B0)", "at": "f07d8a9", "status": "done", "weight": "major" },
-        { "label": "PUCT", "status": "planned", "weight": "major" }
+        { "label": "Роллаут-лист поиск (74% vs greedy)", "at": "0523b87", "status": "done", "weight": "major" },
+        { "label": "PUCT", "status": "abandoned", "weight": "major", "note": "плато ниже роллаут-1ply без обученного листа" },
+        { "label": "Обученный лист / turn-level поиск", "status": "planned", "weight": "major" }
       ]
     },
     {

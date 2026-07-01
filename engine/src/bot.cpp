@@ -334,8 +334,12 @@ double evalState(const Game& g, int seat) {
 // the lethal flag and the single-playable card that score() needs). Assumes
 // acts is non-empty and it is seat's main phase. Shared by the reflex policy
 // and the search (which uses it to keep mana ramp off the myopic 1-ply leaf).
-Action greedyMainChoice(const Game& g, int seat,
-                        const std::vector<Action>& acts, std::mt19937& rng) {
+// Score every legal action with the greedy policy (the lethal flag and the
+// single-playable card are computed once). Shared by the reflex pick and the
+// PUCT prior, so the tree is guided by the same hand-authored policy.
+std::vector<double> scoreAll(const Game& g, int seat,
+                             const std::vector<Action>& acts,
+                             std::mt19937& rng) {
   int faceDmg = 0;
   for (const auto& a : acts)
     if (a.type == Action::Type::AttackHero) {
@@ -359,16 +363,19 @@ Action greedyMainChoice(const Game& g, int seat,
     }
   if (playableCount != 1) onlyPlayable = -1;
 
-  const Action* best = &acts.front();
-  double bestScore = -1e18;
-  for (const auto& a : acts) {
-    const double s = score(a, g, seat, lethal, onlyPlayable, canPlay, rng);
-    if (s > bestScore) {
-      bestScore = s;
-      best = &a;
-    }
-  }
-  return *best;
+  std::vector<double> out(acts.size());
+  for (size_t i = 0; i < acts.size(); ++i)
+    out[i] = score(acts[i], g, seat, lethal, onlyPlayable, canPlay, rng);
+  return out;
+}
+
+Action greedyMainChoice(const Game& g, int seat,
+                        const std::vector<Action>& acts, std::mt19937& rng) {
+  const std::vector<double> s = scoreAll(g, seat, acts, rng);
+  int best = 0;
+  for (int i = 1; i < static_cast<int>(s.size()); ++i)
+    if (s[i] > s[best]) best = i;
+  return acts[best];
 }
 
 std::string botStepGreedy(const Game& g, int seat, std::mt19937& rng) {
