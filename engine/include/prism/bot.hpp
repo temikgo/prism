@@ -2,6 +2,7 @@
 
 #include <random>
 #include <string>
+#include <vector>
 
 // A server-side opponent for the single-player "training" match. The bot reads
 // the authoritative Game (it sits on a seat with full information -- there is
@@ -47,5 +48,15 @@ void setBotSearchWorlds(int n);
 // greedy reflex before scoring the leaf, for the CURRENT thread (default 10;
 // 0 = pure static eval). Deeper = truer value, slower. Speed<->depth knob.
 void setBotRolloutDepth(int n);
+
+// A set-agnostic feature vector of the position from `seat`'s view (aggregate
+// stats + keyword-value sums, no card ids), for the learned value model. Fixed
+// order/length -- the trained weights must match. See tools/train_value.py.
+std::vector<double> stateFeatures(const Game& g, int seat);
+
+// Learned linear value of the position from `seat`'s view, in [-1,1]. Enable it
+// as the search leaf with setBotUseLearned(true).
+double learnedValue(const Game& g, int seat);
+void setBotUseLearned(bool on);
 
 }  // namespace prism
