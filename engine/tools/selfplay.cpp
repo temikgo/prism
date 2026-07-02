@@ -98,6 +98,7 @@ struct Config {
       false;  // A/B: aware bot vs keyword-blind bot (alternating seats)
   int deckSize = 40;
   int maxCopies = 2;
+  int forceColors = 0;  // >0: force every draft to exactly N colours (rainbow)
   int searchWorlds =
       4;  // determinized worlds the search averages (budget knob)
   int rolloutDepth = 4;  // turn-plays the search leaf rolls out (0 = static)
@@ -178,8 +179,10 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       heroes.empty() ? "" : heroes[setupRng() % heroes.size()];
   std::vector<std::string> d0, d1;
   if (cfg.draft) {
-    d0 = draftDeck(nonHero, cfg.deckSize, cfg.maxCopies, setupRng);
-    d1 = draftDeck(nonHero, cfg.deckSize, cfg.maxCopies, setupRng);
+    d0 = draftDeck(nonHero, cfg.deckSize, cfg.maxCopies, setupRng, 5,
+                   cfg.forceColors);
+    d1 = draftDeck(nonHero, cfg.deckSize, cfg.maxCopies, setupRng, 5,
+                   cfg.forceColors);
   } else {
     d0 = pool;
     d1 = pool;
@@ -346,6 +349,8 @@ int main(int argc, char** argv) {
       cfg.deckSize = std::atoi(argv[++i]);
     else if (a == "--maxcopies" && i + 1 < argc)
       cfg.maxCopies = std::atoi(argv[++i]);
+    else if (a == "--colors" && i + 1 < argc)
+      cfg.forceColors = std::atoi(argv[++i]);
     else
       pos.push_back(a);
   }

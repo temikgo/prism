@@ -23,7 +23,8 @@ DeckCheck validateDeck(const CardLibrary& lib,
 
 std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
                                    int deckSize, int maxCopies,
-                                   std::mt19937& rng, int maxColors) {
+                                   std::mt19937& rng, int maxColors,
+                                   int forceColors) {
   // Colour count picked like a human deckbuilder: mostly mono/two-colour, with
   // a thin tail to greedy 4-5 colour piles. mono 30% / 2-colour 35% / 3 20% / 4
   // 5% / 5 10%.
@@ -39,6 +40,7 @@ std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
     }
   if (k > maxColors) k = maxColors;
   if (k < 1) k = 1;
+  if (forceColors > 0) k = forceColors > 5 ? 5 : forceColors;
   std::array<Color, 5> colors = {Color::Red, Color::Yellow, Color::Green,
                                  Color::Blue, Color::Violet};
   std::shuffle(colors.begin(), colors.end(), rng);

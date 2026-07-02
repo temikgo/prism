@@ -34,8 +34,12 @@ DeckCheck validateDeck(const CardLibrary& lib,
 // drafts with maxColors=3 -- coherent and castable, and it excludes 5-colour
 // pentas (they need all five colours allowed). Self-play uses maxColors=5 to
 // keep sampling rainbow/penta cards.
+// `forceColors` (>0) overrides the weighted count and drafts exactly that many
+// colours -- lets a balance run force a rainbow (5-colour) meta so otherwise
+// rarely-cast multicolour/penta cards actually resolve and can be measured.
 std::vector<std::string> draftDeck(const std::vector<const CardDef*>& nonHero,
                                    int deckSize, int maxCopies,
-                                   std::mt19937& rng, int maxColors = 5);
+                                   std::mt19937& rng, int maxColors = 5,
+                                   int forceColors = 0);
 
 }  // namespace prism
