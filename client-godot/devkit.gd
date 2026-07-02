@@ -140,7 +140,7 @@ static func demo_view() -> Dictionary:
 			{"color": "colorless", "age": 0},
 		],
 		"hand": ["green_sunleaf_elk", "blue_winter_stream", "yellow_blue_beam_sentinel",
-			"prismatic_echo_beast"],
+			"prismatic_prism_echo"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"board": [
 			creature(11, "red_barbed_wasp", 2, 1, 1),
