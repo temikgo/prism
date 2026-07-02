@@ -2957,6 +2957,41 @@ TEST_CASE("view canAwaken excludes a duplicate aura (client reads one truth)") {
         false);  // dup -> excluded
 }
 
+TEST_CASE("publicEventJson annotates public actions, hides private ones") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "boltspell", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  // play resolves handIndex -> card id (while the card is still in hand).
+  int hi = handIndexOf(g, 0, "boltspell");
+  std::string ev = publicEventJson(
+      g, 0, nlohmann::json{{"action", "play"}, {"handIndex", hi}}.dump());
+  auto e = nlohmann::json::parse(ev);
+  CHECK(e["seat"] == 0);
+  CHECK(e["action"] == "play");
+  CHECK(e["card"] == "boltspell");  // this is what drives the reveal
+  // placeMana carries only its colour -- the banked card id stays face-down.
+  auto pm = nlohmann::json::parse(publicEventJson(
+      g, 0,
+      nlohmann::json{
+          {"action", "placeMana"}, {"handIndex", 0}, {"color", "red"}}
+          .dump()));
+  CHECK(pm["color"] == "red");
+  CHECK_FALSE(pm.contains("card"));
+  // Private actions are never annotated (Standoff secrecy, mulligan, scry).
+  CHECK(
+      publicEventJson(
+          g, 0, nlohmann::json{{"action", "decision"}, {"choice", 1}}.dump()) ==
+      "");
+  CHECK(publicEventJson(g, 0,
+                        nlohmann::json{{"action", "mulligan"},
+                                       {"indices", nlohmann::json::array()}}
+                            .dump()) == "");
+  // The event splices into the view; absent when none is passed.
+  auto v = nlohmann::json::parse(viewJson(g, 0, ev));
+  CHECK(v["event"]["card"] == "boltspell");
+  CHECK_FALSE(nlohmann::json::parse(viewJson(g, 0)).contains("event"));
+}
+
 TEST_CASE("a friendly-target spell freezes your own creature") {
   CardLibrary lib = testLib();
   // A 4-card deck means the opening hand of 4 is the whole deck, so both the

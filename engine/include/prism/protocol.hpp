@@ -18,7 +18,22 @@ namespace prism {
 // heroes, crystal colors/counts, graveyards) is always included; hidden info is
 // redacted: the opponent's hand is only a count, and mana-row card identities
 // are shown only for your own awaken cards (floodlight will reveal enemy ones).
-std::string viewJson(const Game& g, int you);
+// `eventJson`, if non-empty, is spliced in as the view's `event` field: the
+// public action that just produced this state (see publicEventJson), so the
+// client can play the opponent's turn out step by step. Pass "" for a plain
+// state sync (reconnect, rejected action).
+std::string viewJson(const Game& g, int you, const std::string& eventJson = "");
+
+// The PUBLIC annotation of a client action, as a JSON object string, or "" for
+// actions that must stay hidden (mulligan / scryResolve / decision) or are
+// unknown. Computed against the CURRENT state, so it MUST be called BEFORE
+// applyAction (a play/awaken resolves handIndex/manaRowIndex -> the card id
+// while the card is still in hand / the mana row). Shape:
+//   {seat, action, card?, target?, attacker?, id?, color?}
+// `card` is included for play/awaken (this is what drives the card reveal);
+// placeMana carries only its `color` (the banked card stays face-down).
+std::string publicEventJson(const Game& g, int seat,
+                            const std::string& actionJson);
 
 // The wire JSON for a single engine Action (the shape applyAction parses back).
 std::string actionJson(const Action& a);

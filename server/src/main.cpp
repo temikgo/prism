@@ -170,9 +170,14 @@ std::string makeToken(std::mt19937& rng) {
   return t;
 }
 
-void broadcastRoom(const Room& r) {
-  if (r.fd[0] >= 0) sendAll(r.fd[0], ws::textFrame(viewJson(*r.game, 0)));
-  if (r.fd[1] >= 0) sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1)));
+// `eventJson` (default "") annotates this state with the public action that
+// produced it, so the clients can play the move out step by step; both seats
+// see the same event.
+void broadcastRoom(const Room& r, const std::string& eventJson = "") {
+  if (r.fd[0] >= 0)
+    sendAll(r.fd[0], ws::textFrame(viewJson(*r.game, 0, eventJson)));
+  if (r.fd[1] >= 0)
+    sendAll(r.fd[1], ws::textFrame(viewJson(*r.game, 1, eventJson)));
 }
 
 // Write this room's match as a deterministic replay (engine format) once, when
@@ -254,8 +259,11 @@ void pumpBot(Room& r, std::mt19937& rng) {
   for (int guard = 0; guard < 2000 && !r.game->isOver(); ++guard) {
     std::string js = botNextAction(*r.game, 1, rng);
     if (js.empty()) break;
+    std::string ev = publicEventJson(*r.game, 1, js);  // before it is applied
     if (!applyAction(*r.game, 1, js)) break;  // safety: never spin on a reject
     r.actionLog.emplace_back(1, js);
+    broadcastRoom(r,
+                  ev);  // one broadcast per bot action -> step-by-step replay
   }
 }
 
@@ -507,14 +515,19 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
   if (c.phase != Phase::Playing || c.room.empty()) return;
   auto it = g_rooms.find(c.room);
   if (it == g_rooms.end() || !it->second.game) return;
-  // Record every accepted action (seat + raw action JSON) for the room's
-  // replay.
+  // Annotate the move BEFORE applying (a play/awaken resolves its card id while
+  // the card is still in hand / the mana row), then record it for the replay.
+  std::string ev = publicEventJson(*it->second.game, c.seat, payload);
   bool applied = applyAction(*it->second.game, c.seat, payload);
-  if (applied) it->second.actionLog.emplace_back(c.seat, payload);
-  // Single-player: after the human's move, let the bot take its turn before we
-  // send the next view (so the player sees the bot's full response at once).
-  if (applied && it->second.vsBot) pumpBot(it->second, rng);
-  broadcastRoom(it->second);
+  if (applied) {
+    it->second.actionLog.emplace_back(c.seat, payload);
+    broadcastRoom(it->second, ev);  // show the actor's move, then...
+    // Single-player: the bot plays out its turn, one broadcast per action, so
+    // the human watches it step by step (pumpBot broadcasts internally).
+    if (it->second.vsBot) pumpBot(it->second, rng);
+  } else {
+    broadcastRoom(it->second);  // rejected: plain resync, no event
+  }
   if (applied && it->second.game->isOver()) dumpReplay(c.room, it->second);
 }
 

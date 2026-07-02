@@ -101,7 +101,19 @@ async def run():
         assert vb["current"] == 0, vb
         turn0 = vb["turn"]
         await cb.send(json.dumps({"action": "endTurn"}))
-        vb = await view_until(cb, lambda v: v["current"] == 0 and v["turn"] > turn0)
+        # The bot plays its turn one action at a time -> a stream of views, each
+        # annotated with the public action (event.seat == 1) so the client can
+        # play it out step by step. Drain to the human's next turn.
+        saw_bot_event = False
+        while True:
+            vb = await recv_view(cb)
+            evt = vb.get("event")
+            if isinstance(evt, dict) and evt.get("seat") == 1:
+                saw_bot_event = True
+                assert evt.get("action") != "decision", "sub-game choices must not leak"
+            if vb["current"] == 0 and vb["turn"] > turn0:
+                break
+        assert saw_bot_event, "bot turn should emit a per-action event stream"
         assert vb["turn"] >= turn0 + 2, vb  # the bot took its whole turn
         resume_turn = vb["turn"]
         board_after = len(vb["players"][0]["board"])

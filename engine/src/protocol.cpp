@@ -109,8 +109,15 @@ static json playerJson(const Player& p, bool self, bool revealMana,
   return j;
 }
 
-std::string viewJson(const Game& g, int you) {
+std::string viewJson(const Game& g, int you, const std::string& eventJson) {
   json j;
+  if (!eventJson.empty()) {
+    // The public action that produced this state, for step-by-step playback.
+    try {
+      j["event"] = json::parse(eventJson);
+    } catch (...) {
+    }
+  }
   j["turn"] = g.turn();
   j["current"] = g.current();
   j["you"] = you;
@@ -170,6 +177,47 @@ std::string viewJson(const Game& g, int you) {
   }
   j["players"] = players;
   return j.dump();
+}
+
+std::string publicEventJson(const Game& g, int seat,
+                            const std::string& actionJson) {
+  json a;
+  try {
+    a = json::parse(actionJson);
+  } catch (...) {
+    return "";
+  }
+  const std::string act = a.value("action", std::string{});
+  json e = {{"seat", seat}, {"action", act}};
+  if (act == "play") {
+    int hi = a.value("handIndex", -1);
+    const auto& hand = g.player(seat).hand;
+    if (hi < 0 || hi >= static_cast<int>(hand.size())) return "";
+    e["card"] = hand[hi].def->id;  // resolved before the card leaves the hand
+    int t = a.value("target", 0);
+    if (t != 0) e["target"] = t;
+  } else if (act == "awaken") {
+    int mi = a.value("manaRowIndex", -1);
+    const auto& row = g.player(seat).manaRow;
+    if (mi < 0 || mi >= static_cast<int>(row.size())) return "";
+    e["card"] = row[mi].card.def->id;
+    int t = a.value("target", 0);
+    if (t != 0) e["target"] = t;
+  } else if (act == "attackCreature") {
+    e["attacker"] = a.value("attacker", 0);
+    e["target"] = a.value("target", 0);
+  } else if (act == "attackHero") {
+    e["attacker"] = a.value("attacker", 0);
+  } else if (act == "activate") {
+    e["id"] = a.value("id", 0);
+  } else if (act == "placeMana") {
+    e["color"] = a.value("color", std::string{});  // banked card stays hidden
+  } else if (act == "endTurn") {
+    // seat + action only
+  } else {
+    return "";  // mulligan / scryResolve / decision / unknown: never annotate
+  }
+  return e.dump();
 }
 
 static json actionObj(const Action& a) {
