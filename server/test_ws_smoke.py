@@ -91,7 +91,9 @@ async def run():
 
         cb = await websockets.connect(uri)
         await cb.send(json.dumps({"action": "createBotRoom", "hero": "hero_prism"}))
-        await expect_type(cb, "matchStart")
+        ms = await expect_type(cb, "matchStart")
+        token = ms.get("token")
+        assert token, "matchStart must carry a reconnect token"
         vb = await view_until(cb, lambda v: v["mulligan"] is True)
         assert vb["you"] == 0, vb
         await cb.send(json.dumps({"action": "mulligan", "indices": []}))
@@ -101,8 +103,49 @@ async def run():
         await cb.send(json.dumps({"action": "endTurn"}))
         vb = await view_until(cb, lambda v: v["current"] == 0 and v["turn"] > turn0)
         assert vb["turn"] >= turn0 + 2, vb  # the bot took its whole turn
+        resume_turn = vb["turn"]
+        board_after = len(vb["players"][0]["board"])
+
+        # Reconnect: kill the socket, then rejoin the SAME game with the token.
         await cb.close()
-        print("WS smoke test PASSED")
+        await asyncio.sleep(0.3)  # let the server detach the seat
+        cr = await websockets.connect(uri)
+        await cr.send(json.dumps({"action": "resume", "token": token}))
+        await expect_type(cr, "matchStart")
+        vr = await recv_view(cr)
+        assert vr["you"] == 0 and vr["mulligan"] is False, vr
+        assert vr["turn"] == resume_turn, (vr["turn"], resume_turn)  # same game
+        assert len(vr["players"][0]["board"]) == board_after, vr
+        # the resumed session keeps playing normally
+        await cr.send(json.dumps({"action": "endTurn"}))
+        vr2 = await view_until(cr, lambda v: v["current"] == 0 and v["turn"] > resume_turn)
+        assert vr2["turn"] > resume_turn, vr2
+
+        # While the seat is held, canResume is false and a resume is rejected --
+        # no hijack of a live player (guards the shared-storage token mix-up).
+        cr2 = await websockets.connect(uri)
+        await cr2.send(json.dumps({"action": "canResume", "token": token}))
+        assert not (await expect_type(cr2, "canResume"))["ok"], "seat occupied"
+        await cr2.send(json.dumps({"action": "resume", "token": token}))
+        assert (await expect_type(cr2, "resumeError"))["reason"] == "seat_active"
+        await cr2.close()
+
+        # After the holder drops, canResume flips to true (seat reclaimable).
+        await cr.close()
+        await asyncio.sleep(0.3)
+        cq = await websockets.connect(uri)
+        await cq.send(json.dumps({"action": "canResume", "token": token}))
+        assert (await expect_type(cq, "canResume"))["ok"], "seat now free"
+        await cq.close()
+
+        # A bad/expired token: canResume false, resume rejected.
+        cx = await websockets.connect(uri)
+        await cx.send(json.dumps({"action": "canResume", "token": "NOSUCHTOKEN0000"}))
+        assert not (await expect_type(cx, "canResume"))["ok"]
+        await cx.send(json.dumps({"action": "resume", "token": "NOSUCHTOKEN0000"}))
+        assert (await expect_type(cx, "resumeError"))["reason"] == "no_session"
+        await cx.close()
+        print("WS smoke test PASSED (incl. reconnect + canResume)")
     finally:
         try:
             proc.wait(timeout=2)

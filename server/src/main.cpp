@@ -96,12 +96,20 @@ struct Client {
 // each player's chosen loadout (hero id + deck). The engine game is created
 // when the second player joins.
 struct Room {
+  std::string code;  // this room's own code (for session bookkeeping)
   std::string password;
   int fd[2] = {-1, -1};
   std::string hero[2];               // chosen hero id per seat ("" = random)
   std::vector<std::string> deck[2];  // chosen deck per seat (empty = default)
   std::unique_ptr<Game> game;
   bool playing = false;
+  // Reconnect (release-independent, same process): each human seat gets a
+  // bearer token at match start. On a socket drop during a live match the seat
+  // detaches (fd = -1) instead of destroying the room; the player rejoins with
+  // the token within the grace window. `disconnectAt` = when a human seat last
+  // dropped (0 = all present); a room past the window is GC'd.
+  std::string token[2];
+  std::time_t disconnectAt = 0;
   // Action log for the live match: the resolved setup (seed/heroes/decks) plus
   // every accepted action, so the room can emit a deterministic replay (M1) --
   // the same log will feed reconnect (M5). Dumped to a file on game-over.
@@ -116,6 +124,17 @@ struct Room {
 
 std::unordered_map<int, Client> g_clients;
 std::unordered_map<std::string, Room> g_rooms;
+// token -> (room code, seat): a dropped player reclaims its seat with this.
+// Same-process only; a server restart clears them (survives-restart = later).
+std::unordered_map<std::string, std::pair<std::string, int>> g_sessions;
+constexpr int kReconnectGraceSec = 120;  // hold a seat this long after a drop
+
+// A human seat sits empty (dropped, awaiting reconnect)? Seat 0 is always
+// human; seat 1 is human unless it is the bot.
+bool roomHasDetachedHuman(const Room& r) {
+  if (r.fd[0] < 0) return true;
+  return !r.vsBot && r.fd[1] < 0;
+}
 
 void sendJson(int fd, const json& j) {
   if (fd < 0) return;  // a bot seat has no socket
@@ -137,6 +156,18 @@ std::string makeCode(std::mt19937& rng) {
     for (int i = 0; i < 4; ++i) code += kAlphabet[rng() % 32];
   } while (g_rooms.count(code) != 0);
   return code;
+}
+
+// A long random bearer token for reconnect (16 chars from the same alphabet),
+// unique among live sessions.
+std::string makeToken(std::mt19937& rng) {
+  static const char* kAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  std::string t;
+  do {
+    t.clear();
+    for (int i = 0; i < 16; ++i) t += kAlphabet[rng() % 32];
+  } while (g_sessions.count(t) != 0);
+  return t;
 }
 
 void broadcastRoom(const Room& r) {
@@ -197,8 +228,17 @@ void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
   r.usedDeck[1] = d1;
   r.actionLog.clear();
   r.dumped = false;
-  sendType(r.fd[0], "matchStart");
-  sendType(r.fd[1], "matchStart");
+  // Issue reconnect tokens for the human seats and hand each seat its own.
+  r.token[0] = makeToken(rng);
+  g_sessions[r.token[0]] = {r.code, 0};
+  if (!r.vsBot) {
+    r.token[1] = makeToken(rng);
+    g_sessions[r.token[1]] = {r.code, 1};
+  }
+  r.disconnectAt = 0;
+  sendJson(r.fd[0], json{{"type", "matchStart"}, {"token", r.token[0]}});
+  if (r.fd[1] >= 0)
+    sendJson(r.fd[1], json{{"type", "matchStart"}, {"token", r.token[1]}});
   broadcastRoom(r);
   std::printf("Match started (heroes %s / %s, seed %u)\n", h0.c_str(),
               h1.c_str(), seed);
@@ -227,6 +267,10 @@ void leaveRoom(int fd) {
   auto it = g_rooms.find(c.room);
   if (it != g_rooms.end()) {
     Room& r = it->second;
+    // An intentional leave forfeits the seat: drop its reconnect tokens so the
+    // room (and its sessions) cannot be resumed.
+    if (!r.token[0].empty()) g_sessions.erase(r.token[0]);
+    if (!r.token[1].empty()) g_sessions.erase(r.token[1]);
     int other = (r.fd[0] == fd) ? r.fd[1] : r.fd[0];
     if (r.playing && other != -1) {
       sendType(other, "opponentLeft");
@@ -283,6 +327,7 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     }
     std::string code = makeCode(rng);
     Room& r = g_rooms[code];
+    r.code = code;
     r.password = pw;
     r.fd[0] = fd;
     readLoadout(j, r, 0);  // host's chosen hero + deck
@@ -301,6 +346,7 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
     if (c.phase != Phase::Lobby) return;
     std::string code = makeCode(rng);
     Room& r = g_rooms[code];
+    r.code = code;
     r.fd[0] = fd;
     r.fd[1] = -1;  // bot seat (no socket)
     r.vsBot = true;
@@ -374,6 +420,65 @@ void handleLobby(int fd, const json& j, const CardLibrary& lib,
   }
 }
 
+// Reclaim a seat in a live match after a drop: look up the token, reattach this
+// socket to its room+seat, and replay the current view. The client re-enters
+// the match screen (matchStart) and continues from the true engine state.
+void handleResume(int fd, const json& j) {
+  Client& c = g_clients[fd];
+  if (c.phase != Phase::Lobby) return;  // only from a fresh lobby socket
+  const std::string token = j.value("token", std::string{});
+  auto sit = g_sessions.find(token);
+  Room* r = nullptr;
+  int seat = -1;
+  std::string code;
+  if (sit != g_sessions.end()) {
+    code = sit->second.first;
+    seat = sit->second.second;
+    auto rit = g_rooms.find(code);
+    if (rit != g_rooms.end() && rit->second.game)
+      r = &rit->second;
+    else
+      g_sessions.erase(sit);  // stale token -> forget it
+  }
+  if (r == nullptr) {
+    sendJson(fd, json{{"type", "resumeError"}, {"reason", "no_session"}});
+    return;
+  }
+  if (r->fd[seat] >= 0) {  // seat still occupied -- do not hijack a live player
+    sendJson(fd, json{{"type", "resumeError"}, {"reason", "seat_active"}});
+    return;
+  }
+  r->fd[seat] = fd;
+  c.phase = Phase::Playing;
+  c.room = code;
+  c.seat = seat;
+  if (!roomHasDetachedHuman(*r)) r->disconnectAt = 0;
+  sendJson(fd, json{{"type", "matchStart"}, {"token", token}});
+  sendAll(fd, ws::textFrame(viewJson(*r->game, seat)));
+  int other = r->fd[1 - seat];
+  if (other >= 0) sendType(other, "opponentResumed");
+  std::printf("Resume: seat %d back in room %s\n", seat, code.c_str());
+  std::fflush(stdout);
+}
+
+// Non-destructive resume check: is `token` a seat this client can reclaim right
+// NOW -- room still live AND its seat currently detached? Lets the client show
+// "resume" only when it would actually work. Requiring a DETACHED seat also
+// means a stale/foreign token for a seat still held by its player reports false
+// (so a shared-storage token mix-up shows no button and cannot hijack).
+void handleCanResume(int fd, const json& j) {
+  const std::string token = j.value("token", std::string{});
+  bool ok = false;
+  auto sit = g_sessions.find(token);
+  if (sit != g_sessions.end()) {
+    auto rit = g_rooms.find(sit->second.first);
+    const int seat = sit->second.second;
+    if (rit != g_rooms.end() && rit->second.game && rit->second.fd[seat] < 0)
+      ok = true;
+  }
+  sendJson(fd, json{{"type", "canResume"}, {"ok", ok}});
+}
+
 // Route one text frame: lobby commands in any phase, otherwise a game action
 // for a player whose match is live.
 void handleText(int fd, const std::string& payload, const CardLibrary& lib,
@@ -385,6 +490,14 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
     return;
   }
   const std::string action = j.value("action", std::string{});
+  if (action == "resume") {
+    handleResume(fd, j);
+    return;
+  }
+  if (action == "canResume") {
+    handleCanResume(fd, j);
+    return;
+  }
   if (action == "createRoom" || action == "createBotRoom" ||
       action == "joinRoom" || action == "leaveRoom") {
     handleLobby(fd, j, lib, rng);
@@ -405,9 +518,27 @@ void handleText(int fd, const std::string& payload, const CardLibrary& lib,
   if (applied && it->second.game->isOver()) dumpReplay(c.room, it->second);
 }
 
-// A socket dropped (close/EOF/error): tear down its room if any and forget it.
+// A socket dropped (close/EOF/error). During a LIVE match the seat only
+// detaches -- the room, game and tokens survive so the player can reconnect
+// within the grace window; the opponent is told to wait. A lobby/waiting socket
+// (nothing to resume) just cancels its room as before.
 void dropClient(int fd) {
-  if (g_clients.count(fd) != 0) leaveRoom(fd);
+  auto cit = g_clients.find(fd);
+  if (cit != g_clients.end() && !cit->second.room.empty()) {
+    const int seat = cit->second.seat;
+    auto rit = g_rooms.find(cit->second.room);
+    if (rit != g_rooms.end() && rit->second.playing && rit->second.game) {
+      Room& r = rit->second;
+      if (seat == 0 || seat == 1) r.fd[seat] = -1;
+      r.disconnectAt = std::time(nullptr);
+      const int other = (seat == 0) ? r.fd[1] : r.fd[0];
+      if (other >= 0) sendType(other, "opponentDisconnected");
+      std::printf("Seat %d dropped from room %s (grace %ds)\n", seat,
+                  r.code.c_str(), kReconnectGraceSec);
+    } else {
+      leaveRoom(fd);  // lobby/waiting: cancel, nothing to resume
+    }
+  }
   close(fd);
   g_clients.erase(fd);
 }
@@ -454,7 +585,9 @@ int main(int argc, char** argv) {
     fds.push_back({srv, POLLIN, 0});
     for (const auto& [fd, c] : g_clients) fds.push_back({fd, POLLIN, 0});
 
-    if (poll(fds.data(), static_cast<nfds_t>(fds.size()), -1) < 0) break;
+    // 1s timeout so the loop wakes to sweep expired reconnect grace windows
+    // even when no socket is active.
+    if (poll(fds.data(), static_cast<nfds_t>(fds.size()), 1000) < 0) break;
 
     std::vector<int> dropped;
     for (const pollfd& pf : fds) {
@@ -505,6 +638,30 @@ int main(int argc, char** argv) {
     }
     for (int fd : dropped)
       if (g_clients.count(fd) != 0) dropClient(fd);
+
+    // Reconnect grace GC: a room whose human seat stayed empty past the window
+    // is closed (this also bounds room memory -- the hardening item).
+    const std::time_t now = std::time(nullptr);
+    std::vector<std::string> expired;
+    for (const auto& [code, r] : g_rooms)
+      if (r.playing && r.disconnectAt != 0 && roomHasDetachedHuman(r) &&
+          now - r.disconnectAt >= kReconnectGraceSec)
+        expired.push_back(code);
+    for (const std::string& code : expired) {
+      Room& r = g_rooms[code];
+      if (!r.token[0].empty()) g_sessions.erase(r.token[0]);
+      if (!r.token[1].empty()) g_sessions.erase(r.token[1]);
+      const int alive = (r.fd[0] >= 0) ? r.fd[0] : r.fd[1];
+      if (alive >= 0) {
+        sendType(alive, "opponentLeft");
+        Client& oc = g_clients[alive];
+        oc.phase = Phase::Lobby;
+        oc.room.clear();
+        oc.seat = -1;
+      }
+      g_rooms.erase(code);
+      std::printf("Room %s closed (reconnect grace expired)\n", code.c_str());
+    }
   }
 
   close(srv);

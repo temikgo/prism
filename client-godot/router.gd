@@ -14,6 +14,9 @@ const CONFIG_PATH := "user://settings.cfg"
 var server_url := SettingsScreen.DEFAULT_URL
 var chosen_hero := ""   # picked in LoadoutSelect, sent with create/join room
 var chosen_deck := ""   # deck id; resolved to its card list when sent
+var _resume_token := "" # a live match's reconnect token (persisted across launches)
+var _resume_ok := false # server confirmed (canResume) the token is resumable now
+var _notice := ""       # one-shot line shown on the next main menu (e.g. resume failed)
 var _screen: Control = null
 var _net: Net = null
 var _open := false
@@ -38,6 +41,11 @@ func _ready() -> void:
 	# continuous and never resets/re-randomizes when routing between screens.
 	add_child(Backdrop.new())
 	_go_main()
+	# If a match was interrupted, ask the server whether it is still resumable;
+	# "Продолжить партию" appears only once canResume confirms it (so a stale or
+	# foreign token never shows a dead button).
+	if _resume_token != "":
+		_send({"action": "canResume", "token": _resume_token})
 
 
 # The server address to default to. On web that's the page's own origin as a
@@ -64,11 +72,22 @@ func _swap(screen: Control) -> void:
 
 func _go_main() -> void:
 	var m := MainMenu.new()
+	m.show_resume = _resume_ok
+	m.notice = _notice
+	_notice = ""  # one-shot
+	m.resume_pressed.connect(_go_resume)
 	m.play_pressed.connect(_go_loadout)
 	m.decks_pressed.connect(func() -> void: _go_decks())
 	m.settings_pressed.connect(_go_settings)
 	m.quit_pressed.connect(func() -> void: get_tree().quit())
 	_swap(m)
+
+
+# Rejoin a match this client dropped from: reconnect and claim the seat by token.
+# The server replies matchStart (-> _go_match) on success, or resumeError, which
+# clears the stale token.
+func _go_resume() -> void:
+	_send({"action": "resume", "token": _resume_token})
 
 
 func _go_settings() -> void:
@@ -205,6 +224,7 @@ func _leave_play() -> void:
 func _leave_match() -> void:
 	if _open and _net != null:
 		_net.send({"action": "leaveRoom"})
+	_clear_resume()
 	_leave_play()
 
 
@@ -274,14 +294,45 @@ func _on_message(data: Dictionary) -> void:
 				if _screen is JoinRoom:
 					_screen.show_error(String(data.get("reason", "")))
 			"matchStart":
+				# Every match (fresh or resumed) carries this seat's reconnect
+				# token -- persist it so a later drop can rejoin.
+				var tok := String(data.get("token", ""))
+				if tok != "":
+					_resume_token = tok
+					_save_settings()
 				if not _in_match():
 					_go_match()
+			"canResume":
+				# Launch-time probe result: reveal (or hide) the resume button.
+				_resume_ok = bool(data.get("ok", false))
+				if not _resume_ok:
+					_clear_resume()
+				if _screen is MainMenu:
+					_go_main()
+			"resumeError":
+				# The match is gone (ended / grace expired / server restart):
+				# forget the token, tell the player why, and drop to the menu.
+				_clear_resume()
+				if not _in_match():
+					_notice = "Партия недоступна — возможно, истёк срок ожидания"
+					_go_main()
+			"opponentDisconnected":
+				if _in_match():
+					_screen.set_status("Соперник отключился — ждём возвращения…")
+			"opponentResumed":
+				# Back to normal: clear the "waiting" pill rather than holding a
+				# new one (its disappearance is the signal the opponent returned).
+				if _in_match():
+					_screen.set_status("")
 			"opponentLeft":
+				_clear_resume()
 				if _in_match():
 					_screen.set_status("Соперник покинул матч — нажмите «В меню»")
 		return
 	# No "type" -> it's a redacted board view for the live match.
 	if _in_match():
+		if bool(data.get("over", false)):
+			_clear_resume()  # a finished game has nothing to resume
 		_screen.feed_view(data)
 
 
@@ -297,6 +348,7 @@ func _load_settings() -> void:
 		server_url = String(cfg.get_value("net", "server_url", server_url))
 		chosen_hero = String(cfg.get_value("loadout", "hero", chosen_hero))
 		chosen_deck = String(cfg.get_value("loadout", "deck", chosen_deck))
+		_resume_token = String(cfg.get_value("resume", "token", ""))
 
 
 func _save_settings() -> void:
@@ -304,4 +356,13 @@ func _save_settings() -> void:
 	cfg.set_value("net", "server_url", server_url)
 	cfg.set_value("loadout", "hero", chosen_hero)
 	cfg.set_value("loadout", "deck", chosen_deck)
+	cfg.set_value("resume", "token", _resume_token)
 	cfg.save(CONFIG_PATH)
+
+
+# Forget the persisted reconnect token (match ended, left, or was rejected).
+func _clear_resume() -> void:
+	_resume_ok = false
+	if _resume_token != "":
+		_resume_token = ""
+		_save_settings()

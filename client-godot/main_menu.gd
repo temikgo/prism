@@ -9,10 +9,17 @@ extends Control
 # wide-tracked lore, a faint spectral aura bloom, neon-glass nav buttons, and a
 # soft rise-in on load.
 
+signal resume_pressed
 signal play_pressed
 signal decks_pressed
 signal settings_pressed
 signal quit_pressed
+
+# Set by the Router before adding the menu: true when a dropped match can be
+# rejoined (a stored reconnect token), which surfaces "Продолжить партию".
+var show_resume := false
+# A one-shot notice the Router shows under the nav (e.g. why a resume failed).
+var notice := ""
 
 
 func _ready() -> void:
@@ -45,7 +52,13 @@ func _ready() -> void:
 	nav.alignment = BoxContainer.ALIGNMENT_CENTER
 	nav.add_theme_constant_override("separation", 14)
 	col.add_child(nav)
-	var play := Ui.mbtn("Играть", "primary", Ui.SIDE_ME)
+	# A resumable dropped match takes the primary slot; "Играть" (new game) then
+	# steps down to a ghost so the hierarchy reads right.
+	if show_resume:
+		var resume := Ui.mbtn("Продолжить партию", "primary", Ui.SIDE_ME)
+		resume.pressed.connect(func() -> void: resume_pressed.emit())
+		nav.add_child(resume)
+	var play := Ui.mbtn("Играть", "ghost" if show_resume else "primary", Ui.SIDE_ME)
 	play.pressed.connect(func() -> void: play_pressed.emit())
 	nav.add_child(play)
 	var decks_btn := Ui.mbtn("Колоды", "ghost", Ui.ACC_VIOLET)
@@ -57,6 +70,16 @@ func _ready() -> void:
 	var quit := Ui.mbtn("Выход", "ghost", Ui.COLORLESS)
 	quit.pressed.connect(func() -> void: quit_pressed.emit())
 	nav.add_child(quit)
+
+	if notice != "":
+		col.add_child(Ui.gap(20))
+		var n := Label.new()
+		n.text = notice
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		n.add_theme_font_override("font", Fonts.spaced(Fonts.SEMIBOLD, 2))
+		n.add_theme_font_size_override("font_size", 14)
+		n.add_theme_color_override("font_color", Ui.INK_DIM)
+		col.add_child(n)
 
 	# Rise-in: fade + a touch of scale (position is container-managed, so we drive
 	# alpha and a pivot-centred scale instead of a y-offset).
