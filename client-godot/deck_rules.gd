@@ -31,6 +31,17 @@ static func check(deck: Dictionary) -> Dictionary:
 static func is_legal(deck: Dictionary) -> bool:
 	return check(deck).ok
 
+# { card_id: count } from a flat card-id list (the stored deck format).
+static func counts(card_list: Array) -> Dictionary:
+	var d := {}
+	for id in card_list:
+		d[id] = int(d.get(id, 0)) + 1
+	return d
+
+# Is a stored deck (flat card-id list) legal? Convenience over counts()+is_legal.
+static func list_legal(card_list: Array) -> bool:
+	return is_legal(counts(card_list))
+
 static func total(deck: Dictionary) -> int:
 	var t := 0
 	for id in deck:

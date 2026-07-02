@@ -36,6 +36,15 @@ static func def(id: String) -> Dictionary:
 	return db.get(display_id(id), {})
 
 
+# Does the current set contain this card id? (False for a removed/renamed card.)
+static func has(id: String) -> bool:
+	return not def(id).is_empty()
+
+
+static func is_loaded() -> bool:
+	return not db.is_empty()
+
+
 static func name_of(card_id: String) -> String:
 	var d := def(card_id)
 	if d.has("name"):

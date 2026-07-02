@@ -31,8 +31,22 @@ static func user_decks() -> Array:
 			out.append({
 				"id": id,
 				"name": String(v.get("name", id)),
-				"cards": v.get("cards", []),
+				"cards": _prune(v.get("cards", [])),
 			})
+	return out
+
+
+# Drop card ids no longer in the current set (a card was removed or renamed): the
+# deck then falls under 40 -> it reads as illegal, cannot be queued, and the
+# player refills it in the builder. Skipped until card data is loaded (otherwise
+# every id would look unknown and the whole deck would vanish).
+static func _prune(cards: Array) -> Array:
+	if not CardData.is_loaded():
+		return cards
+	var out: Array = []
+	for id in cards:
+		if CardData.has(String(id)):
+			out.append(id)
 	return out
 
 

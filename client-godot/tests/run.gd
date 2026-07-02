@@ -34,10 +34,20 @@ func _initialize() -> void:
 	_test_devkit()
 	_test_card_data()
 	_test_rules()
+	_test_decks()
 	_test_game_state()
 	_test_main_helpers()
 	print("PASS %d/%d" % [_pass, _pass + _fail])
 	quit(1 if _fail > 0 else 0)
+
+
+func _test_decks() -> void:
+	# Prune drops ids no longer in the set (a removed/renamed card); real ids stay.
+	_eq(Decks._prune(["red_barbed_wasp", "no_such_card_xyz"]), ["red_barbed_wasp"],
+		"prune removes the dead card id")
+	_eq(DeckRules.counts(["a", "a", "b"]), {"a": 2, "b": 1}, "counts tallies copies")
+	# A deck left short by pruning reads as illegal (cannot be queued).
+	_ok(not DeckRules.list_legal(["red_barbed_wasp"]), "a short deck is illegal")
 
 
 func _test_devkit() -> void:
@@ -57,6 +67,8 @@ func _test_card_data() -> void:
 	_eq(CardData.target_side("red_barbed_wasp"), "", "plain creature has no target")
 	_ok(CardData.needs_target("blue_frost_grip"), "frost_grip needs a target")
 	_ok(not CardData.needs_target("red_barbed_wasp"), "plain creature needs no target")
+	_ok(CardData.has("red_barbed_wasp"), "has() true for a real card")
+	_ok(not CardData.has("no_such_card_xyz"), "has() false for a removed card")
 
 	# target_required: no current card is a required-target cost -> all false...
 	_ok(not CardData.target_required("blue_frost_grip"), "optional target not required")

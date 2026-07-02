@@ -395,15 +395,20 @@ func _refresh() -> void:
 		_hero_summary.text = CardData.name_of(_hero_id) if _hero_id != "" else "не выбран"
 		_hero_summary.add_theme_color_override("font_color",
 			Ui.INK if _hero_id != "" else Ui.INK_FAINT)
+	var deck_legal := _deck_id != "" and _deck_legal()
 	if _deck_summary != null:
 		var dn := ""
 		if _deck_id != "":
 			dn = String(Decks.by_id(_deck_id).get("name", ""))
+			if not deck_legal:
+				dn += "  ·  неполна"
 		_deck_summary.text = dn if dn != "" else "не выбрана"
-		_deck_summary.add_theme_color_override("font_color",
-			Ui.INK if _deck_id != "" else Ui.INK_FAINT)
+		var col: Color = Ui.INK_FAINT
+		if _deck_id != "":
+			col = Color(0.92, 0.5, 0.5) if not deck_legal else Ui.INK
+		_deck_summary.add_theme_color_override("font_color", col)
 	if _next_btn != null:
-		_next_btn.disabled = _hero_id == "" or _deck_id == ""
+		_next_btn.disabled = _hero_id == "" or not deck_legal
 
 
 # Wire hover feedback on a selectable tile: a pointing cursor, a brighter border
@@ -460,7 +465,13 @@ func _tile_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 	return sb
 
 
+func _deck_legal() -> bool:
+	if _deck_id == "":
+		return false
+	return DeckRules.list_legal(Decks.by_id(_deck_id).get("cards", []))
+
+
 func _on_next() -> void:
-	if _hero_id == "" or _deck_id == "":
+	if _hero_id == "" or not _deck_legal():
 		return
 	confirmed.emit(_hero_id, _deck_id)
