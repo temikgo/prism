@@ -34,7 +34,7 @@
         { "label": "Авто-тюнер β", "status": "planned", "weight": "major" },
         { "label": "Расширение сета", "status": "planned", "weight": "major" },
         { "label": "Пента Волна 1: 7 карт (эффекты + edge-тесты)", "at": "057737d", "status": "done", "weight": "major" },
-        { "label": "Пента Волна 2: под-игры оппонента", "status": "planned", "weight": "major" }
+        { "label": "Пента Волна 2: под-игры оппонента", "at": "f805c1a", "status": "done", "weight": "major" }
       ]
     },
     {
