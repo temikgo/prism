@@ -170,29 +170,9 @@ static func can_cast_on(data: Variant, want_side: String) -> bool:
 	return true
 
 
-# Can you awaken this banked card right now? Mirrors Game::awaken: its own crystal
-# must be unspent and pays 1 of the cost in its color (else 1 generic); the
-# remainder must be affordable. A decoy aged >= N awakens for just its own crystal.
-static func can_awaken(view: Dictionary, card_id: String, color: String, age: int) -> bool:
-	if not my_turn(view):
-		return false
-	var you := int(view["you"])
-	var me: Dictionary = view["players"][you]
-	var avail: Dictionary = me["mana"].get("available", {})
-	if int(avail.get(color, 0)) < 1:
-		return false  # the banked crystal itself must still be available
-	if CardData.is_creature(card_id) and int(me.get("board", []).size()) >= BOARD_LIMIT:
-		return false
-	if CardData.has_keyword(card_id, "decoy") and age >= CardData.keyword_n(card_id, "decoy"):
-		return true  # aged decoy: only the banked crystal is spent
-	var cost: Dictionary = (CardData.def(card_id).get("cost", {})).duplicate(true)
-	if int(cost.get(color, 0)) > 0:
-		cost[color] = int(cost[color]) - 1
-	elif int(cost.get("generic", 0)) > 0:
-		cost["generic"] = int(cost["generic"]) - 1
-	var pool: Dictionary = avail.duplicate(true)
-	pool[color] = int(pool.get(color, 0)) - 1  # the banked crystal is consumed
-	return CardData.can_afford(cost, pool)
+# Whether a banked card can be woken right now is decided by the engine and sent
+# in the view as `canAwaken` per mana-row slot (see protocol.cpp) -- the client
+# reads that flag rather than re-deriving legality here (which used to drift).
 
 
 # {generic, avail, pips} when paying the card's generic cost is ambiguous (free

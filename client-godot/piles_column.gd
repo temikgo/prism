@@ -188,11 +188,10 @@ func _floodlit_crystal(color: String, card_id: String, available: bool) -> Contr
 # it is dimmed. A decoy that has aged enough awakens for just its own crystal.
 func _awaken_chip(idx: int, slot: Dictionary, view: Dictionary) -> Control:
 	var card_id := String(slot["card"])
-	var color := String(slot.get("color", "colorless"))
-	var age := int(slot.get("age", 0))
-	var free := CardData.has_keyword(card_id, "decoy") and age >= CardData.keyword_n(card_id, "decoy")
 	var gold := Ui.GOLD
-	var affordable := Rules.can_awaken(view, card_id, color, age)
+	# Engine-authoritative: the server marks each banked slot canAwaken (dup-aura,
+	# caps, cost, target all decided by legalActions) -- no client re-derivation.
+	var affordable := bool(slot.get("canAwaken", false))
 	var chip := UiCard.new()
 	chip.custom_minimum_size = Vector2(132, 54)
 	# Clean dark-glass chip (no gold wash): a thin gold rim + a lit top edge, and a

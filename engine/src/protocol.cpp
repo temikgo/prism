@@ -2,6 +2,7 @@
 
 #include <array>
 #include <optional>
+#include <set>
 
 #include "json.hpp"
 
@@ -39,7 +40,7 @@ static json creatureJson(const Creature& c) {
 // `deckHeld` = cards this player is currently holding mid-scry; they belong to
 // the deck (scry only reorders the top), so count them as still in it.
 static json playerJson(const Player& p, bool self, bool revealMana,
-                       int deckHeld) {
+                       int deckHeld, const std::set<int>& wakeableSlots) {
   json j;
   json hero = {{"hp", p.heroHp}, {"armor", p.heroArmor}};
   // The chosen hero is public to both players: its id, name, and passive
@@ -63,7 +64,8 @@ static json playerJson(const Player& p, bool self, bool revealMana,
   // awaken-keyword ones, so reveal them all to its own view.
   bool facet = self && p.hero && p.hero->hasKeyword("facet");
   json row = json::array();
-  for (const auto& mc : p.manaRow) {
+  for (int mi = 0; mi < static_cast<int>(p.manaRow.size()); ++mi) {
+    const ManaCard& mc = p.manaRow[mi];
     json slot = {{"color", std::string(colorName(mc.color))}};
     // You may peek your own wakeable cards (awaken OR decoy -- both can be
     // woken from the mana row, see Game::awaken); floodlight reveals all of an
@@ -72,7 +74,13 @@ static json playerJson(const Player& p, bool self, bool revealMana,
         mc.card.def->hasKeyword("awaken") || mc.card.def->hasKeyword("decoy");
     if ((self && wakeable) || facet || revealMana)
       slot["card"] = mc.card.def->id;
-    if (self) slot["age"] = mc.age;  // turns banked, for the decoy discount
+    if (self) {
+      slot["age"] = mc.age;  // turns banked, for the decoy discount
+      // Engine-authoritative: can this exact card be woken right now?
+      // (dup-aura, aura/board cap, cost, target -- all already decided by
+      // legalActions, so the client never re-derives and drifts.)
+      slot["canAwaken"] = wakeableSlots.count(mi) > 0;
+    }
     row.push_back(slot);
   }
   j["manaRow"] = row;
@@ -142,6 +150,14 @@ std::string viewJson(const Game& g, int you) {
     if (a->hasKeyword("floodlight")) floodlight = true;
   for (const auto& c : g.player(you).board)
     if (c.def->hasKeyword("floodlight")) floodlight = true;
+  // Which of the mover's banked cards can be woken right now -- taken straight
+  // from legalActions so the client reads one truth instead of re-deriving it.
+  // Awaken is legal only for the player to move, so this is empty otherwise.
+  std::set<int> wakeable;
+  if (you == g.current())
+    for (const Action& a : g.legalActions())
+      if (a.type == Action::Type::Awaken) wakeable.insert(a.manaRowIndex);
+  const std::set<int> none;
   json players = json::array();
   for (int i = 0; i < 2; ++i) {
     bool self = (i == you);
@@ -149,7 +165,8 @@ std::string viewJson(const Game& g, int you) {
                        ? static_cast<int>(g.scryPeek().size())
                        : 0;
     players.push_back(playerJson(g.player(i), self,
-                                 /*revealMana=*/!self && floodlight, deckHeld));
+                                 /*revealMana=*/!self && floodlight, deckHeld,
+                                 self ? wakeable : none));
   }
   j["players"] = players;
   return j.dump();

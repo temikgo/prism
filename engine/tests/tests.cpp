@@ -2939,6 +2939,24 @@ TEST_CASE("a duplicate aura cannot be played") {
   CHECK(g.player(0).auras.size() == 1);
 }
 
+TEST_CASE("view canAwaken excludes a duplicate aura (client reads one truth)") {
+  CardLibrary lib = testLib();
+  // Facet wakes any banked card, but a banked aura you already control is a
+  // duplicate and can't be woken -- the engine marks that slot canAwaken=false
+  // so the client never highlights it (no client-side re-derivation / drift).
+  Game g(lib, {"photoaura", "photoaura", "bear", "bear"}, repeat("bear", 30), 7,
+         "hero_facet");
+  begin(g);
+  CHECK(g.placeCardToMana(handIndexOf(g, 0, "photoaura"), Color::Colorless));
+  auto v = nlohmann::json::parse(viewJson(g, 0));
+  REQUIRE(v["players"][0]["manaRow"].size() == 1);
+  CHECK(v["players"][0]["manaRow"][0]["canAwaken"] == true);  // not a dup yet
+  CHECK(g.playCard(handIndexOf(g, 0, "photoaura")));          // now control it
+  v = nlohmann::json::parse(viewJson(g, 0));
+  CHECK(v["players"][0]["manaRow"][0]["canAwaken"] ==
+        false);  // dup -> excluded
+}
+
 TEST_CASE("a friendly-target spell freezes your own creature") {
   CardLibrary lib = testLib();
   // A 4-card deck means the opening hand of 4 is the whole deck, so both the
