@@ -797,30 +797,18 @@ T7 deck-codes (экспорт/импорт колоды строкой; `ShareDi
 **Архитектурный инвариант:** сервер — однопоточный poll-цикл на все комнаты, спать между действиями
 НЕЛЬЗЯ → пейсинг только на клиенте (очередь), сервер лишь шлёт последовательность с аннотациями.
 
-**Ф0 — протокол: аннотация события (движок+сервер), S.**
-- `viewJson(g, you)` получает опциональный параметр события; сервер (`handleAction`/`pumpBot`) собирает
-  аннотацию ДО `applyAction` (handIndex → card id разрешим только до применения) и broadcast'ит с ней.
-- Формат: `"event": {seat, action, card?, target?, attacker?, color?}` — только ПУБЛИЧНЫЕ действия:
-  play/awaken (с card id — это и питает reveal), attackCreature/attackHero, activate, placeMana (color,
-  БЕЗ handIndex), endTurn. **НИКОГДА не аннотировать:** mulligan, scryResolve, decision (тайна Standoff —
-  сам факт «кто уже выбрал» и выбор не утекают).
-- vs-bot: `pumpBot` broadcast'ит ПОСЛЕ КАЖДОГО действия бота (не один раз в конце), без задержек.
-- Резюм/реконнект шлёт чистый view без event (очередь на клиенте сбрасывается).
-- Тесты: движковый на прокидку event; в `server/test_ws_smoke.py` — при ходе бота приходит серия view с
-  event, у decision-действий event отсутствует.
-
-**Ф1 — клиент: очередь проигрывания + reveal, M.**
-- `turn_player.gd` (чистый модуль + Node): очередь `{view, event}`; свои действия (event.seat == you)
-  применяются мгновенно (свой оптимистичный fx уже сыгран); чужие — пре-fx по типу события →
-  `_ingest_view` (существующие дифф-анимации) → пауза по типу (~0.5–1.0с) → следующее.
-- Пре-fx по event: attack* → `_pending_lunge` (переиспользуется, lunge оппонента заработает бесплатно);
-  play/awaken → **reveal**: лицо карты (`CardView.widget`) крупно по центру с подсветкой ~1с, затем
-  спелл — `cast_dissolve`, существо/аура — уменьшение-перелёт к стороне доски; placeMana → пульс
-  кристалла нужного цвета.
-- Прерывания: клик/пробел — fast-forward (остаток очереди применяется мгновенно, view по порядку);
-  промпт-view (mulligan/scry/decision/game-over) НЕ задерживаются очередью; reconnect-flush.
-- Тест в `client-godot/tests/run.gd`: логика очереди как чистая функция (порядок, мгновенность своих,
-  сброс на промпте) — headless, без визуала.
+**Ф0 + Ф1 — СДЕЛАНО (протокол + пошаговое проигрывание чужого хода).**
+- Протокол: `viewJson(g, you, eventJson)` вклеивает `event`; `publicEventJson` строит публичную
+  аннотацию ДО `applyAction` (`{seat, action, card?, target?, attacker?, id?, color?}`). Приватное
+  (mulligan/scry/**decision**) не аннотируется — тайна Противостояния держится. `pumpBot` шлёт view
+  после КАЖДОГО действия бота; reconnect — чистый view без event. Покрыто движковым тестом +
+  ws-smoke (поток event'ов seat 1, decision не течёт).
+- Клиент: `turn_player.gd` — очередь между сокетом и `_ingest_view`. Свои действия и промпты
+  (mulligan/scry/decision/over) мгновенно; чужие пейсятся: пре-fx → apply → осадка. Reveal только для
+  не-существ (у существ pop_in на столе): заклинание/аура всплывает по центру, у таргетного заклинания
+  ещё стрелка-луч к цели (`FxLayer.cast_beam`, стиль drag-прицела). Клик/пробел = fast-forward. Пейсинг —
+  чистые статики, тест в `run.gd`. Тайминги правятся в `turn_player.gd` (`reveal_secs`/`settle_secs`) и
+  `fx.gd::reveal_card`/`fx_layer.gd::cast_beam`.
 
 **Ф2 — звук, M.**
 - `tools/gen_sfx.py` — чисто stdlib (math+wave+struct, БЕЗ numpy): синтез «кристально-светового» набора

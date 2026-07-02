@@ -36,6 +36,7 @@ var _topbar: Control = null   # always-on-top leave button + status pill
 var _status_pill: Control = null  # the status message pill (hidden when empty)
 var _fx: Control = null        # transient effects layer (damage numbers, ghosts)
 var _anim: Fx = null           # board feedback animations (lunge/shake/pop/etc.)
+var _turn: TurnPlayer = null   # paces incoming views (opponent turn played step-by-step)
 var _prev_hp := {}             # creature id -> hp last seen (damage/death diff)
 var _prev_hero_hp := {}        # player index (0/1) -> hero hp last seen (face damage)
 # Board creatures live in two persistent layers (yours / opponent's), keyed by
@@ -130,6 +131,12 @@ func _build_shell() -> void:
 	add_child(_anim)
 	_anim.setup(self, _fx)
 
+	# Views flow through the turn player, which paces the opponent's actions into
+	# a step-by-step replay (your own actions and prompts still apply instantly).
+	_turn = TurnPlayer.new()
+	add_child(_turn)
+	_turn.setup(_ingest_view, _play_pre_fx)
+
 	# Persistent top bar above every overlay, so "В меню" is always reachable --
 	# even during the mulligan/game-over screens (e.g. if the server drops).
 	_build_topbar()
@@ -169,9 +176,48 @@ func bind(sender: Callable) -> void:
 	_send_action = sender
 
 
-# A fresh server view pushed in by the Router (the socket lives there now).
+# A fresh server view pushed in by the Router (the socket lives there now). It
+# goes through the turn player, which applies it now (your move / a prompt) or
+# paces it as an opponent step (reveal -> apply -> settle).
 func feed_view(new_view: Dictionary) -> void:
-	_ingest_view(new_view)
+	_turn.feed(new_view)
+
+
+# Pre-apply cue for an opponent action, fired by the turn player just before the
+# state is applied: reveal the played card, or aim the attacker's lunge (reusing
+# the same _pending_lunge that _animate_changes consumes for your own attacks).
+func _play_pre_fx(event: Dictionary) -> void:
+	match String(event.get("action", "")):
+		"play", "awaken":
+			var cid := String(event.get("card", ""))
+			# A creature lands on the board (its pop-in IS the reveal); only a spell
+			# or aura -- which leaves no prominent board entrance -- is revealed
+			# centred. A targeted spell also draws a cast arrow from the card to its
+			# target, so you see how it is played; untargeted spells/auras stay centred.
+			if cid != "" and not CardData.is_creature(cid):
+				_anim.reveal_card(cid)
+				var tgt := int(event.get("target", 0))
+				if tgt != 0:
+					var tn := _creature_node(tgt)
+					if tn != null:
+						var vp := get_viewport_rect().size
+						_fx.cast_beam(vp * 0.5 + Vector2(0, 40), _node_center(tn))
+		"attackCreature":
+			var tgt := int(event.get("target", 0))
+			_pending_lunge = {"attacker": int(event.get("attacker", 0)),
+				"pos": _node_center(_creature_node(tgt))}
+		"attackHero":
+			_pending_lunge = {"attacker": int(event.get("attacker", 0)),
+				"pos": _node_center(_my_hero_node)}
+
+
+# Click or space during the opponent's turn fast-forwards the paced replay (the
+# rest of the queue applies at once). Harmless on your turn (queue is empty).
+func _unhandled_input(event: InputEvent) -> void:
+	var skip: bool = (event is InputEventMouseButton and event.pressed) \
+		or (event is InputEventKey and event.pressed and event.keycode == KEY_SPACE)
+	if skip and _turn != null:
+		_turn.flush()
 
 
 # A short transient message in the top-bar pill (e.g. "соперник вышел"), set by

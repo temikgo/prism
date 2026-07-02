@@ -37,6 +37,7 @@ func _initialize() -> void:
 	_test_decks()
 	_test_game_state()
 	_test_main_helpers()
+	_test_turn_player()
 	print("PASS %d/%d" % [_pass, _pass + _fail])
 	quit(1 if _fail > 0 else 0)
 
@@ -194,3 +195,36 @@ func _test_main_helpers() -> void:
 		_ok(is_instance_valid(pc.grave_node), "PilesColumn exposes grave tile (mine=%s)" % mine)
 		_ok(is_instance_valid(pc.hand_node), "PilesColumn exposes hand tile (mine=%s)" % mine)
 		pc.queue_free()
+
+
+# TurnPlayer's ordering/pacing decisions: your own actions and prompts apply
+# instantly; the opponent's actions are paced (reveal + settle). You (seat 0).
+func _test_turn_player() -> void:
+	# A creature play is paced (pop-in + settle) but has no centre reveal; a spell
+	# play is paced AND reveals (it leaves no board entrance of its own).
+	var opp_cr := {"you": 0, "event": {"seat": 1, "action": "play", "card": "red_barbed_wasp"}}
+	_ok(TurnPlayer.is_paced(opp_cr, opp_cr["event"]), "opponent creature play is paced")
+	_approx(TurnPlayer.reveal_secs(opp_cr["event"]), 0.0, "creature play has no reveal lead")
+	var opp_sp := {"you": 0, "event": {"seat": 1, "action": "play", "card": "yellow_sunstrike"}}
+	_approx(TurnPlayer.reveal_secs(opp_sp["event"]), 1.1, "spell play reveals before applying")
+
+	var my_play := {"you": 0, "event": {"seat": 0, "action": "play", "card": "yellow_sunstrike"}}
+	_ok(not TurnPlayer.is_paced(my_play, my_play["event"]), "your own action is instant")
+
+	var no_event := {"you": 0}
+	_ok(not TurnPlayer.is_paced(no_event, {}), "an event-less sync is instant")
+
+	# A prompt view (even if it also carries the opponent's play) is never paced.
+	var opp_decision := {"you": 0, "decision": {"youDecide": true},
+		"event": {"seat": 1, "action": "play", "card": "the_ultimatum"}}
+	_ok(TurnPlayer.is_prompt(opp_decision), "decision view is a prompt")
+	_ok(not TurnPlayer.is_paced(opp_decision, opp_decision["event"]), "a prompt shows at once")
+	for k in ["mulligan", "scry", "over"]:
+		var pv := {"you": 0}
+		pv[k] = true if k != "scry" else [0]
+		_ok(TurnPlayer.is_prompt(pv), "%s view is a prompt" % k)
+
+	# An opponent attack lunges (no card reveal) then settles.
+	var opp_atk := {"you": 0, "event": {"seat": 1, "action": "attackHero", "attacker": 5}}
+	_approx(TurnPlayer.reveal_secs(opp_atk["event"]), 0.0, "attack has no reveal lead")
+	_ok(TurnPlayer.settle_secs(opp_atk["event"]) > 0.0, "attack settles after the lunge")

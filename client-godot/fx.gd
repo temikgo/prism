@@ -155,6 +155,35 @@ func fade_out_dead(node: Control) -> void:
 	t.chain().tween_callback(node.queue_free)
 
 
+# The opponent just played a card that leaves no prominent board entrance (a spell
+# -> graveyard, or an aura -> a small chip): show its face large and centred so you
+# see WHAT it was, then fade. (Creatures get no reveal -- their board pop-in is the
+# reveal.) For a TARGETED spell the caller also fires a cast arrow (FxLayer) from
+# this card to its target, so you see who it hit -- the card itself stays centred.
+# The caller (TurnPlayer) applies the effect during the hold.
+func reveal_card(card_id: String) -> void:
+	var sz: Vector2 = Tokens.CARD_SIZE
+	var face := CardView.face(card_id, null)
+	face.custom_minimum_size = sz
+	face.size = sz
+	face.pivot_offset = sz * 0.5
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vp: Vector2 = layer.get_viewport_rect().size
+	face.position = vp * 0.5 - sz * 0.5
+	face.modulate = Color(1, 1, 1, 0)
+	face.scale = Vector2(0.72, 0.72)
+	layer.add_child(face)
+	var t := create_tween()
+	t.tween_property(face, "modulate", Color(1.15, 1.15, 1.15, 1.0), 0.26)
+	t.parallel().tween_property(face, "scale", Vector2(1.12, 1.12), 0.32) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(face, "scale", Vector2.ONE, 0.18)
+	t.tween_interval(0.78)
+	t.tween_property(face, "modulate", Color(1, 1, 1, 0), 0.44)
+	t.parallel().tween_property(face, "scale", Vector2(0.88, 0.88), 0.44)
+	t.chain().tween_callback(face.queue_free)
+
+
 func float_number(pos: Vector2, amount: int) -> void:
 	var lbl := Ui.label("-%d" % amount, 32, Color(1.0, 0.4, 0.4))
 	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))

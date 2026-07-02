@@ -13,14 +13,47 @@ const C1 := Color("eb5c6b")  # beam head -- red
 
 var _t := 0.0
 
+# One-shot cast arrow: when the opponent plays a targeted spell, an arrow grows
+# from the revealed card to its target and lingers, so you see how it is cast (the
+# same beam as the live drag-aim). Drawn only between cast_beam() and its fade;
+# never overlaps the drag beam (that is your turn, this is theirs). The fade rides
+# on `modulate.a`, so the internal beam always draws at full alpha.
+var _cast_active := false
+var _cast_from := Vector2.ZERO
+var _cast_to := Vector2.ZERO
+var _cast_grow := 0.0  # 0..1, the tip growing from source to target
+
+
 func _process(dt: float) -> void:
 	_t += dt
 	queue_redraw()  # redraw every frame so the beam also clears on release
 
+
 func _draw() -> void:
-	if UiCard.aim_from == Vector2.INF:
-		return
-	_beam(UiCard.aim_from, get_global_mouse_position(), C0, C1)
+	if UiCard.aim_from != Vector2.INF:
+		_beam(UiCard.aim_from, get_global_mouse_position(), C0, C1)
+	if _cast_active:
+		_beam(_cast_from, _cast_from.lerp(_cast_to, _cast_grow), C0, C1)
+
+
+# Fire the cast arrow from `from_pos` to `to_pos`: it grows to the target, holds,
+# then fades. Global coords (the layer sits at the origin, like the drag beam).
+func cast_beam(from_pos: Vector2, to_pos: Vector2) -> void:
+	_cast_from = from_pos
+	_cast_to = to_pos
+	_cast_grow = 0.0
+	_cast_active = true
+	modulate.a = 1.0
+	var t := create_tween()
+	t.tween_property(self, "_cast_grow", 1.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_interval(0.62)
+	t.tween_property(self, "modulate:a", 0.0, 0.44)
+	t.tween_callback(_end_cast)
+
+
+func _end_cast() -> void:
+	_cast_active = false
+	modulate.a = 1.0
 
 func _beam(a: Vector2, b: Vector2, c0: Color, c1: Color) -> void:
 	var dist := a.distance_to(b)
