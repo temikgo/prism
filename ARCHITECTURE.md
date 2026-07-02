@@ -12,10 +12,11 @@ X». Цель — найти любой модуль/действие/ключе
 
 ```
 engine/                 C++-движок правил (детерминированный, без сети/IO)
-  include/prism/         публичные заголовки: types / card / game / protocol
-  src/                   card.cpp · game.cpp · protocol.cpp
-  tests/tests.cpp        doctest, 83 теста
-  third_party/json.hpp   nlohmann::json (vendored)
+  include/prism/         публичные заголовки: types/card/game/protocol/bot/deck
+  src/                   card · game · protocol · bot · deck · serialize (.cpp)
+  tests/tests.cpp        doctest, 118 TEST_CASE (ctest 124/124 с формат-чеком)
+  tools/                 selfplay.cpp (баланс-проба) · replay.cpp (прогон реплея)
+  third_party/           json.hpp (nlohmann) · doctest.h (vendored)
 server/                  WebSocket-менеджер комнат (C++), линкует движок
   src/main.cpp           лобби (комнаты по коду) + проброс действий в Game
   src/ws.hpp             минимальный websocket-фрейминг
@@ -25,16 +26,21 @@ client-godot/            Godot-4.3 клиент (GDScript)
   cards.json             синхрон-КОПИЯ cards/sample.json (данные карт)
   App.tscn / Main.tscn   корень-роутер / сцена матча
   icons/ fonts/ art/     SVG-иконки, шрифты, арты карт/героев/UI
-cards/sample.json        МАСТЕР-данные карт (69: 52 creature, 11 spell, 4 hero, 2 aura)
-tools/                   balance.py (кривая стоимости) · build_prompts.py (арт-промпты)
-                         · run_client.sh (импорт+запуск Godot)
+cards/sample.json        МАСТЕР-данные карт (168: 112 creature, 29 spell, 23 aura, 4 hero)
+tools/                   баланс: balance.py (кривая) · balance_lab.py (β/FDR self-play)
+                         линтеры (раннер lint_set.py): check_cards_sync · check_ids ·
+                         grammar_lint · balance_drift_lint · check_density · check_art
+                         арт: build_prompts.py · gen_thumbs.py · run_client.sh
+                         прочее: build_roadmap.py (docs/index.html из roadmap.json)
 *.md                     DESIGN (правила) · EFFECTS (ключевики) · ART/ART_PROMPTS/
                          ART_HEROES (арт) · APP_SHELL (экраны/лобби) · BACKLOG
                          (роадмап+решения) · README (сборка/запуск)
 ```
 
 `cards/sample.json` и `client-godot/cards.json` обязаны быть **идентичны** (движок
-грузит первый, клиент — второй). Менять оба синхронно.
+грузит первый, клиент — второй; Godot видит только файлы внутри `client-godot/`).
+Менять оба синхронно — CI-гейт `tools/check_cards_sync.py` ловит рассинхрон
+(байт-в-байт). Единый источник (сервер отдаёт карты клиенту) — на трек релиза.
 
 ---
 
@@ -384,7 +390,7 @@ players[2]:
 - **Комментарии в коде — НУЖНЫ (исключение для Prism):** пояснительные
   комментарии приветствуются; общее правило «без комментариев» сюда НЕ
   распространяется (репо должно быть LLM-friendly).
-- Инварианты проверки изменений: движок собирается и `ctest` 83/83 (если трогали
+- Инварианты проверки изменений: движок собирается и `ctest` 124/124 (если трогали
   движок); клиент парсится (`--headless --import`); `Shot.gd`/`ShotMenu.gd`
   рендерятся без `SCRIPT ERROR`.
 

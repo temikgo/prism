@@ -9,6 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # gate CI; the three structural linters currently DOCUMENT the known audit holes
 # (DESIGN.md 8.5) and become gates once Phase A clears them.
 LINTERS = [
+    ("check_cards_sync", True),
     ("check_ids", True),
     ("grammar_lint", True),
     ("balance_drift_lint", True),
