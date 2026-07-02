@@ -178,6 +178,24 @@ struct Action {
   EntityId id = 0;        // activate: the creature
 };
 
+// Penta "sub-games" (wave 2): a pending decision that pauses play until the
+// relevant player(s) submit a choice. Unlike scry (the current player sorts
+// cards), these are player-vs-player prompts -- the OPPONENT, or both players,
+// answer before play resumes. Deterministic: the game state plus the submitted
+// choices fix the outcome; a bot or a timeout resolves via
+// defaultDecisionChoice.
+enum class DecisionKind { None, Ultimatum, Standoff, Auction };
+
+struct Decision {
+  DecisionKind kind = DecisionKind::None;
+  int caster = -1;   // the player who cast the card
+  int decider = -1;  // who submits next (Standoff: -1, both submit any order)
+  int value = 0;     // the card's numeric param (Ultimatum: HP at stake)
+  int bid = 0;       // Auction: the current high bid, in HP
+  int highBidder = -1;       // Auction: who holds the high bid
+  int choice[2] = {-1, -1};  // Standoff: each seat's Strike(0)/Defend(1)
+};
+
 class Game {
  public:
   // Builds both decks from card IDs (resolved against `lib`). Nothing is dealt
@@ -210,6 +228,23 @@ class Game {
   bool inScry() const { return scryPlayer_ >= 0; }
   int scryPlayer() const { return scryPlayer_; }
   const std::vector<CardInstance>& scryPeek() const { return scryPeek_; }
+
+  // Penta sub-games (wave 2). While a decision is pending, legalActions() is
+  // empty and every normal mutator refuses -- only submitDecision advances
+  // play.
+  bool decisionPending() const { return decision_.kind != DecisionKind::None; }
+  const Decision& decision() const { return decision_; }
+  // Who submits the next choice: the decider, or -- for Standoff -- the first
+  // seat that has not yet chosen (both submit, in any order); -1 if none pends.
+  int decisionActor() const;
+  // Submit `player`'s choice. Ultimatum: 0 = sacrifice your strongest creature,
+  // 1 = lose the HP. Standoff: 0 = Strike, 1 = Defend (each seat once).
+  // Auction: -1 = pass, or a value > the current bid (and < your HP) = raise.
+  // Returns false and changes nothing if it is not this player's turn or the
+  // choice is illegal; resolves the sub-game once it is complete.
+  bool submitDecision(int player, int choice);
+  // The deterministic default a bot / timeout uses for `player`.
+  int defaultDecisionChoice(int player) const;
 
   // --- Legal actions for the player whose turn it is. Each returns false and
   // changes nothing if the action is illegal (so callers can probe safely). ---
@@ -347,6 +382,15 @@ class Game {
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target,
                      const CardDef* src = nullptr);
+  // Penta sub-games: open a decision and (once submitted) resolve each kind.
+  void startDecision(DecisionKind k, int caster, int value);
+  // Run a deferred Echo copy of a sub-game spell now that its decision cleared.
+  void fireDeferredEcho();
+  void resolveUltimatum(int choice);
+  void resolveStandoff();
+  void resolveAuction(int winner);
+  // Index of the highest-attack creature on p's board (ties: first), or -1.
+  int highestAtkCreature(const Player& p) const;
   void applyLingering(Creature& t, int dealt, const CardDef* src);
   // True if `target` is a legal target for the card's on_play effects (a
   // chosen_enemy_minion must exist and not be stealthed). Const: a pure check,
@@ -436,6 +480,15 @@ class Game {
   bool mulliganPhase_ = false;     // true between dealing and the first turn
   int scryPlayer_ = -1;            // who is mid-scry (-1 = nobody)
   std::vector<CardInstance> scryPeek_;  // top cards peeked, awaiting a choice
+  Decision decision_;                   // pending penta sub-game (wave 2)
+  // Penta Echo doubling a sub-game spell: the copy cannot resolve while the
+  // first cast's decision is pending, so it waits here and fires when that
+  // decision clears (the opponent then faces the second sub-game in turn).
+  struct EchoDeferred {
+    const CardDef* def = nullptr;
+    int owner = -1;
+    EntityId target = 0;
+  } echoDeferred_;
   int winner_ = -1;
   EntityId nextId_ = 1;
   std::mt19937 rng_;               // seeded -> deterministic shuffles

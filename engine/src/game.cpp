@@ -228,7 +228,7 @@ void Game::dealHeroDamage(Player& p, int amount, bool fromOpponent) {
 }
 
 bool Game::placeCardToMana(int handIndex, Color color) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   if (p.placedManaThisTurn) return false;
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
@@ -276,7 +276,7 @@ std::optional<ManaPool> Game::shiftedPool(const ManaPool& pool,
 
 bool Game::playCard(int handIndex, EntityId target, int pos,
                     std::optional<std::array<int, ColorCount>> genericPay) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
     return false;
@@ -401,7 +401,12 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
         }
       if (hasEcho) {
         p.echoUsedThisTurn = true;
-        resolveOnPlay(def, p, target);
+        if (decisionPending())
+          // A sub-game spell (Ultimatum/Standoff/Auction) paused the game; the
+          // copy cannot resolve now, so defer it until that decision clears.
+          echoDeferred_ = EchoDeferred{def, p.index, target};
+        else
+          resolveOnPlay(def, p, target);
       }
     }
   }
@@ -426,7 +431,7 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
 // available crystals. Net cost: (cost - 1) plus the lost slot.
 bool Game::awaken(int manaRowIndex, EntityId target, int pos,
                   std::optional<std::array<int, ColorCount>> genericPay) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   if (manaRowIndex < 0 || manaRowIndex >= static_cast<int>(p.manaRow.size()))
     return false;
@@ -478,7 +483,7 @@ bool Game::hasAura(const Player& p, const std::string& id) const {
 // creature from being targeted; lifesteal heals the attacker for the damage it
 // dealt.
 bool Game::activate(EntityId id, Color payColor) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   Creature* c = findCreature(p, id);
   if (!c || c->usedActive) return false;
@@ -517,7 +522,7 @@ bool Game::activate(EntityId id, Color payColor) {
 }
 
 bool Game::attackCreature(EntityId attacker, EntityId target) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& me = players_[current_];
   Player& opp = players_[1 - current_];
   Creature* a = findCreature(me, attacker);
@@ -565,7 +570,7 @@ void Game::dealCleave(const Creature& src, Player& opp, EntityId skip) {
 }
 
 bool Game::attackHero(EntityId attacker) {
-  if (over_) return false;
+  if (over_ || decisionPending()) return false;
   Player& me = players_[current_];
   Player& opp = players_[1 - current_];
   Creature* a = findCreature(me, attacker);
@@ -938,7 +943,8 @@ std::vector<Action> Game::legalActions() const {
   // Parameterized / terminal phases have no discrete move list (see the
   // header): mulligan and scry are subset choices driven via mulligan() /
   // resolveScry().
-  if (over_ || mulliganPhase_ || scryPlayer_ >= 0) return out;
+  if (over_ || mulliganPhase_ || scryPlayer_ >= 0 || decisionPending())
+    return out;
   const Player& p = players_[current_];
   const Player& opp = players_[1 - current_];
 
@@ -1187,26 +1193,24 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
         t->hp = 0;
       }
   } else if (a == "muster") {
-    // Penta Rainbow Muster: reveal from the top of the deck until `value`
-    // creatures are found and put them into play as plain bodies (no ETB, so a
-    // mustered Breaker/resonance does not re-trigger); revealed non-creatures
-    // return to the bottom of the deck in their revealed order.
-    int need = e.value;
-    std::vector<CardInstance> toBottom;
-    while (need > 0 && !owner.deck.empty() &&
-           static_cast<int>(owner.board.size()) < BoardLimit) {
+    // Penta Rainbow Muster: draw the top `value` cards. Any creatures among
+    // them enter play at once as plain bodies (no battlecry, so a drawn
+    // Breaker/ resonance does not re-trigger); the rest go to hand. No fatigue
+    // on an empty deck -- it takes only what is there.
+    int cards = e.value;
+    for (int k = 0; k < cards && !owner.deck.empty(); ++k) {
       CardInstance ci = owner.deck.back();  // deck back == top
       owner.deck.pop_back();
-      if (ci.def->type == CardType::Creature) {
+      if (ci.def->type == CardType::Creature &&
+          static_cast<int>(owner.board.size()) < BoardLimit) {
         owner.board.push_back(
             makeCreature(ci.id, ci.def, /*sick=*/true, /*token=*/false, -1));
-        --need;
+      } else if (static_cast<int>(owner.hand.size()) < HandLimit) {
+        owner.hand.push_back(ci);  // a non-creature, or a creature with no room
       } else {
-        toBottom.push_back(ci);
+        owner.graveyard.push_back(ci.def);  // hand full too -> burned
       }
     }
-    for (auto it = toBottom.rbegin(); it != toBottom.rend(); ++it)
-      owner.deck.insert(owner.deck.begin(), *it);  // front == bottom
     recomputeContinuous();  // the new bodies shift undergrowth totals
   } else if (a == "decay") {
     // Penta Spectral Decay: the opponent mills the top card of their deck
@@ -1220,7 +1224,152 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
       opp.graveyard.push_back(opp.hand.front().def);  // leftmost card in hand
       opp.hand.erase(opp.hand.begin());
     }
+  } else if (a == "ultimatum" || a == "standoff" || a == "auction") {
+    // Penta wave-2 sub-games: open a decision and pause. The guard makes the
+    // Echo double a no-op (a decision is already pending from the first cast).
+    if (!decisionPending()) {
+      DecisionKind k = a == "ultimatum"  ? DecisionKind::Ultimatum
+                       : a == "standoff" ? DecisionKind::Standoff
+                                         : DecisionKind::Auction;
+      startDecision(k, owner.index, e.value);
+    }
   }
+}
+
+// --- Penta sub-games (wave 2) ------------------------------------------------
+
+void Game::startDecision(DecisionKind k, int caster, int value) {
+  decision_ = Decision{};
+  decision_.kind = k;
+  decision_.caster = caster;
+  decision_.value = value;
+  const int opp = 1 - caster;
+  if (k == DecisionKind::Ultimatum) {
+    decision_.decider = opp;  // the opponent chooses
+  } else if (k == DecisionKind::Standoff) {
+    decision_.decider = -1;  // both seats submit, in any order
+  } else if (k == DecisionKind::Auction) {
+    decision_.bid = 0;
+    decision_.highBidder = caster;  // the caster provisionally wins at 0 HP
+    decision_.decider = opp;        // the opponent bids first
+  }
+}
+
+int Game::highestAtkCreature(const Player& p) const {
+  int best = -1;
+  for (int i = 0; i < static_cast<int>(p.board.size()); ++i)
+    if (best < 0 || p.board[i].atk > p.board[best].atk) best = i;
+  return best;
+}
+
+int Game::decisionActor() const {
+  if (decision_.kind == DecisionKind::None) return -1;
+  if (decision_.kind == DecisionKind::Standoff) {
+    if (decision_.choice[0] < 0) return 0;
+    if (decision_.choice[1] < 0) return 1;
+    return -1;
+  }
+  return decision_.decider;
+}
+
+int Game::defaultDecisionChoice(int player) const {
+  const Decision& d = decision_;
+  if (d.kind == DecisionKind::Ultimatum) {
+    const Player& p = players_[player];
+    // Sacrifice only to dodge death; otherwise keep the board and take the HP.
+    if (highestAtkCreature(p) >= 0 && p.heroHp <= d.value) return 0;
+    return 1;
+  }
+  if (d.kind == DecisionKind::Standoff) return 1;  // Defend -- the safe option
+  if (d.kind == DecisionKind::Auction) return -1;  // pass
+  return -1;
+}
+
+bool Game::submitDecision(int player, int choice) {
+  Decision& d = decision_;
+  if (d.kind == DecisionKind::None) return false;
+  if (player < 0 || player > 1) return false;
+  if (d.kind == DecisionKind::Ultimatum) {
+    if (player != d.decider) return false;
+    if (choice == 0 && highestAtkCreature(players_[player]) < 0) return false;
+    if (choice != 0 && choice != 1) return false;
+    resolveUltimatum(choice);
+    decision_ = Decision{};
+    fireDeferredEcho();
+    return true;
+  }
+  if (d.kind == DecisionKind::Standoff) {
+    if (d.choice[player] >= 0) return false;  // this seat already chose
+    if (choice != 0 && choice != 1) return false;
+    d.choice[player] = choice;
+    if (d.choice[0] >= 0 && d.choice[1] >= 0) {
+      resolveStandoff();
+      decision_ = Decision{};
+      fireDeferredEcho();
+    }
+    return true;
+  }
+  // Auction: -1 = pass, else raise to `choice` HP (> bid and < your own HP).
+  if (player != d.decider) return false;
+  if (choice < 0) {
+    resolveAuction(d.highBidder);
+    decision_ = Decision{};
+    fireDeferredEcho();
+    return true;
+  }
+  if (choice <= d.bid) return false;
+  if (choice >= players_[player].heroHp) return false;  // never bid into death
+  d.bid = choice;
+  d.highBidder = player;
+  d.decider = 1 - player;
+  return true;
+}
+
+void Game::resolveUltimatum(int choice) {
+  Player& p = players_[decision_.decider];
+  if (choice == 0) {
+    int i = highestAtkCreature(p);
+    if (i >= 0) {
+      p.board[i].hp = 0;
+      checkDeaths();
+    }
+  } else {
+    dealHeroDamage(p, decision_.value);  // caused by the caster's card
+  }
+}
+
+void Game::resolveStandoff() {
+  const int c0 = decision_.choice[0], c1 = decision_.choice[1];
+  if (c0 == 0 && c1 == 0) {  // both Strike -> both take 5
+    dealHeroDamage(players_[0], 5, /*fromOpponent=*/false);
+    dealHeroDamage(players_[1], 5, /*fromOpponent=*/false);
+  } else if (c0 == 0 && c1 == 1) {
+    dealHeroDamage(players_[1], 3);  // seat 0 struck the defending seat 1
+  } else if (c0 == 1 && c1 == 0) {
+    dealHeroDamage(players_[0], 3);
+  } else {  // both Defend -> both draw 2
+    draw(players_[0], 2);
+    draw(players_[1], 2);
+  }
+}
+
+void Game::resolveAuction(int winner) {
+  const int loser = 1 - winner;
+  if (decision_.bid > 0)
+    dealHeroDamage(players_[winner], decision_.bid, /*fromOpponent=*/false);
+  for (auto& c : players_[loser].board) c.hp = 0;  // wrath the loser's board
+  checkDeaths();
+}
+
+// A sub-game spell cast under Echo left its copy waiting; now that the first
+// decision cleared, resolve the copy once (it may open a second sub-game, which
+// is fine -- the deferred slot is consumed first, so there is no loop).
+void Game::fireDeferredEcho() {
+  if (!echoDeferred_.def || decisionPending()) return;
+  EchoDeferred d = echoDeferred_;
+  echoDeferred_ = EchoDeferred{};
+  resolveOnPlay(d.def, players_[d.owner], d.target);
+  checkDeaths();
 }
 
 Creature* Game::findCreature(Player& p, EntityId id) {
@@ -1300,7 +1449,7 @@ Creature* Game::findSelected(const std::string& selector, Player& owner,
 }
 
 void Game::endTurn() {
-  if (over_) return;
+  if (over_ || decisionPending()) return;
   tickStatuses(players_[current_]);  // ending player's freeze/blind tick down
   current_ = 1 - current_;
   turn_ += 1;

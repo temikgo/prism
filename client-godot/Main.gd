@@ -449,6 +449,15 @@ func _rebuild() -> void:
 		sp.submit.connect(_send_scry)
 		sp.setup(view["scry"], _scry_sel)
 		_overlay.add_child(sp)
+	elif view.has("decision") and bool(view["decision"].get("youDecide", false)):
+		var dp := DecisionPanel.new()
+		dp.choose.connect(_send_decision)
+		dp.setup(view["decision"], not (me.get("board", []) as Array).is_empty())
+		_overlay.add_child(dp)
+	elif view.has("decision"):
+		var wp := DecisionPanel.new()
+		wp.setup_waiting(String(view["decision"].get("kind", "")))
+		_overlay.add_child(wp)
 
 
 func _separator() -> Control:
@@ -488,6 +497,10 @@ func _send_scry() -> void:
 	bottom.sort()
 	_send({"action": "scryResolve", "bottom": bottom})
 	_scry_sel.clear()
+
+
+func _send_decision(value: int) -> void:
+	_send({"action": "decision", "choice": value})
 
 
 # The match outcome from `you`'s point of view: "win" | "lose" | "draw".

@@ -380,6 +380,15 @@ Action greedyMainChoice(const Game& g, int seat,
 
 std::string botStepGreedy(const Game& g, int seat, std::mt19937& rng) {
   if (g.isOver()) return "";
+  // Penta sub-game: answer with the deterministic default when it is this
+  // seat's turn to choose (the opponent for Ultimatum/Auction, either seat for
+  // Standoff). Not in legalActions, so it is handled here like scry.
+  if (g.decisionPending()) {
+    if (g.decisionActor() != seat) return "";
+    return json{{"action", "decision"},
+                {"choice", g.defaultDecisionChoice(seat)}}
+        .dump();
+  }
   // Mulligan: toss the cards too dear to play early, keeping a low curve -- but
   // never throw the WHOLE hand away; keep the two cheapest so there is always
   // something to do on the opening turns.
@@ -449,7 +458,8 @@ std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   if (g.isOver()) return "";
   // Search applies only to the main-phase decision; mulligan/scry/off-turn are
   // reflexive (nothing to simulate).
-  if (g.inMulligan() || g.inScry() || g.current() != seat)
+  if (g.inMulligan() || g.inScry() || g.decisionPending() ||
+      g.current() != seat)
     return botStepGreedy(g, seat, rng);
   std::vector<Action> acts = g.legalActions();
   if (acts.empty()) return "";

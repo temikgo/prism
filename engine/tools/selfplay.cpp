@@ -163,6 +163,7 @@ int actingSeat(const Game& g) {
     return -1;
   }
   if (g.inScry()) return g.scryPlayer();
+  if (g.decisionPending()) return g.decisionActor();  // penta sub-game
   return g.current();
 }
 

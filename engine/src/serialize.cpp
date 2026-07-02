@@ -134,6 +134,17 @@ std::string Game::toJson() const {
   j["winner"] = winner_;
   j["mulliganPhase"] = mulliganPhase_;
   j["scryPlayer"] = scryPlayer_;
+  j["decisionKind"] = static_cast<int>(decision_.kind);
+  j["decisionCaster"] = decision_.caster;
+  j["decisionDecider"] = decision_.decider;
+  j["decisionValue"] = decision_.value;
+  j["decisionBid"] = decision_.bid;
+  j["decisionHighBidder"] = decision_.highBidder;
+  j["decisionChoice0"] = decision_.choice[0];
+  j["decisionChoice1"] = decision_.choice[1];
+  j["echoDeferredDef"] = echoDeferred_.def ? echoDeferred_.def->id : "";
+  j["echoDeferredOwner"] = echoDeferred_.owner;
+  j["echoDeferredTarget"] = echoDeferred_.target;
   j["nextId"] = nextId_;
   std::ostringstream rng;
   rng << rng_;
@@ -167,6 +178,14 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
   g->winner_ = j.value("winner", -1);
   g->mulliganPhase_ = j.value("mulliganPhase", false);
   g->scryPlayer_ = j.value("scryPlayer", -1);
+  g->decision_.kind = static_cast<DecisionKind>(j.value("decisionKind", 0));
+  g->decision_.caster = j.value("decisionCaster", -1);
+  g->decision_.decider = j.value("decisionDecider", -1);
+  g->decision_.value = j.value("decisionValue", 0);
+  g->decision_.bid = j.value("decisionBid", 0);
+  g->decision_.highBidder = j.value("decisionHighBidder", -1);
+  g->decision_.choice[0] = j.value("decisionChoice0", -1);
+  g->decision_.choice[1] = j.value("decisionChoice1", -1);
   g->nextId_ = j.value("nextId", 1);
   if (j.contains("rng")) {
     std::istringstream rng(j["rng"].get<std::string>());
@@ -190,6 +209,9 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
     return CardInstance{ji.value("id", 0),
                         resolve(ji.value("def", std::string{}))};
   };
+  g->echoDeferred_.def = resolve(j.value("echoDeferredDef", std::string{}));
+  g->echoDeferred_.owner = j.value("echoDeferredOwner", -1);
+  g->echoDeferred_.target = j.value("echoDeferredTarget", 0);
 
   g->scryPeek_.clear();
   for (const auto& ji : j.value("scryPeek", json::array()))

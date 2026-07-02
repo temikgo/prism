@@ -116,6 +116,25 @@ std::string viewJson(const Game& g, int you) {
     for (const auto& ci : g.scryPeek()) peek.push_back(ci.def->id);
     j["scry"] = peek;
   }
+  // Penta sub-game: surface the pending decision so the client can prompt. For
+  // Standoff both seats choose secretly, so `youDecide` is "you have not yet
+  // chosen"; for Ultimatum/Auction it is "you are the actor".
+  if (g.decisionPending()) {
+    const Decision& d = g.decision();
+    static const char* kinds[] = {"none", "ultimatum", "standoff", "auction"};
+    json dj;
+    dj["kind"] = kinds[static_cast<int>(d.kind)];
+    dj["caster"] = d.caster;
+    dj["actor"] = g.decisionActor();
+    dj["youDecide"] = d.kind == DecisionKind::Standoff
+                          ? d.choice[you] < 0
+                          : g.decisionActor() == you;
+    dj["value"] = d.value;
+    dj["bid"] = d.bid;
+    dj["highBidder"] = d.highBidder;
+    dj["yourHp"] = g.player(you).heroHp;
+    j["decision"] = dj;
+  }
   // Does the viewer control floodlight (on an aura or a creature)? If so, the
   // opponent's banked mana cards are revealed to them.
   bool floodlight = false;
@@ -203,6 +222,10 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
     return g.resolveScry(actor, bottom);
   }
   if (g.inScry()) return false;
+  // A pending penta sub-game may be answered by either seat (the opponent, or
+  // both) -- route it before the active-player gate, and block everything else.
+  if (a == "decision") return g.submitDecision(actor, j.value("choice", -1));
+  if (g.decisionPending()) return false;
   if (actor != g.current()) return false;  // only the active player may act
   if (a == "endTurn") {
     g.endTurn();

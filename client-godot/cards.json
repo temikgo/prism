@@ -1731,7 +1731,7 @@
     "name": { "ru": "Призма-Разлом", "en": "Prism Breaker" },
     "text": { "ru": "Он выбирает сильнейшего — и гасит его первым." },
     "rules": { "ru": "При выходе: уничтожьте вражеское существо с наибольшей атакой." },
-    "art": "a towering fractured prism-golem of five-colour glass levelling a beam that shatters the largest enemy shard-beast -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "art": "a massive faceted crystalline prism-beast on four crystal legs, bringing a jagged foreleg down to shatter a smaller enemy crystal-beast into shards -- five-colour glass body in balanced red, yellow, green, blue and violet, none dominant, non-humanoid, no armored figure",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
@@ -1743,7 +1743,7 @@
     "name": { "ru": "Радужный Колосс", "en": "Rainbow Colossus" },
     "text": { "ru": "Один шаг — и вся вражеская линия в осколках." },
     "rules": { "ru": "Когда атакует: наносит 3 урона каждому другому вражескому существу." },
-    "art": "a colossal rainbow prism-titan mid-stride, its strike refracting into beams that rake the whole enemy line -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "art": "a colossal charging four-legged horned bull-like crystalline prism-beast, its huge faceted five-colour horns sweeping one wide arc that cleaves clean through a whole row of smaller enemy crystal-beasts at once, bright shards bursting all along the sweep -- five-colour glass body in balanced red, yellow, green, blue and violet, none dominant, a heavy four-legged horned beast",
     "type": "creature",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
@@ -1758,7 +1758,8 @@
     "art": "a glowing five-colour gavel raised over a radiant prize, two rising columns of life-light as competing bids -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "action": "auction" }]
   },
   {
     "id": "prismatic_the_standoff",
@@ -1768,17 +1769,19 @@
     "art": "two crossed five-colour beams locked hard against each other across a tense glowing line -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "action": "standoff" }]
   },
   {
     "id": "prismatic_the_ultimatum",
     "name": { "ru": "Ультиматум", "en": "The Ultimatum" },
     "text": { "ru": "Отдай сильнейшего — или истеки кровью." },
     "rules": { "ru": "Соперник выбирает: пожертвовать своё существо с наибольшей атакой ИЛИ потерять 5 HP." },
-    "art": "a five-colour scale-balance of light weighing a captured shard-beast against a draining pool of lifeblood -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "art": "a pair of five-colour scales of light held perfectly level, the left pan holding a single bright faceted crystal shard, the right pan holding a small cluster of glowing red life-drops, a stark two-way choice, clean simple symmetric and centered -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "action": "ultimatum", "value": 5 }]
   },
   {
     "id": "prismatic_crystallize",
@@ -1795,8 +1798,8 @@
     "id": "prismatic_rainbow_muster",
     "name": { "ru": "Радужный Призыв", "en": "Rainbow Muster" },
     "text": { "ru": "Спектр не бывает пуст — из него выходят новые." },
-    "rules": { "ru": "Вскрывайте верх колоды, пока не откроются 3 существа — выложите их в игру. Остальные вскрытые карты уходят под низ колоды." },
-    "art": "three prism-beasts of rainbow light striding up out of a deck-shaped rift of colour, lesser cards sinking back below -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "rules": { "ru": "Возьмите 3 верхние карты колоды. Существа среди них сразу выходят в игру (без эффектов выхода), остальные — в руку." },
+    "art": "three four-legged faceted prism-beasts clambering up out of a deck-shaped rift of colour, lesser cards sinking back below -- balanced red, yellow, green, blue and violet, none dominant, non-reptilian, non-humanoid",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },

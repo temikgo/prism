@@ -239,6 +239,15 @@ static const char* kTestCards = R"json([
   { "id": "wardbeast", "name": { "ru": "Нимб-зверь" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 5, "hp": 5 },
     "keywords": [{ "id": "ward" }] },
+  { "id": "ultimatumspell", "name": { "ru": "Ультиматум" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "ultimatum", "value": 5 }] },
+  { "id": "standoffspell", "name": { "ru": "Стойка" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "standoff" }] },
+  { "id": "auctionspell", "name": { "ru": "Торги" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "auction" }] },
   { "id": "auradispel", "name": { "ru": "Развей" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1,
@@ -260,7 +269,7 @@ static const char* kTestCards = R"json([
                   "action": "crystallize", "required": true }] },
   { "id": "musterspell", "name": { "ru": "Призыв" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
-    "effects": [{ "trigger": "on_play", "action": "muster", "value": 2 }] },
+    "effects": [{ "trigger": "on_play", "action": "muster", "value": 3 }] },
   { "id": "decayspell", "name": { "ru": "Распад" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "decay" }] },
@@ -2533,68 +2542,74 @@ TEST_CASE("penta Crystallize cannot be cast without an enemy creature") {
   CHECK(handIndexOf(g, 0, "crystalspell") >= 0);  // still in hand, not spent
 }
 
-TEST_CASE("penta Rainbow Muster pulls creatures from the deck into play") {
-  CardLibrary lib = testLib();
-  // Half musterspell, half creatures: a musterspell is drawn and, whatever the
-  // shuffle, plenty of bears remain in the deck for two to be found.
-  std::vector<std::string> deck0;
-  for (int i = 0; i < 10; ++i) {
-    deck0.push_back("musterspell");
-    deck0.push_back("bear");
+// First seed (from 1) that deals `card` into seat 0's opening hand for this
+// deck pairing -- keeps a deck-order test deterministic without a magic seed.
+static unsigned seedWithInHand(const CardLibrary& lib,
+                               const std::vector<std::string>& d0,
+                               const std::vector<std::string>& d1,
+                               const std::string& card) {
+  for (unsigned s = 1; s < 5000; ++s) {
+    Game g(lib, d0, d1, s);
+    begin(g);
+    if (handIndexOf(g, 0, card) >= 0) return s;
   }
-  Game g(lib, deck0, repeat("bear", 30), 7);
-  begin(g);
-  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
-  int before = static_cast<int>(g.player(0).board.size());
-  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
-  CHECK(static_cast<int>(g.player(0).board.size()) == before + 2);
+  REQUIRE(false);  // unreachable for these decks
+  return 0;
 }
 
-TEST_CASE("penta Rainbow Muster enters bodies sick and skips their ETB") {
+TEST_CASE("penta Rainbow Muster draws 3 and summons the creatures at once") {
   CardLibrary lib = testLib();
-  // Same deck layout as the basic muster (so a musterspell lands at seed 7),
-  // but the bodies are Breakers: if muster fired their ETB it would destroy the
-  // enemy creature -- it must not. They also enter summoning sick.
-  std::vector<std::string> deck0;
-  for (int i = 0; i < 10; ++i) {
-    deck0.push_back("musterspell");
-    deck0.push_back("breakerman");
-  }
-  Game g(lib, deck0, repeat("bear", 12), 7);
+  // One muster over an all-creature deck: the three drawn bears all enter play.
+  std::vector<std::string> deck0 = {"musterspell"};
+  for (int i = 0; i < 12; ++i) deck0.push_back("bear");
+  Game g(lib, deck0, repeat("bear", 30),
+         seedWithInHand(lib, deck0, repeat("bear", 30), "musterspell"));
   begin(g);
-  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
+  int deckB = static_cast<int>(g.player(0).deck.size());
+  int hp = g.player(0).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
+  CHECK(g.player(0).board.size() == 3);  // 3 bears entered
+  CHECK(static_cast<int>(g.player(0).deck.size()) == deckB - 3);
+  CHECK(g.player(0).heroHp == hp);  // never fatigues, even on a short deck
+  for (const auto& c : g.player(0).board) CHECK(c.sick);  // summoning sick
+}
+
+TEST_CASE("penta Rainbow Muster summons without a battlecry") {
+  CardLibrary lib = testLib();
+  // Same deck shape (so a musterspell lands at seed 7) but the bodies are
+  // Breakers: were their ETB to fire it would destroy the enemy creature.
+  std::vector<std::string> deck0 = {"musterspell"};
+  for (int i = 0; i < 12; ++i) deck0.push_back("breakerman");
+  Game g(lib, deck0, repeat("bear", 12),
+         seedWithInHand(lib, deck0, repeat("bear", 12), "musterspell"));
+  begin(g);
   g.endTurn();
   CHECK(g.playCard(handIndexOf(g, 1, "bear")));  // an enemy creature to protect
   g.endTurn();
-  int before = static_cast<int>(g.player(0).board.size());
   CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
-  CHECK(static_cast<int>(g.player(0).board.size()) == before + 2);
-  CHECK(g.player(1).board.size() == 1);  // no mustered Breaker ETB fired
-  for (const auto& c : g.player(0).board)
-    if (c.def->id == "breakerman") CHECK(c.sick);  // entered summoning sick
+  CHECK(g.player(0).board.size() == 3);  // three Breakers entered
+  CHECK(g.player(1).board.size() == 1);  // ... none of their ETBs fired
 }
 
-TEST_CASE("penta Rainbow Muster returns revealed non-creatures to the deck") {
+TEST_CASE("penta Rainbow Muster puts drawn non-creatures into hand") {
   CardLibrary lib = testLib();
-  // A creature-less pool below the cast: muster finds nothing to summon, and
-  // the revealed spells go back to the deck (its size is unchanged), never
-  // milled to the graveyard -- only the muster card itself lands there.
-  std::vector<std::string> deck0;
-  for (int i = 0; i < 5; ++i) deck0.push_back("musterspell");
-  for (int i = 0; i < 10; ++i) deck0.push_back("boltspell");
-  Game g(lib, deck0, repeat("bear", 12), 7);
+  // Same deck shape but the bodies are spells: the three drawn go to hand, not
+  // the board, and nothing is milled.
+  std::vector<std::string> deck0 = {"musterspell"};
+  for (int i = 0; i < 12; ++i) deck0.push_back("boltspell");
+  Game g(lib, deck0, repeat("bear", 12),
+         seedWithInHand(lib, deck0, repeat("bear", 12), "musterspell"));
   begin(g);
-  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
-  int boardBefore = static_cast<int>(g.player(0).board.size());
-  int deckBefore = static_cast<int>(g.player(0).deck.size());
-  int graveBefore = static_cast<int>(g.player(0).graveyard.size());
+  int deckB = static_cast<int>(g.player(0).deck.size());
+  int handB = static_cast<int>(g.player(0).hand.size());
+  int graveB = static_cast<int>(g.player(0).graveyard.size());
   CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
-  CHECK(static_cast<int>(g.player(0).board.size()) ==
-        boardBefore);  // none found
-  CHECK(static_cast<int>(g.player(0).deck.size()) ==
-        deckBefore);  // all returned
+  CHECK(g.player(0).board.empty());  // spells don't enter play
+  CHECK(static_cast<int>(g.player(0).deck.size()) == deckB - 3);  // drew 3
+  CHECK(static_cast<int>(g.player(0).hand.size()) ==
+        handB - 1 + 3);  // -cast +3
   CHECK(static_cast<int>(g.player(0).graveyard.size()) ==
-        graveBefore + 1);  // only the muster spell itself
+        graveB + 1);  // only the muster spell itself
 }
 
 TEST_CASE(
@@ -2642,6 +2657,276 @@ TEST_CASE("penta Spectral Decay is a safe no-op with an empty deck or hand") {
   CHECK(g.playCard(handIndexOf(g, 0, "decayspell")));  // both empty -> no-op
   CHECK(g.player(1).heroHp == hp0);
   CHECK(static_cast<int>(g.player(1).graveyard.size()) == graveFull);
+}
+
+// --- Penta wave 2: opponent-decision sub-games -------------------------------
+
+TEST_CASE("penta Ultimatum: the opponent sacrifices its strongest creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"ultimatumspell", "bear", "bear", "bear"},
+         {"bruiser", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 -- strongest
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));     // 3/4
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 0, "ultimatumspell")));
+  REQUIRE(g.decisionPending());
+  CHECK(g.decisionActor() == 1);                       // opponent decides
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "bear")));  // play blocked meanwhile
+  CHECK_FALSE(g.submitDecision(0, 1));                 // wrong player
+  int hp = g.player(1).heroHp;
+  CHECK(g.submitDecision(1, 0));  // sacrifice
+  CHECK_FALSE(g.decisionPending());
+  REQUIRE(g.player(1).board.size() == 1);
+  CHECK(g.player(1).board[0].def->id == "bear");  // the 4/4 was given up
+  CHECK(g.player(1).heroHp == hp);                // no HP lost
+}
+
+TEST_CASE("penta Ultimatum: the opponent may take the HP instead") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"ultimatumspell", "bear", "bear", "bear"},
+         {"bruiser", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 0, "ultimatumspell")));
+  int hp = g.player(1).heroHp;
+  CHECK(g.submitDecision(1, 1));  // lose 5
+  CHECK(g.player(1).heroHp == hp - 5);
+  CHECK(g.player(1).board.size() == 1);  // board intact
+}
+
+TEST_CASE("penta Ultimatum: with no creature only the HP option is legal") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"ultimatumspell", "bear", "bear", "bear"}, repeat("bear", 30),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "ultimatumspell")));
+  REQUIRE(g.decisionPending());
+  CHECK_FALSE(g.submitDecision(1, 0));  // nothing to sacrifice
+  CHECK(g.defaultDecisionChoice(1) == 1);
+  int hp = g.player(1).heroHp;
+  CHECK(g.submitDecision(1, 1));
+  CHECK(g.player(1).heroHp == hp - 5);
+}
+
+TEST_CASE("penta Standoff: both Strike deals 5 to each hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"standoffspell", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "standoffspell")));
+  REQUIRE(g.decisionPending());
+  int h0 = g.player(0).heroHp, h1 = g.player(1).heroHp;
+  CHECK(g.submitDecision(0, 0));  // Strike
+  REQUIRE(g.decisionPending());   // still waiting on seat 1
+  CHECK(g.submitDecision(1, 0));  // Strike
+  CHECK_FALSE(g.decisionPending());
+  CHECK(g.player(0).heroHp == h0 - 5);
+  CHECK(g.player(1).heroHp == h1 - 5);
+}
+
+TEST_CASE("penta Standoff: Strike beats Defend for 3") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"standoffspell", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "standoffspell")));
+  int h0 = g.player(0).heroHp, h1 = g.player(1).heroHp;
+  CHECK(g.submitDecision(1, 1));        // seat 1 Defends
+  CHECK(g.submitDecision(0, 0));        // seat 0 Strikes
+  CHECK(g.player(1).heroHp == h1 - 3);  // striker hits the defender for 3
+  CHECK(g.player(0).heroHp == h0);
+}
+
+TEST_CASE("penta Standoff: both Defend draws two each") {
+  CardLibrary lib = testLib();
+  std::vector<std::string> deck0;
+  for (int i = 0; i < 6; ++i) {
+    deck0.push_back("standoffspell");
+    deck0.push_back("bear");
+  }
+  Game g(lib, deck0, repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(handIndexOf(g, 0, "standoffspell") >= 0);
+  CHECK(g.playCard(handIndexOf(g, 0, "standoffspell")));
+  int d0 = static_cast<int>(g.player(0).deck.size());
+  int d1 = static_cast<int>(g.player(1).deck.size());
+  CHECK(g.submitDecision(0, 1));                               // Defend
+  CHECK(g.submitDecision(1, 1));                               // Defend
+  CHECK(static_cast<int>(g.player(0).deck.size()) == d0 - 2);  // each drew 2
+  CHECK(static_cast<int>(g.player(1).deck.size()) == d1 - 2);
+}
+
+TEST_CASE(
+    "penta Blood Auction: an immediate pass wraths the opponent for free") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"auctionspell", "bear", "bear", "bear"},
+         {"bruiser", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));
+  g.endTurn();
+  int h0 = g.player(0).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "auctionspell")));
+  REQUIRE(g.decisionPending());
+  CHECK(g.decisionActor() == 1);   // the opponent bids first
+  CHECK(g.submitDecision(1, -1));  // pass
+  CHECK_FALSE(g.decisionPending());
+  CHECK(g.player(1).board.empty());  // opponent's board wrathed
+  CHECK(g.player(0).heroHp == h0);   // caster paid 0
+}
+
+TEST_CASE(
+    "penta Blood Auction: outbidding redirects the wrath onto the caster") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"auctionspell", "bruiser", "bear", "bear"},
+         {"bear", "bear", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "bruiser")));  // caster's own creature
+  CHECK(g.playCard(handIndexOf(g, 0, "auctionspell")));
+  REQUIRE(g.decisionPending());
+  CHECK_FALSE(g.submitDecision(1, 0));    // 0 does not exceed the bid of 0
+  CHECK_FALSE(g.submitDecision(1, 999));  // cannot bid into death
+  int h1 = g.player(1).heroHp;
+  CHECK(g.submitDecision(1, 3));   // opponent bids 3 HP
+  CHECK(g.decisionActor() == 0);   // caster may now raise or pass
+  CHECK(g.submitDecision(0, -1));  // caster passes
+  CHECK_FALSE(g.decisionPending());
+  CHECK(g.player(0).board.empty());     // caster's board wrathed
+  CHECK(g.player(1).heroHp == h1 - 3);  // the winner paid its bid
+}
+
+TEST_CASE("penta Prism Echo doubles a sub-game spell (two Ultimatums)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "ultimatumspell", "bear", "bear"},
+         repeat("bear", 30), 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  int hp = g.player(1).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "ultimatumspell")));  // first ultimatum
+  REQUIRE(g.decisionPending());
+  CHECK(g.decisionActor() == 1);
+  CHECK(g.submitDecision(1, 1));  // opponent takes 5
+  // Echo's deferred copy fires now that the first decision cleared: a SECOND
+  // ultimatum pends for the opponent.
+  REQUIRE(g.decisionPending());
+  CHECK(g.decisionActor() == 1);
+  CHECK(g.submitDecision(1, 1));  // opponent takes 5 again
+  CHECK_FALSE(g.decisionPending());
+  CHECK(g.player(1).heroHp == hp - 10);  // doubled
+}
+
+TEST_CASE("penta Prism Echo doubles Standoff (resolves twice)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "standoffspell", "bear", "bear"}, repeat("bear", 30),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  int h0 = g.player(0).heroHp, h1 = g.player(1).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "standoffspell")));  // standoff #1
+  REQUIRE(g.decisionPending());
+  CHECK(g.submitDecision(0, 0));  // both Strike -> 5 each
+  CHECK(g.submitDecision(1, 0));
+  REQUIRE(g.decisionPending());  // Echo -> standoff #2
+  CHECK(g.submitDecision(0, 0));
+  CHECK(g.submitDecision(1, 0));
+  CHECK_FALSE(g.decisionPending());
+  CHECK(g.player(0).heroHp == h0 - 10);  // 5 + 5
+  CHECK(g.player(1).heroHp == h1 - 10);
+}
+
+TEST_CASE("penta Prism Echo doubles Blood Auction (two auctions)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "auctionspell", "bear", "bear"},
+         {"bruiser", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));  // an enemy board to wrath
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  CHECK(g.playCard(handIndexOf(g, 0, "auctionspell")));  // auction #1
+  REQUIRE(g.decisionPending());
+  CHECK(g.submitDecision(1, -1));  // opponent passes -> caster wraths its board
+  CHECK(g.player(1).board.empty());
+  REQUIRE(g.decisionPending());  // Echo -> auction #2
+  CHECK(g.decisionActor() == 1);
+  CHECK(g.submitDecision(1, -1));  // pass again -> resolves, nothing left
+  CHECK_FALSE(g.decisionPending());
+}
+
+TEST_CASE("penta Prism Echo doubles Rainbow Muster (draws six)") {
+  CardLibrary lib = testLib();
+  // A normal (non-sub-game) spell doubles synchronously: muster draws 3 twice.
+  std::vector<std::string> deck0 = {"echoaura", "musterspell"};
+  for (int i = 0; i < 12; ++i) deck0.push_back("bear");
+  // Seed so BOTH echoaura and musterspell start in hand.
+  unsigned seed = 0;
+  for (unsigned s = 1; s < 5000 && seed == 0; ++s) {
+    Game probe(lib, deck0, repeat("bear", 30), s);
+    begin(probe);
+    if (handIndexOf(probe, 0, "echoaura") >= 0 &&
+        handIndexOf(probe, 0, "musterspell") >= 0)
+      seed = s;
+  }
+  REQUIRE(seed != 0);
+  Game g(lib, deck0, repeat("bear", 30), seed);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));  // 3 + 3 bears
+  CHECK(g.player(0).board.size() == 6);
+}
+
+TEST_CASE("penta Prism Echo doubles Crystallize (gains crystals twice)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "crystalspell", "bear", "bear"},
+         {"dualfree", "bear", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "dualfree")));  // red+blue 2/2
+  g.endTurn();
+  int r0 = g.player(0).mana.crystals[idx(Color::Red)];
+  int b0 = g.player(0).mana.crystals[idx(Color::Blue)];
+  EntityId id = g.player(1).board[0].id;
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "crystalspell"), id));  // doubled on target
+  CHECK(g.player(1).board.empty());
+  CHECK(g.player(0).mana.crystals[idx(Color::Red)] == r0 + 2);  // gained twice
+  CHECK(g.player(0).mana.crystals[idx(Color::Blue)] == b0 + 2);
+}
+
+TEST_CASE(
+    "penta Prism Echo doubles Spectral Decay (mills and discards twice)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "decayspell", "bear", "bear"}, repeat("bear", 12),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  int deckB = static_cast<int>(g.player(1).deck.size());
+  int handB = static_cast<int>(g.player(1).hand.size());
+  int graveB = static_cast<int>(g.player(1).graveyard.size());
+  CHECK(g.playCard(handIndexOf(g, 0, "decayspell")));  // doubled
+  CHECK(static_cast<int>(g.player(1).deck.size()) == deckB - 2);
+  CHECK(static_cast<int>(g.player(1).hand.size()) == handB - 2);
+  CHECK(static_cast<int>(g.player(1).graveyard.size()) == graveB + 4);
+}
+
+TEST_CASE("penta sub-game survives serialization (clone mid-decision)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"ultimatumspell", "bear", "bear", "bear"}, repeat("bear", 30),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "ultimatumspell")));
+  REQUIRE(g.decisionPending());
+  auto c = g.clone();  // routes through toJson/fromJson
+  REQUIRE(c->decisionPending());
+  CHECK(c->decisionActor() == 1);
+  int hp = c->player(1).heroHp;
+  CHECK(c->submitDecision(1, 1));
+  CHECK_FALSE(c->decisionPending());
+  CHECK(c->player(1).heroHp == hp - 5);
 }
 
 TEST_CASE("a duplicate aura cannot be played") {
