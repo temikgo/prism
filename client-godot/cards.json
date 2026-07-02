@@ -614,7 +614,7 @@
     "color": ["green"],
     "cost": { "generic": 2, "green": 1 },
     "stats": { "atk": 1, "hp": 2 },
-    "keywords": [{ "id": "resonance" }]
+    "keywords": [{ "id": "resonance", "n": 1 }]
   },
   {
     "id": "green_bramble_warden",
