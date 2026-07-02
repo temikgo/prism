@@ -7,7 +7,6 @@
 #include "json.hpp"
 #include "prism/game.hpp"
 #include "prism/protocol.hpp"
-#include "prism/value_weights.hpp"
 
 namespace prism {
 
@@ -29,11 +28,6 @@ void setBotSearchWorlds(int n) { g_searchWorlds = n < 1 ? 1 : n; }
 // knob.
 static thread_local int g_rolloutDepth = 4;
 void setBotRolloutDepth(int n) { g_rolloutDepth = n < 0 ? 0 : n; }
-
-// When set, the search leaf uses the learned linear value model (a cheap dot
-// product over stateFeatures) instead of the static evalState. Per thread.
-static thread_local bool g_useLearned = false;
-void setBotUseLearned(bool on) { g_useLearned = on; }
 
 namespace {
 
@@ -446,87 +440,10 @@ double rolloutValue(Game& g, int seat, std::mt19937& rng, int turnCap) {
     rollout(g, actor, rng);
   if (g.isOver())
     return g.winner() == seat ? 1.0 : (g.winner() < 0 ? 0.0 : -1.0);
-  return g_useLearned ? learnedValue(g, seat)
-                      : std::tanh(evalState(g, seat) / 50.0);
+  return std::tanh(evalState(g, seat) / 50.0);
 }
 
 }  // namespace
-
-// A set-agnostic feature vector of the position from `seat`'s view: aggregate
-// stats + keyword-value sums, never card ids -- so a learned value model
-// trained on it transfers across set changes. Fixed order/length; the trained
-// weights (tools/train_value.py) must match this layout.
-std::vector<double> stateFeatures(const Game& g, int seat) {
-  const Player& me = g.player(seat);
-  const Player& foe = g.player(1 - seat);
-  auto atkSum = [](const Player& p) {
-    int s = 0;
-    for (const auto& c : p.board) s += c.atk;
-    return s;
-  };
-  auto hpSum = [](const Player& p) {
-    int s = 0;
-    for (const auto& c : p.board) s += c.hp;
-    return s;
-  };
-  auto kwSum = [](const Player& p) {
-    double s = 0.0;
-    for (const auto& c : p.board) s += keywordValue(c.def);
-    for (const auto* a : p.auras) s += keywordValue(a);
-    return s;
-  };
-  auto stunned = [](const Player& p) {
-    int n = 0;
-    for (const auto& c : p.board)
-      if (c.frozenTurns > 0 || c.blindTurns > 0) ++n;
-    return n;
-  };
-  const double bd = 8.0;
-  return {
-      1.0,  // bias
-      me.heroHp / 30.0,
-      foe.heroHp / 30.0,
-      (me.heroHp - foe.heroHp) / 30.0,
-      me.heroArmor / 10.0,
-      foe.heroArmor / 10.0,
-      me.board.size() / bd,
-      foe.board.size() / bd,
-      atkSum(me) / 20.0,
-      atkSum(foe) / 20.0,
-      hpSum(me) / 30.0,
-      hpSum(foe) / 30.0,
-      me.hand.size() / 10.0,
-      foe.hand.size() / 10.0,
-      me.deck.size() / 40.0,
-      foe.deck.size() / 40.0,
-      crystalCount(me) / 10.0,
-      crystalCount(foe) / 10.0,
-      me.auras.size() / 5.0,
-      foe.auras.size() / 5.0,
-      kwSum(me) / 20.0,
-      kwSum(foe) / 20.0,
-      stunned(foe) / bd,
-      stunned(me) / bd,
-      g.turn() / 20.0,
-      g.current() == seat ? 1.0 : 0.0,
-  };
-}
-
-// Learned linear value of the position from `seat`'s view, in [-1,1]: the
-// trained weights dotted with stateFeatures, squashed. A cheap O(features) leaf
-// that replaces a rollout when enabled.
-double learnedValue(const Game& g, int seat) {
-  const std::vector<double> f = stateFeatures(g, seat);
-  double h[kValueHidden];
-  for (int j = 0; j < kValueHidden; ++j) {
-    double z = kValueB1[j];
-    for (int i = 0; i < kValueFeatureCount; ++i) z += kValueW1[i][j] * f[i];
-    h[j] = std::tanh(z);
-  }
-  double z2 = kValueB2;
-  for (int j = 0; j < kValueHidden; ++j) z2 += kValueW2[j] * h[j];
-  return 2.0 / (1.0 + std::exp(-z2)) - 1.0;
-}
 
 std::string botNextAction(const Game& g, int seat, std::mt19937& rng) {
   if (g.isOver()) return "";

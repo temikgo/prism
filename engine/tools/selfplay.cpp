@@ -92,7 +92,6 @@ struct Config {
   unsigned threads = std::thread::hardware_concurrency();
   std::string reportPath = "selfplay-report.json";
   std::string jsonlPath;  // per-game records; empty = none
-  std::string dumpPath;   // learned-value training samples (CSV); empty = none
   bool draft = false;
   bool vsGreedy = false;  // seat 1 plays the greedy reflex (head-to-head test)
   bool vsBlind =
@@ -103,7 +102,6 @@ struct Config {
       4;  // determinized worlds the search averages (budget knob)
   int rolloutDepth = 4;  // turn-plays the search leaf rolls out (0 = static)
   bool mirror = false;  // --vsgreedy: alternate the tested bot's seat by parity
-  bool useLearned = false;  // learned value leaf instead of static evalState
 };
 
 // games seen and games won, for one hero or one card.
@@ -171,8 +169,7 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
                  const std::vector<const CardDef*>& nonHero,
                  const std::vector<std::string>& heroes, const Config& cfg,
                  std::uint32_t gameSeed, RunStats& acc,
-                 std::vector<std::string>* records,
-                 std::vector<std::string>* dump) {
+                 std::vector<std::string>* records) {
   std::mt19937 setupRng(
       gameSeed);  // hero pick + deck draft, from the game seed
   const std::string h0 =
@@ -201,14 +198,11 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
   const int testedSeat = cfg.mirror ? static_cast<int>(gameSeed & 1u) : 0;
   setBotSearchWorlds(cfg.searchWorlds);
   setBotRolloutDepth(cfg.rolloutDepth);
-  setBotUseLearned(cfg.useLearned);
 
   std::array<std::set<std::string>, 2>
       seen;  // cards each seat ever held in hand
   const std::string endTurn = json{{"action", "endTurn"}}.dump();
   bool stalled = false;
-  std::vector<std::pair<std::vector<double>, int>> vsamp;  // (features, seat)
-  int sampleCtr = 0;
   for (int guard = 0; guard < 6000 && !g.isOver(); ++guard) {
     recordHand(g, 0, seen[0]);
     recordHand(g, 1, seen[1]);
@@ -217,8 +211,6 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
       stalled = true;
       break;
     }
-    if (dump && !g.inScry() && !g.inMulligan() && (sampleCtr++ % 6 == 0))
-      vsamp.push_back({stateFeatures(g, seat), seat});
     if (cfg.vsBlind) setBotKeywordScale(seat == awareSeat ? 1.0 : 0.0);
     const std::string js = (cfg.vsGreedy && seat != testedSeat)
                                ? botGreedyAction(g, seat, botRng)
@@ -285,16 +277,6 @@ void playOneGame(const CardLibrary& lib, const std::vector<std::string>& pool,
                 {"deck1", dm1},     {"gih0", seen[0]},   {"gih1", seen[1]}};
     records->push_back(rec.dump());
   }
-  if (dump && w >= 0) {
-    for (const auto& sv : vsamp) {
-      std::string line = std::to_string(w == sv.second ? 1 : 0);
-      for (double x : sv.first) {
-        line += ',';
-        line += std::to_string(x);
-      }
-      dump->push_back(line);
-    }
-  }
 }
 
 double pct(long w, long n) { return n > 0 ? 100.0 * w / n : 0.0; }
@@ -352,14 +334,10 @@ int main(int argc, char** argv) {
       cfg.vsBlind = true;
     else if (a == "--mirror")
       cfg.mirror = true;
-    else if (a == "--learned")
-      cfg.useLearned = true;
     else if (a == "--worlds" && i + 1 < argc)
       cfg.searchWorlds = std::atoi(argv[++i]);
     else if (a == "--rollout-depth" && i + 1 < argc)
       cfg.rolloutDepth = std::atoi(argv[++i]);
-    else if (a == "--dump" && i + 1 < argc)
-      cfg.dumpPath = argv[++i];
     else if (a == "--jsonl" && i + 1 < argc)
       cfg.jsonlPath = argv[++i];
     else if (a == "--report" && i + 1 < argc)
@@ -406,7 +384,6 @@ int main(int argc, char** argv) {
 
   std::vector<RunStats> shards(cfg.threads);
   std::vector<std::vector<std::string>> shardRecords(cfg.threads);
-  std::vector<std::vector<std::string>> shardDumps(cfg.threads);
   std::atomic<long> done{0};
   const auto t0 = std::chrono::steady_clock::now();
   std::vector<std::thread> pool_threads;
@@ -419,11 +396,9 @@ int main(int argc, char** argv) {
     pool_threads.emplace_back([&, ti, lo, hi] {
       std::vector<std::string>* rec =
           cfg.jsonlPath.empty() ? nullptr : &shardRecords[ti];
-      std::vector<std::string>* dmp =
-          cfg.dumpPath.empty() ? nullptr : &shardDumps[ti];
       for (long i = lo; i < hi; ++i) {
         const std::uint32_t gs = mixSeed(static_cast<std::uint64_t>(i) + 1);
-        playOneGame(lib, pool, nonHero, heroes, cfg, gs, shards[ti], rec, dmp);
+        playOneGame(lib, pool, nonHero, heroes, cfg, gs, shards[ti], rec);
         done.fetch_add(1, std::memory_order_relaxed);
       }
     });
@@ -501,16 +476,6 @@ int main(int argc, char** argv) {
         ++nrec;
       }
     std::printf("per-game records: %ld -> %s\n", nrec, cfg.jsonlPath.c_str());
-  }
-  if (!cfg.dumpPath.empty()) {
-    std::ofstream f(cfg.dumpPath);
-    long nrows = 0;
-    for (const auto& sd : shardDumps)
-      for (const auto& line : sd) {
-        f << line << "\n";
-        ++nrows;
-      }
-    std::printf("value samples: %ld -> %s\n", nrows, cfg.dumpPath.c_str());
   }
   return 0;
 }
