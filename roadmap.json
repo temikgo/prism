@@ -66,7 +66,8 @@
         { "label": "Комнаты по коду", "at": "7b3c5fe", "status": "done", "weight": "minor" },
         { "label": "Реплеи матча", "at": "8edfeb8", "status": "done", "weight": "minor" },
         { "label": "Аккаунты / матчмейкинг", "status": "planned", "weight": "major" },
-        { "label": "Release-mile: реконнект+versioning+hardening", "status": "planned", "weight": "major", "note": "on hold вместе с web-релизом (оплата серверов)" }
+        { "label": "Реконнект + room-GC (same-process)", "at": "531e524", "status": "done", "weight": "major" },
+        { "label": "Release-mile: versioning + restart-persist", "status": "planned", "weight": "major", "note": "on hold вместе с web-релизом; реконнект-срез сделан" }
       ]
     },
     {
