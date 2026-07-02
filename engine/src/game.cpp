@@ -253,17 +253,16 @@ bool Game::placeCardToMana(int handIndex, Color color) {
   return true;
 }
 
-// Prism `spectral_shift`: retune one available crystal to a spectrum-adjacent
-// color (R-Y-G-B-V are enum 0..4 contiguous; Colorless 5 has no neighbour).
+// Prism `spectral_shift`: retune one available coloured crystal to any other
+// colour (the 5 colours R-Y-G-B-V are enum 0..4; Colorless 5 is not a target).
 // Returns the swapped pool (canPay then holds) only when the swap is what makes
 // the cost affordable -- the caller has already checked it is unpayable
 // plainly.
 std::optional<ManaPool> Game::shiftedPool(const ManaPool& pool,
                                           const Cost& cost) const {
-  for (int x = 0; x < 5; ++x) {    // the color a pip is short of
-    for (int y = 0; y < 5; ++y) {  // a neighbour crystal we retune into it
-      int d = x - y;
-      if (d != 1 && d != -1) continue;
+  for (int x = 0; x < 5; ++x) {    // the colour a pip is short of
+    for (int y = 0; y < 5; ++y) {  // any other coloured crystal to retune
+      if (y == x) continue;
       if (pool.available[y] < 1) continue;
       ManaPool sim = pool;
       sim.available[y] -= 1;
@@ -456,14 +455,6 @@ bool Game::awaken(int manaRowIndex, EntityId target, int pos,
   p.mana = *sim;
   p.manaRow.erase(p.manaRow.begin() + manaRowIndex);
   playResolved(p, mc.card, target, pos);
-  // Facet hero (Gemma): a woken creature enters sharpened, +1/+1.
-  if (facet && def->type == CardType::Creature) {
-    Creature* nc = findCreature(p, mc.card.id);
-    if (nc) {
-      buffStats(*nc, 1);
-      recomputeContinuous();
-    }
-  }
   return true;
 }
 
@@ -882,8 +873,8 @@ Cost Game::effectiveCost(const Player& p, const CardDef* def) const {
 
 bool Game::affordableToPlay(const Player& p, const Cost& cost) const {
   if (p.mana.canPay(cost)) return true;
-  // Prism spectral_shift: one foreign pip may be paid by retuning a
-  // spectrum-adjacent crystal, once per turn (matches playCard).
+  // Prism spectral_shift: one foreign pip may be paid by retuning any other
+  // coloured crystal, once per turn (matches playCard).
   return p.hero && p.hero->hasKeyword("spectral_shift") &&
          p.heroPowerUses < 1 && shiftedPool(p.mana, cost).has_value();
 }

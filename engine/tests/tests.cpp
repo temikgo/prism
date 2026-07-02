@@ -1862,7 +1862,7 @@ TEST_CASE("Palette draws a card the first time you play a multicolor card") {
   CHECK(g.player(0).hand.size() == before);  // -1 played, +1 drawn by Palette
 }
 
-TEST_CASE("Facet wakes any banked card, entering +1/+1") {
+TEST_CASE("Facet wakes any banked card") {
   CardLibrary lib = testLib();
   Game g(lib, repeat("bear", 30), repeat("bear", 30), 22, "hero_facet", "");
   begin(g);
@@ -1873,8 +1873,8 @@ TEST_CASE("Facet wakes any banked card, entering +1/+1") {
   REQUIRE(g.awaken(0));  // Facet lets a non-awaken card be woken
   REQUIRE(g.player(0).board.size() == 1);
   CHECK(g.player(0).board[0].def->id == "bear");
-  CHECK(g.player(0).board[0].atk == 4);    // 3 +1
-  CHECK(g.player(0).board[0].maxHp == 5);  // 4 +1
+  CHECK(g.player(0).board[0].atk == 3);  // enters at base -- no Facet stat buff
+  CHECK(g.player(0).board[0].maxHp == 4);
 }
 
 TEST_CASE("Facet reveals every banked card in its own view (any is wakeable)") {
