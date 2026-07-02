@@ -32,7 +32,8 @@
         { "label": "Сет v2 в проде: 160 карт + арты", "at": "14fe2b8", "status": "done", "weight": "major" },
         { "label": "Реворк синего в контроль (Brittle/Lens)", "at": "7f7dab1", "status": "done", "weight": "major" },
         { "label": "Авто-тюнер β", "status": "planned", "weight": "major" },
-        { "label": "Расширение сета", "status": "planned", "weight": "major" }
+        { "label": "Расширение сета", "status": "planned", "weight": "major" },
+        { "label": "Пента-легендарки", "status": "planned", "weight": "major" }
       ]
     },
     {
@@ -48,7 +49,11 @@
         { "label": "Колодостроитель + автоколода", "at": "0014aea", "status": "done", "weight": "major" },
         { "label": "Батч багфиксов: dispel/искра/дымка/decoy и др.", "at": "b93ac55", "status": "done", "weight": "major" },
         { "label": "Адаптивный UI", "status": "planned", "weight": "major" },
-        { "label": "Звук и VFX", "status": "planned", "weight": "major" }
+        { "label": "Звук и VFX", "status": "planned", "weight": "major" },
+        { "label": "Туториал-матч", "status": "planned", "weight": "major" },
+        { "label": "Драфт-режим", "status": "planned", "weight": "major" },
+        { "label": "Реплей-вьювер", "status": "planned", "weight": "minor" },
+        { "label": "Deck-codes", "status": "planned", "weight": "minor" }
       ]
     },
     {
@@ -60,7 +65,8 @@
         { "label": "WebSocket-сервер", "at": "2c244bb", "status": "done", "weight": "major" },
         { "label": "Комнаты по коду", "at": "7b3c5fe", "status": "done", "weight": "minor" },
         { "label": "Реплеи матча", "at": "8edfeb8", "status": "done", "weight": "minor" },
-        { "label": "Аккаунты / матчмейкинг", "status": "planned", "weight": "major" }
+        { "label": "Аккаунты / матчмейкинг", "status": "planned", "weight": "major" },
+        { "label": "Release-mile: реконнект+versioning+hardening", "status": "planned", "weight": "major", "note": "on hold вместе с web-релизом (оплата серверов)" }
       ]
     },
     {
@@ -90,7 +96,8 @@
         { "label": "CI, чеки, тесты", "at": "af8e1f1", "status": "done", "weight": "major" },
         { "label": "Дерево разработки", "at": "5f153c6", "status": "done", "weight": "major" },
         { "label": "Структурные линтеры баланса", "at": "392cf6f", "status": "done", "weight": "minor" },
-        { "label": "Чистка кода + дрифт-линтер баланса", "at": "e16b893", "status": "done", "weight": "minor" }
+        { "label": "Чистка кода + дрифт-линтер баланса", "at": "e16b893", "status": "done", "weight": "minor" },
+        { "label": "Аудит-2026-07: quick wins (CI-гейты, Release-CI, LICENSE)", "status": "planned", "weight": "minor" }
       ]
     }
   ]
