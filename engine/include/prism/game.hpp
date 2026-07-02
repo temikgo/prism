@@ -274,16 +274,16 @@ class Game {
   std::unique_ptr<Game> clone() const;
 
   // A determinized clone for honest (non-cheating) bot search: a deep copy with
-  // the OTHER seat's hidden zones (hand + deck) resampled from the library pool,
-  // so `forSeat`'s search does not read the opponent's real hand. The resample
-  // is belief-conditioned: cards are weighted toward the colors the opponent has
-  // already revealed (board + auras + graveyard), Laplace-smoothed so early game
-  // it is uniform and unseen colors stay reachable -- the search imagines
-  // plausible hands, not uniform-random ones. Public state (boards, crystals,
-  // graveyard, heroes, hand/deck SIZES) is preserved; only the hidden identities
-  // change. Sample several and average to marginalize over the unknown.
-  // `forSeat`'s own zones are left intact (its deck is reshuffled -- it knows the
-  // contents but not the draw order).
+  // the OTHER seat's hidden zones (hand + deck) resampled from the library
+  // pool, so `forSeat`'s search does not read the opponent's real hand. The
+  // resample is belief-conditioned: cards are weighted toward the colors the
+  // opponent has already revealed (board + auras + graveyard), Laplace-smoothed
+  // so early game it is uniform and unseen colors stay reachable -- the search
+  // imagines plausible hands, not uniform-random ones. Public state (boards,
+  // crystals, graveyard, heroes, hand/deck SIZES) is preserved; only the hidden
+  // identities change. Sample several and average to marginalize over the
+  // unknown. `forSeat`'s own zones are left intact (its deck is reshuffled --
+  // it knows the contents but not the draw order).
   std::unique_ptr<Game> determinize(int forSeat, std::mt19937& rng) const;
 
   Player& player(int i) { return players_[i]; }
