@@ -803,9 +803,11 @@ func _kw_short(kw: String) -> String:
 
 
 # Keyword ids actually present in the pool, sorted by their Russian short name.
-# Internal/bespoke keywords with no player-facing glossary entry (penta cards):
-# they must not appear in the keyword filter as raw ids.
-const HIDDEN_KW := ["echo", "mirror", "vanguard"]
+# Excluded from the filter: bespoke penta keywords with no player-facing glossary
+# entry (echo/mirror/cleave/breaker -- they render as the card's printed rules,
+# not a chip), plus delay, which is folded into an effect's timing ("Через N
+# ходов") and never shown as its own keyword.
+const HIDDEN_KW := ["echo", "mirror", "cleave", "breaker", "delay"]
 
 
 func _pool_keywords() -> Array:

@@ -233,19 +233,37 @@ static const char* kTestCards = R"json([
   { "id": "dual", "name": { "ru": "Двуцвет" }, "type": "creature",
     "color": ["red", "blue"], "cost": { "red": 1, "blue": 1 },
     "stats": { "atk": 2, "hp": 2 } },
+  { "id": "dualfree", "name": { "ru": "Двуцвет-даром" }, "type": "creature",
+    "color": ["red", "blue"], "cost": { "generic": 0 },
+    "stats": { "atk": 2, "hp": 2 } },
+  { "id": "wardbeast", "name": { "ru": "Нимб-зверь" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 5, "hp": 5 },
+    "keywords": [{ "id": "ward" }] },
   { "id": "auradispel", "name": { "ru": "Развей" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "action": "dispel", "value": 1,
                   "selector": "chosen_enemy_aura" }] },
-  { "id": "echobeast", "name": { "ru": "Эхо-Зверь" }, "type": "creature",
-    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 },
-    "keywords": [{ "id": "echo" }] },
+  { "id": "echoaura", "name": { "ru": "Эхо-аура" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "echo" }] },
   { "id": "mirrorman", "name": { "ru": "Зеркало" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 9 },
     "keywords": [{ "id": "mirror" }] },
-  { "id": "vanguarder", "name": { "ru": "Авангард" }, "type": "creature",
-    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 4, "hp": 4 },
-    "keywords": [{ "id": "vanguard" }] },
+  { "id": "cleaver", "name": { "ru": "Кливер" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 4, "hp": 6 },
+    "keywords": [{ "id": "cleave", "n": 2 }] },
+  { "id": "breakerman", "name": { "ru": "Разлом" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "breaker" }] },
+  { "id": "crystalspell", "name": { "ru": "Кристалл" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion",
+                  "action": "crystallize", "required": true }] },
+  { "id": "musterspell", "name": { "ru": "Призыв" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "muster", "value": 2 }] },
+  { "id": "decayspell", "name": { "ru": "Распад" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "decay" }] },
   { "id": "hero_prism", "name": { "ru": "Ирида" }, "type": "hero",
     "keywords": [{ "id": "spectral_shift" }] },
   { "id": "hero_palette", "name": { "ru": "Тициана" }, "type": "hero",
@@ -2285,14 +2303,15 @@ TEST_CASE("sample.json loads with expected schema") {
   CHECK(pebble->cost.generic == 0);
 
   // five-colour penta
-  const CardDef* echo = lib.find("prismatic_echo_beast");
-  REQUIRE(echo != nullptr);
-  CHECK(echo->colors.size() == 5);
-  CHECK(echo->cost.generic == 3);
-  CHECK(echo->cost.pips[idx(Color::Red)] == 1);
-  CHECK(echo->cost.pips[idx(Color::Violet)] == 1);
-  CHECK(echo->stats.atk == 3);
-  CHECK(echo->stats.hp == 4);
+  const CardDef* colossus = lib.find("prismatic_rainbow_colossus");
+  REQUIRE(colossus != nullptr);
+  CHECK(colossus->colors.size() == 5);
+  CHECK(colossus->cost.generic == 3);
+  CHECK(colossus->cost.pips[idx(Color::Red)] == 1);
+  CHECK(colossus->cost.pips[idx(Color::Violet)] == 1);
+  CHECK(colossus->stats.atk == 6);
+  CHECK(colossus->stats.hp == 6);
+  CHECK(colossus->keywordN("cleave") == 3);
 }
 
 TEST_CASE("dispel destroys the chosen enemy aura by index") {
@@ -2332,16 +2351,38 @@ TEST_CASE("bot ramps every turn (defers the mana drop, never hoards)") {
   CHECK(ramped);
 }
 
-TEST_CASE("penta Echo Beast doubles your spell") {
+TEST_CASE("penta Prism Echo doubles only the first spell each turn") {
   CardLibrary lib = testLib();
-  Game g(lib, {"echobeast", "boltspell", "bear", "bear"}, repeat("bear", 30),
-         7);
+  Game g(lib, {"echoaura", "boltspell", "boltspell", "bear"},
+         repeat("bear", 30), 7);
   begin(g);
-  CHECK(g.playCard(handIndexOf(g, 0, "echobeast")));
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
   int before = g.player(1).heroHp;
   CHECK(
-      g.playCard(handIndexOf(g, 0, "boltspell")));  // 3 to enemy hero, doubled
+      g.playCard(handIndexOf(g, 0, "boltspell")));  // first spell: doubled (6)
   CHECK(g.player(1).heroHp == before - 6);
+  int mid = g.player(1).heroHp;
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "boltspell")));  // second spell: single (3)
+  CHECK(g.player(1).heroHp == mid - 3);
+}
+
+TEST_CASE("penta Prism Echo re-arms the double each of your turns") {
+  CardLibrary lib = testLib();
+  // Both boltspells are in the 4-card opening hand; the second is held for a
+  // later turn to prove the once-per-turn double reloads at turn start.
+  Game g(lib, {"echoaura", "boltspell", "boltspell", "bear"}, repeat("bear", 6),
+         7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  int b1 = g.player(1).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "boltspell")));  // this turn's first: -6
+  CHECK(g.player(1).heroHp == b1 - 6);
+  g.endTurn();  // -> seat 1
+  g.endTurn();  // -> seat 0, Echo re-armed
+  int b2 = g.player(1).heroHp;
+  CHECK(g.playCard(handIndexOf(g, 0, "boltspell")));  // next turn's first: -6
+  CHECK(g.player(1).heroHp == b2 - 6);
 }
 
 TEST_CASE("penta Prism Mirror reflects hero damage to the enemy hero") {
@@ -2358,22 +2399,249 @@ TEST_CASE("penta Prism Mirror reflects hero damage to the enemy hero") {
   CHECK(g.player(1).heroHp == h1 - 3);
 }
 
-TEST_CASE("penta Prism Vanguard snowballs the creatures you play") {
+TEST_CASE("penta Rainbow Colossus cleave rakes the enemy line") {
   CardLibrary lib = testLib();
-  Game g(lib, {"vanguarder", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  Game g(lib, {"cleaver", "bear", "bear", "bear"},
+         {"bear", "bear", "bear", "bear"}, 7);
   begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "cleaver")));  // sick this turn
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));  // enemy bear A (3/4)
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));  // enemy bear B (3/4)
+  g.endTurn();                                   // cleaver no longer sick
+  EntityId cid = g.player(0).board[0].id;
+  int hpA = g.player(1).board[0].hp;
+  int hpB = g.player(1).board[1].hp;
+  CHECK(g.attackHero(cid));  // face hit; cleave 2 to both enemy creatures
+  CHECK(g.player(1).board[0].hp == hpA - 2);
+  CHECK(g.player(1).board[1].hp == hpB - 2);
+}
+
+TEST_CASE("penta Rainbow Colossus cleave spares the struck creature") {
+  CardLibrary lib = testLib();
+  // Attacking a creature: the primary takes combat damage only (not an extra
+  // cleave hit); every OTHER enemy creature takes the cleave. Walls (0 atk)
+  // mean no retaliation muddies the numbers, and the cleaver survives to be
+  // checked.
+  Game g(lib, {"cleaver", "bear", "bear", "bear"},
+         {"wall", "wall", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "cleaver")));  // 4/6 cleave 2, sick
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "wall")));  // enemy wall A (0/5)
+  CHECK(g.playCard(handIndexOf(g, 1, "wall")));  // enemy wall B (0/5)
+  g.endTurn();
+  EntityId cid = g.player(0).board[0].id;
+  EntityId aId = g.player(1).board[0].id;  // primary target
+  CHECK(g.attackCreature(cid, aId));
+  CHECK(g.player(1).board[0].hp == 1);   // A: 4 combat only, NOT +2 cleave
+  CHECK(g.player(1).board[1].hp == 3);   // B: 2 cleave only
+  CHECK(g.player(0).board.size() == 1);  // cleave never touches your own line
+}
+
+TEST_CASE("penta Prism Breaker destroys the highest-attack enemy on entry") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"breakerman", "bear", "bear", "bear"},
+         {"bear", "bruiser", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));     // 3/4
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 -- highest attack
+  g.endTurn();
+  REQUIRE(g.player(1).board.size() == 2);
+  CHECK(g.playCard(handIndexOf(g, 0, "breakerman")));  // ETB: destroy the 4/4
+  REQUIRE(g.player(1).board.size() == 1);
+  CHECK(g.player(1).board[0].def->id == "bear");  // bruiser (highest atk) fell
+}
+
+TEST_CASE("penta Prism Breaker just enters when the enemy board is empty") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"breakerman", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "breakerman")));  // no target -> no-op ETB
+  CHECK(g.player(0).board.size() == 1);                // it still enters
+  CHECK(g.player(1).board.empty());
+}
+
+TEST_CASE("penta Prism Breaker's destroy is soaked by a warded target") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"breakerman", "bear", "bear", "bear"},
+         {"wardbeast", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
   CHECK(
-      g.playCard(handIndexOf(g, 0, "vanguarder")));  // first one: no self-buff
-  CHECK(g.player(0).board[0].atk == 4);
-  CHECK(g.player(0).board[0].hp == 4);
+      g.playCard(handIndexOf(g, 1, "wardbeast")));  // 5/5 ward, highest attack
+  g.endTurn();
+  CHECK(g.playCard(
+      handIndexOf(g, 0, "breakerman")));  // ETB aims at it; ward eats
+  REQUIRE(g.player(1).board.size() == 1);
+  CHECK(g.player(1).board[0].def->id == "wardbeast");  // survived the destroy
+  CHECK_FALSE(g.player(1).board[0].warded);            // but the ward is spent
+}
+
+TEST_CASE("penta Crystallize shatters an enemy into permanent crystals") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"crystalspell", "bear", "bear", "bear"},
+         {"redonly", "redonly", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
   CHECK(
-      g.playCard(handIndexOf(g, 0, "bear")));  // +1/+1 (1 other: the vanguard)
-  CHECK(g.player(0).board.back().atk == 4);
-  CHECK(g.player(0).board.back().hp == 5);
+      g.placeCardToMana(handIndexOf(g, 1, "redonly"), Color::Red));  // red pip
   CHECK(
-      g.playCard(handIndexOf(g, 0, "bear")));  // +2/+2 (vanguard + first bear)
-  CHECK(g.player(0).board.back().atk == 5);
-  CHECK(g.player(0).board.back().hp == 6);
+      g.playCard(handIndexOf(g, 1, "redonly")));  // red 2/2 on the enemy board
+  REQUIRE(g.player(1).board.size() == 1);
+  g.endTurn();
+  EntityId rid = g.player(1).board[0].id;
+  int redBefore = g.player(0).mana.crystals[idx(Color::Red)];
+  CHECK(g.playCard(handIndexOf(g, 0, "crystalspell"), rid));
+  CHECK(g.player(1).board.empty());  // destroyed
+  CHECK(g.player(0).mana.crystals[idx(Color::Red)] == redBefore + 1);  // + red
+}
+
+TEST_CASE(
+    "penta Crystallize gains one crystal per colour, none for colourless") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"crystalspell", "crystalspell", "bear", "bear"},
+         {"dualfree", "bear", "bear", "bear"}, 7);
+  begin(g);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "dualfree")));  // red+blue 2/2 (free)
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));      // colourless 3/4
+  g.endTurn();
+  int r0 = g.player(0).mana.crystals[idx(Color::Red)];
+  int b0 = g.player(0).mana.crystals[idx(Color::Blue)];
+  EntityId dualId = g.player(1).board[0].id;
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "crystalspell"), dualId));  // +1 red +1 blue
+  CHECK(g.player(0).mana.crystals[idx(Color::Red)] == r0 + 1);
+  CHECK(g.player(0).mana.crystals[idx(Color::Blue)] == b0 + 1);
+  int tot1 = 0;
+  for (int v : g.player(0).mana.crystals) tot1 += v;
+  EntityId bearId = g.player(1).board[0].id;  // the colourless bear
+  CHECK(g.playCard(handIndexOf(g, 0, "crystalspell"), bearId));
+  CHECK(g.player(1).board.empty());  // destroyed
+  int tot2 = 0;
+  for (int v : g.player(0).mana.crystals) tot2 += v;
+  CHECK(tot2 == tot1);  // a colourless creature yields no crystals
+}
+
+TEST_CASE("penta Crystallize cannot be cast without an enemy creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"crystalspell", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "crystalspell"), 0));  // required
+  CHECK(handIndexOf(g, 0, "crystalspell") >= 0);  // still in hand, not spent
+}
+
+TEST_CASE("penta Rainbow Muster pulls creatures from the deck into play") {
+  CardLibrary lib = testLib();
+  // Half musterspell, half creatures: a musterspell is drawn and, whatever the
+  // shuffle, plenty of bears remain in the deck for two to be found.
+  std::vector<std::string> deck0;
+  for (int i = 0; i < 10; ++i) {
+    deck0.push_back("musterspell");
+    deck0.push_back("bear");
+  }
+  Game g(lib, deck0, repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
+  int before = static_cast<int>(g.player(0).board.size());
+  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
+  CHECK(static_cast<int>(g.player(0).board.size()) == before + 2);
+}
+
+TEST_CASE("penta Rainbow Muster enters bodies sick and skips their ETB") {
+  CardLibrary lib = testLib();
+  // Same deck layout as the basic muster (so a musterspell lands at seed 7),
+  // but the bodies are Breakers: if muster fired their ETB it would destroy the
+  // enemy creature -- it must not. They also enter summoning sick.
+  std::vector<std::string> deck0;
+  for (int i = 0; i < 10; ++i) {
+    deck0.push_back("musterspell");
+    deck0.push_back("breakerman");
+  }
+  Game g(lib, deck0, repeat("bear", 12), 7);
+  begin(g);
+  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));  // an enemy creature to protect
+  g.endTurn();
+  int before = static_cast<int>(g.player(0).board.size());
+  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
+  CHECK(static_cast<int>(g.player(0).board.size()) == before + 2);
+  CHECK(g.player(1).board.size() == 1);  // no mustered Breaker ETB fired
+  for (const auto& c : g.player(0).board)
+    if (c.def->id == "breakerman") CHECK(c.sick);  // entered summoning sick
+}
+
+TEST_CASE("penta Rainbow Muster returns revealed non-creatures to the deck") {
+  CardLibrary lib = testLib();
+  // A creature-less pool below the cast: muster finds nothing to summon, and
+  // the revealed spells go back to the deck (its size is unchanged), never
+  // milled to the graveyard -- only the muster card itself lands there.
+  std::vector<std::string> deck0;
+  for (int i = 0; i < 5; ++i) deck0.push_back("musterspell");
+  for (int i = 0; i < 10; ++i) deck0.push_back("boltspell");
+  Game g(lib, deck0, repeat("bear", 12), 7);
+  begin(g);
+  REQUIRE(handIndexOf(g, 0, "musterspell") >= 0);
+  int boardBefore = static_cast<int>(g.player(0).board.size());
+  int deckBefore = static_cast<int>(g.player(0).deck.size());
+  int graveBefore = static_cast<int>(g.player(0).graveyard.size());
+  CHECK(g.playCard(handIndexOf(g, 0, "musterspell")));
+  CHECK(static_cast<int>(g.player(0).board.size()) ==
+        boardBefore);  // none found
+  CHECK(static_cast<int>(g.player(0).deck.size()) ==
+        deckBefore);  // all returned
+  CHECK(static_cast<int>(g.player(0).graveyard.size()) ==
+        graveBefore + 1);  // only the muster spell itself
+}
+
+TEST_CASE(
+    "penta Spectral Decay removes exactly the next deck card and leftmost hand "
+    "card") {
+  CardLibrary lib = testLib();
+  // Tracked by EntityId (bears share a def, so identity is the only proof): the
+  // milled card is precisely deck.back() (what would be drawn next) and the
+  // discarded card is precisely hand.front() (leftmost); every other card keeps
+  // its place.
+  Game g(lib, {"decayspell", "bear", "bear", "bear"}, repeat("bear", 12), 7);
+  begin(g);
+  std::vector<EntityId> deck0, hand0;
+  for (const auto& ci : g.player(1).deck) deck0.push_back(ci.id);
+  for (const auto& ci : g.player(1).hand) hand0.push_back(ci.id);
+  REQUIRE(deck0.size() >= 2);
+  REQUIRE(hand0.size() >= 2);
+  CHECK(g.playCard(handIndexOf(g, 0, "decayspell")));
+  std::vector<EntityId> deck1, hand1;
+  for (const auto& ci : g.player(1).deck) deck1.push_back(ci.id);
+  for (const auto& ci : g.player(1).hand) hand1.push_back(ci.id);
+  // deck: old order with the last (top / next-draw) element dropped.
+  CHECK(deck1 == std::vector<EntityId>(deck0.begin(), deck0.end() - 1));
+  // hand: old order with the first (leftmost) element dropped.
+  CHECK(hand1 == std::vector<EntityId>(hand0.begin() + 1, hand0.end()));
+}
+
+TEST_CASE("penta Spectral Decay is a safe no-op with an empty deck or hand") {
+  CardLibrary lib = testLib();
+  // Seat 0 casts Decay repeatedly; seat 1 starts with an empty deck (its 3
+  // cards are all drawn into the opening hand) so milling must not fatigue, and
+  // once the hand empties the spell does nothing at all.
+  Game g(lib, repeat("decayspell", 12), {"bear", "bear", "bear"}, 7);
+  begin(g);
+  REQUIRE(g.player(1).deck.empty());
+  int hp0 = g.player(1).heroHp;
+  int grave = static_cast<int>(g.player(1).graveyard.size());
+  for (int cast = 1; cast <= 3; ++cast) {
+    CHECK(g.playCard(handIndexOf(g, 0, "decayspell")));
+    CHECK(g.player(1).heroHp == hp0);  // empty deck -> no mill, no fatigue
+    CHECK(static_cast<int>(g.player(1).graveyard.size()) == grave + cast);
+  }
+  REQUIRE(g.player(1).hand.empty());
+  int graveFull = static_cast<int>(g.player(1).graveyard.size());
+  CHECK(g.playCard(handIndexOf(g, 0, "decayspell")));  // both empty -> no-op
+  CHECK(g.player(1).heroHp == hp0);
+  CHECK(static_cast<int>(g.player(1).graveyard.size()) == graveFull);
 }
 
 TEST_CASE("a duplicate aura cannot be played") {

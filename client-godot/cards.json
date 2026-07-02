@@ -1715,58 +1715,6 @@
   },
 
   {
-    "id": "prismatic_the_truce",
-    "name": { "ru": "Перемирие", "en": "The Truce" },
-    "text": { "ru": "Опусти клинок — и оба уйдём богаче." },
-    "rules": { "ru": "Предложите сопернику мир. Принял: ничьи существа не атакуют 2 хода, оба берут +3 карты и +1 кристалл. Отказ: вы берёте +3 карты, соперник теряет 3 HP." },
-    "art": "two crossed weapons of light lowering as a rainbow truce-banner unfurls between two glowing camps -- balanced red, yellow, green, blue and violet, none dominant, no figures",
-    "type": "spell",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
-  },
-  {
-    "id": "prismatic_the_split",
-    "name": { "ru": "Делёж", "en": "The Split" },
-    "text": { "ru": "Я делю — ты выбираешь. Дели честно." },
-    "rules": { "ru": "Вскройте 6 верхних карт своей колоды двумя кучками. Соперник выбирает, какую кучку вы возьмёте в руку; вторая уходит в сброс." },
-    "art": "a hoard of glowing five-colour cards cleanly split into two equal stacks by a beam of light, one stack pushed forward -- balanced red, yellow, green, blue and violet, none dominant, no figures",
-    "type": "spell",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
-  },
-  {
-    "id": "prismatic_echo_beast",
-    "name": { "ru": "Эхо-Зверь", "en": "Echo Beast" },
-    "text": { "ru": "Каждый его шаг звучит дважды." },
-    "rules": { "ru": "Пока это существо в игре, ваши заклинания срабатывают дважды по той же цели." },
-    "art": "a five-colour prism-beast wreathed in overlapping rainbow echoes of itself, every motion doubling into spectral after-images -- balanced red, yellow, green, blue and violet, none dominant",
-    "type": "creature",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 3, "hp": 4 },
-    "keywords": [{ "id": "echo" }]
-  },
-  {
-    "id": "prismatic_censorship",
-    "name": { "ru": "Цензура", "en": "Censorship" },
-    "text": { "ru": "Ты держишь карты, но не знаешь какие." },
-    "rules": { "ru": "Пока в игре: соперник видит свою руку только по статам. При выходе порядок его руки перемешивается один раз." },
-    "art": "a wall of blank rainbow light falling across an enemy's hand, their cards blurred into featureless colour-backs -- balanced red, yellow, green, blue and violet, none dominant",
-    "type": "aura",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
-  },
-  {
-    "id": "prismatic_blackmail",
-    "name": { "ru": "Шантаж", "en": "Blackmail" },
-    "text": { "ru": "Плати — или это сыграю я." },
-    "rules": { "ru": "Раскройте карту из руки, которую можете оплатить в этом ходу. В начале следующего хода соперника он либо платит её ману (карта уходит в вашу колоду), либо вы разыгрываете её бесплатно." },
-    "art": "a glowing five-colour card pinned face-up beneath a chained lock, a ticking ransom of rainbow light -- balanced red, yellow, green, blue and violet, none dominant",
-    "type": "spell",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
-  },
-  {
     "id": "prismatic_prism_mirror",
     "name": { "ru": "Призма-Зеркало", "en": "Prism Mirror" },
     "text": { "ru": "Бей в лицо — попадёшь в своё." },
@@ -1779,6 +1727,40 @@
     "keywords": [{ "id": "mirror" }]
   },
   {
+    "id": "prismatic_prism_breaker",
+    "name": { "ru": "Призма-Разлом", "en": "Prism Breaker" },
+    "text": { "ru": "Он выбирает сильнейшего — и гасит его первым." },
+    "rules": { "ru": "При выходе: уничтожьте вражеское существо с наибольшей атакой." },
+    "art": "a towering fractured prism-golem of five-colour glass levelling a beam that shatters the largest enemy shard-beast -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "creature",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 5, "hp": 6 },
+    "keywords": [{ "id": "breaker" }]
+  },
+  {
+    "id": "prismatic_rainbow_colossus",
+    "name": { "ru": "Радужный Колосс", "en": "Rainbow Colossus" },
+    "text": { "ru": "Один шаг — и вся вражеская линия в осколках." },
+    "rules": { "ru": "Когда атакует: наносит 3 урона каждому другому вражескому существу." },
+    "art": "a colossal rainbow prism-titan mid-stride, its strike refracting into beams that rake the whole enemy line -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "creature",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "stats": { "atk": 6, "hp": 6 },
+    "keywords": [{ "id": "cleave", "n": 3 }]
+  },
+  {
+    "id": "prismatic_blood_auction",
+    "name": { "ru": "Кровавый Аукцион", "en": "Blood Auction" },
+    "text": { "ru": "Сколько здоровья не жалко за победу?" },
+    "rules": { "ru": "Начиная с соперника, по очереди набавляете ставку HP за «уничтожить всех вражеских существ». Спасовавший уступает торг; другой платит свою ставку HP и забирает эффект." },
+    "art": "a glowing five-colour gavel raised over a radiant prize, two rising columns of life-light as competing bids -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "spell",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+  },
+  {
     "id": "prismatic_the_standoff",
     "name": { "ru": "Противостояние", "en": "The Standoff" },
     "text": { "ru": "Удар или защита — оба гадают." },
@@ -1789,35 +1771,57 @@
     "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
   },
   {
-    "id": "prismatic_prism_vanguard",
-    "name": { "ru": "Призма-Авангард", "en": "Prism Vanguard" },
-    "text": { "ru": "Под его знаменем всякий новобранец — гигант." },
-    "rules": { "ru": "Существа, которые вы разыгрываете, выходят с +1/+1 за каждое другое ваше существо в момент выхода." },
-    "art": "a rainbow vanguard-commander of light raising a banner, lesser light-soldiers swelling larger in its presence -- balanced red, yellow, green, blue and violet, none dominant, the whole scene drawn as flat glowing light-lines, not realistic painted persons",
-    "type": "creature",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
-    "stats": { "atk": 4, "hp": 4 },
-    "keywords": [{ "id": "vanguard" }]
-  },
-  {
-    "id": "prismatic_draft_pick",
-    "name": { "ru": "Жеребьёвка", "en": "Draft Pick" },
-    "text": { "ru": "Бери четыре — одну отдай врагу." },
-    "rules": { "ru": "Возьмите 4 карты; соперник выбирает одну из них себе." },
-    "art": "four glowing five-colour cards fanned out, two hands reaching in to pick in turn -- balanced red, yellow, green, blue and violet, none dominant",
-    "type": "spell",
-    "color": ["red", "yellow", "green", "blue", "violet"],
-    "cost": { "generic": 0, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
-  },
-  {
-    "id": "prismatic_the_auction",
-    "name": { "ru": "Аукцион", "en": "The Auction" },
-    "text": { "ru": "Сколько здоровья не жалко за победу?" },
-    "rules": { "ru": "На торгах — «уничтожить все вражеские существа». Начиная с соперника, по очереди набавляете ставку HP; спасовавший проигрывает торг, другой платит свою ставку HP и забирает эффект." },
-    "art": "a glowing five-colour gavel raised over a radiant prize, two rising columns of life-light as competing bids -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "id": "prismatic_the_ultimatum",
+    "name": { "ru": "Ультиматум", "en": "The Ultimatum" },
+    "text": { "ru": "Отдай сильнейшего — или истеки кровью." },
+    "rules": { "ru": "Соперник выбирает: пожертвовать своё существо с наибольшей атакой ИЛИ потерять 5 HP." },
+    "art": "a five-colour scale-balance of light weighing a captured shard-beast against a draining pool of lifeblood -- balanced red, yellow, green, blue and violet, none dominant, no figures",
     "type": "spell",
     "color": ["red", "yellow", "green", "blue", "violet"],
     "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 }
+  },
+  {
+    "id": "prismatic_crystallize",
+    "name": { "ru": "Кристаллизация", "en": "Crystallize" },
+    "text": { "ru": "Их сила застынет в твоём спектре." },
+    "rules": { "ru": "Уничтожьте вражеское существо; добавьте в свой пул перманентный кристалл каждого его цвета." },
+    "art": "an enemy shard-beast freezing mid-roar into faceted five-colour crystals that drift toward the caster's spectrum -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "spell",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_enemy_minion", "action": "crystallize", "required": true }]
+  },
+  {
+    "id": "prismatic_rainbow_muster",
+    "name": { "ru": "Радужный Призыв", "en": "Rainbow Muster" },
+    "text": { "ru": "Спектр не бывает пуст — из него выходят новые." },
+    "rules": { "ru": "Вскрывайте верх колоды, пока не откроются 3 существа — выложите их в игру. Остальные вскрытые карты уходят под низ колоды." },
+    "art": "three prism-beasts of rainbow light striding up out of a deck-shaped rift of colour, lesser cards sinking back below -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "spell",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 3, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "action": "muster", "value": 3 }]
+  },
+  {
+    "id": "prismatic_prism_echo",
+    "name": { "ru": "Призма-Эхо", "en": "Prism Echo" },
+    "text": { "ru": "Первое слово спектра всегда звучит дважды." },
+    "rules": { "ru": "Пока в игре: ваше первое за ход заклинание срабатывает второй раз по той же цели." },
+    "art": "a standing rainbow prism that splits one incoming ray into two identical echoing beams -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "aura",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 2, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "keywords": [{ "id": "echo" }]
+  },
+  {
+    "id": "prismatic_spectral_decay",
+    "name": { "ru": "Спектральный Распад", "en": "Spectral Decay" },
+    "text": { "ru": "Свет соперника тает — карта за картой." },
+    "rules": { "ru": "Соперник отправляет верхнюю (следующую к добору) карту колоды в сброс и сбрасывает крайнюю левую карту руки." },
+    "art": "a slow bleed of grey rot creeping across an enemy's glowing five-colour cards, dimming them to ash at the edges -- balanced red, yellow, green, blue and violet, none dominant, no figures",
+    "type": "spell",
+    "color": ["red", "yellow", "green", "blue", "violet"],
+    "cost": { "generic": 1, "red": 1, "yellow": 1, "green": 1, "blue": 1, "violet": 1 },
+    "effects": [{ "trigger": "on_play", "action": "decay" }]
   }
 ]

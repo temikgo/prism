@@ -75,6 +75,7 @@ void Game::startTurn() {
   p.placedManaThisTurn = false;
   p.summonedThisTurn = false;
   p.lensUsedThisTurn = false;  // Lens focuses the first spell of each turn
+  p.echoUsedThisTurn = false;  // Echo aura copies the first spell of each turn
   p.heroPowerUses = 0;         // limited hero passives recharge each turn
   for (auto& c : p.board) {
     c.sick = false;
@@ -338,25 +339,6 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
       nc.maxHp += resBonus;
       nc.hp += resBonus;
     }
-    // Penta Prism Vanguard: while one is in play, a creature you play enters
-    // with +1/+1 per OTHER creature you already control -- a snapshot at
-    // summon, like resonance. The Vanguard must already be on board, so the
-    // first one does not buff itself; tokens are summoned past this path and so
-    // do not.
-    bool hasVanguard = false;
-    for (const auto& c : p.board)
-      if (c.def->hasKeyword("vanguard")) {
-        hasVanguard = true;
-        break;
-      }
-    if (hasVanguard) {
-      int others = static_cast<int>(p.board.size());  // nc not inserted yet
-      nc.baseAtk += others;
-      nc.atk += others;
-      nc.baseMaxHp += others;
-      nc.maxHp += others;
-      nc.hp += others;
-    }
     // Insert at the chosen slot (default: append to the right).
     int at = (pos >= 0 && pos <= static_cast<int>(p.board.size()))
                  ? pos
@@ -378,6 +360,19 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
     for (int i = 0; i < copies && static_cast<int>(p.board.size()) < BoardLimit;
          ++i)
       summonToken(p, def, /*sick=*/true, /*hpOverride=*/1, at + 1 + i);
+    // Penta Prism Breaker: on entering, destroy the enemy creature with the
+    // highest attack (ties resolve to the first). A stealthed enemy cannot be
+    // picked; a warded one spends its ward instead of dying. The checkDeaths at
+    // the end of playResolved reaps the body.
+    if (def->hasKeyword("breaker")) {
+      Player& foe = players_[1 - p.index];
+      Creature* best = nullptr;
+      for (auto& c : foe.board) {
+        if (c.stealthed) continue;
+        if (!best || c.atk > best->atk) best = &c;
+      }
+      if (best && !absorbWard(*best)) best->hp = 0;
+    }
   } else if (def->type == CardType::Aura) {
     p.auras.push_back(def);  // sits in play; its static effects are read live
   }
@@ -392,18 +387,22 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
         p.pending.push_back(DelayedEffect{e, n, target, def});
   } else {
     resolveOnPlay(def, p, target);
-    // Penta Echo Beast: while it lives, your spells resolve a second time on
-    // the same target. Only hard-cast spells double here (delayed/awakened
-    // paths are separate); a target killed by the first pass simply yields no
-    // second hit.
-    if (def->type == CardType::Spell) {
+    // Penta Prism Echo (aura): your FIRST spell each turn resolves a second
+    // time on the same target. Once per turn (the copy itself does not
+    // re-trigger, so there is no loop); a target killed by the first pass
+    // yields no second hit. Only hard-cast spells double here (delayed/awakened
+    // paths are separate).
+    if (def->type == CardType::Spell && !p.echoUsedThisTurn) {
       bool hasEcho = false;
-      for (const auto& c : p.board)
-        if (c.def->hasKeyword("echo")) {
+      for (const auto* a : p.auras)
+        if (a->hasKeyword("echo")) {
           hasEcho = true;
           break;
         }
-      if (hasEcho) resolveOnPlay(def, p, target);
+      if (hasEcho) {
+        p.echoUsedThisTurn = true;
+        resolveOnPlay(def, p, target);
+      }
     }
   }
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
@@ -548,10 +547,21 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   // Red cauterize: this creature's combat damage seals the wielder's hero.
   if (a->def->hasKeyword("cauterize"))
     me.heroHp = std::min(HeroStartHp, me.heroHp + dealt);
-  a->stealthed = false;  // attacking reveals a stealthed creature
+  dealCleave(*a, opp, b->id);  // Colossus: the blow refracts across the line
+  a->stealthed = false;        // attacking reveals a stealthed creature
   a->markAttacked();
   checkDeaths();
   return true;
+}
+
+// Penta Rainbow Colossus (keyword `cleave` N): when `src` attacks, N damage
+// spills onto every other enemy creature (`skip` is the primary combat target,
+// 0 when the strike hit the hero). The source is `src` so lingering carries.
+void Game::dealCleave(const Creature& src, Player& opp, EntityId skip) {
+  int n = src.def->keywordN("cleave");
+  if (n <= 0) return;
+  for (auto& c : opp.board)
+    if (c.id != skip) damageCreature(c, n, &src);
 }
 
 bool Game::attackHero(EntityId attacker) {
@@ -567,6 +577,7 @@ bool Game::attackHero(EntityId attacker) {
   if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg);
   if (a->def->hasKeyword("cauterize"))
     me.heroHp = std::min(HeroStartHp, me.heroHp + dmg);
+  dealCleave(*a, opp, 0);  // Colossus: the blow refracts across the whole line
   a->stealthed = false;
   a->markAttacked();
   // Eclipse 'lighteater' (Erebus): a creature that strikes this hero has its
@@ -575,6 +586,10 @@ bool Game::attackHero(EntityId attacker) {
     a->baseAtk -= 1;
     recomputeContinuous();
   }
+  // Reap any enemy creature the cleave killed. Done last: attacking the hero
+  // draws no retaliation, so `a` (in me.board) is never invalidated before
+  // here.
+  checkDeaths();
   return true;
 }
 
@@ -1160,6 +1175,50 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
       // value N removes the N most recent (newest first).
       for (int k = 0; k < e.value && !opp.auras.empty(); ++k)
         opp.auras.pop_back();
+    }
+  } else if (a == "crystallize") {
+    // Penta Crystallize: shatter the chosen enemy creature into raw mana --
+    // gain a permanent crystal of each of its colours, then destroy it
+    // (checkDeaths, run by the caller, reaps the body). A warded target spends
+    // its ward.
+    for (Creature* t : selectTargets(e.selector, owner, target))
+      if (!absorbWard(*t)) {
+        for (Color col : t->def->colors) owner.mana.addCrystal(col);
+        t->hp = 0;
+      }
+  } else if (a == "muster") {
+    // Penta Rainbow Muster: reveal from the top of the deck until `value`
+    // creatures are found and put them into play as plain bodies (no ETB, so a
+    // mustered Breaker/resonance does not re-trigger); revealed non-creatures
+    // return to the bottom of the deck in their revealed order.
+    int need = e.value;
+    std::vector<CardInstance> toBottom;
+    while (need > 0 && !owner.deck.empty() &&
+           static_cast<int>(owner.board.size()) < BoardLimit) {
+      CardInstance ci = owner.deck.back();  // deck back == top
+      owner.deck.pop_back();
+      if (ci.def->type == CardType::Creature) {
+        owner.board.push_back(
+            makeCreature(ci.id, ci.def, /*sick=*/true, /*token=*/false, -1));
+        --need;
+      } else {
+        toBottom.push_back(ci);
+      }
+    }
+    for (auto it = toBottom.rbegin(); it != toBottom.rend(); ++it)
+      owner.deck.insert(owner.deck.begin(), *it);  // front == bottom
+    recomputeContinuous();  // the new bodies shift undergrowth totals
+  } else if (a == "decay") {
+    // Penta Spectral Decay: the opponent mills the top card of their deck
+    // (their next draw) and discards the leftmost card of their hand -- both to
+    // their graveyard.
+    if (!opp.deck.empty()) {
+      opp.graveyard.push_back(opp.deck.back().def);  // deck back == next draw
+      opp.deck.pop_back();
+    }
+    if (!opp.hand.empty()) {
+      opp.graveyard.push_back(opp.hand.front().def);  // leftmost card in hand
+      opp.hand.erase(opp.hand.begin());
     }
   }
 }

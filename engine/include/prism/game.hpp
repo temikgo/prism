@@ -128,6 +128,8 @@ struct Player {
   bool placedManaThisTurn = false;  // one card -> mana row per turn
   bool summonedThisTurn = false;    // played a creature yet (Violet glimmer)
   bool lensUsedThisTurn = false;    // Blue Lens: first spell each turn focused
+  bool echoUsedThisTurn =
+      false;  // Penta Echo aura: first spell each turn copied
   // Per-turn use counter for limited hero passives (spectral_shift, palette,
   // ...). A hero has a single passive, so there is no contention. It resets
   // each turn; a passive fires while uses are below its own per-turn limit (1
@@ -307,6 +309,11 @@ class Game {
   // anything else (chosen_enemy_minion) -> the opponent.
   Creature* findSelected(const std::string& selector, Player& owner,
                          EntityId target);
+
+  // Penta Rainbow Colossus (keyword `cleave`): when `src` attacks, its blow
+  // refracts across the enemy line -- N damage to every other enemy creature
+  // (`skip` is the primary combat target, 0 when it struck the hero).
+  void dealCleave(const Creature& src, Player& opp, EntityId skip);
 
   // Violet refract: a hit aimed at `hit` (an enemy creature) bends onto a
   // random other non-stealthed creature on `opp`'s board; returns the new
