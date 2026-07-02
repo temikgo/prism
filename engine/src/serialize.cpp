@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <sstream>
 #include <unordered_map>
 
@@ -309,7 +310,35 @@ std::unique_ptr<Game> Game::determinize(int forSeat, std::mt19937& rng) const {
   for (const auto& d : lib_.all())
     if (d.type != CardType::Hero) pool.push_back(&d);
   if (pool.empty()) return g;
-  std::uniform_int_distribution<std::size_t> pick(0, pool.size() - 1);
+  // Belief conditioning: the opponent's revealed cards (board, auras,
+  // graveyard) leak its deck's color identity -- forSeat legitimately sees
+  // them. Tally the observed colors and weight the resample toward them, so the
+  // search imagines plausible hands, not uniform-random ones. Laplace-smoothed
+  // (weight = 1 + seen) so early (nothing revealed) it stays uniform and unseen
+  // colors are always reachable. Colorless/neutral cards share one bucket.
+  std::array<double, 6> seen{};
+  auto tally = [&](const std::vector<Color>& cs) {
+    if (cs.empty()) seen[static_cast<int>(Color::Colorless)] += 1.0;
+    for (Color c : cs) seen[static_cast<int>(c)] += 1.0;
+  };
+  for (const auto& cr : p.board)
+    if (cr.def) tally(cr.def->colors);
+  for (const CardDef* a : p.auras)
+    if (a) tally(a->colors);
+  for (const CardDef* gv : p.graveyard)
+    if (gv) tally(gv->colors);
+  std::vector<double> weight(pool.size());
+  for (std::size_t i = 0; i < pool.size(); ++i) {
+    const auto& cs = pool[i]->colors;
+    if (cs.empty()) {
+      weight[i] = 1.0 + seen[static_cast<int>(Color::Colorless)];
+    } else {
+      double w = 0.0;
+      for (Color c : cs) w += 1.0 + seen[static_cast<int>(c)];
+      weight[i] = w / static_cast<double>(cs.size());
+    }
+  }
+  std::discrete_distribution<std::size_t> pick(weight.begin(), weight.end());
   for (auto& ci : p.hand) ci.def = pool[pick(rng)];
   for (auto& ci : p.deck) ci.def = pool[pick(rng)];
   // The bot's OWN deck: a player knows its contents but NOT the draw order, so
