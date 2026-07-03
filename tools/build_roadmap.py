@@ -54,7 +54,7 @@ def attr(s):
 
 LANDING_W = 1320
 LAB_X = 40             # left label column
-PLOT_X0 = 250          # timeline start (after the label column)
+PLOT_X0 = 155          # timeline start (after the label column, hugging the left edge)
 PLOT_X1 = LANDING_W - 48
 FUTURE_W = 168         # width of the "план" zone, right of the now-line
 NOW_X = PLOT_X1 - FUTURE_W
