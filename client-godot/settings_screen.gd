@@ -51,6 +51,11 @@ func _ready() -> void:
 	pcol.add_child(_url_edit)
 	pcol.add_child(Ui.label("Где запущен сервер матча.", 14, Ui.INK_FAINT))
 
+	pcol.add_child(Ui.gap(8))
+	pcol.add_child(Ui.caption("ГРОМКОСТЬ"))
+	pcol.add_child(_volume_row("Музыка", Audio.music_vol(), Audio.set_music))
+	pcol.add_child(_volume_row("Звук", Audio.sfx_vol(), Audio.set_sfx))
+
 	col.add_child(Ui.gap(6))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
@@ -66,6 +71,28 @@ func _ready() -> void:
 
 	_saved = Ui.label("", 13, Color(0.55, 0.82, 0.7), true)
 	col.add_child(_saved)
+
+
+# One labelled volume slider (0..1). `apply` is Audio.set_music / Audio.set_sfx, which
+# updates the bus live and persists it; it also plays a click so you hear the level.
+func _volume_row(label: String, value: float, apply: Callable) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var lbl := Ui.label(label, 14, Ui.INK_FAINT)
+	lbl.custom_minimum_size = Vector2(80, 0)
+	row.add_child(lbl)
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = value
+	slider.custom_minimum_size = Vector2(340, 0)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.value_changed.connect(func(v: float) -> void:
+		apply.call(v)
+		Audio.play("ui_toggle"))  # a soft tick per notch, not a click per drag step
+	row.add_child(slider)
+	return row
 
 
 func _on_reset() -> void:

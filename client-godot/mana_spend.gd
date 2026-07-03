@@ -138,6 +138,7 @@ func _toggle(entry: Dictionary) -> void:
 		entry["sel"] = false
 	elif _total() < _generic:
 		entry["sel"] = true
+	Audio.play("ui_toggle")  # each crystal tap in the spend chooser
 	_refresh()
 
 

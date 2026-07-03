@@ -313,9 +313,11 @@ func _chip(text: String, accent: Color, on_toggle: Callable) -> Button:
 	# Godot draws the toggled-on state with the `pressed` box only while held; for a
 	# sticky chip we restyle on toggle so `normal` carries the on/off look.
 	b.toggled.connect(func(pressed: bool) -> void:
+		Audio.play("ui_toggle")
 		b.add_theme_stylebox_override("normal", on if pressed else off)
 		b.add_theme_stylebox_override("hover", on if pressed else off)
 		on_toggle.call(pressed))
+	b.mouse_entered.connect(func() -> void: Audio.play("ui_hover"))
 	return b
 
 
@@ -371,8 +373,10 @@ func _tile(id: String) -> Control:
 func _on_tile_input(e: InputEvent, id: String) -> void:
 	if e is InputEventMouseButton and e.pressed:
 		if e.button_index == MOUSE_BUTTON_LEFT:
+			Audio.play("ui_tap")
 			_add(id)
 		elif e.button_index == MOUSE_BUTTON_RIGHT:
+			Audio.play("ui_tap")
 			_remove(id)
 
 

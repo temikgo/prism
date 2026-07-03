@@ -283,7 +283,9 @@ func _ability_button(cr: Dictionary, cid: int, kid: String) -> Button:
 	# Styled hover panel (a non-empty tooltip_text is still required to trigger).
 	b.tooltip_text = Glossary.keyword_name({"id": kid, "n": CardData.keyword_n(String(cr["card"]), kid)})
 	b.tooltip_builder = func() -> Control: return _ability_tooltip_panel(cr, kid, used)
-	b.pressed.connect(func() -> void: activate_requested.emit(cid))
+	b.pressed.connect(func() -> void:
+		Audio.play("ui_click")
+		activate_requested.emit(cid))
 	return b
 
 

@@ -6,6 +6,10 @@ config/name="Prism"
 run/main_scene="res://App.tscn"
 config/features=PackedStringArray("4.3")
 
+[autoload]
+
+Sfx="*res://sfx.gd"
+
 [display]
 
 window/size/viewport_width=1500

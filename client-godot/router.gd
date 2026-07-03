@@ -40,6 +40,7 @@ func _ready() -> void:
 	# making its own. Screens swap above it, so the drifting particle field is
 	# continuous and never resets/re-randomizes when routing between screens.
 	add_child(Backdrop.new())
+	Audio.start_ambient()  # a quiet pad loop under the menu and every match
 	_go_main()
 	# If a match was interrupted, ask the server whether it is still resumable;
 	# "Продолжить партию" appears only once canResume confirms it (so a stale or

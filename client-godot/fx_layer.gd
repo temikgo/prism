@@ -22,6 +22,8 @@ var _cast_active := false
 var _cast_from := Vector2.ZERO
 var _cast_to := Vector2.ZERO
 var _cast_grow := 0.0  # 0..1, the tip growing from source to target
+var _cast_gen := 0     # bumped per cast so a stale tween can't clear a newer beam
+var _cast_tween: Tween = null
 
 
 func _process(dt: float) -> void:
@@ -39,19 +41,28 @@ func _draw() -> void:
 # Fire the cast arrow from `from_pos` to `to_pos`: it grows to the target, holds,
 # then fades. Global coords (the layer sits at the origin, like the drag beam).
 func cast_beam(from_pos: Vector2, to_pos: Vector2) -> void:
+	# A new cast replaces any in-flight one (only ever one arrow at a time): kill
+	# the old tween so its modulate fade can't fight the new one, and tag this cast
+	# so the old tween's end-callback (if it still fires) is ignored.
+	if _cast_tween != null and _cast_tween.is_valid():
+		_cast_tween.kill()
+	_cast_gen += 1
+	var gen := _cast_gen
 	_cast_from = from_pos
 	_cast_to = to_pos
 	_cast_grow = 0.0
 	_cast_active = true
 	modulate.a = 1.0
-	var t := create_tween()
-	t.tween_property(self, "_cast_grow", 1.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	t.tween_interval(0.62)
-	t.tween_property(self, "modulate:a", 0.0, 0.44)
-	t.tween_callback(_end_cast)
+	_cast_tween = create_tween()
+	_cast_tween.tween_property(self, "_cast_grow", 1.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_cast_tween.tween_interval(0.62)
+	_cast_tween.tween_property(self, "modulate:a", 0.0, 0.44)
+	_cast_tween.tween_callback(func() -> void: _end_cast(gen))
 
 
-func _end_cast() -> void:
+func _end_cast(gen: int) -> void:
+	if gen != _cast_gen:
+		return  # a newer cast has taken over -- don't clear its beam
 	_cast_active = false
 	modulate.a = 1.0
 

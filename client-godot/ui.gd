@@ -114,6 +114,9 @@ static func mbtn(text: String, kind: String, accent: Color = SIDE_ME,
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		note.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(note)
+	if not muted:
+		b.pressed.connect(func() -> void: Audio.play("ui_click"))
+		b.mouse_entered.connect(func() -> void: Audio.play("ui_hover"))
 	return b
 
 
@@ -307,6 +310,8 @@ static func neon_button(text: String, accent: Color) -> Button:
 	# default theme draws a focus outline that reads as a flat rectangle on click.
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(func() -> void: Audio.play("ui_click"))
+	b.mouse_entered.connect(func() -> void: Audio.play("ui_hover"))
 	return b
 
 

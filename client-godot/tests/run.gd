@@ -30,6 +30,13 @@ func _approx(actual: float, expected: float, msg: String) -> void:
 
 
 func _initialize() -> void:
+	# Script mode (-s) does not start project autoloads, so the global `Sfx` used
+	# by Ui/Main is undefined here. Register it by hand at /root/Sfx so those code
+	# paths resolve (and stay silent -- the headless audio driver is a no-op).
+	if not root.has_node("Sfx"):
+		var sfx: Node = load("res://sfx.gd").new()
+		sfx.name = "Sfx"
+		root.add_child(sfx)
 	DevKit.ensure_cards()
 	_test_devkit()
 	_test_card_data()

@@ -70,6 +70,8 @@ func _gui_input(event: InputEvent) -> void:
 		if _swallow_click:
 			_swallow_click = false
 			return
+		if hoverable:
+			Audio.play("ui_tap")  # selecting a card (mulligan pick, target select, awaken)
 		clicked.emit(payload)
 
 func _get_drag_data(_at: Vector2) -> Variant:

@@ -194,15 +194,15 @@ std::string publicEventJson(const Game& g, int seat,
     const auto& hand = g.player(seat).hand;
     if (hi < 0 || hi >= static_cast<int>(hand.size())) return "";
     e["card"] = hand[hi].def->id;  // resolved before the card leaves the hand
-    int t = a.value("target", 0);
-    if (t != 0) e["target"] = t;
+    // Keep the target whenever one was sent (even 0): an enemy-aura dispel
+    // target is a 0-based aura index, where 0 is a real target, not "none".
+    if (a.contains("target")) e["target"] = a["target"];
   } else if (act == "awaken") {
     int mi = a.value("manaRowIndex", -1);
     const auto& row = g.player(seat).manaRow;
     if (mi < 0 || mi >= static_cast<int>(row.size())) return "";
     e["card"] = row[mi].card.def->id;
-    int t = a.value("target", 0);
-    if (t != 0) e["target"] = t;
+    if (a.contains("target")) e["target"] = a["target"];
   } else if (act == "attackCreature") {
     e["attacker"] = a.value("attacker", 0);
     e["target"] = a.value("target", 0);

@@ -56,6 +56,12 @@ var _prev_piles := {}
 var _mull_sel := {}                    # mulligan: hand indices marked for replacing
 var _scry_sel := {}                    # scry: peeked indices marked for the bottom
 var _pending_lunge := {}               # {attacker, pos}: a just-sent attack to animate
+var _prev_current := -1                 # last view's active seat (turn-start sound edge)
+var _prev_over := false                 # was the game over last view (win/lose sting edge)
+var _prev_decision := false             # was a decision prompt up (prompt sound edge)
+var _prev_placed_mana := false          # had you banked mana this turn (mana sound edge)
+var _prev_my_auras := -1                 # your aura count last view (aura play/break edge)
+var _prev_opp_auras := -1                # enemy aura count last view
 var _enemy_hero_node = null            # enemy hero medallion node (lunge target)
 var _my_hero_node = null               # your hero medallion node (face-damage numbers)
 
@@ -196,12 +202,16 @@ func _play_pre_fx(event: Dictionary) -> void:
 			# target, so you see how it is played; untargeted spells/auras stay centred.
 			if cid != "" and not CardData.is_creature(cid):
 				_anim.reveal_card(cid)
-				var tgt := int(event.get("target", 0))
-				if tgt != 0:
-					var tn := _creature_node(tgt)
+				Audio.play("card_reveal")
+				# The arrow only for cards that actually target something (so an
+				# untargeted aura draws none), aimed at that target.
+				if CardData.needs_target(cid):
+					var tn := _reveal_target_node(cid, int(event.get("target", -1)))
 					if tn != null:
 						var vp := get_viewport_rect().size
 						_fx.cast_beam(vp * 0.5 + Vector2(0, 40), _node_center(tn))
+		"placeMana":
+			Audio.play("mana_place")
 		"attackCreature":
 			var tgt := int(event.get("target", 0))
 			_pending_lunge = {"attacker": int(event.get("attacker", 0)),
@@ -209,6 +219,17 @@ func _play_pre_fx(event: Dictionary) -> void:
 		"attackHero":
 			_pending_lunge = {"attacker": int(event.get("attacker", 0)),
 				"pos": _node_center(_my_hero_node)}
+
+
+# Where an opponent's targeted spell/aura is aimed, for the cast arrow. A dispel
+# hits one of YOUR auras (aim at your board's aura shelf); otherwise the target is
+# a creature entity id (heroes aren't node-tracked, so they draw no arrow).
+func _reveal_target_node(card_id: String, tgt: int) -> Control:
+	if CardData.target_side(card_id) == "enemy_aura":
+		return _my_board_zone
+	if tgt > 0:
+		return _creature_node(tgt)
+	return null
 
 
 # Click or space during the opponent's turn fast-forwards the paced replay (the
@@ -281,13 +302,18 @@ func _ingest_view(new_view: Dictionary) -> void:
 	# now-stale index, so drop it (and any open floodlight peek).
 	_close_picker()
 	_dismiss_peek()
+	_audio_for_view(new_view)
 	var d := GameState.diff(_prev_hp, new_view)
 	var new_hp: Dictionary = d["hp"]
 	# A creature we had is gone: detach its persistent node and fade it out.
+	var deaths := 0
 	for id in GameState.departed(_prev_hp, new_hp):
 		var dead := _take_creature(int(id))
 		if dead != null:
 			_anim.fade_out_dead(dead)
+			deaths += 1
+	if deaths > 0:
+		Audio.play("death")
 
 	var hero_dmg := _diff_hero_hp(new_view)
 	view = new_view
@@ -304,8 +330,48 @@ func _diff_hero_hp(new_view: Dictionary) -> Dictionary:
 		var hp := int(new_view["players"][s].get("hero", {}).get("hp", 0))
 		if _prev_hero_hp.has(s) and hp < _prev_hero_hp[s]:
 			dmg[s] = _prev_hero_hp[s] - hp
+		elif _prev_hero_hp.has(s) and hp > _prev_hero_hp[s]:
+			Audio.play("heal")  # a hero regained life
 		_prev_hero_hp[s] = hp
 	return dmg
+
+
+# Edge-triggered audio cues read straight off each incoming view (before it is
+# applied): your turn beginning, a decision prompt for you, banking mana, the
+# win/lose sting. Combat sounds are diff-driven instead (see _animate_changes /
+# _ingest_view), so they fire the same on either side's turn.
+func _audio_for_view(v: Dictionary) -> void:
+	if not v.has("players"):
+		return
+	var you := int(v.get("you", -1))
+	var cur := int(v.get("current", -1))
+	var over := bool(v.get("over", false))
+	var decide: bool = v.has("decision") and bool(v["decision"].get("youDecide", false))
+	var placed: bool = you >= 0 and bool(v["players"][you].get("placedMana", false))
+	var my_au: int = (v["players"][you].get("auras", []) as Array).size() if you >= 0 else 0
+	var opp_au: int = (v["players"][1 - you].get("auras", []) as Array).size() if you >= 0 else 0
+	if over and not _prev_over:
+		Audio.play("victory" if int(v.get("winner", -1)) == you else "defeat")
+	elif not over:
+		if cur == you and _prev_current != you and _prev_current != -1 \
+				and not bool(v.get("mulligan", false)):
+			Audio.play("turn_start")
+		if decide and not _prev_decision:
+			Audio.play("decision_prompt")
+		if placed and not _prev_placed_mana:
+			Audio.play("mana_place")
+		# An aura appeared on either side (played) or vanished (dispelled/expired).
+		if _prev_my_auras >= 0:
+			if my_au < _prev_my_auras or opp_au < _prev_opp_auras:
+				Audio.play("aura_break")
+			if my_au > _prev_my_auras or opp_au > _prev_opp_auras:
+				Audio.play("aura")
+	_prev_current = cur
+	_prev_over = over
+	_prev_decision = decide
+	_prev_placed_mana = placed
+	_prev_my_auras = my_au
+	_prev_opp_auras = opp_au
 
 
 # Apply damage / death / summon effects once the new board has laid out.
@@ -361,6 +427,7 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary, hero_dmg: Dictionar
 		var att := _creature_node(int(_pending_lunge["attacker"]))
 		if att != null:
 			_anim.lunge(att, _pending_lunge["pos"])
+			Audio.play("attack_hit")
 		_pending_lunge = {}
 	for id in summoned:
 		var sn := _creature_node(int(id))
@@ -368,24 +435,32 @@ func _animate_changes(dmg: Dictionary, summoned: Dictionary, hero_dmg: Dictionar
 			# A creature settles into its slot where it was dropped (you dragged it
 			# there -- no fly-in from elsewhere). Neighbours reflow to make room.
 			_anim.pop_in(sn)
-	var total := 0
+	if not summoned.is_empty():
+		Audio.play("summon")
+	var cre_total := 0
 	for id in dmg:
 		var nd := _creature_node(int(id))
 		if nd != null:
 			_anim.flash(nd)
 			_anim.float_number(
 				nd.global_position + Vector2(nd.size.x * 0.5, nd.size.y * 0.18), int(dmg[id]))
-		total += int(dmg[id])
+		cre_total += int(dmg[id])
 	# Face damage: the same flash + floating number on the hero medallion that took
 	# the hit (yours or the enemy's), so chip/burst damage to a hero reads too.
+	var hero_total := 0
 	for s in hero_dmg:
 		var hn = _my_hero_node if int(s) == int(view.get("you", 0)) else _enemy_hero_node
 		if hn != null and is_instance_valid(hn):
 			_anim.flash(hn)
 			_anim.float_number(hn.global_position + hn.size * Vector2(0.5, 0.2), int(hero_dmg[s]))
-		total += int(hero_dmg[s])
+		hero_total += int(hero_dmg[s])
+	var total := cre_total + hero_total
 	if total > 0:
 		_anim.shake(minf(4.0 + total * 1.7, 16.0))  # impact scales with the hit
+	if cre_total > 0:
+		Audio.play("damage")
+	if hero_total > 0:
+		Audio.play("hero_hit")  # a distinct, heavier blow when a hero is hit
 	_animate_piles()
 
 
@@ -404,6 +479,11 @@ func _animate_piles() -> void:
 		"foe_grave": int(view["players"][1 - you].get("graveyardCount", 0)),
 		"foe_hand": int(view["players"][1 - you].get("handCount", 0)),
 	}
+	# Your hand growing means you drew (turn draw, muster, etc.) -- a soft riffle.
+	# Read the baseline before the loop below overwrites _prev_piles.
+	var prev_hand := int(_prev_piles.get("me_hand", -1))
+	if prev_hand >= 0 and counts["me_hand"] > prev_hand:
+		Audio.play("draw")
 	for key in counts:
 		# Pulse on ANY change (not just a direction), so it always fires; skip the
 		# first view (no baseline yet) to avoid a pulse on entering the match.
@@ -791,6 +871,7 @@ func _spell_cast_fx(data: Variant) -> void:
 		return
 	var face := CardView.face(card_id, null)
 	_anim.cast_dissolve(face, get_global_mouse_position())
+	Audio.play("card_play")
 
 
 func _is_spell(card_id: String) -> bool: return CardData.is_spell(card_id)

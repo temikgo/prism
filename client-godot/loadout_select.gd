@@ -184,6 +184,7 @@ func _hero_tile(hero_id: String) -> Control:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.gui_input.connect(func(e: InputEvent) -> void:
 		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			Audio.play("ui_tap")
 			_hero_id = hero_id
 			_refresh())
 	_hook_hover(panel, func() -> bool: return hero_id == _hero_id)
@@ -328,6 +329,7 @@ func _corner_button(icon_path: String, normal: Color, hover: Color, left: int) -
 	b.offset_top = 8
 	b.offset_right = left + 30
 	b.offset_bottom = 38
+	b.pressed.connect(func() -> void: Audio.play("ui_click"))
 	return b
 
 
@@ -350,6 +352,7 @@ func _deck_panel(deck: Dictionary, scale_target: Control = null) -> Control:
 	var did := String(deck["id"])
 	panel.gui_input.connect(func(e: InputEvent) -> void:
 		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			Audio.play("ui_tap")
 			_deck_id = did
 			_refresh())
 	_hook_hover(panel, func() -> bool: return did == _deck_id, scale_target)
@@ -422,6 +425,7 @@ func _hook_hover(panel: Control, selected_fn: Callable, scale_target: Control = 
 	panel.set_meta("hovered", false)
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	panel.mouse_entered.connect(func() -> void:
+		Audio.play("ui_hover")
 		panel.set_meta("hovered", true)
 		_restyle(panel, selected_fn.call())
 		st.pivot_offset = st.size / 2.0
