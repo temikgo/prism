@@ -83,6 +83,12 @@ static const char* kTestCards = R"json([
   { "id": "renewer", "name": { "ru": "Возрожденец" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
     "keywords": [{ "id": "renewal", "n": 1 }] },
+  { "id": "bulwarker", "name": { "ru": "Оплот зари" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 4 },
+    "keywords": [{ "id": "bulwark", "n": 2 }] },
+  { "id": "wardenpost", "name": { "ru": "Дозорная веха" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 4 },
+    "keywords": [{ "id": "warden", "n": 1 }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -942,6 +948,37 @@ TEST_CASE("sprout summons N 1/1 tokens up to the board cap") {
   CHECK(g.player(0).board[0].atk == 1);
   CHECK(g.player(0).board[0].hp == 1);
   CHECK(g.player(0).board[1].atk == 1);
+}
+
+TEST_CASE("Bulwark layers hero armor each of its controller's turns") {
+  CardLibrary lib = testLib();
+  // A full deck so no fatigue eats into the armor mid-turn; the bulwarker is
+  // slipped straight into hand (a 30-card deck would rarely open it).
+  Game g(lib, repeat("bear", 30), repeat("bruiser", 30), 7);
+  begin(g);
+  g.player(0).hand.push_back(CardInstance{901, lib.find("bulwarker")});
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bulwarker")));  // bulwark 2
+  CHECK(g.player(0).heroArmor == 0);  // played after this turn's start
+  g.endTurn();
+  g.endTurn();  // -> p0's next turn start
+  CHECK(g.player(0).heroArmor == 2);
+  g.endTurn();
+  g.endTurn();  // another p0 turn: armor accumulates
+  CHECK(g.player(0).heroArmor == 4);
+}
+
+TEST_CASE("warden blinds an enemy at its controller's turn start") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"wardenpost", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wardenpost")));  // warden 1
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // enemy 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // -> p0 turn start: warden blinds the bruiser
+  CHECK(g.player(1).board[0].blindTurns > 0);
+  g.endTurn();  // -> p1: the blinded bruiser cannot attack
+  CHECK_FALSE(g.attackHero(br));
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

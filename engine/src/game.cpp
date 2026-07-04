@@ -148,6 +148,25 @@ void Game::applyTurnStartTriggers(Player& p) {
     if (r > 0) healCreature(c, r, p);
     int g = c.def->keywordN("growth");
     if (g > 0) buffStats(c, g);
+    // Yellow Bulwark: layer N hero armor each of your turns (it accumulates and
+    // is spent by dealHeroDamage before HP).
+    int bw = c.def->keywordN("bulwark");
+    if (bw > 0) p.heroArmor += bw;
+    // Yellow warden: blind N random un-blinded, unhidden enemies for their next
+    // turn (a warded one spends its ward instead). Fires on your turn start, so
+    // one blind turn = one turn of enemy attacks lost.
+    int wd = c.def->keywordN("warden");
+    if (wd > 0) {
+      Player& enemy = players_[1 - p.index];
+      std::vector<int> pool;
+      for (int i = 0; i < static_cast<int>(enemy.board.size()); ++i)
+        if (enemy.board[i].blindTurns == 0 && !enemy.board[i].stealthed)
+          pool.push_back(i);
+      std::shuffle(pool.begin(), pool.end(), rng_);
+      for (int k = 0; k < wd && k < static_cast<int>(pool.size()); ++k)
+        if (!absorbWard(enemy.board[pool[k]]))
+          enemy.board[pool[k]].blindTurns = 1;
+    }
   }
   int ramp = 0;
   for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
