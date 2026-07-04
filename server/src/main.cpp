@@ -145,6 +145,18 @@ void sendType(int fd, const std::string& type) {
   sendJson(fd, json{{"type", type}});
 }
 
+// A cryptographically-secure random source, kept separate from the gameplay
+// mt19937. Reconnect tokens and the match seed are SECRETS: they must not come
+// from the same stream whose outputs (room codes) are handed to clients,
+// because mt19937 state is linearly recoverable from a few observed outputs --
+// which would let an attacker predict future tokens (seat hijack + private-hand
+// leak) and the shuffle seed (the opponent's deck order). On Linux libstdc++,
+// std::random_device is backed by getrandom()/urandom (a CSPRNG).
+std::uint32_t secureRand() {
+  static std::random_device rd;
+  return rd();
+}
+
 // A short room code from an unambiguous alphabet (no 0/O/1/I), unique among the
 // live rooms.
 std::string makeCode(std::mt19937& rng) {
@@ -159,13 +171,15 @@ std::string makeCode(std::mt19937& rng) {
 }
 
 // A long random bearer token for reconnect (16 chars from the same alphabet),
-// unique among live sessions.
-std::string makeToken(std::mt19937& rng) {
+// unique among live sessions. Drawn from the CSPRNG, not the gameplay RNG: this
+// is the credential that authorises reclaiming a seat, so it must be
+// unpredictable. (32 divides 2^32 exactly, so % 32 is unbiased.)
+std::string makeToken() {
   static const char* kAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   std::string t;
   do {
     t.clear();
-    for (int i = 0; i < 16; ++i) t += kAlphabet[rng() % 32];
+    for (int i = 0; i < 16; ++i) t += kAlphabet[secureRand() % 32];
   } while (g_sessions.count(t) != 0);
   return t;
 }
@@ -207,7 +221,7 @@ void dumpReplay(const std::string& code, Room& r) {
 // Two players are in: pick heroes, seed, build and start the engine game, tell
 // both the match begins, then send the first views.
 void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
-  std::uint32_t seed = rng();
+  std::uint32_t seed = secureRand();  // secret: hides the shuffle / deck order
   std::vector<std::string> heroes = heroPool(lib);
   // Each seat uses its chosen hero/deck; fall back to a random hero and the
   // full-pool default deck if a client sent none (older client / empty pick).
@@ -234,10 +248,10 @@ void startMatch(Room& r, const CardLibrary& lib, std::mt19937& rng) {
   r.actionLog.clear();
   r.dumped = false;
   // Issue reconnect tokens for the human seats and hand each seat its own.
-  r.token[0] = makeToken(rng);
+  r.token[0] = makeToken();
   g_sessions[r.token[0]] = {r.code, 0};
   if (!r.vsBot) {
-    r.token[1] = makeToken(rng);
+    r.token[1] = makeToken();
     g_sessions[r.token[1]] = {r.code, 1};
   }
   r.disconnectAt = 0;
