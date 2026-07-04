@@ -1,5 +1,6 @@
 import asyncio
 import json
+import socket
 import subprocess
 
 import websockets
@@ -32,9 +33,21 @@ async def run():
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
     )
+    slow = []
     try:
         await asyncio.sleep(0.6)
         uri = f"ws://127.0.0.1:{PORT}"
+
+        # Slowloris guard (B1): open raw TCP connections that complete the TCP
+        # handshake but never finish the WS upgrade -- one sends nothing, one
+        # dribbles a partial request. On the old blocking server these parked the
+        # single thread in recv() forever; now they must NOT block real clients.
+        s_silent = socket.create_connection(("127.0.0.1", PORT))
+        s_partial = socket.create_connection(("127.0.0.1", PORT))
+        s_partial.sendall(b"GET / HTTP/1.1\r\n")  # no blank-line terminator
+        slow = [s_silent, s_partial]
+
+        # A normal client must still connect and play despite the stalled sockets.
         c0 = await websockets.connect(uri)
         c1 = await websockets.connect(uri)
 
@@ -157,12 +170,18 @@ async def run():
         await cx.send(json.dumps({"action": "resume", "token": "NOSUCHTOKEN0000"}))
         assert (await expect_type(cx, "resumeError"))["reason"] == "no_session"
         await cx.close()
-        print("WS smoke test PASSED (incl. reconnect + canResume)")
+        print("WS smoke test PASSED (incl. reconnect + canResume + slowloris)")
     finally:
+        for s in slow:
+            try:
+                s.close()
+            except Exception:
+                pass
+        proc.kill()
         try:
             proc.wait(timeout=2)
         except Exception:
-            proc.kill()
+            pass
 
 
 asyncio.run(asyncio.wait_for(run(), timeout=30))

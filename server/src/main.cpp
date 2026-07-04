@@ -1,10 +1,12 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include <cctype>
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -39,29 +41,14 @@ using nlohmann::json;
 
 namespace {
 
-void sendAll(int fd, const std::string& data) {
-  size_t sent = 0;
-  while (sent < data.size()) {
-    ssize_t n = send(fd, data.data() + sent, data.size() - sent, 0);
-    if (n <= 0) return;
-    sent += static_cast<size_t>(n);
-  }
-}
-
-// Read the client's HTTP upgrade request and complete the WebSocket handshake.
-bool doHandshake(int fd) {
-  std::string req;
-  char tmp[2048];
-  while (req.find("\r\n\r\n") == std::string::npos) {
-    ssize_t n = recv(fd, tmp, sizeof(tmp), 0);
-    if (n <= 0) return false;
-    req.append(tmp, static_cast<size_t>(n));
-    if (req.size() > 16384) return false;
-  }
-  std::string response;
-  if (!ws::handshake(req, response)) return false;
-  sendAll(fd, response);
-  return true;
+// Put a socket in non-blocking mode: no single client can then stall the
+// single-threaded server inside recv()/send() (a Slowloris connection that
+// never finishes its handshake, or a reader that stopped draining). All I/O is
+// driven by the poll loop instead, with a per-connection outbound queue (see
+// sendAll).
+void setNonBlocking(int fd) {
+  int fl = fcntl(fd, F_GETFL, 0);
+  if (fl >= 0) fcntl(fd, F_SETFL, fl | O_NONBLOCK);
 }
 
 // Temporary test deck: one copy of every designed (non-hero) card, no 30-card
@@ -89,7 +76,12 @@ struct Client {
   Phase phase = Phase::Lobby;
   std::string room;
   int seat = -1;
-  std::string buf;  // raw bytes awaiting WebSocket frame parsing
+  std::string buf;     // inbound bytes: the handshake request, then WS frames
+  std::string outbuf;  // outbound bytes awaiting a writable socket (POLLOUT)
+  bool handshaked = false;       // has the WebSocket upgrade completed?
+  std::time_t connectedAt = 0;   // accept time -- for the handshake deadline
+  std::time_t lastActivity = 0;  // last inbound byte -- for the idle-lobby GC
+  bool marked = false;  // scheduled for drop at the end of this poll pass
 };
 
 // A private match slot. Holds the shared secret, the two player sockets, and
@@ -128,6 +120,47 @@ std::unordered_map<std::string, Room> g_rooms;
 // Same-process only; a server restart clears them (survives-restart = later).
 std::unordered_map<std::string, std::pair<std::string, int>> g_sessions;
 constexpr int kReconnectGraceSec = 120;  // hold a seat this long after a drop
+constexpr size_t kMaxClients = 256;  // cap concurrent sockets (fd/RAM guard)
+constexpr size_t kMaxOutbuf = 4u << 20;  // drop a reader backed up past 4 MiB
+constexpr int kHandshakeSec = 10;        // finish the WS upgrade within this
+constexpr int kLobbyIdleSec = 300;       // idle in the bare lobby -> dropped
+
+// Try to drain a client's outbound queue without blocking; whatever the socket
+// won't take now waits for the next POLLOUT. A closed peer / real error marks
+// the client for drop. MSG_NOSIGNAL so a write to a gone peer never raises
+// SIGPIPE.
+void flushOut(int fd) {
+  auto it = g_clients.find(fd);
+  if (it == g_clients.end()) return;
+  Client& c = it->second;
+  while (!c.outbuf.empty()) {
+    ssize_t n = send(fd, c.outbuf.data(), c.outbuf.size(), MSG_NOSIGNAL);
+    if (n > 0) {
+      c.outbuf.erase(0, static_cast<size_t>(n));
+      continue;
+    }
+    if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+      return;         // wait POLLOUT
+    c.marked = true;  // peer closed or a hard error
+    return;
+  }
+}
+
+// Queue bytes for a client and try to flush now. The socket is non-blocking, so
+// a reader that has stopped draining backs up in outbuf instead of stalling the
+// whole single-threaded server; a backlog past the cap drops that client rather
+// than growing without bound.
+void sendAll(int fd, const std::string& data) {
+  auto it = g_clients.find(fd);
+  if (it == g_clients.end()) return;  // unknown / already-dropped fd
+  Client& c = it->second;
+  if (c.outbuf.size() + data.size() > kMaxOutbuf) {
+    c.marked = true;
+    return;
+  }
+  c.outbuf += data;
+  flushOut(fd);
+}
 
 // A human seat sits empty (dropped, awaiting reconnect)? Seat 0 is always
 // human; seat 1 is human unless it is the bot.
@@ -597,6 +630,8 @@ int main(int argc, char** argv) {
     return 1;
   }
   listen(srv, 16);
+  setNonBlocking(
+      srv);  // so the per-pass accept loop stops at EAGAIN, not blocks
   // Bound to INADDR_ANY: reachable on every interface. The host's own client
   // connects to ws://127.0.0.1:<port>; a friend uses the host's LAN IP, or a
   // forwarded/tunnelled address over the internet. Rooms partition the server.
@@ -610,65 +645,120 @@ int main(int argc, char** argv) {
   while (true) {
     std::vector<pollfd> fds;
     fds.push_back({srv, POLLIN, 0});
-    for (const auto& [fd, c] : g_clients) fds.push_back({fd, POLLIN, 0});
+    for (const auto& [fd, c] : g_clients) {
+      short ev = POLLIN;
+      if (!c.outbuf.empty()) ev |= POLLOUT;  // want to write queued output
+      fds.push_back({fd, ev, 0});
+    }
 
-    // 1s timeout so the loop wakes to sweep expired reconnect grace windows
-    // even when no socket is active.
+    // 1s timeout so the loop wakes to sweep expired reconnect grace windows and
+    // stale connections even when no socket is active.
     if (poll(fds.data(), static_cast<nfds_t>(fds.size()), 1000) < 0) break;
 
-    std::vector<int> dropped;
+    const std::time_t now = std::time(nullptr);
     for (const pollfd& pf : fds) {
       if (pf.fd == srv) {
         if (pf.revents & POLLIN) {
-          int fd = accept(srv, nullptr, nullptr);
-          if (fd >= 0) {
-            if (doHandshake(fd))
-              g_clients[fd];  // default Client in the lobby
-            else
-              close(fd);
+          // Accept every pending connection (level-triggered): a non-blocking
+          // accept loop until EAGAIN, capping total sockets. New sockets are
+          // non-blocking and start pre-handshake; the WS upgrade runs through
+          // this same loop (no synchronous blocking recv -- Slowloris-safe).
+          while (true) {
+            int fd = accept(srv, nullptr, nullptr);
+            if (fd < 0) break;
+            if (g_clients.size() >= kMaxClients) {
+              close(fd);  // at capacity: refuse rather than exhaust fds/RAM
+              continue;
+            }
+            setNonBlocking(fd);
+            Client& nc = g_clients[fd];
+            nc.connectedAt = now;
+            nc.lastActivity = now;
           }
         }
         continue;
       }
-      if (g_clients.count(pf.fd) == 0) continue;  // dropped earlier this pass
-      if (pf.revents & (POLLHUP | POLLERR)) {
-        dropped.push_back(pf.fd);
+      auto cit = g_clients.find(pf.fd);
+      if (cit == g_clients.end()) continue;  // dropped earlier this pass
+      if (pf.revents & (POLLHUP | POLLERR | POLLNVAL)) {
+        cit->second.marked = true;
         continue;
       }
+      if (pf.revents & POLLOUT) flushOut(pf.fd);
       if (!(pf.revents & POLLIN)) continue;
+
       char tmp[4096];
       ssize_t n = recv(pf.fd, tmp, sizeof(tmp), 0);
-      if (n <= 0) {
-        dropped.push_back(pf.fd);
+      if (n == 0) {
+        cit->second.marked = true;  // peer closed
         continue;
       }
-      g_clients[pf.fd].buf.append(tmp, static_cast<size_t>(n));
-      bool drop = false;
-      while (true) {
+      if (n < 0) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) cit->second.marked = true;
+        continue;  // spurious wake / would-block: nothing to do
+      }
+      cit->second.buf.append(tmp, static_cast<size_t>(n));
+      cit->second.lastActivity = now;
+
+      // Pre-handshake: accumulate the HTTP upgrade request until its header
+      // terminator, then complete the WS handshake once (kept off the blocking
+      // path). An oversized or malformed request drops the connection.
+      if (!cit->second.handshaked) {
+        std::string& b = cit->second.buf;
+        size_t end = b.find("\r\n\r\n");
+        if (end == std::string::npos) {
+          if (b.size() > 16384) cit->second.marked = true;
+          continue;
+        }
+        std::string response;
+        if (!ws::handshake(b, response)) {
+          cit->second.marked = true;
+          continue;
+        }
+        cit->second.handshaked = true;
+        b.erase(0, end + 4);  // keep any bytes after the header as frame data
+        sendAll(pf.fd, response);
+      }
+
+      // Handshaked: parse and dispatch every complete WS frame in the buffer.
+      // Re-look up the client each turn (handleText may drop it).
+      while (g_clients.count(pf.fd) != 0 && !g_clients[pf.fd].marked) {
         ws::Frame frame = ws::parse(g_clients[pf.fd].buf);
         if (frame.op == ws::Op::Incomplete) break;
         g_clients[pf.fd].buf.erase(0, frame.consumed);
         if (frame.op == ws::Op::Close) {
-          drop = true;
+          g_clients[pf.fd].marked = true;
           break;
         }
         if (frame.op == ws::Op::Ping) {
           sendAll(pf.fd, ws::frame(ws::Op::Pong, frame.payload));
           continue;
         }
-        if (frame.op == ws::Op::Text) {
+        if (frame.op == ws::Op::Text)
           handleText(pf.fd, frame.payload, lib, rng);
-          if (g_clients.count(pf.fd) == 0) break;  // handler dropped us
-        }
       }
-      if (drop) dropped.push_back(pf.fd);
     }
-    for (int fd : dropped)
-      if (g_clients.count(fd) != 0) dropClient(fd);
+
+    // Deadlines: a connection that never finished its handshake, or a socket
+    // sitting idle in the bare lobby, is reclaimed (bounds slow/idle abusers).
+    for (auto& [fd, c] : g_clients) {
+      if (!c.handshaked) {
+        if (now - c.connectedAt >= kHandshakeSec) c.marked = true;
+      } else if (c.phase == Phase::Lobby &&
+                 now - c.lastActivity >= kLobbyIdleSec) {
+        c.marked = true;
+      }
+    }
+
+    // Sweep every client marked for drop this pass (collect first: dropClient
+    // erases from g_clients).
+    std::vector<int> dead;
+    for (const auto& [fd, c] : g_clients)
+      if (c.marked) dead.push_back(fd);
+    for (int fd : dead) dropClient(fd);
 
     // Reconnect grace GC: a room whose human seat stayed empty past the window
     // is closed (this also bounds room memory -- the hardening item).
-    const std::time_t now = std::time(nullptr);
     std::vector<std::string> expired;
     for (const auto& [code, r] : g_rooms)
       if (r.playing && r.disconnectAt != 0 && roomHasDetachedHuman(r) &&
