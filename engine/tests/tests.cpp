@@ -25,6 +25,10 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 3, "hp": 4 } },
   { "id": "bruiser", "name": { "ru": "Дробитель" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 4, "hp": 4 } },
+  { "id": "deathknell", "name": { "ru": "Погребальный звон" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 },
+    "effects": [{ "trigger": "on_death", "selector": "enemy_hero",
+                  "action": "damage", "value": 2 }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -513,6 +517,26 @@ TEST_CASE("a token's death adds its card to the graveyard") {
   CHECK(g.attackCreature(br, tok));  // bruiser kills the 1-HP token
   CHECK(g.player(0).graveyard.size() ==
         1);  // the dead token counts in the pile
+}
+
+TEST_CASE("data-driven on_death effect fires when the creature dies") {
+  // Foundation of the redesign's trigger-as-data: an effect with trigger
+  // "on_death" runs through the same executeAction path as on_play, at death.
+  CardLibrary lib = testLib();
+  Game g(lib, {"deathknell", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  CHECK(
+      g.playCard(handIndexOf(g, 0, "deathknell")));  // 1/1, on_death: 2 to foe
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 to do the killing
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();  // bruiser awakes
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));  // deathknell dies
+  CHECK(g.player(0).board.empty());
+  CHECK(g.player(1).heroHp ==
+        hp - 2);  // its on_death effect hit the foe's hero
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

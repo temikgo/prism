@@ -703,6 +703,14 @@ void Game::reactTo(const Event& e) {
       if (!absorbWard(enemy.board[idx[i]]))
         enemy.board[idx[i]].blindTurns = dur;
   }
+  // Data-driven triggers: the dying card's own `on_death` effects fire now. Its
+  // controller is `owner`; the effects use auto-resolving selectors
+  // (enemy_hero, all_friendly, ...) since a death trigger has no chosen target.
+  // This is the general pattern every non-on_play trigger reuses (on_spell_cast
+  // / start_of_turn / on_heal / ...). Deaths caused here are swept by the
+  // enclosing checkDeaths loop.
+  for (const auto& ef : e.card->effects)
+    if (ef.trigger == "on_death") executeAction(ef, owner, 0, e.card);
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
