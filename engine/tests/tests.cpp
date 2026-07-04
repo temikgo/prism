@@ -89,6 +89,13 @@ static const char* kTestCards = R"json([
   { "id": "wardenpost", "name": { "ru": "Дозорная веха" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 4 },
     "keywords": [{ "id": "warden", "n": 1 }] },
+  { "id": "prowler", "name": { "ru": "Созвучный клинок" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 3 },
+    "keywords": [{ "id": "prowess", "n": 1 }] },
+  { "id": "dawnspell", "name": { "ru": "Ложный рассвет" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "all_friendly",
+                  "action": "buff_temp", "value": 2 }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -979,6 +986,52 @@ TEST_CASE("warden blinds an enemy at its controller's turn start") {
   CHECK(g.player(1).board[0].blindTurns > 0);
   g.endTurn();  // -> p1: the blinded bruiser cannot attack
   CHECK_FALSE(g.attackHero(br));
+}
+
+TEST_CASE("prowess grants a temporary +N attack per spell, gone at turn end") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"prowler", "boltspell", "boltspell", "bear"},
+         repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "prowler")));  // 1/3, prowess 1
+  CHECK(g.player(0).board[0].atk == 1);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "boltspell")));  // +1 -> 2
+  CHECK(g.player(0).board[0].atk == 2);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "boltspell")));  // stacks -> 3
+  CHECK(g.player(0).board[0].atk == 3);
+  g.endTurn();                           // your turn ends: prowess wears off
+  CHECK(g.player(0).board[0].atk == 1);  // back to base
+}
+
+TEST_CASE("buff_temp pumps then wears off at the controller's turn end") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "dawnspell", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));       // 3/4
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));       // 3/4
+  REQUIRE(g.playCard(handIndexOf(g, 0, "dawnspell")));  // +2/+2 to all (temp)
+  CHECK(g.player(0).board[0].atk == 5);
+  CHECK(g.player(0).board[0].hp == 6);
+  CHECK(g.player(0).board[1].atk == 5);
+  g.endTurn();  // wears off
+  CHECK(g.player(0).board[0].atk == 3);
+  CHECK(g.player(0).board[0].hp == 4);
+}
+
+TEST_CASE("a temp HP buff wearing off can drop a wounded creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "dawnspell", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4, plays turn 1
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 to trade into
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();                                          // -> p0, the bear wakes
+  REQUIRE(g.playCard(handIndexOf(g, 0, "dawnspell")));  // bear -> 5/6 (temp)
+  REQUIRE(g.attackCreature(g.player(0).board[0].id, br));  // kills 4/4, takes 4
+  CHECK(g.player(0).board[0].hp == 2);  // 6 - 4, still up on the temp HP
+  g.endTurn();  // temp +2 HP wears off -> 2 - 2 = 0 -> reaped
+  CHECK(g.player(0).board.empty());
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

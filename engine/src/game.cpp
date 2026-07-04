@@ -452,6 +452,17 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   // copy above is a re-resolution of the same spell, not a second cast.
   if (def->type == CardType::Spell) {
     fireBoardTrigger(p, "on_spell_cast");
+    // Blue/Red prowess: each of your creatures gains a temporary +N attack for
+    // this turn per spell you cast (attune's payoff; stacks across the turn).
+    bool anyProwess = false;
+    for (auto& c : p.board) {
+      int pw = c.def->keywordN("prowess");
+      if (pw > 0) {
+        c.tempAtk += pw;
+        anyProwess = true;
+      }
+    }
+    if (anyProwess) recomputeContinuous();
     checkDeaths();  // a reaction may have burned/killed a creature
   }
   // Palette hero (Tiziana): the first card you play each turn whose cost needs
@@ -920,14 +931,16 @@ void Game::recomputeContinuous() {
       // undergrowth, enemy chill and own incandescence are live here.
       // Undergrowth is +N per OTHER ally.
       int under = c.def->keywordN("undergrowth") * (allies - 1);
-      int eff =
-          c.baseAtk + under - enemyChill + myIncand;  // chill -atk, накал +atk
+      // tempAtk/tempHp are the end-of-turn buff layer (prowess, False Dawn),
+      // added on top like any other live modifier.
+      int eff = c.baseAtk + under - enemyChill + myIncand +
+                c.tempAtk;  // chill -atk, накал +atk
       c.atk = eff < 0 ? 0 : eff;
       // Undergrowth HP is continuous too: recompute the live max and carry the
       // same delta onto current hp, so damage is preserved. A shrinking board
       // can push hp <= 0 -- checkDeaths reaps it and loops, so the shrink can
       // cascade.
-      int newMaxHp = c.baseMaxHp + under;
+      int newMaxHp = c.baseMaxHp + under + c.tempHp;
       c.hp += newMaxHp - c.maxHp;
       c.maxHp = newMaxHp;
     }
@@ -1317,6 +1330,16 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
     // reaps it). flourish = buff over all_friendly; Waning Light = negative.
     for (Creature* t : selectTargets(e.selector, owner, target))
       buffStats(*t, e.value);
+  } else if (a == "buff_temp") {
+    // Temporary +value/+value over the selector, worn off at your turn end
+    // (False Dawn-style team pump). recomputeContinuous folds it into live atk/
+    // hp; the caller's checkDeaths is unnecessary (a positive temp buff cannot
+    // kill).
+    for (Creature* t : selectTargets(e.selector, owner, target)) {
+      t->tempAtk += e.value;
+      t->tempHp += e.value;
+    }
+    recomputeContinuous();
   } else if (a == "sprout") {
     // Summon `value` 1/1 sprouts, filling to the board cap.
     const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
@@ -1674,6 +1697,14 @@ Creature* Game::findSelected(const std::string& selector, Player& owner,
 void Game::endTurn() {
   if (over_ || decisionPending()) return;
   tickStatuses(players_[current_]);  // ending player's freeze/blind tick down
+  // End-of-turn buffs (prowess, False Dawn) wear off now. Recompute folds the
+  // loss back out of atk/hp; checkDeaths reaps anything the lost HP dropped.
+  for (auto& c : players_[current_].board) {
+    c.tempAtk = 0;
+    c.tempHp = 0;
+  }
+  recomputeContinuous();
+  checkDeaths();
   current_ = 1 - current_;
   turn_ += 1;
   startTurn();

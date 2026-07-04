@@ -85,6 +85,8 @@ struct Creature {
   bool warded = false;  // Yellow ward: absorbs the next harmful targeted effect
   bool stealthed = false;  // Violet stealth: untargetable until it attacks
   int unhealable = 0;      // Red lingering wounds that healing cannot restore
+  int tempAtk = 0;         // temp buff cleared at the controller's turn end
+  int tempHp = 0;  // (prowess, False Dawn); folded in recomputeContinuous
 
   // May this creature attack right now? It must be un-sick, not have attacked,
   // not be frozen or blinded, and have positive atk (0-atk creatures are
