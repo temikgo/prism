@@ -86,8 +86,8 @@
         { "label": "Когерентная колода бота + рамп-фикс", "at": "b93ac55", "status": "done", "weight": "major" },
         { "label": "Бот ценит ключевики (B0)", "at": "f07d8a9", "status": "done", "weight": "major" },
         { "label": "Роллаут-лист поиск (74% vs greedy)", "at": "0523b87", "status": "done", "weight": "major" },
-        { "label": "PUCT", "status": "abandoned", "weight": "major", "note": "плато ниже роллаут-1ply без обученного листа" },
-        { "label": "Обученные value/policy", "status": "abandoned", "weight": "major", "note": "supervised эксплуатируется argmax'ом / не бьёт эвристику — выпилено; on-policy (AlphaZero) не начат" }
+        { "label": "PUCT", "at": "79448d6", "status": "abandoned", "weight": "major", "note": "плато ниже роллаут-1ply без обученного листа" },
+        { "label": "Обученные value/policy", "at": "d92fca5", "status": "abandoned", "weight": "major", "note": "supervised эксплуатируется argmax'ом / не бьёт эвристику — выпилено; on-policy (AlphaZero) не начат" }
       ]
     },
     {
