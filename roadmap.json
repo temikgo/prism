@@ -15,7 +15,9 @@
         { "label": "Сериализация и clone", "at": "b26ccc3", "status": "done", "weight": "major" },
         { "label": "Валидация колод 40/≤2", "at": "30832b9", "status": "done", "weight": "minor" },
         { "label": "Ключевики ×8 на цвет", "at": "0d47360", "status": "done", "weight": "major" },
-        { "label": "Реактивные триггеры", "status": "planned", "weight": "major" }
+        { "label": "Триггеры-как-данные + Reflux/Requiem/Renewal", "at": "cab4c1b", "status": "done", "weight": "major" },
+        { "label": "Пересбор: селекторы + действия", "at": "cab4c1b", "status": "done", "weight": "minor" },
+        { "label": "Пересбор: fight + кейворды + timed-модификаторы", "status": "planned", "weight": "major" }
       ]
     },
     {
