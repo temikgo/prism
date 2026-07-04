@@ -1,0 +1,3334 @@
+{
+ "decks": [
+  {
+   "name": "Open Flame / Открытое пламя",
+   "colors": "Mono Red",
+   "speed": "Fast aggro/tempo; lethal clock around turn 5-6, purely on unpreventable damage.",
+   "strategy": "Mono-red burn that wins by inevitable damage, not by owning the board. Cheap RR bodies with bypass/pierce push face through any blocker; incandescence auras turn the whole team into an anemone of extra attack; a reach package (spark from crystals, sear on-death, direct burn spells) closes 6-10 damage independent of what is on the table. self_lifesteal/cauterize buy the extra turn a race needs.",
+   "wincon": "Reduce the enemy hero to 0 through damage the opponent cannot block or absorb: bypass/pierce combat + incandescence multiplier, plus spark activations, sear on-death, and burn spells from hand.",
+   "hero": "Пирр / Pyrrhus — passive Feverlight: the first creature you play each turn costs 1 less generic (min 0).",
+   "gameplan": "T1: drop a 1-pip enabler and start chipping face — Cinder Moth (bypass) or Lance Gnat (pierce), or Blood Impling for a lifesteal body vs other aggro; Ember Whelp banks a guaranteed sear even if it trades. T2: an RR commitment body (Ash Courser bypass / Stinging Hornet pierce) plus, on a spare beat, Blood Dawn for +1 team attack; Feverlight discounts the turn's first creature. T3: Feverlight shaves an RR+1 threat to RR — Blast Beetle (sear 2), Spark Gunner (spark 2), or Bonfire Polyp / War Drums to crank incandescence to +2 or +3 across the board; start spending leftover crystals on spark pings. T4: keep the beats coming with Ember Cannon (durable spark), holding Fire Spit to blow up the one blocker that actually matters or just sending it face. T5-6: assemble reach for the kill — Pyrrhus' Wrath (5 face), Sear Comet (4 face), Flame Titan (5/5 bypass that also sears on death), plus crystal-fed spark and any sear from trades. The board can be behind; the hero still dies.",
+   "keywords_used": [
+    "bypass",
+    "pierce",
+    "incandescence",
+    "sear",
+    "spark",
+    "self_lifesteal",
+    "cauterize"
+   ],
+   "curve_note": "Mono-red with no ramp, so power comes from color commitment, not mana growth: nearly every real threat is RR and every capstone is RRR — literally uncastable in a rainbow pile. By mana (counting spells/auras): 10 at 1, 12 at 2, 12 at 3, 4 at 4, 2 at 5. Aggressive but top-complete because the top end is reach, not fat bodies. Feverlight trims the first creature each turn (RR+1 to RR, RR+2 to RR+1) to keep tempo without any ramp card. 20 unique cards, all x2, summing to exactly 40.",
+   "matchups": "Most beats: Green (Overgrowth) and Blue (Glass Hour) — bypass/pierce and the reach package ignore their blockers and race their ramp/spell setup before it pays off; GB (Floodtide) and GV (Evergreen) — the clock kills before their midrange/combo loop assembles, and burn to face doesn't care about their value engine. Most loses to: Yellow (Long Noon) — provoke/shield/ward walls plus blind and lifegain blunt combat and out-heal the burn; RG (Rot and Bloom) — lifedrain + Requiem out-sustains the race turn for turn; YG (Bastion) — Bulwark armor, regen and go-tall lifegain outlast the reach total. Mirror/other red is a coin-flip decided by whoever curves the bypass bodies first.",
+   "new_mechanics": [
+    {
+     "name": "Feverlight (hero passive)",
+     "does": "Первое существо, сыгранное активным игроком за ход, стоит на 1 меньше generic (минимум 0). Даёт mono-red темп без единой карты рампа.",
+     "engine_work": "Добавить в turn-state флаг first_creature_played (сброс в start_of_turn). В расчёте стоимости карты-существа активного игрока: если флаг снят, вычесть 1 из generic-части (clamp >=0). Ставить флаг при разрешении сыгранного существа. Хуки: getPlayableCost + playCard. Пипсы (red) не трогаются — скидка только по generic."
+    },
+    {
+     "name": "Face-target burn selectors",
+     "does": "Прямой урон в лицо и по выбору: Fire Spit бьёт выбранное существо ИЛИ героя; Pyrrhus' Wrath и Sear Comet бьют строго вражеского героя.",
+     "engine_work": "Добавить фиксированный селектор enemy_hero и расширяемый chosen_any_target (существо ИЛИ герой) для action:damage; при выборе героя маршрутизировать в существующий dealHeroDamage. sear/spark уже наносят урон герою — переиспользовать тот же путь, новых keyword не нужно."
+    }
+   ],
+   "cards": [
+    {
+     "name_ru": "Гарь-Мотылёк",
+     "name_en": "Cinder Moth",
+     "type": "creature",
+     "cost": "R",
+     "stats": "2/1",
+     "keywords": "bypass",
+     "effect": "bypass: может бить героя даже при защитниках",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Уголёк-Стрелок",
+     "name_en": "Coal Slinger",
+     "type": "creature",
+     "cost": "R",
+     "stats": "1/2",
+     "keywords": "spark 1",
+     "effect": "активка раз/ход: 1 кристалл -> 1 в лицо",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Жаровой Птенец",
+     "name_en": "Ember Whelp",
+     "type": "creature",
+     "cost": "R",
+     "stats": "2/1",
+     "keywords": "sear 1",
+     "effect": "on_death: 1 урон вражескому герою",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Копейный Комар",
+     "name_en": "Lance Gnat",
+     "type": "creature",
+     "cost": "R",
+     "stats": "2/1",
+     "keywords": "pierce",
+     "effect": "pierce: лишний боевой урон переходит в лицо",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кровавый Бесёнок",
+     "name_en": "Blood Impling",
+     "type": "creature",
+     "cost": "R",
+     "stats": "1/2",
+     "keywords": "self_lifesteal",
+     "effect": "урон этим лечит его самого (устойчивость в гонке)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Жалящий Шершень",
+     "name_en": "Stinging Hornet",
+     "type": "creature",
+     "cost": "RR",
+     "stats": "3/2",
+     "keywords": "pierce",
+     "effect": "pierce: излишек по блокеру уходит в лицо",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пепельный Скакун",
+     "name_en": "Ash Courser",
+     "type": "creature",
+     "cost": "RR",
+     "stats": "3/2",
+     "keywords": "bypass",
+     "effect": "bypass: 3 в лицо мимо строя",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тлеющий Плясун",
+     "name_en": "Smolder Dancer",
+     "type": "creature",
+     "cost": "RR",
+     "stats": "2/3",
+     "keywords": "cauterize",
+     "effect": "боевой урон этим лечит вашего героя (анти-гонка)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Багряная Рысь",
+     "name_en": "Crimson Lynx",
+     "type": "creature",
+     "cost": "RR",
+     "stats": "3/1",
+     "keywords": "self_lifesteal",
+     "effect": "рвёт и лечится чужой кровью",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Багровый Рассвет",
+     "name_en": "Blood Dawn",
+     "type": "aura",
+     "cost": "R+1",
+     "stats": "-",
+     "keywords": "incandescence 1",
+     "effect": "аура, пока в игре: ваши существа +1 атака",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Огненный Плевок",
+     "name_en": "Fire Spit",
+     "type": "spell",
+     "cost": "RR",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 3 урона выбранной цели (существо или герой)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Подрывной Жук",
+     "name_en": "Blast Beetle",
+     "type": "creature",
+     "cost": "RR+1",
+     "stats": "3/3",
+     "keywords": "sear 2",
+     "effect": "on_death: 2 урона вражескому герою",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Искровой Стрелок",
+     "name_en": "Spark Gunner",
+     "type": "creature",
+     "cost": "RR+1",
+     "stats": "3/2",
+     "keywords": "spark 2",
+     "effect": "активка раз/ход: 1 кристалл -> 2 в лицо",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Клеймёный Страж",
+     "name_en": "Brand Warden",
+     "type": "creature",
+     "cost": "RR+1",
+     "stats": "4/3",
+     "keywords": "cauterize",
+     "effect": "боевой урон этим лечит вашего героя",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Костровой Полип",
+     "name_en": "Bonfire Polyp",
+     "type": "creature",
+     "cost": "RR+1",
+     "stats": "1/4",
+     "keywords": "incandescence 1",
+     "effect": "аура на теле: ваши существа +1 атака, пока он жив",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Барабаны Войны",
+     "name_en": "War Drums",
+     "type": "aura",
+     "cost": "RR+1",
+     "stats": "-",
+     "keywords": "incandescence 2",
+     "effect": "аура: ваши существа +2 атака",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гнев Пирра",
+     "name_en": "Pyrrhus' Wrath",
+     "type": "spell",
+     "cost": "RRR",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 5 урона вражескому герою",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Угольная Пушка",
+     "name_en": "Ember Cannon",
+     "type": "creature",
+     "cost": "RR+2",
+     "stats": "3/4",
+     "keywords": "spark 2",
+     "effect": "активка раз/ход: 1 кристалл -> 2 в лицо (прочное тело)",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Жгучая Комета",
+     "name_en": "Sear Comet",
+     "type": "spell",
+     "cost": "RR+2",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 4 урона вражескому герою",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Огненный Титан",
+     "name_en": "Flame Titan",
+     "type": "creature",
+     "cost": "RRR+1",
+     "stats": "5/5",
+     "keywords": "bypass, sear 2",
+     "effect": "bypass; on_death: 2 урона вражескому герою",
+     "role": "capstone",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "name": "Long Noon / Долгий полдень",
+   "colors": "Yellow (mono)",
+   "speed": "Slow control / lock — never races, stabilizes by turn 4-5 then drips out the kill",
+   "strategy": "A wall of light. Cheap provoke bodies backed by shield/ward/firststrike absorb the aggro turns for free, blind and flare switch off the one attacker that matters, and a deep healing package (regen ticks, the Витраж aura, the hero passive, cauterize walls, direct hero-heal) keeps everything alive. That same healing is the offense: Reflux converts every heal event into face damage, so surviving IS attacking. Bulwark stacks hero armor to make the wall literally unkillable, and awakened strobe finishers swing into the face twice to close.",
+   "hero": "Гелия / Helia — passive Dawnlight: at start of your turn, heal your most-wounded creature +1 HP. (This heal routes through the normal heal path, so with a Reflux body out it also pings the enemy face.)",
+   "gameplan": "T1: drop Марево (0/3 provoke+shield) or Проблеск (1/2 firststrike+regen) to blunt the first attacker for free. T2: Веха / Оберег / Клинок зари to stack provoke walls, or Затмение to blind their best attacker for 2 turns; regen and Dawnlight begin ticking. T3: land the engine — Венец (Reflux 1) or Столп света (cauterize wall) plus the Витраж aura; Полдень mass-blinds a wide board. T4: Оплот зари starts stacking hero armor (Bulwark 2) while Гаснущий свет / Гелиодор hold the line; hero is now healing 2-3 times a turn, each ping going face through Reflux. T5: Солнцеворот (Reflux 2) or Зенит (strobe wall) — every heal now drips 2-3 to face. T6+: Гелиос swings twice and Затмение полдня locks their whole board with blind 3 + a 6 heal (a Reflux burst). You have stabilized; the drip is inevitable.",
+   "wincon": "Inevitability via Reflux. Corona (Reflux 1) and Solstice (Reflux 2) turn the deck's heavy, unavoidable healing — regen ticks, the Витраж aura, Dawnlight, cauterize combat, the Lull/Total Eclipse hero-heals — into recurring face damage the opponent cannot interact with. It is closed out by an awakened strobe wall (Зенит / Гелиос) attacking the hero twice. The deck does not race; it out-survives, then drips.",
+   "keywords_used": [
+    "provoke (Маяк)",
+    "shield (Щит)",
+    "ward (Нимб)",
+    "firststrike (Опережение)",
+    "regen (Регенерация)",
+    "cauterize (Заживление)",
+    "blind (Ослепление)",
+    "flare (Вспышка)",
+    "strobe (Строб)",
+    "Reflux (Отсвет) — NEW",
+    "Bulwark (Оплот) — NEW",
+    "Dawnlight (hero passive) — NEW"
+   ],
+   "curve_note": "20 unique cards, exactly 2 copies each = 40. Curve is front-loaded for survival: 1-drop x2, 2-drop x5, 3-drop x5, 4-drop x4, 5-drop x2, 6-drop x2. Nine cards carry a YY pip and three carry YYY, so the walls and payoffs are hard-committed mono-Yellow (uncastable as a splash) while the single-Y bodies/removal are the cheap glue — a mono deck leaning RR/RRR-equivalent as required. Known weakness baked in: Yellow has no card draw and no hard removal, so the deck runs 2-ofs of every impactful body and answers threats by disabling (blind), not killing.",
+   "matchups": "MOST BEATS — Open Flame (Red aggro): provoke walls + shield/ward/firststrike eat their attack steps for zero cards, regen/cauterize/Dawnlight/Lull heal past the burn faster than they deal it, blind switches off their bypass/pierce threat, and Reflux races their own face damage back at them. Long Noon simply outlives the clock. False Light (Violet go-wide illusions): Полдень and Затмение полдня mass-blind the whole board so the wide army can't attack at all; provoke forces what can attack into firststrike walls; flare blinds on death; 1-HP illusions do nothing to armored, healing walls while the Reflux drip finishes. MOST LOSES — Overgrowth (Green ramp-bombs): ramp lands resonance/growth titans that go over the walls; with no hard removal, blind only stalls one bomb a turn and provoke just feeds a trampling body — they outscale the drip. Arc Light (Red/Blue combo-loop): pinpoint/reach spell burn and Echo+birefringence bursts hit the face THROUGH shields and around provoke, killing faster than Reflux drips and ignoring the whole wall. Evergreen (Green/Violet loop): stealth evades provoke and mirage/renewal recursion grinds through temporary blind — they go around the lock instead of breaking it.",
+   "new_mechanics": [
+    {
+     "name": "Reflux N / Отсвет N",
+     "does": "Payoff on a creature. Whenever any friendly heal resolves (your hero OR one of your creatures is healed), deal N damage to the enemy hero. Turns the deck's heavy healing into a recurring, uninteractable clock.",
+     "engine_work": "Add on_heal to the trigger enum. Hook the resolution of every heal action — both the hero-heal function and the creature-heal action — to fire reactTo on the controller's creatures; a creature with Reflux N calls dealHeroDamage(N) on the enemy hero per heal instance. A heal-all effect resolves as one event per healed entity (so it can ping multiple times). No new field needed."
+    },
+    {
+     "name": "Bulwark N / Оплот N",
+     "does": "Start-of-turn payoff on a creature: your hero gains +N armor each of your turns while it lives. Makes the wall's face un-cliffed against aggro; armor is prevention, not heal, so it does NOT feed Reflux (kept as a separate survival engine).",
+     "engine_work": "Add Bulwark to the keyword set and a start_of_turn hook in applyTurnStartTriggers that increments the existing hero.armor field by N. Reuses the armor field entirely."
+    },
+    {
+     "name": "Dawnlight (hero passive) / Свет зари",
+     "does": "Hero Гелия's passive: at the start of your turn, heal your most-wounded creature +1 HP. Free per-turn sustain that keeps provoke walls topped up and, with a Reflux body out, doubles as a face ping.",
+     "engine_work": "New hero-passive keyword. In applyTurnStartTriggers add a selector 'most-wounded friendly creature' (max missing HP = maxHP − curHP; tie-break lowest board index) and apply heal 1 to it via the normal heal path (so it also fires the new on_heal trigger). The Витраж aura reuses this same most-wounded selector at value 2."
+    }
+   ],
+   "cards": [
+    {
+     "name_ru": "Марево",
+     "name_en": "Heat Haze",
+     "type": "creature",
+     "cost": "Y",
+     "stats": "0/3",
+     "keywords": "provoke, shield",
+     "effect": "body: taunts (provoke) and ignores the first source of damage entirely (shield) — a free two-hit soak on turn 1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Проблеск",
+     "name_en": "Glint",
+     "type": "creature",
+     "cost": "Y",
+     "stats": "1/2",
+     "keywords": "firststrike, regen 1",
+     "effect": "start_of_turn: +1 HP to itself (regen); strikes first so it trades up into attackers. Its regen tick feeds Reflux",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Веха",
+     "name_en": "Waymark",
+     "type": "creature",
+     "cost": "Y+1",
+     "stats": "1/4",
+     "keywords": "provoke, regen 1",
+     "effect": "start_of_turn: +1 HP to itself; taunts. A self-healing wall that never dies to chip and pings Reflux every turn",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Оберег",
+     "name_en": "Talisman",
+     "type": "creature",
+     "cost": "Y+1",
+     "stats": "1/3",
+     "keywords": "ward, provoke",
+     "effect": "body: absorbs the next harmful spell/effect on an ally (ward) while taunting — anti-removal wall vs targeted burn/unmake",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Клинок зари",
+     "name_en": "Dawnblade",
+     "type": "creature",
+     "cost": "YY",
+     "stats": "2/3",
+     "keywords": "firststrike, provoke",
+     "effect": "body: forces enemies to attack it and kills them before they hit back — YY-committed combat removal disguised as a wall",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затмение",
+     "name_en": "Eclipse",
+     "type": "spell",
+     "cost": "Y+1",
+     "stats": "-",
+     "keywords": "blind 2",
+     "effect": "on_cast: chosen enemy creature cannot attack for 2 turns — cheap answer to a single key threat",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затишье",
+     "name_en": "Lull",
+     "type": "spell",
+     "cost": "Y+1",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_cast: heal your hero 5. Stabilizer, and a direct Reflux trigger — burns face for N per Reflux body in play",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Венец",
+     "name_en": "Corona",
+     "type": "creature",
+     "cost": "YY+1",
+     "stats": "2/5",
+     "keywords": "Reflux 1",
+     "effect": "on_heal: whenever any of your creatures or your hero is healed, deal 1 to the enemy hero. The core clock on a fat wall",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зарница",
+     "name_en": "Heat Lightning",
+     "type": "creature",
+     "cost": "Y+2",
+     "stats": "2/4",
+     "keywords": "provoke",
+     "effect": "on_play: blind 2 an enemy creature; then taunts. A wall that neutralizes an attacker the moment it lands",
+     "role": "disable",
+     "copies": 2
+    },
+    {
+     "name_ru": "Столп света",
+     "name_en": "Pillar of Light",
+     "type": "creature",
+     "cost": "YY+1",
+     "stats": "2/5",
+     "keywords": "cauterize, provoke",
+     "effect": "body: its combat damage heals your hero (cauterize) — so every block/attack heals YOU and pings every Reflux body while taunting",
+     "role": "engine",
+     "copies": 2
+    },
+    {
+     "name_ru": "Витраж",
+     "name_en": "Stained Glass",
+     "type": "aura",
+     "cost": "YY+1",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "start_of_turn: heal your most-wounded creature 2 (reuses the Dawnlight selector). Keeps the wall standing and doubles/triples Reflux pings",
+     "role": "engine",
+     "copies": 2
+    },
+    {
+     "name_ru": "Полдень",
+     "name_en": "Noon Glare",
+     "type": "spell",
+     "cost": "YY+1",
+     "stats": "-",
+     "keywords": "blind 1",
+     "effect": "on_cast: blind 1 all enemy creatures — the anti-go-wide button that shuts off a whole Violet/Red board for a turn",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Оплот зари",
+     "name_en": "Dawn Rampart",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/6",
+     "keywords": "Bulwark 2, provoke",
+     "effect": "start_of_turn: your hero +2 armor (Bulwark); taunts. Turns the hero's face into an un-cliffed wall against aggro",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гаснущий свет",
+     "name_en": "Fading Light",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/4",
+     "keywords": "flare 2, ward",
+     "effect": "on_death: blind 2 random enemies (flare); absorbs the first harmful effect on an ally (ward). Punishes the removal that kills it",
+     "role": "disable",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зной",
+     "name_en": "Swelter",
+     "type": "creature",
+     "cost": "Y+3",
+     "stats": "3/6",
+     "keywords": "provoke, regen 2",
+     "effect": "start_of_turn: +2 HP to itself; taunts. A near-unkillable mid wall that pings Reflux hard every turn",
+     "role": "wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гелиодор",
+     "name_en": "Heliodore",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "4/5",
+     "keywords": "firststrike, cauterize",
+     "effect": "body: strikes first and its combat damage heals your hero — a wall that kills attackers cleanly AND heals you (Reflux ping) on every fight",
+     "role": "engine",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зенит",
+     "name_en": "Zenith",
+     "type": "creature",
+     "cost": "YYY+2",
+     "stats": "4/7",
+     "keywords": "strobe, regen 2",
+     "effect": "may attack twice per turn (strobe); start_of_turn +2 HP to itself. The awakened wall that swings the face twice and self-heals to feed Reflux",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Солнцеворот",
+     "name_en": "Solstice",
+     "type": "creature",
+     "cost": "YYY+2",
+     "stats": "3/8",
+     "keywords": "Reflux 2, provoke",
+     "effect": "on_heal: whenever you heal, deal 2 to the enemy hero; taunts. The clock-doubler on an 8-HP wall — with Corona out, every heal is 3 face",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гелиос",
+     "name_en": "Helios",
+     "type": "creature",
+     "cost": "YYY+3",
+     "stats": "5/9",
+     "keywords": "strobe, provoke",
+     "effect": "may attack twice per turn; taunts. A 9-HP finisher that hits the hero for 10 across a turn while walling the ground — the doubled-retaliation closer",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затмение полдня",
+     "name_en": "Total Eclipse",
+     "type": "spell",
+     "cost": "YY+4",
+     "stats": "-",
+     "keywords": "blind 3",
+     "effect": "on_cast: blind 3 all enemy creatures AND heal your hero 6 — a full board lock plus a Reflux burst; the top-end board-control reset",
+     "role": "reach",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "name": "Overgrowth / Буйный рост",
+   "colors": "Green (mono)",
+   "speed": "Slow / ramp-into-lategame",
+   "strategy": "Solo-ramp: light -> crystals -> body. Spend the first turns turning tempo into permanent crystals and cheap walls, then drop a single overcost bomb that no removal in the format can trade with, and close before aggro would have.",
+   "hero": "Флора / Flora — passive Verdant: при 6+ кристаллах первый потраченный за ход кристалл возвращается (refund 1 mana each turn once you hit the ramp threshold, letting you cast a capstone AND a protection/pump spell in the same turn).",
+   "wincon": "One unanswerable oversized body — a resonance Heartwood (10-14/14), an undergrowth Colossus, or a growth Titan/Worldroot — that outclasses every removal in the roster; or a Forest's Waking anthem alpha strike across a germinate/spores-flooded board. Verdant makes these land a full turn early.",
+   "gameplan": "T1-2: Primrose / Crystal Mole / Springlight — bank permanent crystals and put down a 0/4 wall vs early pressure. T3: Sower (germinate fodder) or Strangleveil to fight a key threat; Sunwell if unpressured to jump ahead. T4-5: land Elder Oak (mulch keeps the board healthy), Grove Warden and Thornwall (growth bodies that snowball each upkeep), Bounty Tree to push past 6 crystals and switch on Verdant. T6-7: capstone turn — Heartwood comes down as a 10-14/14 off crystal count, or Undergrowth Colossus / Ancient Titan; Verdant's refund lets you also hold up Wild Growth to save it from a fight. T7-8: Worldroot (10/10 growing) or Forest's Waking +2/+2 anthem for the lethal overrun. Everbloom recurs your best bomb if the first one is answered, so the over-the-top plan has a second copy built in.",
+   "curve_note": "Bell curve peaking at 4-5 with a deliberate ramp tail: 4 two-drops, 8 three-drops, 10 four-drops, 10 five-drops, then 8 cards at 6-8. Twelve of the cheap slots ramp or block, funding the 8 top-end payoffs. The thin two-drop count (only 4) is the intended aggro weakness. Heavy GG/GGG pips on every payoff and capstone make the deck uncastable as a rainbow splash and reward the mono commitment.",
+   "matchups": "MOST BEATS — Long Noon (Yellow control/lock): goes over the top; a resonance/growth bomb exceeds their point removal and is too big to profitably blind, and Verdant refund out-values their disable tempo. Glass Hour (Blue control/spells): growing bodies outpace freeze/counter — they cannot answer a fresh 14/14 every turn, and Everbloom re-buys the threat through their removal. Rot and Bloom (RG attrition-drain): our capstones are simply bigger than their sacrifice-value engine; we go tall above their board and their drain clock is too slow to race our ramp. MOST LOSES — Open Flame (Red aggro): we durdle on ramp while they burn face; 4 two-drops and germinate fodder can't stabilize before sear/spark reach closes. Arc Light (RB aggro/combo): fast clock plus pinpoint reach punches through our walls before turn 6-7. Still Shroud (YV control/lock): blind + refract + stealth locks or unmakes our single big threat — the eggs-in-one-basket capstone plan gets disabled. Floodtide (GB tempo): scatter/freeze bounce our bombs for tempo blowouts while they ramp and pressure at once.",
+   "keywords_used": [
+    "photosynthesis",
+    "germinate",
+    "growth",
+    "mulch",
+    "compost",
+    "spores",
+    "undergrowth",
+    "resonance",
+    "renewal"
+   ],
+   "new_mechanics": [
+    {
+     "name": "add_crystal N (action)",
+     "does": "Permanently gain N crystals (burst ramp), used by Springlight and Sunwell.",
+     "engine_work": "Add action add_crystal(N) in executeAction: increment the caster's permanent crystal/mana-max counter; must interact correctly with the per-turn refill so gained crystals persist next turn."
+    },
+    {
+     "name": "fight (action)",
+     "does": "Your chosen creature and a target enemy creature exchange combat damage — Green's on-colour removal (Strangleveil).",
+     "engine_work": "Add action fight(source,target) in executeAction: apply source.atk damage to target and target.atk to source simultaneously, then run standard death checks / on_death triggers for both."
+    },
+    {
+     "name": "buff +N/+N (action, single + all)",
+     "does": "Permanent stat pump: Wild Growth on one friendly creature, Forest's Waking on all friendly creatures (anthem).",
+     "engine_work": "Add action buff(selector,+atk,+hp) as a permanent stat modifier in executeAction; support selector=single_friendly and selector=all_friendly. Must persist and stack, and recompute derived stats (resonance/undergrowth) afterward."
+    },
+    {
+     "name": "Verdant (hero passive)",
+     "does": "At 6+ crystals, the first crystal spent each turn is refunded.",
+     "engine_work": "In the mana-spend path add a per-turn 'refund_used' flag; on the first spend of a turn, if crystals>=6, refund 1 to the pool. Reset flag in applyTurnStartTriggers."
+    },
+    {
+     "name": "renewal (trigger, listed new in constitution)",
+     "does": "on_death: return a random creature from your graveyard to hand (Everbloom recursion).",
+     "engine_work": "Add reactTo hook for friendly on_death: pick a random creature card from the owner's graveyard (already tracked) and move it to hand, respecting hand-max 10."
+    }
+   ],
+   "cards": [
+    {
+     "name_ru": "Первоцвет",
+     "name_en": "Primrose",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/1",
+     "keywords": "photosynthesis 1",
+     "effect": "start_of_turn: +1 crystal (permanent ramp dork)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Родник света",
+     "name_en": "Springlight",
+     "type": "spell",
+     "cost": "G+1",
+     "stats": "-",
+     "keywords": "add_crystal",
+     "effect": "on_cast: add_crystal 2 (permanent ramp)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кристальный крот",
+     "name_en": "Crystal Mole",
+     "type": "creature",
+     "cost": "G+2",
+     "stats": "0/4",
+     "keywords": "photosynthesis 1",
+     "effect": "start_of_turn: +1 crystal; 0/4 ramp wall vs early pressure",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Сеятель",
+     "name_en": "Sower",
+     "type": "creature",
+     "cost": "G+2",
+     "stats": "1/3",
+     "keywords": "germinate 2",
+     "effect": "active 1/turn: spend 1 crystal -> 2/2 sprout (fodder / go-wide fuel)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Хищный вьюн",
+     "name_en": "Strangleveil",
+     "type": "spell",
+     "cost": "G+2",
+     "stats": "-",
+     "keywords": "fight",
+     "effect": "on_cast: your creature fights a target enemy creature (Green removal)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Буйный рост",
+     "name_en": "Wild Growth",
+     "type": "spell",
+     "cost": "G+2",
+     "stats": "-",
+     "keywords": "buff",
+     "effect": "on_cast: a friendly creature gets +4/+4 permanently (save/enable a bomb)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Всплеск спор",
+     "name_en": "Sporeburst",
+     "type": "creature",
+     "cost": "G+3",
+     "stats": "2/3",
+     "keywords": "spores 2",
+     "effect": "on_death: two 1/1 sprouts (trades up, feeds undergrowth)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Терновая стена",
+     "name_en": "Thornwall",
+     "type": "creature",
+     "cost": "G+3",
+     "stats": "2/6",
+     "keywords": "growth 1",
+     "effect": "start_of_turn: +1/+1 this (grinding go-tall wall)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вьюнковый рой",
+     "name_en": "Bramble Swarm",
+     "type": "creature",
+     "cost": "G+3",
+     "stats": "2/2",
+     "keywords": "undergrowth 1",
+     "effect": "+1/+1 per other friendly creature (go-wide midrange payoff)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Матёрый дуб",
+     "name_en": "Elder Oak",
+     "type": "creature",
+     "cost": "GG+2",
+     "stats": "4/5",
+     "keywords": "mulch",
+     "effect": "aura start_of_turn: +1 HP to a wounded friendly creature (board sustain)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Древо изобилия",
+     "name_en": "Bounty Tree",
+     "type": "creature",
+     "cost": "GG+3",
+     "stats": "2/5",
+     "keywords": "photosynthesis 2",
+     "effect": "start_of_turn: +2 crystals (pushes past 6 for Verdant + into capstones)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Хранитель рощи",
+     "name_en": "Grove Warden",
+     "type": "creature",
+     "cost": "GG+3",
+     "stats": "4/6",
+     "keywords": "growth 2",
+     "effect": "start_of_turn: +2/+2 this (snowballs out of removal range)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вечноцвет",
+     "name_en": "Everbloom",
+     "type": "creature",
+     "cost": "GG+3",
+     "stats": "3/4",
+     "keywords": "renewal",
+     "effect": "on_death: return a random creature from your graveyard to hand (re-buys the bomb)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Живая насыпь",
+     "name_en": "Living Mound",
+     "type": "creature",
+     "cost": "G+4",
+     "stats": "3/5",
+     "keywords": "compost 1",
+     "effect": "any death: +1/+1 this (grows through attrition mirrors)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пробуждение леса",
+     "name_en": "Forest's Waking",
+     "type": "spell",
+     "cost": "GG+3",
+     "stats": "-",
+     "keywords": "buff (anthem)",
+     "effect": "on_cast: all your creatures +2/+2 permanently (go-wide finisher)",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Сердце чащи",
+     "name_en": "Heartwood",
+     "type": "creature",
+     "cost": "GG+4",
+     "stats": "0/0",
+     "keywords": "resonance 2",
+     "effect": "static: +2/+2 per your crystal (10-14/14 on curve, ramp capstone)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Колосс подлеска",
+     "name_en": "Undergrowth Colossus",
+     "type": "creature",
+     "cost": "GGG+3",
+     "stats": "3/3",
+     "keywords": "undergrowth 2",
+     "effect": "+2/+2 per other friendly creature (go-wide capstone)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вековой исполин",
+     "name_en": "Ancient Titan",
+     "type": "creature",
+     "cost": "GGG+4",
+     "stats": "8/8",
+     "keywords": "growth 2",
+     "effect": "start_of_turn: +2/+2 this (undosgeable growing body)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Прародитель леса",
+     "name_en": "Worldroot",
+     "type": "creature",
+     "cost": "GGG+5",
+     "stats": "10/10",
+     "keywords": "growth 2",
+     "effect": "start_of_turn: +2/+2 this (overcost single-bomb finisher)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Солнечный колодец",
+     "name_en": "Sunwell",
+     "type": "spell",
+     "cost": "GG+2",
+     "stats": "-",
+     "keywords": "add_crystal",
+     "effect": "on_cast: add_crystal 3 (big ramp jump to the top end)",
+     "role": "enabler",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "name": "Стеклянный час / Glass Hour",
+   "colors": "Blue (mono) — leans BB/BBB commitment on payoffs, single-pip glue for early reactivity",
+   "hero": "Кьяра / Chiara — passive Clairvoyance (владелец постоянно видит верхнюю карту своей колоды)",
+   "speed": "Slow / reactive tempo-control",
+   "strategy": "Reactive tempo-control: freeze/scatter/chill hold the board, scry+draw and haze win the resource war, then close with Echo prowess bodies and a birefringence+pinpoint burst.",
+   "wincon": "Grind card advantage while the board stays frozen, then close two ways: (1) Echo prowess bodies (Shimmer Refractor, Facet Oracle) balloon as you chain cheap spells in one turn; (2) the birefringence (Mirror Ray / Double Vision) + pinpoint (Sharp Spread) unabsorbable double-hit clears the last blocker and Deep Leviathan / Hoarfrost Colossus provide inevitability under a full board-freeze (Ice Tomb / Deep Freeze).",
+   "gameplan": "T1-2: hold up Frost Grip / Undertow, drop Focal Drake or Glacier Wall to eat the first attacker; Clairvoyance lets you sequence scry perfectly. T2-3: Farsight to pull ahead on cards, Cold Snap vs aggro or Haze Veil vs spell decks; Frost Sentinel / Ebb Spirit trade up or bounce a key blocker. T3-4: land an Echo body (Facet Oracle, then Shimmer Refractor on BB), start freezing the biggest threats with Frost Grip / Slow Frost. T4-5: Deep Freeze or Ice Tomb locks the whole board; Winter Stream refills. T5-6: alpha turn — chain 2-3 cheap spells to pump Shimmer Refractor +4/+6, Mirror Ray makes Sharp Spread (pinpoint) hit two targets unabsorbably, Deep Leviathan freezes their board on entry and swings for the close.",
+   "curve_note": "1-drops (8): Frost Grip, Undertow, Focal Drake, Double Vision. 2 (10): Frost Sentinel, Glacier Wall, Ebb Spirit, Farsight, Haze Veil. 3 (10): Facet Oracle, Mirror Ray, Sharp Spread, Slow Frost, Cold Snap. 4 (4): Shimmer Refractor, Deep Freeze. 5 (4): Winter Stream, Ice Tomb. 6 (4): Hoarfrost Colossus, Deep Leviathan. BB/BBB commitment is top-loaded onto every payoff; twelve single-pip cards keep the early game reactive and mono-castable.",
+   "keywords_used": [
+    "freeze",
+    "scatter",
+    "chill",
+    "haze",
+    "birefringence",
+    "pinpoint",
+    "echo",
+    "delay"
+   ],
+   "new_mechanics": [
+    {
+     "name": "echo (Отклик N)",
+     "does": "Prowess payoff: each time you cast a spell this turn, this creature gets +N/+0 until end of turn.",
+     "engine_work": "Add on_spell_cast trigger: in playCard, when a card of type:spell resolves, call reactTo over the caster's board creatures carrying echo and apply a temporary atk buff; clear the temp buff in endTurn."
+    },
+    {
+     "name": "Clairvoyance (hero passive)",
+     "does": "The hero's owner permanently sees the top (next-draw) card of their own deck.",
+     "engine_work": "View-only: in viewJson, when the seat's hero has the clairvoyance keyword, serialize deck top card into that seat's private view. No state mutation, no opponent leakage."
+    }
+   ],
+   "matchups": "MOST BEATS: False Light/Violet — mass freeze (Deep Freeze, Ice Tomb) + chill turn a wide illusion board inert while you out-card them and pinpoint-remove the real threats. Arc Light/RB — Haze Veil taxes their spell loop, freeze+scatter break tempo, and your card advantage plus cold walls survive their reach. Rot and Bloom/RG — freeze locks attackers and scatter resets compost bodies so their drain never races a frozen board. Floodtide/GB — chill+freeze blunt tempo creatures and scatter undoes their development into your superior late game. MOST LOSES: Open Flame/Red — too fast; bypass/pierce go over your walls and single-target freeze can't answer a flood plus reach to face before you stabilize. Overgrowth/Green — ramps under your freezes and drops resilient bombs bigger than your removal, regrowing board faster than you can lock. Bastion/YG — provoke+Bulwark armor+regen outlast your freeze, and shield/ward blank removal (pinpoint only partly helps) while they grind you out go-tall.",
+   "cards": [
+    {
+     "name_ru": "Фокальный Дракончик",
+     "name_en": "Focal Drake",
+     "type": "creature",
+     "cost": "B",
+     "stats": "2/2",
+     "keywords": "",
+     "effect": "on_play: scry 1 (fixes the top with Clairvoyance)",
+     "role": "enabler/curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ледяной Часовой",
+     "name_en": "Frost Sentinel",
+     "type": "creature",
+     "cost": "B+1",
+     "stats": "1/4",
+     "keywords": "",
+     "effect": "on_play: freeze 1 a chosen enemy minion",
+     "role": "removal/curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ледниковая Стена",
+     "name_en": "Glacier Wall",
+     "type": "creature",
+     "cost": "B+1",
+     "stats": "0/6",
+     "keywords": "",
+     "effect": "on_play: scry 1",
+     "role": "curve/wall (anti-aggro floor)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Отливный Дух",
+     "name_en": "Ebb Spirit",
+     "type": "creature",
+     "cost": "B+1",
+     "stats": "2/3",
+     "keywords": "",
+     "effect": "on_play: scatter a chosen enemy minion (bounce to hand)",
+     "role": "removal/tempo",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гранёный Оракул",
+     "name_en": "Facet Oracle",
+     "type": "creature",
+     "cost": "B+2",
+     "stats": "2/4",
+     "keywords": "echo 1",
+     "effect": "on_spell_cast: +1/+0 until end of turn",
+     "role": "payoff (prowess)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зеркальный Луч",
+     "name_en": "Mirror Ray",
+     "type": "creature",
+     "cost": "BB+1",
+     "stats": "2/4",
+     "keywords": "birefringence",
+     "effect": "aura-body: your next targeted spell also strikes a random second enemy",
+     "role": "capstone enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Мерцающий Рефрактор",
+     "name_en": "Shimmer Refractor",
+     "type": "creature",
+     "cost": "BB+2",
+     "stats": "2/5",
+     "keywords": "echo 2",
+     "effect": "on_spell_cast: +2/+0 until end of turn (BB commit finisher body)",
+     "role": "payoff/capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Заиндевевший Колосс",
+     "name_en": "Hoarfrost Colossus",
+     "type": "creature",
+     "cost": "BB+4",
+     "stats": "2/9",
+     "keywords": "",
+     "effect": "on_play: freeze 1 a chosen enemy minion",
+     "role": "capstone/wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Глубинный Левиафан",
+     "name_en": "Deep Leviathan",
+     "type": "creature",
+     "cost": "BBB+3",
+     "stats": "5/8",
+     "keywords": "",
+     "effect": "on_play: freeze 1 all enemy minions (BBB commit closer)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Морозный Захват",
+     "name_en": "Frost Grip",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: freeze 1 a chosen enemy minion",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Отбойная Волна",
+     "name_en": "Undertow",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: scatter any chosen minion (bounce enemy blocker or save your own)",
+     "role": "tempo/removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дальний Взор",
+     "name_en": "Farsight",
+     "type": "spell",
+     "cost": "B+1",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: scry 2, then draw 1",
+     "role": "card advantage",
+     "copies": 2
+    },
+    {
+     "name_ru": "Острый Разлёт",
+     "name_en": "Sharp Spread",
+     "type": "spell",
+     "cost": "BB+1",
+     "stats": "-",
+     "keywords": "pinpoint",
+     "effect": "on_play: 3 damage to a chosen enemy minion; damage can't be absorbed by Shield/Ward (with birefringence, hits a second random enemy)",
+     "role": "removal/capstone reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Медленный Мороз",
+     "name_en": "Slow Frost",
+     "type": "spell",
+     "cost": "B+2",
+     "stats": "-",
+     "keywords": "delay 1",
+     "effect": "resolves next turn: 3 damage to all enemy minions",
+     "role": "removal (AoE delay bomb)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Глубокая Заморозка",
+     "name_en": "Deep Freeze",
+     "type": "spell",
+     "cost": "BB+2",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: freeze 2 all enemy minions",
+     "role": "lock (BB commit)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зимний Поток",
+     "name_en": "Winter Stream",
+     "type": "spell",
+     "cost": "BB+3",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: scry 2, then draw 3",
+     "role": "card advantage/refuel",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ледяная Гробница",
+     "name_en": "Ice Tomb",
+     "type": "spell",
+     "cost": "BBB+2",
+     "stats": "-",
+     "keywords": "",
+     "effect": "on_play: freeze 3 all enemy minions (BBB commit hard lock)",
+     "role": "capstone lock",
+     "copies": 2
+    },
+    {
+     "name_ru": "Холодный Щёлк",
+     "name_en": "Cold Snap",
+     "type": "aura",
+     "cost": "B+2",
+     "stats": "-",
+     "keywords": "chill 1",
+     "effect": "aura: enemy minions -1 attack while in play",
+     "role": "reach/anti-aggro",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дымная Завеса",
+     "name_en": "Haze Veil",
+     "type": "aura",
+     "cost": "B+1",
+     "stats": "-",
+     "keywords": "haze 1",
+     "effect": "aura: enemy spells cost +1 while in play",
+     "role": "control (spell tax)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Двойное Зрение",
+     "name_en": "Double Vision",
+     "type": "aura",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "birefringence",
+     "effect": "aura: your targeted spells also strike a random second enemy",
+     "role": "capstone enabler",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "name": "False Light / Ложный свет",
+   "colors": "Violet (mono) — leans VV/VVV commitment",
+   "hero": "Эреб / Erebos — passive \"Lighteater / Пожиратель света\": any creature that deals combat damage to your hero permanently loses 1 attack (min 0). Protects the fragile swarm by punishing every attacker that races back.",
+   "speed": "Medium — evasive chip clock online turns 2-4, go-wide alpha turns 5-6",
+   "strategy": "Go-wide evasive swarm of half-real bodies. Stealth + glimmer give an unpunishable chip clock the opponent cannot target or profitably block; split/haunt/mirage flood illusions that fuel undergrowth on real bodies; refract + Erebos protect the fragile threats; decoy/awaken hide threats in the mana row and refill after removal.",
+   "wincon": "Overwhelm: a wide board (illusions + stealth bodies) with undergrowth-pumped real bodies that the opponent (board cap 8) cannot fully block; alpha with False Dawn for lethal. Stealth/refract blank targeted removal, glimmer chips 2-4 past blockers every turn, decoy/awaken re-deploy so removal never fully clears.",
+   "gameplan": "T1-2: land cheap evasive bodies (Dim Ember, Unseen Prowler) and a glimmer aura (Dusk Moth / Glimmer Lantern) so one creature enters untargetable each turn; bank The Returned as crystals or set Hidden Blade/Sleeping Threat behind decoy in the mana row where the opponent cannot see them. T3-4: seed the swarm with split (Halflight, Twin Shade, Haunting Double) and Mirage Swarm / Fractured Whisper to flood illusions; spend Waning Light / Unmaking on their key blocker or provoke-wall; glimmer keeps a safe 2-4 chip going. T4-5: drop undergrowth payoffs (False Marshal, Mirage Sovereign) that balloon off the illusion count, with refract making the real bodies removal-proof; decoy threats wake free from the mana row for a surprise body. T5-6: alpha with False Dawn (+2/+1 team) across a board the opponent cannot fully block; Erebos shrinks anything that swings back, haunt leaves copies, awaken/decoy refill the grind.",
+   "curve_note": "Peaks at 3-4 mana (12 cards at 3, 10 at 4). One 1-drop, ten 2-drops give early evasive pressure; tops at a single VVV+3. Heavy VV/VVV commitment across the list enforces mono-Violet — the deck is nearly uncastable as a rainbow splash, which is the intended power tax.",
+   "keywords_used": [
+    "stealth / Незримость",
+    "glimmer / Мерцание",
+    "split / Расщепление",
+    "haunt / Морок",
+    "mirage / Мираж",
+    "refract / Преломление",
+    "undergrowth / Подлесок",
+    "decoy / Подготовка",
+    "awaken / Awaken"
+   ],
+   "new_mechanics": [
+    {
+     "name": "refract / Преломление (implement)",
+     "does": "When a hostile effect or attack would target a creature with refract, it is redirected to a random other valid target instead — anti-removal / anti-spot-attack for the fragile swarm.",
+     "engine_work": "Designed but not implemented (ARCHITECTURE A6). Add a redirection check in reactTo / attack / executeAction: before a hostile action resolves against a refract creature, reroll its selector to a random other valid target (skip if none), fire once per incoming source."
+    },
+    {
+     "name": "Lighteater / Пожиратель света (Erebos passive)",
+     "does": "Any creature that deals combat damage to the Erebos player's hero permanently loses 1 attack (floor 0).",
+     "engine_work": "NEW hook in combat/hero-damage resolution: after a creature deals damage to its controller's opponent hero, if that hero's owner runs Erebos, apply a permanent -1 atk stat mod to the attacking creature (clamped at 0). Reuses the permanent stat-mod path."
+    },
+    {
+     "name": "Timed keyword grant (Into the Mirage / False Dawn expiry)",
+     "does": "Grant keywords (stealth+refract) or a stat buff (+2/+1) to targets that expires at a set future turn.",
+     "engine_work": "NEW timed-modifier infra: attach a keyword/stat modifier with an expiry marker (controller's next turn / end of turn) and a cleanup pass in applyTurnStartTriggers / endTurn that strips expired modifiers. False Dawn and Into the Mirage share this path."
+    }
+   ],
+   "cards": [
+    {
+     "name_ru": "Тусклый огонёк",
+     "name_en": "Dim Ember",
+     "type": "creature",
+     "cost": "V",
+     "stats": "1/2",
+     "keywords": "stealth",
+     "effect": "passive: untargetable until it attacks",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Полуявь",
+     "name_en": "Halflight",
+     "type": "creature",
+     "cost": "V+1",
+     "stats": "1/1",
+     "keywords": "split 2",
+     "effect": "on_play: make 2 illusory 1HP copies of itself (go-wide seed)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Незримый лазутчик",
+     "name_en": "Unseen Prowler",
+     "type": "creature",
+     "cost": "VV",
+     "stats": "2/2",
+     "keywords": "stealth",
+     "effect": "passive: untargetable until it attacks",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Сумеречный мотылёк",
+     "name_en": "Dusk Moth",
+     "type": "creature",
+     "cost": "VV",
+     "stats": "2/1",
+     "keywords": "glimmer",
+     "effect": "aura: your first creature each turn enters stealthed",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Убывающий свет",
+     "name_en": "Waning Light",
+     "type": "spell",
+     "cost": "V+1",
+     "stats": "-",
+     "keywords": "(diminish)",
+     "effect": "on_cast: target creature -2/-2 permanently",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Провал в морок",
+     "name_en": "Into the Mirage",
+     "type": "spell",
+     "cost": "VV",
+     "stats": "-",
+     "keywords": "stealth, refract (granted)",
+     "effect": "on_cast: target creature gains stealth + refract until your next turn (protect a threat or push it in safely)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тень-близнец",
+     "name_en": "Twin Shade",
+     "type": "creature",
+     "cost": "V+2",
+     "stats": "2/2",
+     "keywords": "stealth, split 1",
+     "effect": "on_play: 1 illusory copy; untargetable until it attacks",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Мерцающий фонарь",
+     "name_en": "Glimmer Lantern",
+     "type": "creature",
+     "cost": "VV+1",
+     "stats": "2/3",
+     "keywords": "glimmer",
+     "effect": "aura: your first creature each turn enters stealthed",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Расколотый шёпот",
+     "name_en": "Fractured Whisper",
+     "type": "spell",
+     "cost": "VV+1",
+     "stats": "-",
+     "keywords": "mirage",
+     "effect": "on_cast: create an illusory 1HP copy of any creature (copies keywords)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тайный клинок",
+     "name_en": "Hidden Blade",
+     "type": "creature",
+     "cost": "VV+1",
+     "stats": "3/2",
+     "keywords": "stealth, decoy 1",
+     "effect": "banked 1 turn in mana row -> wakes free; untargetable until it attacks",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ночной морок",
+     "name_en": "Nightmirage",
+     "type": "creature",
+     "cost": "VVV",
+     "stats": "4/4",
+     "keywords": "stealth, haunt",
+     "effect": "on_death: leave a 1HP copy; untargetable until it attacks",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ложный рассвет",
+     "name_en": "False Dawn",
+     "type": "spell",
+     "cost": "VVV",
+     "stats": "-",
+     "keywords": "(team pump)",
+     "effect": "on_cast: your creatures +2/+1 until end of turn (alpha finisher)",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Морочный рой",
+     "name_en": "Mirage Swarm",
+     "type": "spell",
+     "cost": "VV+2",
+     "stats": "-",
+     "keywords": "(illusion tokens)",
+     "effect": "on_cast: create 3 illusory 1/1 tokens (fuels undergrowth)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Морочный двойник",
+     "name_en": "Haunting Double",
+     "type": "creature",
+     "cost": "VV+2",
+     "stats": "3/3",
+     "keywords": "haunt, split 1",
+     "effect": "on_play: 1 illusory copy; on_death: leave a 1HP copy",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зыбкий страж",
+     "name_en": "Shifting Ward",
+     "type": "creature",
+     "cost": "VV+2",
+     "stats": "3/2",
+     "keywords": "stealth, refract",
+     "effect": "incoming hostile effect/attack redirected to a random other target; untargetable until it attacks",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Развоплощение",
+     "name_en": "Unmaking",
+     "type": "spell",
+     "cost": "VV+2",
+     "stats": "-",
+     "keywords": "(unmake)",
+     "effect": "on_cast: destroy target creature",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ложный полководец",
+     "name_en": "False Marshal",
+     "type": "creature",
+     "cost": "VVV+1",
+     "stats": "3/3",
+     "keywords": "undergrowth 1",
+     "effect": "+1/+1 for each other creature you control (illusions count)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Владыка мороков",
+     "name_en": "Mirage Sovereign",
+     "type": "creature",
+     "cost": "VVV+2",
+     "stats": "4/4",
+     "keywords": "undergrowth 2, refract",
+     "effect": "+2/+2 per other creature (illusions count); incoming hostile effect redirected to a random other target",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Спящая угроза",
+     "name_en": "Sleeping Threat",
+     "type": "creature",
+     "cost": "VVV+2",
+     "stats": "6/6",
+     "keywords": "decoy 2, haunt",
+     "effect": "banked 2 turns in mana row -> wakes free (opponent can't see it); on_death leave a 1HP copy",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Возвращённый",
+     "name_en": "The Returned",
+     "type": "creature",
+     "cost": "VVV+3",
+     "stats": "7/7",
+     "keywords": "awaken, refract",
+     "effect": "can be banked early as crystals then woken from the mana row for its cost; incoming hostile effect redirected",
+     "role": "capstone",
+     "copies": 2
+    }
+   ],
+   "matchups": "Most beats: YG (Bastion) and RG (Rot and Bloom) — both rely on targeted removal and a few big bodies. Stealth + refract + Into the Mirage blank their spot removal, go-wide + undergrowth outnumbers their limited blockers (board cap 8), and Erebos permanently shrinks every attacker they send back, blunting Bastion's go-tall and RG's drain race. Matches the locked roster line (beats YG, RG).\nMost loses to: Blue (Glass Hour) and Yellow (Long Noon). Blue's freeze/scatter/board-bounce and spell sweepers reset a swarm packed with 1-HP illusions and counter the False Dawn alpha; haze/pinpoint blunt the tempo. Yellow's provoke walls, shield/ward, and especially blind and mass on_death flare ignore stealth entirely (untargetable doesn't dodge \"random\" or \"all\"), while regen/Bulwark outlast the chip clock and Long Noon locks the game out. Fragile illusions fold to any AoE these two colours field."
+  },
+  {
+   "colors": "Red/Green",
+   "name": "Rot and Bloom / Тлен и всходы",
+   "speed": "Grindy midrange attrition; natural kill turns 6-8, explosive Wake burst possible turn 5-6. Wins from an empty board.",
+   "strategy": "Aristocrats. The deck does not win by combat — it wins by its own creatures DYING. Green makes cheap, self-replacing fodder (spores/germinate/Renewal); Red converts each death into reach and lifegain. Every friendly death is worth 3-5 face damage once the engine is online: sear pings directly, the hero passive heals 1 which fires Reflux for more face, and Requiem adds a second point-of-damage + heal that ALSO re-triggers Reflux. Sac outlets (harvest, Sacrificial Sheaf, Wake) let you convert fodder into damage on demand, so blockers and board-locks do not stop the clock.",
+   "hero": "Гумус / Humus — passive loam / Перегной: whenever a friendly creature dies, your hero gains +1 HP. (This heal also triggers any Reflux you control, so every death is at least \"heal 1 + Reflux ping\" for free.)",
+   "gameplan": "T1: drop fodder — Spark Tick (R, dies for 1 face) or Rot Cap (G, dies into a Sprout). T2: Carrion Scarab / Resin Shoot (bank a crystal for germinate) / Ash Moth; start trading fodder into their board — each trade fires spores + sear + hero-heal. T3: land an engine piece — Blood Bramble (drains and grows off deaths), Blood Acolyte (heal->face), Spore Shepherd (crystal->Sprout), Bloatcap (0/4 wall vs aggro that later bursts into 3 Sprouts), or Cinder Boar. T4: the pivot turn — Barrow Mourner (Requiem 2) or Crimson Surge (Reflux 2 aura) or Field Reaper (repeatable sac outlet); now every friendly death = 2 face + heal + Reflux ping. T5+: Ash Eater top-end; Gorging Slug is huge off accumulated deaths. Close: either grind the drain loop (sac fodder via harvest/Sacrificial Sheaf/combat -> hero heals -> Reflux -> Requiem face+heal -> Reflux again), or slam Wake on a wide Sprout board for 2 face per creature as a burst finish. Sacrificial Sheaf refuels the hand mid-grind by turning a spent body into 2 cards.",
+   "wincon": "Incremental drain: each friendly death is converted to unblockable face damage (sear + Requiem + Reflux-via-hero-heal) while topping your hero off, so the attrition race is unwinnable for the opponent. Wake is the burst kill — sacrifice the whole Sprout board for 2 face each. All damage is death-gated and ignores blockers, so the deck kills even from an empty board or through a board-lock.",
+   "curve_note": "4 / 12 / 12 / 10 / 2 across 1-2-3-4-5 mana. Deliberately fodder-dense at 1-3 (deaths are the resource), five payoff/capstone 4-drops, one 5-drop top-end. Crystals from Resin Shoot fuel germinate, but the deck also functions with zero ramp — germinate is a bonus outlet, not a dependency.",
+   "keywords_used": [
+    "spores",
+    "germinate",
+    "photosynthesis",
+    "compost",
+    "sear",
+    "self_lifesteal",
+    "cauterize",
+    "Renewal",
+    "Reflux",
+    "Requiem",
+    "harvest",
+    "loam (hero passive)"
+   ],
+   "new_mechanics": [
+    {
+     "name": "loam / Перегной (hero passive)",
+     "does": "Whenever a friendly creature dies, your hero gains +1 HP.",
+     "engine_work": "New hero passive keyword. Hook a reaction to friendly on_death in reactTo/applyDeath -> healHero(owner, 1). Must fire the normal heal path so on_heal (Reflux) chains off it."
+    },
+    {
+     "name": "Requiem N / Погребение N",
+     "does": "When ANOTHER friendly creature dies: deal N to enemy hero and heal your hero N.",
+     "engine_work": "New payoff keyword. Reaction to friendly on_death in reactTo -> dealHeroDamage(enemy, N) + healHero(owner, N). Exclude the dying creature itself; must route heal through the on_heal path so it chains Reflux."
+    },
+    {
+     "name": "Reflux N / Отсвет N",
+     "does": "on_heal: each time your hero is healed, deal N to enemy hero.",
+     "engine_work": "New trigger on_heal. Add a hook inside the hero-heal function that calls reactTo(on_heal) for the healed player's permanents -> dealHeroDamage(enemy, N). Guard against infinite loops (Reflux damage must not heal, so no cycle)."
+    },
+    {
+     "name": "harvest N / Жатва N",
+     "does": "Active, once per turn: sacrifice another friendly creature; this creature gains +N/+N.",
+     "engine_work": "New active keyword + generic 'sacrifice' action: move a chosen friendly (not self) to graveyard, firing on_death and all death reactions, then apply +N/+N buff to the source. Enforce once-per-turn flag and target != self."
+    },
+    {
+     "name": "sacrifice (action)",
+     "does": "Move a chosen friendly creature to the graveyard, firing its on_death and all friendly-death reactions.",
+     "engine_work": "New action shared by harvest, Sacrificial Sheaf and Wake. Reuse existing death/graveyard path but triggered by controller choice rather than lethal damage."
+    },
+    {
+     "name": "Wake per-count damage",
+     "does": "Sacrifice any number of chosen friendly creatures, then deal 2 to the enemy hero for each one sacrificed.",
+     "engine_work": "New multi-target sacrifice selector (choose 0..n friendlies) + damage action scaled by the count sacrificed. Each sacrifice must resolve its own on_death chain (sear/Requiem/loom) before/along with the flat 2-per-body burst."
+    },
+    {
+     "name": "Renewal N / Всходы N",
+     "does": "on_death: return a random creature from your graveyard to your hand.",
+     "engine_work": "New action graveyard->hand (graveyard already tracked). Reaction to this creature's own on_death in reactTo -> pick random creature card in owner's graveyard, move to hand (respect hand cap 10)."
+    }
+   ],
+   "matchups": "Most beats: Open Flame (Red aggro) — the death engine out-grinds the race: Bloatcap 0/4 and Resin Shoot 1/3 wall the rush while cauterize + self_lifesteal + loom (heal per death) refill faster than they burn, and every chump trade fires sear/Requiem back at their low HP. Still Shroud (Yellow/Violet lock) — blind/provoke/stealth walls do nothing against death-gated reach: you sacrifice your own fodder to Wake/Requiem/sear and drain them out from an empty board they cannot interact with. Most loses: Glass Hour (Blue) — freeze, scatter (bounce your fodder before it dies) and cheap spell removal defuse the death triggers and reset your compost bodies, and they have no board to feed your engine. False Light (Violet) — go-wide illusions out-body your Sprouts and targeted unmake/refract strips the capstone (Barrow Mourner / Gorging Slug) before it snowballs. Overgrowth (Green) — their ramp-bombs are simply bigger and gain more value per card; your small dying bodies chip too slowly to race a resolved bomb.",
+   "cards": [
+    {
+     "name_ru": "Искровой Клещ",
+     "name_en": "Spark Tick",
+     "type": "creature",
+     "cost": "R",
+     "stats": "1/1",
+     "keywords": "sear 1",
+     "effect": "on_death: 1 damage to enemy hero",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гнилой Опёнок",
+     "name_en": "Rot Cap",
+     "type": "creature",
+     "cost": "G",
+     "stats": "2/1",
+     "keywords": "spores 1",
+     "effect": "on_death: create 1 Sprout 1/1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пепельный Мотылёк",
+     "name_en": "Ash Moth",
+     "type": "creature",
+     "cost": "R+1",
+     "stats": "2/1",
+     "keywords": "sear 2",
+     "effect": "on_death: 2 damage to enemy hero",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Падальный Жук",
+     "name_en": "Carrion Scarab",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/2",
+     "keywords": "spores 2",
+     "effect": "on_death: create 2 Sprouts 1/1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Смолистый Побег",
+     "name_en": "Resin Shoot",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/3",
+     "keywords": "photosynthesis 1",
+     "effect": "start_of_turn: +1 crystal (fuels germinate)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Прорастающий Труп",
+     "name_en": "Sprouting Corpse",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/2",
+     "keywords": "Renewal 1",
+     "effect": "on_death: return a random creature from your graveyard to hand",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тлеющий Плевок",
+     "name_en": "Cinder Spit",
+     "type": "spell",
+     "cost": "R+1",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 3 damage to any target",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Жертвенный Сноп",
+     "name_en": "Sacrificial Sheaf",
+     "type": "spell",
+     "cost": "G+1",
+     "stats": "-",
+     "keywords": "sacrifice",
+     "effect": "on_play: sacrifice a friendly creature, then draw 2 cards",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кровавый Служка",
+     "name_en": "Blood Acolyte",
+     "type": "creature",
+     "cost": "RG+1",
+     "stats": "1/3",
+     "keywords": "Reflux 1",
+     "effect": "on_heal: whenever your hero heals, 1 damage to enemy hero",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кровавая Поросль",
+     "name_en": "Blood Bramble",
+     "type": "creature",
+     "cost": "RG+1",
+     "stats": "2/3",
+     "keywords": "self_lifesteal, compost 1",
+     "effect": "its damage heals it; when another creature dies: +1/+1 to this",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Углевой Волк",
+     "name_en": "Coal Wolf",
+     "type": "creature",
+     "cost": "R+2",
+     "stats": "3/2",
+     "keywords": "cauterize",
+     "effect": "combat damage by this heals your hero (feeds Reflux/loom)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тлеющий Кабан",
+     "name_en": "Cinder Boar",
+     "type": "creature",
+     "cost": "R+2",
+     "stats": "3/3",
+     "keywords": "sear 2",
+     "effect": "on_death: 2 damage to enemy hero",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Грибной Пастырь",
+     "name_en": "Spore Shepherd",
+     "type": "creature",
+     "cost": "G+2",
+     "stats": "2/3",
+     "keywords": "germinate 1",
+     "effect": "active: spend 1 crystal -> create a Sprout 1/1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Труповик",
+     "name_en": "Bloatcap",
+     "type": "creature",
+     "cost": "G+2",
+     "stats": "0/4",
+     "keywords": "spores 3",
+     "effect": "on_death: create 3 Sprouts 1/1 (wall + fodder bomb)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Косарь Полей",
+     "name_en": "Field Reaper",
+     "type": "creature",
+     "cost": "RG+2",
+     "stats": "3/3",
+     "keywords": "harvest 2",
+     "effect": "active, once/turn: sacrifice another friendly creature -> this +2/+2",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кровавый Прибой",
+     "name_en": "Crimson Surge",
+     "type": "aura",
+     "cost": "RG+2",
+     "stats": "-",
+     "keywords": "Reflux 2",
+     "effect": "on_heal: whenever your hero heals, 2 damage to enemy hero",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Прожорливый Слизень",
+     "name_en": "Gorging Slug",
+     "type": "creature",
+     "cost": "GG+2",
+     "stats": "2/4",
+     "keywords": "compost 2",
+     "effect": "when another creature dies: +2/+2 to this",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Курганный Плакальщик",
+     "name_en": "Barrow Mourner",
+     "type": "creature",
+     "cost": "RGG+1",
+     "stats": "4/6",
+     "keywords": "Requiem 2",
+     "effect": "when another friendly creature dies: 2 to enemy hero + heal your hero 2",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тризна",
+     "name_en": "Wake",
+     "type": "spell",
+     "cost": "RRG+1",
+     "stats": "-",
+     "keywords": "sacrifice",
+     "effect": "on_play: sacrifice any number of friendly creatures; 2 damage to enemy hero for each",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пожиратель Праха",
+     "name_en": "Ash Eater",
+     "type": "creature",
+     "cost": "RGG+2",
+     "stats": "5/5",
+     "keywords": "compost 1, spores 1",
+     "effect": "when another creature dies: +1/+1; on_death: create 1 Sprout 1/1",
+     "role": "capstone",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "cards": [
+    {
+     "name_ru": "Грозовой Светляк",
+     "name_en": "Storm Firefly",
+     "type": "creature",
+     "cost": "R",
+     "stats": "1/2",
+     "keywords": "echo",
+     "effect": "on_spell_cast: this +1/+0 until end of turn",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дуговой Богомол",
+     "name_en": "Arc Mantis",
+     "type": "creature",
+     "cost": "R+1",
+     "stats": "2/2",
+     "keywords": "echo",
+     "effect": "on_spell_cast: this +1/+0 until end of turn",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вольтов Стриж",
+     "name_en": "Volt Swift",
+     "type": "creature",
+     "cost": "RB",
+     "stats": "2/1",
+     "keywords": "echo, bypass",
+     "effect": "on_spell_cast: this +1/+0; may attack hero past defenders",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вольтова Мурена",
+     "name_en": "Volt Eel",
+     "type": "creature",
+     "cost": "RB",
+     "stats": "3/2",
+     "keywords": "echo",
+     "effect": "on_spell_cast: this +1/+0 until end of turn (aggressive prowess body)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Двоякий Шершень",
+     "name_en": "Twin Hornet",
+     "type": "creature",
+     "cost": "RB+1",
+     "stats": "3/3",
+     "keywords": "pierce, birefringence",
+     "effect": "your targeted spell hits a 2nd random target; combat overkill goes to hero",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тлеющий Оракул",
+     "name_en": "Ember Oracle",
+     "type": "creature",
+     "cost": "RB+1",
+     "stats": "2/4",
+     "keywords": "sear",
+     "effect": "on_play: scry 2; on_death: 2 to enemy hero",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Грозовой Тиран",
+     "name_en": "Storm Tyrant",
+     "type": "creature",
+     "cost": "RRB",
+     "stats": "3/3",
+     "keywords": "echo",
+     "effect": "on_spell_cast: this +2/+0 until end of turn (heavy prowess payoff)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Искровой Стрелок",
+     "name_en": "Spark Gunner",
+     "type": "creature",
+     "cost": "R+2",
+     "stats": "2/2",
+     "keywords": "spark",
+     "effect": "activate: spend 1 crystal -> 1 to enemy hero, once per turn",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Грозовой Змей",
+     "name_en": "Storm Serpent",
+     "type": "creature",
+     "cost": "RBB",
+     "stats": "2/3",
+     "keywords": "echo, haze",
+     "effect": "on_spell_cast: this +1/+0; aura: enemy spells cost +1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зеркальный Скат",
+     "name_en": "Mirror Ray",
+     "type": "creature",
+     "cost": "B+2",
+     "stats": "2/4",
+     "keywords": "birefringence",
+     "effect": "your targeted spell hits a 2nd random target (defensive engine body)",
+     "role": "payoff",
+     "copies": 1
+    },
+    {
+     "name_ru": "Угольная Пушка",
+     "name_en": "Ember Cannon",
+     "type": "creature",
+     "cost": "R+4",
+     "stats": "3/4",
+     "keywords": "spark",
+     "effect": "activate: spend 1 crystal -> 2 to enemy hero, once per turn",
+     "role": "reach",
+     "copies": 1
+    },
+    {
+     "name_ru": "Морозный Захват",
+     "name_en": "Frost Grip",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "freeze",
+     "effect": "on_play: freeze a chosen enemy 1 turn (tempo + prowess fuel)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Подводное Течение",
+     "name_en": "Undertow",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "scatter",
+     "effect": "on_play: return a chosen creature to hand (unblock the alpha)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Двойное Зрение",
+     "name_en": "Double Vision",
+     "type": "aura",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "birefringence",
+     "effect": "aura: your targeted spells hit a 2nd random target",
+     "role": "enabler",
+     "copies": 1
+    },
+    {
+     "name_ru": "Багровый Всполох",
+     "name_en": "Crimson Flicker",
+     "type": "spell",
+     "cost": "R",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 2 to enemy hero (cheap reach + prowess fuel)",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Толчок",
+     "name_en": "Jolt",
+     "type": "spell",
+     "cost": "+1",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 2 to a chosen enemy creature",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Игольчатый Разряд",
+     "name_en": "Needle Bolt",
+     "type": "spell",
+     "cost": "RB",
+     "stats": "-",
+     "keywords": "pinpoint",
+     "effect": "on_play: 3 to any target; cannot be absorbed by Shield/Ward",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Раскол Стужи",
+     "name_en": "Cold Shatter",
+     "type": "spell",
+     "cost": "B+1",
+     "stats": "-",
+     "keywords": "brittle",
+     "effect": "on_play: 2 to a chosen enemy creature",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дальновидение",
+     "name_en": "Farsight",
+     "type": "spell",
+     "cost": "B+1",
+     "stats": "-",
+     "keywords": "scry",
+     "effect": "on_play: scry 2, draw 1 (refill the burst hand)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Резкий Перепад",
+     "name_en": "Sharp Contrast",
+     "type": "aura",
+     "cost": "RB+2",
+     "stats": "-",
+     "keywords": "incandescence, chill",
+     "effect": "aura: your creatures +1 atk, enemy creatures -1 atk",
+     "role": "curve",
+     "copies": 1
+    },
+    {
+     "name_ru": "Грозовой Разряд",
+     "name_en": "Thunderhead",
+     "type": "spell",
+     "cost": "RRB",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play (chain_burn): 3 to enemy hero, +1 for each other spell cast this turn",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Багровый Разлом",
+     "name_en": "Crimson Rift",
+     "type": "spell",
+     "cost": "R+1",
+     "stats": "-",
+     "keywords": "-",
+     "effect": "on_play: 3 to a chosen enemy creature (red removal + fuel)",
+     "role": "removal",
+     "copies": 2
+    }
+   ],
+   "name": "Arc Light / Разряд",
+   "colors": "Red/Blue",
+   "hero": "Tiziana / Тициана — passive Palette: the first multicolour (2+ colour) card you play each turn, draw a card. Every RB card in the list refuels the combo.",
+   "speed": "Fast (aggro-combo); clock turns 1-3, burst kill turns 5-6.",
+   "strategy": "Cheap prowess bodies (echo) turn every refraction into extra damage; a chain of cheap spells simultaneously pumps the board and throws reach at the face, doubled by birefringence and pushed through walls by pinpoint. The deck kills from an empty-looking board.",
+   "wincon": "Combo burst from hand: 2-3 echo bodies on board, then chain Frost Grip/Jolt/Crimson Flicker/Needle Bolt (each +1/+0 to every echo body via on_spell_cast) into an alpha strike, with Double Vision / Twin Hornet / Mirror Ray doubling a bolt, spark from banked crystals, and Thunderhead scaling off the chain — 15+ in one turn. Pinpoint carries the last points through Shield/Ward.",
+   "gameplan": "T1: mono-pip glue — Storm Firefly, or Double Vision to pre-load the engine, or a reactive Frost Grip. T2: drop a multicolour body (Volt Swift / Volt Eel / Arc Mantis) — Palette draws off the first RB card, start chipping; bypass on Volt Swift ignores blockers. T3: Twin Hornet / Ember Oracle / Storm Tyrant, and begin short 1-spell chains to trade up (Jolt/Cold Shatter/Crimson Rift kill a blocker while pumping prowess). T4: Sharp Contrast swings a race, or keep sculpting the hand with Farsight; hold burn. T5-6 (kill turn): with the board down, empty the hand — every spell adds +1/+0 to each echo body AND points to the face; birefringence doubles a bolt, Spark Gunner/Ember Cannon convert leftover crystals, Thunderhead reads the whole chain, and pinpoint punches the final damage through walls. The deck punishes any opponent who spent turns 1-4 setting up instead of pressuring.",
+   "keywords_used": [
+    "echo",
+    "birefringence",
+    "pinpoint",
+    "spark",
+    "sear",
+    "bypass",
+    "pierce",
+    "haze",
+    "chill",
+    "incandescence",
+    "freeze",
+    "scatter",
+    "scry",
+    "brittle"
+   ],
+   "new_mechanics": [
+    {
+     "name": "echo / Отклик N (prowess)",
+     "does": "on_spell_cast, this creature gains +N/+0 until end of turn; N stacks per spell across the turn, turning a spell chain into a growing board.",
+     "engine_work": "Add NEW trigger on_spell_cast: hook playCard where type==spell so that after the spell resolves it calls reactTo on the CASTER's creatures; a creature with echo N applies a temporary atk buff. Track the temp buff and clear it in endTurn. (Listed in the constitution as required NEW work.)"
+    },
+    {
+     "name": "chain_burn action (Thunderhead)",
+     "does": "deals base value to the enemy hero plus 1 for every OTHER spell already cast this turn — the payoff that scales with the combo turn.",
+     "engine_work": "Add a spellsCastThisTurn counter: increment in playCard for type==spell, reset at turn start (or end). New action chain_burn: dealHeroDamage(value + max(0, spellsCastThisTurn - 1)). Reads the counter; no new selector needed (targets enemy_hero)."
+    }
+   ],
+   "curve_note": "Deliberately flat and low: 11 cards at 1 mana, 14 at 2, 13 at 3, then a single 4 (Sharp Contrast) and a single 5 (Ember Cannon) — 40 total. Mana is spent on spells and small prowess bodies, never on fat, so a full turn's mana can be dumped as one combustion. Dual-colour enforcement is in the ceiling cards: Storm Tyrant and Thunderhead are RRB, Storm Serpent is RBB, and Twin Hornet/Ember Oracle/Volt Swift/Volt Eel/Needle Bolt are two-pip RB — uncastable in a rainbow pile — while the mono-pip 1-drops are the neutral glue.",
+   "matchups": "Most beats — Long Noon (Yellow, lock/control): pinpoint on Needle Bolt ignores Shield/Ward, bypass and burst-from-hand route around provoke walls and blind, and their slow lock can't answer a 15-damage turn that never touched the board. Overgrowth (Green, ramp-bombs): we are simply faster — Jolt/Cold Shatter/Crimson Rift and Undertow strip early ramp/blockers while pierce and reach go over the bombs before Green stabilises; the game ends before their capstones matter. Most loses — Glass Hour (Blue, spell control): freeze/scatter/chill and counter-tempo blunt our prowess bodies, chill saps our attackers below lethal, and they out-spell and out-sustain us; Storm Serpent's haze buys a turn but their answers outnumber our threats. Bastion (Yellow/Green, go-tall): Bulwark armour + regen + big provoke/shield bodies out-race our burn — armour eats face damage and there is simply too much life to close even with pinpoint, so a stalled combo turn just fizzles."
+  },
+  {
+   "cards": [
+    {
+     "name_ru": "Мшистый служка",
+     "name_en": "Mossy Acolyte",
+     "type": "creature",
+     "cost": "G",
+     "stats": "1/2",
+     "keywords": "photosynthesis 1",
+     "effect": "start_of_turn: +1 crystal. Turn-1 ramp dork.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Страж поросли",
+     "name_en": "Sprout Warden",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "2/2",
+     "keywords": "germinate 1",
+     "effect": "activate: spend 1 crystal -> a 1/1 sprout. On-demand sacrifice fodder.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Перегнойный жук",
+     "name_en": "Humus Beetle",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/3",
+     "keywords": "compost 2",
+     "effect": "friendly death -> this +2/+2. Sticky aristocrat that eats your own dying fodder.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Матерь спор",
+     "name_en": "Spore Mother",
+     "type": "creature",
+     "cost": "GG+1",
+     "stats": "2/3",
+     "keywords": "spores 2",
+     "effect": "on_death: two 1/1 sprouts. Dies into a wide board -> refuels undergrowth/compost/Renewal.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тусклый призрак",
+     "name_en": "Dim Phantom",
+     "type": "creature",
+     "cost": "V+1",
+     "stats": "2/2",
+     "keywords": "stealth, haunt",
+     "effect": "Unselectable until it attacks; on_death leaves a 1HP illusory copy. Evasive value that never fully dies.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дроблёный истукан",
+     "name_en": "Splintered Effigy",
+     "type": "creature",
+     "cost": "VV+1",
+     "stats": "2/2",
+     "keywords": "split 2",
+     "effect": "on_play: two 1HP illusory copies of itself. Instant go-wide for undergrowth and Renewal fuel.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Топкий возделыватель",
+     "name_en": "Fen Cultivator",
+     "type": "creature",
+     "cost": "GG+2",
+     "stats": "3/4",
+     "keywords": "photosynthesis 2",
+     "effect": "start_of_turn: +2 crystals. Second ramp tier that unlocks the GGV/GVV bombs.",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Стычка в роще",
+     "name_en": "Grove Skirmish",
+     "type": "spell",
+     "cost": "GG+1",
+     "stats": "-",
+     "keywords": "fight (NEW)",
+     "effect": "on_play: your chosen creature and a chosen enemy creature deal their atk to each other. Green removal that trades a chump into their blocker.",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Плющ-могильник",
+     "name_en": "Barrow Ivy",
+     "type": "creature",
+     "cost": "GV+1",
+     "stats": "3/3",
+     "keywords": "Renewal 1 (NEW), haunt",
+     "effect": "on_death: random creature from your graveyard to hand, and leave a 1HP copy. The core recursion body.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Двойная лань",
+     "name_en": "Echo Fawn",
+     "type": "creature",
+     "cost": "GV+2",
+     "stats": "1/1",
+     "keywords": "undergrowth 1",
+     "effect": "on_play: mirage a chosen friendly creature (1HP copy). Also +1/+1 per other creature -> grows with the board it just widened.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Зеркальный сад",
+     "name_en": "Mirror Garden",
+     "type": "spell",
+     "cost": "VV+2",
+     "stats": "-",
+     "keywords": "mirage",
+     "effect": "on_play: mirage any creature as a 1HP illusion. Second copy of your resonance/undergrowth bomb, or steal-copy theirs.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Хрустальный колосс",
+     "name_en": "Crystal Colossus",
+     "type": "creature",
+     "cost": "GGV+2",
+     "stats": "3/3",
+     "keywords": "resonance 1, haunt",
+     "effect": "+1/+1 per crystal you own; on_death leaves a 1HP copy. Ramp cashes out into a giant that survives removal.",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Разросшийся морок",
+     "name_en": "Sprawling Wisp",
+     "type": "creature",
+     "cost": "GVV+2",
+     "stats": "1/1",
+     "keywords": "undergrowth 2, split 1",
+     "effect": "on_play: one 1HP copy of itself; each Wisp is +2/+2 per other creature. Go-wide bomb that seeds its own multiplier.",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Второй посев",
+     "name_en": "Second Sowing",
+     "type": "spell",
+     "cost": "GG+2",
+     "stats": "-",
+     "keywords": "reclaim (NEW, shares Renewal impl)",
+     "effect": "on_play: return 2 random creatures from your graveyard to hand. Bulk refuel to out-card any grind.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Спящий вал",
+     "name_en": "Dormant Rampart",
+     "type": "creature",
+     "cost": "GGV+3",
+     "stats": "4/4",
+     "keywords": "growth 1, decoy 2",
+     "effect": "Sits banked; wakes free after 2 turns (or Gemma wakes it early +1/+1). start_of_turn +1/+1. Hidden finisher.",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пелена бликов",
+     "name_en": "Veil of Glints",
+     "type": "aura",
+     "cost": "V+1",
+     "stats": "-",
+     "keywords": "glimmer",
+     "effect": "aura: your first creature each turn enters stealthed. Lands a fresh bomb or mirage-copy uncontested.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Перегнойная гряда",
+     "name_en": "Compost Bed",
+     "type": "aura",
+     "cost": "G+1",
+     "stats": "-",
+     "keywords": "mulch",
+     "effect": "aura: start_of_turn +1 HP to a wounded creature. Keeps 1HP illusions and chip-damaged bombs alive to grind.",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Терновый тур",
+     "name_en": "Bramble Ox",
+     "type": "creature",
+     "cost": "GG+2",
+     "stats": "3/3",
+     "keywords": "growth 1, undergrowth 1",
+     "effect": "start_of_turn +1/+1, and +1/+1 per other creature. Go-tall/go-wide hybrid that snowballs if unanswered.",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Сумеречный ловчий",
+     "name_en": "Dusk Hunter",
+     "type": "creature",
+     "cost": "VV+2",
+     "stats": "3/3",
+     "keywords": "stealth, decoy 2",
+     "effect": "Unselectable until it attacks; can lurk banked and wake (free at 2, or Gemma +1/+1). Evasive reach past walls.",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Хранитель отзвуков",
+     "name_en": "Keeper of Echoes",
+     "type": "creature",
+     "cost": "V+2",
+     "stats": "2/3",
+     "keywords": "refract, haunt",
+     "effect": "Removal/attacks on it redirect to a random other target; on_death leaves a 1HP copy. Shields the engine.",
+     "role": "enabler",
+     "copies": 2
+    }
+   ],
+   "colors": "Green/Violet (GV) — mono-green ramp/fodder enablers, mono-violet illusion enablers, and GGV/GVV heavy-splash bombs that enforce both colours.",
+   "curve_note": "20 unique cards, every one a 2-of = exactly 40. Deliberately light on 1-drops (only Mossy Acolyte x2) — under Gemma you would rather bank turn 1 for a crystal than commit a fragile body into Red. Bulk sits at 2 and 3 mana (ten cards each) for early fodder, ramp and the aristocrat/recursion shells. A dense 4-cost tier (12 cards: Fen Cultivator, Echo Fawn, Mirror Garden, Second Sowing, Bramble Ox, Dusk Hunter) is the engine floor, made reliably castable by photosynthesis ramp (Mossy Acolyte, Fen Cultivator) and Facet banking. Only three 5+ cards (Crystal Colossus GGV, Sprawling Wisp GVV at 5; Dormant Rampart GGV at 6) as finishers — you rarely hard-cast them off curve, you ramp or wake into them.",
+   "gameplan": "Mulligan for a 2-mana ramp/fodder piece (Mossy Acolyte, Sprout Warden, Humus Beetle) plus both a green and a violet source. T1: Mossy Acolyte, or bank a spare bomb for a crystal (Gemma reclaims it later, buffed). T2: Sprout Warden / Humus Beetle / Compost Bed start the fodder-and-aristocrat shell; or Dim Phantom for evasive chip. T3: Spore Mother or Splintered Effigy flood the board, Barrow Ivy brings the Renewal loop online, or Grove Skirmish answers a key blocker. T4 is the engine turn: Fen Cultivator ramps into fives, Echo Fawn / Mirror Garden copy a growing body, Second Sowing bulk-refills from the graveyard. T5-6: land Crystal Colossus (scales with every crystal you banked) or Sprawling Wisp (scales with your wide illusion board), protect it with Veil of Glints (glimmer) or hide behind sprouts, then mirage it for a second giant at 1HP. From here the loop is self-sustaining: every friendly death — sprouts, illusions, chumps, bombs — triggers compost (grow Humus Beetle/Bramble Ox), Renewal/reclaim (card back to hand) and haunt (leave a 1HP copy), so you manufacture threats faster than the opponent can remove them. Gemma's Facet ties it together: bank surplus bombs as mana early, then wake them later at +1/+1, turning ramp fuel back into buffed bodies and letting Dormant Rampart / Dusk Hunter appear off-curve.",
+   "wincon": "Attrition inevitability: out-card and out-body the opponent through the Renewal + haunt + compost + reclaim recursion web (their resources deplete, yours loop back), then close with resonance/undergrowth capstones and their mirage copies going both tall and wide. You do not race — you make the long game unlosable on cards.",
+   "keywords_used": [
+    "photosynthesis",
+    "germinate",
+    "compost",
+    "spores",
+    "stealth",
+    "haunt",
+    "split",
+    "mirage",
+    "resonance",
+    "undergrowth",
+    "growth",
+    "mulch",
+    "glimmer",
+    "decoy",
+    "refract",
+    "Renewal (new)",
+    "fight (new)",
+    "reclaim (new, shares Renewal impl)"
+   ],
+   "speed": "Slow midrange / combo-loop — sets up through turns 2-4, takes over from turn 5 onward; wants the game to go long.",
+   "strategy": "Recursive value engine. Cheap green ramp and self-replacing fodder feed an aristocrat/recursion core; illusion tools (mirage, split, haunt) duplicate your best bodies at 1HP while Renewal/reclaim recycle the graveyard, so the deck never runs out of threats. It wins by making every death profitable and every removal a temporary inconvenience.",
+   "hero": "Гемма / Gemma — passive Facet: wake (awaken) any banked card in your mana row for its cost, and creatures woken this way enter with +1/+1. Lets you bank surplus bombs as crystals early, then redeploy them later as buffed bodies — bending ramp fuel back into threats and enabling off-curve captstones (Dormant Rampart, Dusk Hunter).",
+   "matchups": "MOST BEATS — Long Noon (Yellow control/lock): Yellow's blind/provoke/walls outlast fair decks, but Renewal+haunt+compost+reclaim produce an unkillable stream; the lock can disable one body, never the graveyard, and go-wide undergrowth floods past provoke walls while Second Sowing refills through their grind. You simply have more resources than they have answers. Bastion (Yellow/Green go-tall): Bastion commits to a few big bulwark/provoke bodies — Mirror Garden copies their giant or yours, undergrowth/go-wide outnumbers a small tall board, and Grove Skirmish + chump-and-recur trades down their key threats while you replace yours for free. MOST LOSES — Open Flame (Red aggro/tempo): the engine is a turn or two too slow; 1HP illusions, sprouts and 1/2 dorks evaporate to incandescence/pierce, and sear/spark reach the hero before Renewal snowballs — you only stabilize if you survive to T5, and Red doesn't allow it. Still Shroud (Yellow/Violet lock): blind+provoke+decoy strand your bodies, their refract shrugs off Grove Skirmish, and they grind on illusions too — the lock stops you converting card advantage into damage while their unmake picks off bombs before they can loop.",
+   "new_mechanics": [
+    {
+     "name": "Renewal N / reclaim",
+     "does": "Renewal N is an on_death keyword: when THIS creature dies, return N random creatures from your graveyard to your hand. reclaim N is the spell-action form (Second Sowing) returning N random graveyard creatures to hand. Same underlying operation.",
+     "engine_work": "Add a friendly on_death reaction in reactTo that, for a creature carrying Renewal N, moves N random creature cards from the owner's graveyard (already tracked) to hand, respecting the 10-card hand cap (overflow stays in graveyard). Expose the same move as an executeAction case 'reclaim' with a value, callable from spell effects."
+    },
+    {
+     "name": "fight",
+     "does": "A green removal action: a chosen friendly creature and a chosen enemy creature simultaneously deal damage equal to their atk to each other; either dying fires normal on_death triggers.",
+     "engine_work": "Add a two-target spell shape (source = chosen_friendly_minion, target = chosen_enemy_minion) and an executeAction case 'fight' that applies mutual dealDamage in one batch, then processes Died events for both. Requires the targeting layer to accept a second selector for a single spell (minor extension to the effect resolver)."
+    },
+    {
+     "name": "refract (activation of existing design)",
+     "does": "Keeper of Echoes carries refract: a harmful effect or attack aimed at it is redirected to a random other valid target — anti-removal that protects the engine.",
+     "engine_work": "Already designed but not implemented (ARCHITECTURE A6). Implement redirection in reactTo / attack / executeAction: when a damage or targeted-effect resolves against a refract holder, reroll the target to a random other eligible creature/hero before applying. Reused keyword; the only work is finally wiring the redirect."
+    }
+   ],
+   "name": "Вечный сад / Evergreen"
+  },
+  {
+   "name": "Тихий плен / Still Shroud",
+   "colors": "Yellow/Violet (YY / VV / YYV / YVV commitment)",
+   "hero": "Умбра / Umbra — passive \"duskfall\": первый вражеский атакующий за ход слепнет на 1 после боя (softens the aggro race and hands us tempo on their own attack).",
+   "speed": "Slow control / lock. Stabilises by turn 4, sets the full prison by 5-6, then ticks to an inevitable kill.",
+   "strategy": "Prison-disable, not stall-outlast. Where Long Noon builds regenerating walls and waits, Still Shroud actively turns the enemy board OFF: provoke herds attackers onto sticky walls, blind/flare/warden strip their ability to act, refract+ward bounce their removal off our pieces. Once nothing on the far side can profitably attack or be answered, one untargetable/unblockable threat closes.",
+   "wincon": "A single locked-in evasive threat under a board the opponent cannot use: Silent Reaper (stealth+strobe, 8 unblockable/turn), Duskbound Matriarch (untargetable, ticking warden), a woken Buried Blade/Row Shade out of the mana row, or a Waking Colossus dropped mid-board that blinds everything on arrival. The lock makes any one of these lethal on a clock they can't race back.",
+   "gameplan": "T1: Dim Lamplighter blinds their 1-drop, or bank Row Shade / Buried Blade into the mana row as a hidden clock (decoy). T2: Light Shutter or Lantern Sentry — a provoke wall that soaks the first swings; or Blinding Glint their best attacker. T3: the herd-and-shut turn — Cage Keeper / Silent Ward provoke AND blind, Watch Beacon reads their banked cards, Long Dusk board-blinds a go-wide start. T4: engine online — Prison Warden makes blind tick every upkeep, Gaol Mirage forces attacks that then scatter (refract), Snuffing Verdict deletes anything you've already blinded. T5-6: the lock is sealed; deploy Silent Reaper or wake Waking Colossus (YYV) / a decoy'd threat, and let Duskbound Matriarch tick as an untargetable finisher. refract + ward keep the closer alive through their removal.",
+   "keywords_used": [
+    "blind",
+    "provoke",
+    "flare",
+    "ward",
+    "floodlight",
+    "decoy",
+    "stealth",
+    "awaken",
+    "shield",
+    "regen",
+    "split",
+    "firststrike",
+    "strobe",
+    "refract",
+    "warden"
+   ],
+   "curve_note": "Control curve peaking at 3-4 (12 cards at 3, 10 at 4). Deliberately four 1-drops + eight 2-drops of blind/wall to survive the aggro matchups it is designed to lose; tops out at a single 6-drop capstone. Only two true 5+ finishers plus mana-row (decoy/awaken) threats that cost 0 to deploy when woken, so late flood is impossible.",
+   "matchups": "Most beats — Green (Overgrowth): their ramp-bombs get blinded on arrival, refracted off our walls, and warden ticks faster than they can rebuild; provoke turns their fatties into forced attackers we soak, and we out-inevitable with an untargetable finisher. GV (Evergreen combo-loop): floodlight reads the assembly, blind breaks the tempo of the loop, Snuffing Verdict kills the disabled key piece, and Silent Reaper ends the game before the engine comes fully online. Most loses — Red (Open Flame): the lock isn't live until 4-5, and bypass/pierce plus spark/sear reach get under the walls; Umbra + Light Shutter/Dawnkeeper buy turns but not enough. RG (Rot and Bloom): Requiem/sear/compost drain and reach race our slow clock and ignore the board lock entirely — they win the damage race before the prison closes.",
+   "new_mechanics": [
+    {
+     "name": "warden N (new keyword)",
+     "does": "start_of_turn: blinds N random enemy creatures for 1 (skips already-blinded targets). The ticking inevitability engine of the prison.",
+     "engine_work": "Register a start_of_turn trigger in applyTurnStartTriggers; selector = N random enemy creatures without an active blind counter; apply the existing blind action(value 1). Reuses blind's existing counter/decrement logic."
+    },
+    {
+     "name": "refract (designed, to-implement — ARCHITECTURE A6)",
+     "does": "An enemy targeted effect or attack aimed at this creature is redirected to a random other valid target.",
+     "engine_work": "In reactTo/attack/executeAction, when an incoming enemy target resolves onto a refract creature, re-roll the target uniformly among the other legal targets before applying. Must fire for both combat (attack) and spell/effect targeting; guard against infinite redirection loops (redirect at most once)."
+    },
+    {
+     "name": "duskfall (Umbra hero passive)",
+     "does": "The first enemy creature to attack each opponent turn is blinded for 1 after that combat resolves.",
+     "engine_work": "Add a per-turn boolean first_enemy_attacker_used, reset at each start_of_turn for the attacking side; in the on_attack/post-combat hook, if unset and the attacker is an enemy creature, apply blind(1) to it after damage resolution and set the flag."
+    },
+    {
+     "name": "is_blinded selector (new selector)",
+     "does": "Restricts a target/action to enemy creatures that currently carry a blind counter (used by Snuffing Verdict to 'execute what you've locked').",
+     "engine_work": "Add a selector predicate is_blinded that filters candidate creatures to those with an active blind counter > 0; wire into the target-legality check so the destroy action can only choose disabled creatures."
+    }
+   ],
+   "cards": [
+    {
+     "name_ru": "Тусклый фонарщик",
+     "name_en": "Dim Lamplighter",
+     "type": "creature",
+     "cost": "Y",
+     "stats": "1/2",
+     "keywords": "—",
+     "effect": "on_play: blind target enemy creature 1",
+     "role": "enabler / curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тень в ряду",
+     "name_en": "Row Shade",
+     "type": "creature",
+     "cost": "V",
+     "stats": "2/1",
+     "keywords": "decoy 1, stealth",
+     "effect": "decoy: after 1 turn banked in the mana row, wakes free as an untargetable attacker",
+     "role": "enabler / hidden threat",
+     "copies": 2
+    },
+    {
+     "name_ru": "Фонарный часовой",
+     "name_en": "Lantern Sentry",
+     "type": "creature",
+     "cost": "Y+1",
+     "stats": "1/4",
+     "keywords": "provoke, shield",
+     "effect": "forces enemies to attack it; ignores the first source of damage",
+     "role": "enabler / herd wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ослепляющий блик",
+     "name_en": "Blinding Glint",
+     "type": "spell",
+     "cost": "Y+1",
+     "stats": "-",
+     "keywords": "blind 2",
+     "effect": "on_play: blind target enemy creature 2",
+     "role": "removal / disable",
+     "copies": 2
+    },
+    {
+     "name_ru": "Расколотый мираж",
+     "name_en": "Splinter Mirage",
+     "type": "creature",
+     "cost": "V+1",
+     "stats": "1/3",
+     "keywords": "split 1, provoke",
+     "effect": "on_play: 1 illusory 1HP copy; forces enemies to attack it",
+     "role": "anti-aggro / go-wide gum",
+     "copies": 2
+    },
+    {
+     "name_ru": "Створка света",
+     "name_en": "Light Shutter",
+     "type": "creature",
+     "cost": "Y+1",
+     "stats": "0/5",
+     "keywords": "provoke, regen 1",
+     "effect": "forces enemies to attack it; start_of_turn +1 HP to itself",
+     "role": "anti-aggro wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Смотритель клетки",
+     "name_en": "Cage Keeper",
+     "type": "creature",
+     "cost": "YY+1",
+     "stats": "2/4",
+     "keywords": "provoke",
+     "effect": "on_play: blind a random enemy creature 1; forces enemies to attack it",
+     "role": "enabler engine",
+     "copies": 2
+    },
+    {
+     "name_ru": "Немой страж",
+     "name_en": "Silent Ward",
+     "type": "creature",
+     "cost": "YY+1",
+     "stats": "2/4",
+     "keywords": "ward, provoke",
+     "effect": "absorbs the next harmful effect/spell on an ally; forces enemies to attack it",
+     "role": "engine / protect + herd",
+     "copies": 2
+    },
+    {
+     "name_ru": "Преломляющий морок",
+     "name_en": "Refracting Shade",
+     "type": "creature",
+     "cost": "VV+1",
+     "stats": "3/2",
+     "keywords": "refract, stealth",
+     "effect": "enemy targeting on it redirects to a random other target; untargetable until it attacks",
+     "role": "engine / mini-finisher",
+     "copies": 2
+    },
+    {
+     "name_ru": "Смотрящий маяк",
+     "name_en": "Watch Beacon",
+     "type": "creature",
+     "cost": "Y+2",
+     "stats": "1/5",
+     "keywords": "floodlight, provoke",
+     "effect": "reveals identities of enemy banked mana-row cards; forces enemies to attack it",
+     "role": "engine / read + wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затаённый клинок",
+     "name_en": "Buried Blade",
+     "type": "creature",
+     "cost": "V+2",
+     "stats": "4/2",
+     "keywords": "decoy 2, stealth",
+     "effect": "decoy: after 2 turns banked, wakes free; untargetable until it attacks",
+     "role": "hidden finisher",
+     "copies": 2
+    },
+    {
+     "name_ru": "Долгие сумерки",
+     "name_en": "Long Dusk",
+     "type": "spell",
+     "cost": "YY+1",
+     "stats": "-",
+     "keywords": "blind 1 (mass)",
+     "effect": "on_play: blind ALL enemy creatures 1",
+     "role": "board disable / reset",
+     "copies": 2
+    },
+    {
+     "name_ru": "Вспышка на изломе",
+     "name_en": "Flare Fracture",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/3",
+     "keywords": "flare 2, firststrike",
+     "effect": "strikes first; on_death: blind 2 random enemies 1",
+     "role": "punisher / trade",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тюремный смотритель",
+     "name_en": "Prison Warden",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/5",
+     "keywords": "warden 1",
+     "effect": "start_of_turn: blind 1 random enemy creature 1",
+     "role": "capstone engine / inevitability",
+     "copies": 2
+    },
+    {
+     "name_ru": "Заря-хранитель",
+     "name_en": "Dawnkeeper",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "2/6",
+     "keywords": "provoke, regen 2",
+     "effect": "forces enemies to attack it; start_of_turn +2 HP to itself",
+     "role": "anti-aggro wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Гасящий приговор",
+     "name_en": "Snuffing Verdict",
+     "type": "spell",
+     "cost": "VV+2",
+     "stats": "-",
+     "keywords": "—",
+     "effect": "on_play: destroy target enemy creature that is currently blinded",
+     "role": "removal payoff (blind synergy)",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тюремный мираж",
+     "name_en": "Gaol Mirage",
+     "type": "creature",
+     "cost": "VV+2",
+     "stats": "3/4",
+     "keywords": "refract, provoke",
+     "effect": "forces enemies to attack it, then those attacks redirect to a random target; on_death: blind 1 random enemy 1",
+     "role": "engine / redirect wall",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пробуждённый исполин",
+     "name_en": "Waking Colossus",
+     "type": "creature",
+     "cost": "YYV+2",
+     "stats": "6/6",
+     "keywords": "awaken",
+     "effect": "can be woken from the mana row for its cost; on_play: blind ALL enemy creatures 1",
+     "role": "capstone bomb",
+     "copies": 2
+    },
+    {
+     "name_ru": "Тихая жница",
+     "name_en": "Silent Reaper",
+     "type": "creature",
+     "cost": "YVV+2",
+     "stats": "4/4",
+     "keywords": "stealth, strobe",
+     "effect": "untargetable until it attacks; may attack twice per turn",
+     "role": "capstone finisher",
+     "copies": 2
+    },
+    {
+     "name_ru": "Владычица сумрака",
+     "name_en": "Duskbound Matriarch",
+     "type": "creature",
+     "cost": "YVV+3",
+     "stats": "5/6",
+     "keywords": "warden 1, stealth",
+     "effect": "untargetable until it attacks; start_of_turn: blind 1 random enemy creature 1",
+     "role": "capstone / untargetable ticking closer",
+     "copies": 2
+    }
+   ]
+  },
+  {
+   "cards": [
+    {
+     "name_ru": "Наносы",
+     "name_en": "Alluvium",
+     "type": "spell",
+     "cost": "G",
+     "stats": "-",
+     "keywords": "add_crystal, scry",
+     "effect": "on_play: +1 permanent crystal, then scry 1",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кувшинка",
+     "name_en": "Waterlily",
+     "type": "creature",
+     "cost": "G",
+     "stats": "0/3",
+     "keywords": "photosynthesis",
+     "effect": "start_of_turn: +1 crystal; a turn-1 ramp wall that blocks early aggro",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Родник",
+     "name_en": "Wellspring",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/3",
+     "keywords": "photosynthesis",
+     "effect": "start_of_turn: +1 crystal",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Илистый Прыгун",
+     "name_en": "Mudskipper",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "2/1",
+     "keywords": "germinate",
+     "effect": "activate: spend 1 crystal -> summon a 1/1 sprout",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Сеятель Топи",
+     "name_en": "Marsh Sower",
+     "type": "creature",
+     "cost": "G+2",
+     "stats": "2/3",
+     "keywords": "germinate",
+     "effect": "activate: spend 1 crystal -> summon a 1/1 sprout",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Пойменный Ил",
+     "name_en": "Fertile Flats",
+     "type": "spell",
+     "cost": "G+2",
+     "stats": "-",
+     "keywords": "draw",
+     "effect": "on_play: draw 2",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Прорыв Плотины",
+     "name_en": "Levee Break",
+     "type": "spell",
+     "cost": "GG+2",
+     "stats": "-",
+     "keywords": "sprout (NEW), flourish (NEW)",
+     "effect": "on_play: summon three 1/1 sprouts, then +1/+1 to ALL your creatures",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ледостав",
+     "name_en": "Iceover",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "freeze",
+     "effect": "on_play: freeze chosen enemy 1 turn",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Отлив",
+     "name_en": "Ebbtide",
+     "type": "spell",
+     "cost": "B",
+     "stats": "-",
+     "keywords": "scatter",
+     "effect": "on_play: return chosen enemy creature to hand",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Стужный Гольян",
+     "name_en": "Frost Minnow",
+     "type": "creature",
+     "cost": "B+1",
+     "stats": "2/2",
+     "keywords": "freeze",
+     "effect": "on_play: freeze chosen enemy 1 turn",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затор",
+     "name_en": "Ice Jam",
+     "type": "spell",
+     "cost": "B+1",
+     "stats": "-",
+     "keywords": "freeze",
+     "effect": "on_play: freeze chosen enemy 2 turns (hard-lock a blocker for the alpha)",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Первый Лёд",
+     "name_en": "First Frost",
+     "type": "aura",
+     "cost": "B+2",
+     "stats": "-",
+     "keywords": "chill",
+     "effect": "aura: enemy creatures -1 attack (cuts their counter-swing)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Рясковый Настил",
+     "name_en": "Duckweed Raft",
+     "type": "creature",
+     "cost": "GGB+1",
+     "stats": "2/3",
+     "keywords": "undergrowth, scatter",
+     "effect": "+1/+1 per other creature (green); on_play: bounce chosen enemy (blue)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кварцевый Тритон",
+     "name_en": "Quartz Newt",
+     "type": "creature",
+     "cost": "GGB+2",
+     "stats": "3/3",
+     "keywords": "resonance, freeze",
+     "effect": "+1/+1 per your crystal (green); on_play: freeze chosen enemy 1 (blue)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Стремнина",
+     "name_en": "Rapids",
+     "type": "creature",
+     "cost": "GBB",
+     "stats": "3/3",
+     "keywords": "germinate, freeze",
+     "effect": "germinate (green); on_play: freeze chosen enemy 1 (blue)",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Наледь",
+     "name_en": "Rime Sheet",
+     "type": "creature",
+     "cost": "GBB+1",
+     "stats": "2/5",
+     "keywords": "mulch, chill",
+     "effect": "start_of_turn heal a hurt ally +1 (green); aura enemies -1 atk (blue)",
+     "role": "reach",
+     "copies": 2
+    },
+    {
+     "name_ru": "Морозный Зимородок",
+     "name_en": "Frost Kingfisher",
+     "type": "creature",
+     "cost": "GBB+1",
+     "stats": "3/2",
+     "keywords": "photosynthesis, scatter",
+     "effect": "start_of_turn +1 crystal (green); on_play: bounce chosen enemy (blue)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Матерь Половодья",
+     "name_en": "Floodmother",
+     "type": "creature",
+     "cost": "GGB+2",
+     "stats": "3/4",
+     "keywords": "germinate, scatter",
+     "effect": "germinate flood-engine (green); on_play: bounce chosen enemy (blue)",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Половодный Титан",
+     "name_en": "Spate Giant",
+     "type": "creature",
+     "cost": "GGB+3",
+     "stats": "4/7",
+     "keywords": "resonance, freeze",
+     "effect": "+1/+1 per your crystal (green); on_play: freeze chosen enemy 1 (blue)",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Владыка Разлива",
+     "name_en": "Floodlord",
+     "type": "creature",
+     "cost": "GGB+3",
+     "stats": "6/6",
+     "keywords": "germinate, freeze",
+     "effect": "germinate (green); on_play: freeze ALL enemies 1 turn (blue), clearing the way for the wide alpha",
+     "role": "capstone",
+     "copies": 2
+    }
+   ],
+   "colors": "Green/Blue (green-primary ramp, blue tempo)",
+   "curve_note": "Low tempo-forward curve, 1-6: 8/8/8/8/4/4 cards. Two of the four one-drops are ramp (Alluvium, Waterlily) and two are cheap interaction (Iceover, Ebbtide), so every opener does something. photosynthesis (Waterlily, Wellspring, Kingfisher) + add_crystal (Alluvium) pull the 5-6 payoffs out roughly a turn early; only two 6-drops as reachable tops. germinate bodies convert the crystal surplus into board width instead of dead mana. Mono-green ramp and mono-blue interaction are single-pip glue; every payoff/capstone is a heavy GG/GGB/GBB double-commit that only casts with hero fixing.",
+   "gameplan": "T1 (first): Alluvium (permanent crystal + scry) or Waterlily (0/3 ramp wall that also blocks a Red one-drop). T2: Wellspring / Mudskipper to develop and ramp, or hold Frost Minnow/Ice Jam to freeze their first real threat. By T3 you are on 4-5 crystals: drop a 4-cost body ahead of curve (Duckweed Raft bouncing a blocker, or Rapids freezing one) and start activating germinate to widen. T4-5: the double-green GGB payoffs come online while you still tempo them out — Quartz Newt is already a 6/6+ off your crystal count, Floodmother makes sprouts and bounces a blocker every turn, and Rime Sheet walls the ground while chilling their attack. T6: Floodlord freezes their whole board while you have a wide flooded field, or Spate Giant lands as an 11/14-class tank. Finish with Levee Break: three fresh sprouts + a board-wide +1/+1 turns an already-wide field into lethal, and it retroactively pumps every undergrowth/resonance body on the table. Throughout, freeze/scatter/chill mean the opponent never gets a clean profitable block, so your cheap ramped-up bodies chip 3-6 a turn from turn 3 onward.",
+   "wincon": "Wide flooded board of ramp-inflated cheap bodies that can't be blocked profitably, closed by Levee Break's sprout+board-buff alpha or Floodlord's freeze-all swing.",
+   "keywords_used": [
+    "photosynthesis",
+    "germinate",
+    "undergrowth",
+    "resonance",
+    "chill",
+    "mulch",
+    "freeze",
+    "scatter",
+    "add_crystal",
+    "scry",
+    "draw",
+    "spectral_shift (hero)",
+    "sprout (NEW)",
+    "flourish (NEW)"
+   ],
+   "hero": "Ирида / Iris — Spectral Shift (spectral_shift): once per turn treat one of your crystals as an adjacent colour, fixing Green/Blue mana so the heavy GGB / GBB double-commit payoffs cast on time.",
+   "matchups": "MOST BEATS — Overgrowth (Green ramp-bombs): Floodtide is the faster, wider clock; freeze + scatter neutralize their one-at-a-time bombs (bounce a resolved bomb, freeze the next) while a flooded board races them before they stabilize. Bastion (Yellow/Green go-tall): a handful of tall provoke/wall blockers can't cover a go-wide board; scatter resets their growth/shield investment and freeze turns off their one big attacker, so you flank and race. MOST LOSES — Open Flame (Red aggro): the ramp/setup plan is a turn too slow; bypass/pierce ignore your blockers and burn reach closes before the flood matures, and Waterlily/Rime Sheet only buy so much. Glass Hour (Blue control/spells): they out-freeze and out-scatter you, chill/haze blunt the wide board, and their card-advantage + sweep-style answers grind go-wide into the ground — your payoffs are individually fragile to their superior tempo tools.",
+   "name": "Floodtide / Половодье",
+   "new_mechanics": [
+    {
+     "name": "sprout N (action)",
+     "does": "on_play: summon N 1/1 sprout tokens for the caster. Powers the go-wide flood capstone (Levee Break) in a single card instead of many germinate activations.",
+     "engine_work": "Add an action branch `sprout` in Game::executeAction (game.cpp, near the germinate/muster handling ~line 1167-1193): loop `value` times calling the existing sprout/token-summon helper that germinate already uses (respect the board-max-8 cap, stop early if full). No new token type needed — reuse germinate's 1/1 creature template."
+    },
+    {
+     "name": "flourish N (action)",
+     "does": "on_play: give +N/+N permanently to ALL of the caster's creatures. The buff half of the capstone alpha turn; also retroactively rewards a wide board (bigger the field, bigger the swing).",
+     "engine_work": "Add an action branch `flourish` in Game::executeAction: iterate the controller's board creatures and add `value` to atk, hp, and maxHp (same field mutation `growth` already performs on a single creature, applied board-wide). Trigger emits the standard stat-change events so undergrowth/resonance recompute normally."
+    }
+   ],
+   "speed": "Midrange/tempo — proactive, applies pressure from turn 3; not a pure aggro clock, not a durdle control deck.",
+   "strategy": "Ramp-tempo flood: accelerate with photosynthesis + add_crystal, spend the surplus on germinate sprouts and above-curve GGB/GBB bodies, and use freeze/scatter/chill to deny profitable blocks so the wide board chips face every turn. Distinct from Overgrowth: no single bomb — a broad early board plus blocker-bounce rather than one ramp payoff."
+  },
+  {
+   "cards": [
+    {
+     "name_ru": "Портик",
+     "name_en": "Portico",
+     "type": "creature",
+     "cost": "Y",
+     "stats": "0/3",
+     "keywords": "provoke, shield",
+     "effect": "provoke: враги обязаны бить это; shield: игнорирует первый источник урона целиком",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Алебардщик",
+     "name_en": "Halberdier",
+     "type": "creature",
+     "cost": "YY",
+     "stats": "2/3",
+     "keywords": "provoke, firststrike",
+     "effect": "provoke стягивает атаки, firststrike убивает нападающего до отбоя — ранний размен против агро",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Подсолнух",
+     "name_en": "Sunflower",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/2",
+     "keywords": "photosynthesis 1",
+     "effect": "start_of_turn: +1 кристалл — разгон к капстоуну на ход раньше",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Плющ",
+     "name_en": "Ivy",
+     "type": "creature",
+     "cost": "G+1",
+     "stats": "1/4",
+     "keywords": "growth 1",
+     "effect": "start_of_turn: +1/+1 этому — дешёвое тело, что само дорастает до порога Атланта",
+     "role": "curve",
+     "copies": 2
+    },
+    {
+     "name_ru": "Барбакан",
+     "name_en": "Barbican",
+     "type": "creature",
+     "cost": "YY+1",
+     "stats": "1/6",
+     "keywords": "provoke, Bulwark 1",
+     "effect": "provoke держит фронт; Bulwark 1 — start_of_turn вашему герою +1 брони",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Живая изгородь",
+     "name_en": "Hedgerow",
+     "type": "creature",
+     "cost": "GG+1",
+     "stats": "0/6",
+     "keywords": "provoke, growth 1",
+     "effect": "стена-провокатор, что start_of_turn растёт +1/+1 и сама превращается в угрозу",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дернина",
+     "name_en": "Sward",
+     "type": "aura",
+     "cost": "G+2",
+     "stats": "-",
+     "keywords": "mulch",
+     "effect": "аура: start_of_turn +1 HP раненому существу — чинит стены и тайтан между разменами",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Затмение",
+     "name_en": "Eclipse",
+     "type": "spell",
+     "cost": "Y+2",
+     "stats": "-",
+     "keywords": "blind 2",
+     "effect": "on_play: цель не может атаковать 2 хода — мягкий снос под go-tall, выключает бомбу оппонента",
+     "role": "removal",
+     "copies": 2
+    },
+    {
+     "name_ru": "Покров",
+     "name_en": "Mantle",
+     "type": "spell",
+     "cost": "Y+1",
+     "stats": "-",
+     "keywords": "ward, shield (grant)",
+     "effect": "on_play: дать существу ward + shield — страхует единственный тайтан от снятия и первого удара",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Ясный день",
+     "name_en": "Clear Day",
+     "type": "aura",
+     "cost": "YG+1",
+     "stats": "-",
+     "keywords": "Bulwark 1, mulch",
+     "effect": "двуцветная аура: start_of_turn +1 брони герою (жёлтое) и +1 HP раненому (зелёное)",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Молодой дуб",
+     "name_en": "Young Oak",
+     "type": "creature",
+     "cost": "GG+2",
+     "stats": "3/5",
+     "keywords": "growth 1, cauterize",
+     "effect": "start_of_turn +1/+1; боевой урон этим лечит вашего героя — растёт в тайтан, попутно топит клок агро",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кристальный сад",
+     "name_en": "Crystal Garden",
+     "type": "aura",
+     "cost": "GG+2",
+     "stats": "-",
+     "keywords": "photosynthesis 2",
+     "effect": "start_of_turn: +2 кристалла — тяжёлый рамп, выносит YGG-капстоун к 5-6 ходу",
+     "role": "enabler",
+     "copies": 2
+    },
+    {
+     "name_ru": "Равелин",
+     "name_en": "Ravelin",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/6",
+     "keywords": "provoke, ward",
+     "effect": "provoke стягивает удары; ward глотает первое вредное заклинание/эффект на союзнике — щит от таргет-снятия",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Слюдяной вал",
+     "name_en": "Mica Rampart",
+     "type": "creature",
+     "cost": "YY+2",
+     "stats": "3/4",
+     "keywords": "provoke, flare 1",
+     "effect": "provoke; on_death: ослепляет 1 случайного врага — стена, что и в смерти покупает темп",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Боярышник",
+     "name_en": "Hawthorn",
+     "type": "creature",
+     "cost": "GG+3",
+     "stats": "5/6",
+     "keywords": "growth 2",
+     "effect": "start_of_turn: +2/+2 — за 6 HP попадает под пассивку Атланта, растёт в неубиваемое тело",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Небесная твердь",
+     "name_en": "Sky Vault",
+     "type": "creature",
+     "cost": "YYG+2",
+     "stats": "3/7",
+     "keywords": "provoke, Bulwark 1, growth 1",
+     "effect": "двуцветная стена: provoke+Bulwark 1 (жёлтое) и growth 1 (зелёное) — растущий бастион с бронёй",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Дубрава",
+     "name_en": "Oakwood",
+     "type": "creature",
+     "cost": "YGG+2",
+     "stats": "4/6",
+     "keywords": "undergrowth 1, provoke",
+     "effect": "+1/+1 за каждое другое ваше существо (иллюзии считаются); provoke — раздувается от строя стен",
+     "role": "payoff",
+     "copies": 2
+    },
+    {
+     "name_ru": "Кряжистый вяз",
+     "name_en": "Gnarled Elm",
+     "type": "creature",
+     "cost": "YGG+3",
+     "stats": "5/6",
+     "keywords": "growth 1, regen 2, provoke",
+     "effect": "start_of_turn +1/+1 и +2 HP этому; provoke — вечный тайтан, чинится и растёт быстрее, чем его бьют",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Атлантов дуб",
+     "name_en": "Atlas Oak",
+     "type": "creature",
+     "cost": "YGG+4",
+     "stats": "6/8",
+     "keywords": "growth 2, strobe",
+     "effect": "start_of_turn +2/+2; может атаковать дважды за ход — под бронёй и провокой это go-tall финиш",
+     "role": "capstone",
+     "copies": 2
+    },
+    {
+     "name_ru": "Донжон",
+     "name_en": "Donjon",
+     "type": "creature",
+     "cost": "YGG+4",
+     "stats": "5/9",
+     "keywords": "undergrowth 2, strobe, provoke",
+     "effect": "+2/+2 за каждое другое ваше существо; strobe; provoke — центральная башня, что бьёт дважды с телом от всего строя",
+     "role": "capstone",
+     "copies": 2
+    }
+   ],
+   "colors": "Yellow/Green (dual)",
+   "curve_note": "Кривая по мане (пипы+генерик): 1 — Портик(2); 2 — Подсолнух, Плющ, Алебардщик, Покров(8); 3 — Барбакан, Живая изгородь, Дернина, Затмение, Ясный день(10); 4 — Равелин, Молодой дуб, Кристальный сад, Слюдяной вал(8); 5 — Боярышник, Небесная твердь, Дубрава(6); 6 — Кряжистый вяз(2); 7 — Атлантов дуб, Донжон(4). Верх тяжёлый намеренно: photosynthesis (Подсолнух x2, Кристальный сад x2) стабильно выносит YGG-капстоуны на 5-6 ход. Ранние 1-2-3 дропы — стены/провока, которые не дают агро добежать до этого момента.",
+   "gameplan": "Ход 1-3: разложить стену с provoke (Портик, Барбакан, Живая изгородь) и включить рамп (Подсолнух, Кристальный сад). Алебардщик с firststrike меняется 1-в-1 с ранними атакерами; Bulwark с Барбакана/Ясного дня начинает капать броню на героя, mulch (Дернина/Ясный день) и cauterize чинят просадку. Ход 4-5: стены множатся, provoke стягивает весь урон на неубиваемые тела, а рамп уже на 6-7 кристаллах. Приземляем первый растущий тайтан — Небесная твердь или Молодой дуб — и он проходит порог 6 HP, включая пассивку Атланта. Ход 6-8: выкатываем капстоун (Атлантов дуб / Кряжистый вяз / Донжон), страхуем его Покровом (ward+shield) от единственного, что нас убивает — таргет-снятия. Под бронёй, стенами, regen и пассивкой это тело нельзя убрать; growth/undergrowth раздувают его до 12/12+, strobe бьёт дважды и закрывает игру за 1-2 хода. Затмение придерживает вражескую бомбу, пока тайтан добивает.",
+   "wincon": "Один неубиваемый go-tall тайтан. Атлантов дуб / Кряжистый вяз / Донжон под провокой стен, бронёй Bulwark, regen и пассивкой Атланта дорастает growth/undergrowth до 12/12+ и закрывает игру за 1-2 удара через strobe (двойная атака). Это не капающий дрейн аутласта, а разовый финиш телом.",
+   "keywords_used": [
+    "provoke",
+    "shield",
+    "ward",
+    "firststrike",
+    "photosynthesis",
+    "growth",
+    "undergrowth",
+    "regen",
+    "strobe",
+    "mulch",
+    "cauterize",
+    "blind",
+    "flare",
+    "Bulwark (NEW)",
+    "Keepstone (hero passive, NEW)"
+   ],
+   "hero": "Атлант / Atlas — пассив Keepstone/Твердыня: ваше существо с 6+ максимальным HP нельзя опустить ниже 1 HP одним источником урона (следующий отдельный источник добить может).",
+   "new_mechanics": [
+    {
+     "name": "Bulwark N / Оплот N",
+     "does": "start_of_turn: вашему герою +N брони (броня целиком поглощает урон до HP).",
+     "engine_work": "Новый старт-триггер в applyTurnStartTriggers: для существ/аур с keyword bulwark инкрементировать существующее поле hero.armor на N. Поле armor уже есть в модели героя — реализовать только триггерный хук и суммирование по всем источникам Bulwark на столе."
+    },
+    {
+     "name": "Keepstone / Твердыня (пассив героя Атлант)",
+     "does": "дружественное существо с maxHp>=6 не может быть опущено ниже 1 HP одним экземпляром урона; отдельный следующий источник добивает.",
+     "engine_work": "В applyDamage/dealDamageToCreature: после вычисления остатка HP, если владелец несёт пассив keepstone, target.maxHp>=6 и target.hp>0 до удара, зажать результат в min 1 для этого единичного источника. Клэмп применяется по-разово на каждый источник урона (не блокирует последующие), поэтому многоцелевой/повторный урон обходит его штатно — реализовать флаг \"один источник\" на инстансе урона."
+    }
+   ],
+   "speed": "Midrange (медленный старт со стен, ускорение через рамп, финиш к 7-8 ходу)",
+   "strategy": "go-tall: пережить давление стенами+бронёй+лайфгейном, разогнаться рампом и вынести на поле один неубиваемый растущий тайтан, который закрывает игру двойной атакой.",
+   "name": "Крепость света / Bastion",
+   "matchups": "БЬЁТ Red (Открытое пламя): стек стен с provoke + Bulwark-броня + cauterize/mulch/Атлант переживают весь бёрн-клок, а Алебардщик с firststrike ломает их размены — агро выдыхается раньше, чем мы приземляем тайтан. БЬЁТ RB (Разряд, агро/комбо-луп): броня и стены гасят повторяющийся бёрн-луп, Затмение/flare сбивают темп, а ward (Равелин/Покров) глотает нацеленное заклинание из комбо. БЬЁТ Blue (Стеклянный час, контроль-спеллы): один тайтан под ward+shield+regen переживает точечное снятие, пассивка Атланта душит одиночный бёрн, а Донжон/undergrowth восстанавливают давление быстрее, чем синий успевает ответить. ПРОИГРЫВАЕТ Green (Буйный рост): их рамп-бомбы просто крупнее нашего единственного тайтана и идут поверх — гонку размеров мы не выигрываем. ПРОИГРЫВАЕТ Violet (Ложный свет): таргет-развоплощение снимает наш один go-tall (единственная дыра плана), а stealth-атакеры обходят provoke стен. ПРОИГРЫВАЕТ GB (Половодье): scatter возвращает тайтан в руку и freeze выключает его — темпо-инструменты синего разбирают однопиковый план. ПРОИГРЫВАЕТ GV (Вечный сад): unmake убирает тайтан, а рекурсия+go-wide переигрывают нас в долгую, пока провока не успевает защитить единственную угрозу."
+  }
+ ],
+ "vocabulary": [
+  {
+   "keyword": "pierce",
+   "kind": "combat (existing)",
+   "does": "excess combat damage over a blocker's HP carries to the enemy hero",
+   "decks": "Open Flame, Arc Light"
+  },
+  {
+   "keyword": "bypass",
+   "kind": "combat (existing)",
+   "does": "may attack the enemy hero even while defenders/provoke are up",
+   "decks": "Open Flame, Arc Light (Volt Swift), Flame Titan"
+  },
+  {
+   "keyword": "firststrike",
+   "kind": "combat (existing)",
+   "does": "deals combat damage first; kills a defender before taking return damage",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "provoke",
+   "kind": "combat (existing)",
+   "does": "enemies must attack this creature",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "strobe",
+   "kind": "combat (existing)",
+   "does": "may attack twice per turn",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "stealth",
+   "kind": "static (existing)",
+   "does": "untargetable until it attacks",
+   "decks": "False Light, Evergreen, Still Shroud"
+  },
+  {
+   "keyword": "shield",
+   "kind": "static (existing)",
+   "does": "ignores the first source of damage entirely",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "ward",
+   "kind": "static (existing)",
+   "does": "absorbs the next harmful spell/effect targeting a friendly",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "refract",
+   "kind": "static (ALREADY IMPLEMENTED — not new)",
+   "does": "an incoming hostile attack/effect is redirected to a random other valid target; engine refractTarget() covers both combat and chosen_enemy_minion",
+   "decks": "False Light, Evergreen, Still Shroud"
+  },
+  {
+   "keyword": "sear N",
+   "kind": "trigger on_death (existing)",
+   "does": "on death, N damage to the enemy hero",
+   "decks": "Open Flame, Rot and Bloom, Arc Light"
+  },
+  {
+   "keyword": "spark N",
+   "kind": "activated (existing)",
+   "does": "once/turn spend 1 crystal -> N to enemy hero",
+   "decks": "Open Flame, Arc Light"
+  },
+  {
+   "keyword": "self_lifesteal",
+   "kind": "combat (existing)",
+   "does": "damage this deals heals itself",
+   "decks": "Open Flame, Rot and Bloom"
+  },
+  {
+   "keyword": "cauterize",
+   "kind": "combat (existing)",
+   "does": "this creature's combat damage heals your hero (feeds on_heal/Reflux)",
+   "decks": "Open Flame, Long Noon, Rot and Bloom, Bastion"
+  },
+  {
+   "keyword": "regen N",
+   "kind": "trigger start_of_turn (existing)",
+   "does": "heals itself N at start of your turn",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "mulch",
+   "kind": "aura (existing)",
+   "does": "start of turn heal one wounded friendly +1",
+   "decks": "Overgrowth, Evergreen, Floodtide, Bastion"
+  },
+  {
+   "keyword": "incandescence N",
+   "kind": "aura (existing)",
+   "does": "your creatures +N attack",
+   "decks": "Open Flame, Arc Light"
+  },
+  {
+   "keyword": "chill N",
+   "kind": "aura (existing)",
+   "does": "enemy creatures -N attack",
+   "decks": "Glass Hour, Arc Light, Floodtide"
+  },
+  {
+   "keyword": "blind N",
+   "kind": "status/action (existing)",
+   "does": "target enemy creature cannot attack for N turns",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "flare N",
+   "kind": "trigger on_death (existing)",
+   "does": "on death, blind N random enemies for 1",
+   "decks": "Long Noon, Still Shroud, Bastion"
+  },
+  {
+   "keyword": "floodlight",
+   "kind": "aura (existing)",
+   "does": "reveal enemy banked mana-row cards",
+   "decks": "Still Shroud"
+  },
+  {
+   "keyword": "freeze N",
+   "kind": "status (existing)",
+   "does": "target cannot act for N turns; does not wake from damage",
+   "decks": "Glass Hour, Arc Light, Floodtide"
+  },
+  {
+   "keyword": "scatter",
+   "kind": "action (existing)",
+   "does": "bounce a creature to its owner's hand",
+   "decks": "Glass Hour, Arc Light, Floodtide"
+  },
+  {
+   "keyword": "haze N",
+   "kind": "aura (existing)",
+   "does": "enemy spells cost +N",
+   "decks": "Glass Hour, Arc Light"
+  },
+  {
+   "keyword": "birefringence",
+   "kind": "static (existing)",
+   "does": "your targeted spell also strikes a random second enemy",
+   "decks": "Glass Hour, Arc Light"
+  },
+  {
+   "keyword": "pinpoint",
+   "kind": "spell (existing)",
+   "does": "this damage cannot be absorbed by shield/ward",
+   "decks": "Glass Hour, Arc Light"
+  },
+  {
+   "keyword": "delay N",
+   "kind": "spell (existing)",
+   "does": "the effect resolves N turns later at your turn start",
+   "decks": "Glass Hour"
+  },
+  {
+   "keyword": "scry N",
+   "kind": "action (existing)",
+   "does": "look at top N, reorder/bottom",
+   "decks": "Glass Hour, Arc Light, Floodtide"
+  },
+  {
+   "keyword": "photosynthesis N",
+   "kind": "trigger start_of_turn (existing)",
+   "does": "+N permanent crystals",
+   "decks": "Overgrowth, Rot and Bloom, Evergreen, Floodtide, Bastion"
+  },
+  {
+   "keyword": "germinate N",
+   "kind": "activated (existing)",
+   "does": "once/turn spend 1 crystal -> summon an N/N sprout",
+   "decks": "Overgrowth, Rot and Bloom, Evergreen, Floodtide"
+  },
+  {
+   "keyword": "growth N",
+   "kind": "trigger start_of_turn (existing)",
+   "does": "+N/+N to itself each turn",
+   "decks": "Overgrowth, Bastion"
+  },
+  {
+   "keyword": "undergrowth N",
+   "kind": "static (existing)",
+   "does": "+N/+N per other friendly creature (tokens/illusions count)",
+   "decks": "Overgrowth, False Light, Evergreen, Floodtide, Bastion"
+  },
+  {
+   "keyword": "resonance N",
+   "kind": "static (existing)",
+   "does": "+N/+N per crystal you own",
+   "decks": "Overgrowth, Evergreen, Floodtide"
+  },
+  {
+   "keyword": "compost N",
+   "kind": "trigger any-death (existing)",
+   "does": "+N/+N to itself whenever any creature dies",
+   "decks": "Overgrowth, Rot and Bloom, Evergreen"
+  },
+  {
+   "keyword": "spores N",
+   "kind": "trigger on_death (existing)",
+   "does": "on death create N 1/1 sprouts",
+   "decks": "Overgrowth, Rot and Bloom, Evergreen"
+  },
+  {
+   "keyword": "split N",
+   "kind": "trigger on_play (existing)",
+   "does": "create N 1-HP illusory copies of itself",
+   "decks": "False Light, Evergreen, Still Shroud"
+  },
+  {
+   "keyword": "haunt",
+   "kind": "trigger on_death (existing)",
+   "does": "on death leave one 1-HP illusory copy (does not re-haunt)",
+   "decks": "False Light, Evergreen, Still Shroud"
+  },
+  {
+   "keyword": "mirage",
+   "kind": "action (existing)",
+   "does": "create a 1-HP illusory copy of any chosen creature",
+   "decks": "False Light, Evergreen"
+  },
+  {
+   "keyword": "glimmer",
+   "kind": "aura (existing)",
+   "does": "your first creature each turn enters stealthed",
+   "decks": "False Light, Evergreen"
+  },
+  {
+   "keyword": "decoy N",
+   "kind": "static (existing)",
+   "does": "bank in mana row; after N turns wakes onto board free",
+   "decks": "False Light, Evergreen, Still Shroud"
+  },
+  {
+   "keyword": "awaken",
+   "kind": "static (existing)",
+   "does": "may be woken from the mana row for its cost",
+   "decks": "False Light, Still Shroud (Evergreen via Facet)"
+  },
+  {
+   "keyword": "prowess N (decks call it echo/Отклик — RENAME)",
+   "kind": "trigger on_spell_cast (NEW)",
+   "does": "+N/+0 until end of turn each time you cast a spell; MUST get a new id because the engine already has a different keyword literally named echo (Penta first-spell-doubles)",
+   "decks": "Glass Hour, Arc Light"
+  },
+  {
+   "keyword": "Reflux N",
+   "kind": "trigger on_heal (NEW)",
+   "does": "whenever any friendly heal (hero OR creature) resolves, deal N to enemy hero; scope unified to the broader Long Noon definition",
+   "decks": "Long Noon, Rot and Bloom"
+  },
+  {
+   "keyword": "Requiem N",
+   "kind": "trigger friendly-death, excl self (NEW)",
+   "does": "when another friendly creature dies, deal N to enemy hero and heal your hero N (heal routes through on_heal)",
+   "decks": "Rot and Bloom"
+  },
+  {
+   "keyword": "harvest N",
+   "kind": "activated (NEW)",
+   "does": "once/turn sacrifice another friendly creature; this +N/+N",
+   "decks": "Rot and Bloom"
+  },
+  {
+   "keyword": "warden N",
+   "kind": "trigger start_of_turn (NEW)",
+   "does": "blind N random un-blinded enemies for 1 (reuses blind counter)",
+   "decks": "Still Shroud"
+  },
+  {
+   "keyword": "Bulwark N",
+   "kind": "trigger start_of_turn (NEW)",
+   "does": "your hero +N armor each of your turns (reuses existing heroArmor field; armor is prevention, does not feed Reflux)",
+   "decks": "Long Noon, Bastion"
+  },
+  {
+   "keyword": "Renewal N / reclaim",
+   "kind": "trigger on_death + action (NEW)",
+   "does": "return N random creatures from your graveyard to hand; reclaim is the spell-action form; first mechanic to read the graveyard",
+   "decks": "Overgrowth, Rot and Bloom, Evergreen"
+  },
+  {
+   "keyword": "fight",
+   "kind": "action (NEW)",
+   "does": "a chosen friendly and a chosen enemy creature simultaneously deal atk to each other; green removal",
+   "decks": "Overgrowth, Evergreen, Floodtide"
+  },
+  {
+   "keyword": "sacrifice",
+   "kind": "action (NEW)",
+   "does": "move a chosen friendly (not self) to graveyard, firing on_death and all death reactions; single (harvest, Sacrificial Sheaf) and multi-0..n (Wake) forms",
+   "decks": "Rot and Bloom"
+  },
+  {
+   "keyword": "chain_burn",
+   "kind": "action (NEW)",
+   "does": "deal value + (spells already cast this turn) to enemy hero",
+   "decks": "Arc Light (Thunderhead)"
+  },
+  {
+   "keyword": "flourish N / sprout N",
+   "kind": "action (NEW, thin)",
+   "does": "flourish = all your creatures +N/+N permanent; sprout = summon N 1/1 sprouts (reuses germinate token)",
+   "decks": "Floodtide (Levee Break)"
+  },
+  {
+   "keyword": "Feverlight",
+   "kind": "hero passive (NEW — Pyrrhus)",
+   "does": "first creature you play each turn costs 1 less generic (min 0)",
+   "decks": "Open Flame"
+  },
+  {
+   "keyword": "Dawnlight",
+   "kind": "hero passive (bench in EFFECTS.md — Helia)",
+   "does": "start of turn, heal your most-wounded creature +1 (feeds Reflux)",
+   "decks": "Long Noon"
+  },
+  {
+   "keyword": "Verdant",
+   "kind": "hero passive (NEW — Flora)",
+   "does": "at 6+ crystals, the first crystal spent each turn is refunded",
+   "decks": "Overgrowth"
+  },
+  {
+   "keyword": "Clairvoyance",
+   "kind": "hero passive (bench in EFFECTS.md — Chiara)",
+   "does": "you always see the top card of your own deck (private view only)",
+   "decks": "Glass Hour"
+  },
+  {
+   "keyword": "Lighteater",
+   "kind": "hero passive (ALREADY in engine — Erebos)",
+   "does": "any creature that deals combat damage to your hero permanently loses 1 atk (min 0)",
+   "decks": "False Light"
+  },
+  {
+   "keyword": "loam",
+   "kind": "hero passive (NEW — Humus)",
+   "does": "whenever a friendly creature dies, your hero +1 HP (feeds Reflux)",
+   "decks": "Rot and Bloom"
+  },
+  {
+   "keyword": "Palette",
+   "kind": "hero passive (ALREADY in engine — Tiziana)",
+   "does": "first multicolour (2+ colour) card you play each turn draws a card",
+   "decks": "Arc Light"
+  },
+  {
+   "keyword": "Facet",
+   "kind": "hero passive (ALREADY in engine — Gemma)",
+   "does": "wake any banked mana-row card for its cost; woken creatures enter +1/+1",
+   "decks": "Evergreen"
+  },
+  {
+   "keyword": "duskfall",
+   "kind": "hero passive (NEW — Umbra)",
+   "does": "first enemy attacker each turn is blinded 1 after combat",
+   "decks": "Still Shroud"
+  },
+  {
+   "keyword": "spectral_shift",
+   "kind": "hero passive (ALREADY in engine — Iris)",
+   "does": "once/turn treat one crystal as an adjacent-spectrum colour",
+   "decks": "Floodtide"
+  },
+  {
+   "keyword": "Keepstone",
+   "kind": "hero passive (NEW — Atlas)",
+   "does": "a friendly creature with maxHP>=6 cannot be dropped below 1 HP by a single damage source (a later separate source still kills)",
+   "decks": "Bastion"
+  }
+ ],
+ "engine_work": [
+  "NEW trigger event Healed (on_heal): wrap the single heal-resolution path (hero-heal + creature-heal) so each heal instance fires reactTo on the healed side's board -> Reflux N -> dealHeroDamage. A heal-all resolves one event per healed entity. GUARD: Reflux/Requiem damage must not itself heal (no loop). Consumers: Reflux (LN, RG), and it chains off Dawnlight, loam, cauterize, regen, Stained Glass, Lull/Total Eclipse.",
+  "NEW trigger event SpellCast (on_spell_cast): in playCard, after a type==Spell resolves, fire reactTo over the caster's board and maintain a spellsCastThisTurn counter reset at turn start. Consumers: the prowess keyword and chain_burn. Add EventType entries (current enum is only TurnStart/TurnEnd/Summoned/Died/DamageDealt).",
+  "RENAME CONFLICT: the decks' echo/Отклик (prowess, +N/+0 per spell) collides with the engine's EXISTING keyword literally named echo (Penta Prism aura, first spell of the turn resolves twice, game.cpp:390-402). Give the new prowess keyword a distinct internal id (e.g. prowess) and leave engine echo untouched; card text can keep 'Отклик'.",
+  "NEW keywords, register + resolve: Reflux N (on_heal payoff), Requiem N (friendly-death: dealHeroDamage(enemy,N)+heal(owner,N)), Bulwark N (start_of_turn hero +N armor via existing heroArmor field/absorb path), harvest N (activated: sacrifice another friendly then +N/+N, once/turn, target!=self), warden N (start_of_turn: blind N random un-blinded enemies, reuse blind counter), prowess N (on_spell_cast temp +N/+0).",
+  "NEW graveyard recursion Renewal N (on_death) + reclaim action: move N random creature cards from owner's graveyard (already tracked, but game.hpp:148 notes nothing reads it yet) to hand, respecting hand-cap 10 (overflow stays). Same underlying op exposed as executeAction 'reclaim' with value. Consumers: Overgrowth (Everbloom), RG (Sprouting Corpse), Evergreen (Barrow Ivy, Second Sowing=reclaim 2).",
+  "NEW action fight(source,target): two-target spell shape (chosen_friendly_minion + chosen_enemy_minion) — extend the effect/target resolver to accept a second selector for one spell — then mutual dealDamage in one batch and run Died checks/on_death for both. Consumers: Overgrowth (Strangleveil), Evergreen (Grove Skirmish), Floodtide.",
+  "NEW action sacrifice: move a chosen friendly (not self) to graveyard, firing on_death and all friendly-death reactions (spores/haunt/loam/Requiem/compost). Single-target (harvest, Sacrificial Sheaf) and multi-target 0..n selector (Wake). Wake then does 2*count to enemy hero after each body's on_death chain resolves.",
+  "NEW action chain_burn: dealHeroDamage(value + max(0, spellsCastThisTurn-1)). Reads the SpellCast counter; targets enemy_hero (no new selector). Consumer: Arc Light (Thunderhead).",
+  "MINOR actions: flourish N = ModifyStat(+N/+N) over selector all_friendly permanent (subsumes Forest's Waking anthem); sprout N = loop the existing germinate token summon N times respecting board-cap 8. add_crystal and destroy/unmake are ALREADY inline primitives in the engine (EFFECTS.md) — do NOT re-implement; Overgrowth/Floodtide/FalseLight/StillShroud claims that these are new are stale.",
+  "NEW timed-modifier infra: attach stat/keyword modifiers with an expiry marker (end of turn / your next turn) plus a cleanup pass in endTurn/applyTurnStartTriggers. Consumers: prowess temp buffs, False Dawn (+2/+1 EOT team), Into the Mirage (grant stealth+refract until next turn). Permanent ModifyStat already exists (Wild Growth, Waning Light -2/-2 = negative buff).",
+  "NEW selectors: most-wounded-friendly (max maxHP-curHP, tie -> lowest index) for Dawnlight + Stained Glass; is_blinded predicate (blind counter>0) wired into target-legality for Snuffing Verdict destroy; N-random-un-blinded-enemy for warden; chosen_any_target (creature OR hero) for face burn (Fire Spit / Pyrrhus' Wrath / Sear Comet) routing hero picks to the existing dealHeroDamage.",
+  "NEW hero passives to code (0 refs in engine): Feverlight (cost -1 generic on first creature/turn, in getPlayableCost+playCard, clamp>=0, pips untouched), loam (hero +1 HP per friendly death via heal path), Verdant (refund first crystal/turn at crystals>=6, per-turn flag reset at start), duskfall (blind(1) the first enemy attacker post-combat, per-turn flag), Keepstone (in applyDamage: if owner has Keepstone and target.maxHp>=6 and target.hp>0 pre-hit, clamp this single source's result to min 1; per-source flag so multi/repeat damage bypasses).",
+  "WIRE the two bench passives that decks rely on (present in EFFECTS.md design, 0 refs in src): Clairvoyance (Chiara — serialize deck top into that seat's PRIVATE view only, no opponent leak) and Dawnlight (Helia — start_of_turn heal most-wounded +1 through the on_heal path). ALREADY coded and reusable as-is: spectral_shift, palette, facet, lighteater.",
+  "COST-PATH COMPOSITION: Feverlight, Verdant, Palette, spectral_shift all mutate getPlayableCost / the mana-spend path — implement so they compose in one turn without double-counting (e.g. Feverlight discount before spectral_shift colour substitution before Verdant refund accounting)."
+ ],
+ "matchup_table": "Consistency check first: every pair where BOTH decks named the matchup AGREES on the winner — zero contradictions (no two decks both claim to beat each other). That is the single healthiest sign. Grid below is one-line per deck (specified matchups only; ~25 of 55 pairs were left unstated by both authors and are OPEN).\n\nOpen Flame (R aggro): BEATS Overgrowth, Glass Hour, Floodtide, Evergreen, Still Shroud | LOSES Long Noon, Rot and Bloom, Bastion | ~5-3, field-best. The metagame's reference clock.\nLong Noon (Y wall-control): BEATS Open Flame, False Light | LOSES Overgrowth, Arc Light, Evergreen | ~2-3.\nOvergrowth (G ramp): BEATS Long Noon, Glass Hour, Rot and Bloom, Bastion | LOSES Open Flame, Arc Light, Still Shroud, Floodtide | ~4-4 even.\nGlass Hour (B control): BEATS False Light, Arc Light, Rot and Bloom, Floodtide | LOSES Open Flame, Overgrowth, Bastion | ~4-3.\nFalse Light (V swarm): BEATS Bastion, Rot and Bloom | LOSES Glass Hour, Long Noon | ~2-2 (many open).\nRot and Bloom (RG aristocrats): BEATS Open Flame, Still Shroud | LOSES Glass Hour, False Light, Overgrowth | ~2-3.\nArc Light (RB combo-aggro): BEATS Long Noon, Overgrowth | LOSES Glass Hour, Bastion | ~2-2.\nEvergreen (GV recursion): BEATS Long Noon, Bastion | LOSES Open Flame, Still Shroud | ~2-2.\nStill Shroud (YV lock): BEATS Overgrowth, Evergreen | LOSES Open Flame, Rot and Bloom | ~2-2.\nFloodtide (GB tempo): BEATS Overgrowth, Bastion | LOSES Open Flame, Glass Hour | ~2-2.\nBastion (YG go-tall): BEATS Open Flame, Arc Light, Glass Hour | LOSES Overgrowth, False Light, Floodtide, Evergreen | ~3-4.\n\nThe RPS spine: aggro (Open Flame / Arc Light) > greedy ramp & durdle control (Overgrowth, Glass Hour, Floodtide) > anti-aggro walls (Long Noon, Bastion, Rot and Bloom) > and combo/lock (Evergreen, Still Shroud, False Light) cut sideways across it. Removal-light go-tall/one-bomb plans (Bastion, Overgrowth's single capstone) are correctly preyed on by unmake/bounce/lock (False Light, Floodtide, Still Shroud).\n\nVERDICT: healthy competitive web, NOT broken. No dead deck (every deck beats >=2 others) and no dominant deck (every deck loses to >=2, Open Flame to 3). Concerns, honestly: (1) Open Flame is the clear ceiling (5-3) and the whole field is balanced around hating it — if aggro gets underplayed the three dedicated aggro-hate decks (Long Noon, Bastion, Rot and Bloom, all sub-.500) lose their prey and become free wins for midrange/combo. Only 2 of 11 decks are true aggro to feed 3 aggro-haters — a lopsided predator/prey ratio. (2) Overgrowth is a hub: it beats 3 control/midrange decks and only folds to speed/disruption; watch it doesn't become the 'greedy default.' (3) ~45% of the grid is unmapped, so this verdict covers the stated cells only.",
+ "pool": "Nominal: 11 decks x 20 unique x2 = 220 card slots / 440 physical. But eleven parallel authors produced cross-deck duplicates. Confirmed EXACT/near-exact cross-deck duplicates to merge into single shared cards (10): Frost Grip, Undertow, Double Vision, Farsight, Mirror Ray (Glass Hour == Arc Light, all Blue); Spark Gunner + Ember Cannon (Open Flame == Arc Light, Red — normalize one stat line each); Eclipse (Long Noon == Bastion, Y blind-2 spell); Heat Haze == Portico (0/3 provoke+shield wall) and Dawnblade == Halberdier (YY 2/3 provoke+firststrike) (Long Noon == Bastion). => ~210 truly-unique card designs as submitted.\n\nStructure as delivered: purely per-deck (20 signature cards each); there is currently NO shared common pool even though the engine (EFFECTS.md) explicitly reserves a neutral Colourless staple set (destroy, sweep, direct damage, draw, dispel, vanilla bodies) — and NO deck runs a single colourless card. Beyond the 10 hard merges there is heavy SOFT redundancy: ~5 near-identical green ramp dorks (Primrose/Mossy Acolyte/Sunflower/Wellspring/Resin Shoot), ~5 germinate bodies (Sower/Marsh Sower/Mudskipper/Spore Shepherd/Sprout Warden), multiple mulch auras (Elder Oak/Compost Bed/Sward/Rime Sheet), repeated freeze/scatter spells, and repeated sear bodies. Recommendation: factor ~20-30 of these into a shared common/neutral pool that any in-colour deck draws from, collapsing the set from ~210 toward ~185 unique. This is the single biggest structural decision and is deferred to the owner (see open questions).",
+ "open_questions": "1) Predator/prey ratio: only 2 aggro decks (Open Flame, Arc Light) feed 3 dedicated aggro-hate decks (Long Noon, Bastion, Rot and Bloom, all sub-.500). Do we accept that, add a 2nd aggro angle, or soften one wall deck? Open Flame is the field's ceiling (5-3) — is that the intended reference point or is it over-tuned?\n2) ~25 of 55 matchups are unstated by both authors (notably: all three anti-aggro walls vs each other and vs midrange; the mono mirrors; Open Flame vs False Light; Overgrowth vs Evergreen). These need to be played out before we trust the web.\n3) Reflux scope: confirm the unified 'any friendly heal (hero OR creature)' — it materially buffs Rot and Bloom vs its original hero-only wording, and turns every Long Noon regen/Stained Glass tick into face damage.\n4) Illusion power levers: illusions count for undergrowth (False Light False Marshal/Mirage Sovereign, Evergreen) and are permanent 1-HP copies that keep keywords. Can a permanent anthem/flourish buff a 1-HP illusion into a real body? And do split/haunt-on-a-copy stay non-recursive per EFFECTS.md? Confirm.\n5) Board cap 8 vs three go-wide decks (False Light, Floodtide, Evergreen): confirm token-overflow rule (fizzle when full vs partial fill) — Levee Break's sprout 3, Bloatcap's spores 3, Mirage Swarm's 3 tokens all can hit the cap.\n6) bypass/pierce interactions: does bypass ignore provoke entirely (Open Flame vs Long Noon/Bastion/Still Shroud walls hinges on this)? How do pierce + shield + pinpoint stack on one combat?\n7) Keepstone (Atlas) + regen + growth + walls could yield a body only killable by multi-source or bounce/unmake — intended? Bastion already loses to bounce/unmake/lock, so probably fine, but confirm the single-source clamp can't be gamed by 1-HP-chip stalling.\n8) Colourless gap: the engine reserves a neutral pool but no deck uses it. Do we want a shared common/neutral staple pool (see pool structure) to cut the ~25 soft-duplicate green/interaction cards toward ~185 unique — or keep all ~210 bespoke for flavor/identity?\n9) Two hero passives the decks depend on (Clairvoyance, Dawnlight) are only 'bench' designs in EFFECTS.md, not yet coded — greenlight to implement them as first-class?\n10) Prowess rename: confirm the new keyword's public name (RU card text 'Отклик' can stay) and that it won't confuse players who also see the Penta echo card."
+}
