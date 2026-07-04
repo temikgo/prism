@@ -29,6 +29,60 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 1 },
     "effects": [{ "trigger": "on_death", "selector": "enemy_hero",
                   "action": "damage", "value": 2 }] },
+  { "id": "attuner", "name": { "ru": "Созвучник" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 3 },
+    "effects": [{ "trigger": "on_spell_cast", "selector": "enemy_hero",
+                  "action": "damage", "value": 1 }] },
+  { "id": "daybreaker", "name": { "ru": "Рассветник" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 4 },
+    "effects": [{ "trigger": "start_of_turn", "selector": "enemy_hero",
+                  "action": "damage", "value": 1 }] },
+  { "id": "charger", "name": { "ru": "Наскок" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "effects": [{ "trigger": "on_attack", "selector": "enemy_hero",
+                  "action": "damage", "value": 1 }] },
+  { "id": "refluxer", "name": { "ru": "Отливник" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 6 },
+    "keywords": [{ "id": "reflux", "n": 1 }, { "id": "regen", "n": 5 }] },
+  { "id": "mourner", "name": { "ru": "Плакальщик" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "requiem", "n": 2 }] },
+  { "id": "mender", "name": { "ru": "Врачевание" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "most_wounded_friendly",
+                  "action": "heal", "value": 3 }] },
+  { "id": "snuffer", "name": { "ru": "Затмевающий приговор" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_blinded_enemy",
+                  "action": "destroy", "required": true }] },
+  { "id": "firespit", "name": { "ru": "Огневой плевок" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_any_target",
+                  "action": "damage", "value": 3 }] },
+  { "id": "arclight", "name": { "ru": "Грозовой разряд" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "chain_burn", "value": 1 }] },
+  { "id": "sheaf", "name": { "ru": "Жертвенный сноп" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "action": "sacrifice", "required": true }] },
+  { "id": "wake", "name": { "ru": "Тризна" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "all_friendly",
+                  "action": "sacrifice", "value": 2 }] },
+  { "id": "reclaimspell", "name": { "ru": "Второй посев" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "reclaim", "value": 1 }] },
+  { "id": "flourishspell", "name": { "ru": "Пробуждение рощи" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "all_friendly",
+                  "action": "buff", "value": 1 }] },
+  { "id": "sproutspell", "name": { "ru": "Молодая поросль" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "action": "sprout", "value": 2 }] },
+  { "id": "renewer", "name": { "ru": "Возрожденец" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "renewal", "n": 1 }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -537,6 +591,357 @@ TEST_CASE("data-driven on_death effect fires when the creature dies") {
   CHECK(g.player(0).board.empty());
   CHECK(g.player(1).heroHp ==
         hp - 2);  // its on_death effect hit the foe's hero
+}
+
+TEST_CASE(
+    "data-driven on_spell_cast reacts when its controller casts a spell") {
+  // The caster's board reacts to the cast (attune/prowess shape). Here the
+  // reactor adds 1 face damage on top of the spell's own 3, and the cast is
+  // tallied in spellsCastThisTurn.
+  CardLibrary lib = testLib();
+  Game g(lib, {"attuner", "boltspell", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "attuner")));  // 1/3 on_spell_cast: +1
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "boltspell")));  // 3 to foe hero
+  CHECK(g.player(1).heroHp == hp - 4);         // 3 from the spell + 1 reaction
+  CHECK(g.player(0).spellsCastThisTurn == 1);  // the cast was counted
+  g.endTurn();                                 // -> foe's turn
+  g.endTurn();                                 // -> p0's next turn starts
+  CHECK(g.player(0).spellsCastThisTurn == 0);  // resets at p0's turn start
+}
+
+TEST_CASE("data-driven start_of_turn effect fires at its controller's turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"daybreaker", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "daybreaker")));  // start_of_turn: 1 face
+  int hp = g.player(1).heroHp;
+  g.endTurn();  // -> foe's turn (daybreaker's controller does not tick here)
+  CHECK(g.player(1).heroHp == hp);  // no friendly-turn-start yet
+  g.endTurn();                      // -> p0's next turn: start_of_turn fires
+  CHECK(g.player(1).heroHp == hp - 1);
+}
+
+TEST_CASE("data-driven on_attack effect fires when the creature attacks") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"charger", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "charger")));  // 2/2 on_attack: 1 face
+  g.endTurn();
+  g.endTurn();  // charger wakes
+  int hp = g.player(1).heroHp;
+  EntityId ch = g.player(0).board[0].id;
+  REQUIRE(g.attackHero(ch));
+  CHECK(g.player(1).heroHp == hp - 3);  // 2 combat + 1 on_attack
+}
+
+TEST_CASE("Reflux pings the enemy hero whenever its controller heals") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"refluxer", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "refluxer")));  // 0/6, reflux 1 + regen 5
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 to wound it
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // -> p0 (refluxer full, regen no-ops, no ping)
+  int hp0 = g.player(1).heroHp;
+  g.endTurn();  // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));  // refluxer -> 2/6
+  CHECK(g.player(1).heroHp == hp0);  // being wounded is not a heal
+  g.endTurn();  // -> p0 turn start: regen heals 4, Reflux fires once
+  CHECK(g.player(1).heroHp == hp0 - 1);
+}
+
+TEST_CASE("Requiem answers a friendly death with damage to the enemy hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"mourner", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mourner")));  // 2/2, requiem 2
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));     // 3/4 fodder
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 killer
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                  // -> p1, bruiser awakes
+  int hp = g.player(0).heroHp;  // mourner's own hero (below full from fatigue)
+  EntityId bear = g.player(0).board[1].id;
+  REQUIRE(g.attackCreature(br, bear));   // bear dies -> mourner's requiem fires
+  CHECK(g.player(0).board.size() == 1);  // mourner survives, bear gone
+  CHECK(g.player(1).heroHp == HeroStartHp - 2);  // N to the enemy hero
+  CHECK(g.player(0).heroHp == hp + 2);           // and N mended to your own
+}
+
+TEST_CASE("on_spell_cast: multiple reactors each fire on one cast") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"attuner", "attuner", "boltspell", "bear"},
+         repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "attuner")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "attuner")));
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "boltspell")));  // 3 to face
+  CHECK(g.player(1).heroHp == hp - 5);  // 3 spell + 1 + 1 from the two reactors
+}
+
+TEST_CASE("on_spell_cast: a reactor the spell itself kills does not react") {
+  // The reaction fires after the spell's death-sweep, so a reactor the spell
+  // just destroyed is already gone and stays silent.
+  CardLibrary lib = testLib();
+  Game g(lib, {"attuner", "sacrifice", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "attuner")));  // 1/3 reactor
+  EntityId at = g.player(0).board[0].id;
+  int hp = g.player(1).heroHp;
+  // sacrifice: deal 99 to a chosen friendly -> it kills our own attuner.
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sacrifice"), at));
+  CHECK(g.player(0).board.empty());
+  CHECK(g.player(1).heroHp == hp);  // the dead reactor did not ping
+}
+
+TEST_CASE(
+    "on_attack fires when the attacker strikes a creature, not just a hero") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"charger", "bear", "bear", "bear"}, repeat("wall", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "charger")));  // 2/2 on_attack: 1 face
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "wall")));  // 0/5 to swing into
+  EntityId w = g.player(1).board[0].id;
+  g.endTurn();  // -> p0, charger awakes
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.attackCreature(g.player(0).board[0].id, w));
+  CHECK(g.player(1).heroHp == hp - 1);  // on_attack still hit the enemy hero
+}
+
+TEST_CASE("on_attack fires even when the attacker dies to retaliation") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"charger", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "charger")));  // 2/2
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 kills it back
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // -> p0, charger awakes
+  int hp = g.player(1).heroHp;
+  REQUIRE(
+      g.attackCreature(g.player(0).board[0].id, br));  // charger trades down
+  CHECK(g.player(0).board.empty());     // charger died to the 4/4
+  CHECK(g.player(1).heroHp == hp - 1);  // its on_attack fired on declaration
+}
+
+TEST_CASE("Requiem does not answer the death of the Requiem creature itself") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"mourner", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mourner")));  // the only requiem body
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();  // -> p1, bruiser awakes
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));  // kills the mourner
+  CHECK(g.player(0).board.empty());
+  CHECK(g.player(1).heroHp == hp);  // no surviving requiem -> no ping
+}
+
+TEST_CASE("Reflux fires off the mend that Requiem grants") {
+  // Integration: a friendly death -> Requiem mends your (wounded) hero ->
+  // that heal feeds Reflux, which pings the enemy hero once more.
+  CardLibrary lib = testLib();
+  Game g(lib, {"mourner", "refluxer", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mourner")));   // requiem 2
+  REQUIRE(g.playCard(handIndexOf(g, 0, "refluxer")));  // reflux 1 (0/6, unhurt)
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));      // fodder to die
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                                // -> p1, bruiser awakes
+  REQUIRE(g.player(0).heroHp < HeroStartHp);  // fatigue left room to mend
+  int hp = g.player(1).heroHp;
+  EntityId bear = g.player(0).board[2].id;  // mourner, refluxer, bear
+  REQUIRE(
+      g.attackCreature(br, bear));  // bear dies -> requiem -> mend -> reflux
+  CHECK(g.player(1).heroHp == hp - 3);  // 2 from Requiem + 1 from Reflux
+}
+
+TEST_CASE("most_wounded_friendly heals the ally missing the most HP") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"wall", "wall", "mender", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wall")));  // A: 0/5
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wall")));  // B: 0/5
+  EntityId a = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                       // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, a));  // wall A -> 1/5, wall B untouched
+  g.endTurn();                       // -> p0
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mender")));  // heal 3 to most wounded
+  CHECK(g.player(0).board[0].hp == 4);               // A mended 1 -> 4
+  CHECK(g.player(0).board[1].hp == 5);               // B, unwounded, left alone
+}
+
+TEST_CASE("chosen_blinded_enemy is legal only against a blinded target") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"blindspell", "snuffer", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // enemy 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // -> p0
+  // Snuffing the un-blinded 4/4 is an illegal (required) target -> rejected.
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "snuffer"), br));
+  CHECK(g.player(1).board.size() == 1);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "blindspell"), br));  // now blinded
+  REQUIRE(g.playCard(handIndexOf(g, 0, "snuffer"), br));  // legal -> destroyed
+  CHECK(g.player(1).board.empty());
+}
+
+TEST_CASE("chosen_any_target routes to the enemy hero or a creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"firespit", "firespit", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // enemy 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();  // -> p0
+  // The enemy hero is offered as a legal Play target for chosen_any_target.
+  bool heroOffered = false;
+  for (const auto& act : g.legalActions())
+    if (act.type == Action::Type::Play && act.target == EnemyHeroTarget)
+      heroOffered = true;
+  CHECK(heroOffered);
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "firespit"), EnemyHeroTarget));
+  CHECK(g.player(1).heroHp == hp - 3);  // routed to the face
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "firespit"), br));  // routed to a creature
+  CHECK(g.player(1).board[0].hp == 1);                 // 4/4 took 3
+}
+
+TEST_CASE("chain_burn scales with spells cast this turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"arclight", "arclight", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "arclight")));  // 1st spell: 1 + 0
+  CHECK(g.player(1).heroHp == hp - 1);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "arclight")));  // 2nd spell: 1 + 1
+  CHECK(g.player(1).heroHp == hp - 1 - 2);
+}
+
+TEST_CASE("sacrifice sends a friendly to the grave and fires its on_death") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"deathknell", "sheaf", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "deathknell")));  // 1/1 on_death: 2 face
+  EntityId dk = g.player(0).board[0].id;
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sheaf"), dk));  // sacrifice it
+  CHECK(g.player(0).board.empty());
+  CHECK(g.player(1).heroHp == hp - 2);  // the sacrificed body's on_death fired
+}
+
+TEST_CASE("a 0..n sacrifice clears the board and pays out per body") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "bear", "wake", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wake")));  // sac all, 2 per body
+  CHECK(g.player(0).board.empty());
+  CHECK(g.player(1).heroHp == hp - 4);  // 2 bodies x 2
+}
+
+TEST_CASE("Renewal returns a creature card from the grave when it dies") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"renewer", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "renewer")));  // 2/2, renewal 1
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 killer
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();  // -> p1, bruiser awakes
+  auto creaturesInGrave = [&] {
+    int n = 0;
+    for (const auto* d : g.player(0).graveyard)
+      if (d->type == CardType::Creature) ++n;
+    return n;
+  };
+  // renewer dies -> Renewal reclaims a creature (itself, the only one in the
+  // grave) back to hand, so the grave nets zero creatures.
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));
+  CHECK(creaturesInGrave() == 0);
+  CHECK(handIndexOf(g, 0, "renewer") != -1);  // it is back in hand
+}
+
+TEST_CASE("the reclaim action pulls a dead creature back to hand") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "reclaimspell", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // will die in combat
+  EntityId a = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                       // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, a));  // the bear dies -> into the grave
+  auto creaturesInGrave = [&] {
+    int n = 0;
+    for (const auto* d : g.player(0).graveyard)
+      if (d->type == CardType::Creature) ++n;
+    return n;
+  };
+  REQUIRE(creaturesInGrave() == 1);
+  g.endTurn();                                             // -> p0
+  REQUIRE(g.playCard(handIndexOf(g, 0, "reclaimspell")));  // reclaim 1 creature
+  CHECK(creaturesInGrave() == 0);
+  CHECK(handIndexOf(g, 0, "bear") != -1);  // the bear is back in hand
+}
+
+TEST_CASE("buff (flourish) permanently grows the whole friendly board") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "bear", "flourishspell", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));           // 3/4
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));           // 3/4
+  REQUIRE(g.playCard(handIndexOf(g, 0, "flourishspell")));  // +1/+1 to all
+  CHECK(g.player(0).board[0].atk == 4);
+  CHECK(g.player(0).board[0].hp == 5);
+  CHECK(g.player(0).board[1].atk == 4);
+  CHECK(g.player(0).board[1].hp == 5);
+}
+
+TEST_CASE("sprout summons N 1/1 tokens up to the board cap") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"sproutspell", "bear", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "sproutspell")));  // 2 sprouts
+  REQUIRE(g.player(0).board.size() == 2);
+  CHECK(g.player(0).board[0].atk == 1);
+  CHECK(g.player(0).board[0].hp == 1);
+  CHECK(g.player(0).board[1].atk == 1);
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

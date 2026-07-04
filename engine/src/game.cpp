@@ -77,6 +77,7 @@ void Game::startTurn() {
   p.lensUsedThisTurn = false;  // Lens focuses the first spell of each turn
   p.echoUsedThisTurn = false;  // Echo aura copies the first spell of each turn
   p.heroPowerUses = 0;         // limited hero passives recharge each turn
+  p.spellsCastThisTurn = 0;    // chain_burn scales with spells cast this turn
   for (auto& c : p.board) {
     c.sick = false;
     c.attacked = false;
@@ -144,7 +145,7 @@ void Game::processDelayed(Player& p) {
 void Game::applyTurnStartTriggers(Player& p) {
   for (auto& c : p.board) {
     int r = c.def->keywordN("regen");
-    if (r > 0) healCreature(c, r);
+    if (r > 0) healCreature(c, r, p);
     int g = c.def->keywordN("growth");
     if (g > 0) buffStats(c, g);
   }
@@ -160,8 +161,12 @@ void Game::applyTurnStartTriggers(Player& p) {
     Creature* worst = nullptr;
     for (auto& c : p.board)
       if (c.hp < c.maxHp && (!worst || c.hp < worst->hp)) worst = &c;
-    if (worst) healCreature(*worst, 1);
+    if (worst) healCreature(*worst, 1, p);
   }
+  // Data-driven start_of_turn: each of your creatures' own start-of-turn
+  // effects fire now (Bulwark/warden and friends). The checkDeaths in startTurn
+  // reaps anything a reaction killed.
+  fireBoardTrigger(p, "start_of_turn");
 }
 
 // Freeze and blind tick down at the end of the affected creature's owner's
@@ -321,6 +326,10 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
 void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
                         int pos) {
   const CardDef* def = ci.def;
+  // Count the cast up front so a spell's own chain_burn sees itself (the Nth
+  // spell reads spellsCastThisTurn == N). A delayed spell still counts as cast
+  // now, when it is played.
+  if (def->type == CardType::Spell) p.spellsCastThisTurn += 1;
   if (def->type == CardType::Creature) {
     Creature nc =
         makeCreature(ci.id, def, /*sick=*/true, /*token=*/false, /*hp=*/-1);
@@ -419,6 +428,13 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
   }
   if (def->type == CardType::Spell) p.graveyard.push_back(def);
   checkDeaths();  // an on_play effect may have damaged or destroyed creatures
+  // Data-driven on_spell_cast: after a spell resolves, the caster's own board
+  // reacts (attune/prowess and friends). Fires once per hard cast -- the Echo
+  // copy above is a re-resolution of the same spell, not a second cast.
+  if (def->type == CardType::Spell) {
+    fireBoardTrigger(p, "on_spell_cast");
+    checkDeaths();  // a reaction may have burned/killed a creature
+  }
   // Palette hero (Tiziana): the first card you play each turn whose cost needs
   // 2+ different colours draws a card. Uses the shared hero-power counter.
   if (p.hero && p.hero->hasKeyword("palette") && p.heroPowerUses < 1) {
@@ -555,13 +571,15 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
     int overflow = dealt - targetHpBefore;
     if (overflow > 0) dealHeroDamage(opp, overflow);
   }
-  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt);
+  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dealt, me);
   // Red cauterize: this creature's combat damage seals the wielder's hero.
-  if (a->def->hasKeyword("cauterize"))
-    me.heroHp = std::min(HeroStartHp, me.heroHp + dealt);
+  if (a->def->hasKeyword("cauterize")) healHero(me, dealt);
   dealCleave(*a, opp, b->id);  // Colossus: the blow refracts across the line
   a->stealthed = false;        // attacking reveals a stealthed creature
   a->markAttacked();
+  // Data-driven on_attack: the attacker's own effects fire on declaration. Its
+  // def is stable even if the reaction shuffles the board, so read it first.
+  fireCardTrigger(a->def, me, "on_attack");
   checkDeaths();
   return true;
 }
@@ -586,9 +604,8 @@ bool Game::attackHero(EntityId attacker) {
   if (enemyHasProvoke(opp) && !a->def->hasKeyword("bypass")) return false;
   int dmg = a->atk;
   dealHeroDamage(opp, dmg);
-  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg);
-  if (a->def->hasKeyword("cauterize"))
-    me.heroHp = std::min(HeroStartHp, me.heroHp + dmg);
+  if (a->def->hasKeyword("self_lifesteal")) healCreature(*a, dmg, me);
+  if (a->def->hasKeyword("cauterize")) healHero(me, dmg);
   dealCleave(*a, opp, 0);  // Colossus: the blow refracts across the whole line
   a->stealthed = false;
   a->markAttacked();
@@ -598,9 +615,10 @@ bool Game::attackHero(EntityId attacker) {
     a->baseAtk -= 1;
     recomputeContinuous();
   }
-  // Reap any enemy creature the cleave killed. Done last: attacking the hero
-  // draws no retaliation, so `a` (in me.board) is never invalidated before
-  // here.
+  // Data-driven on_attack, fired last: it may summon/kill and reallocate
+  // me.board, so run it only after every deref of `a` above. Its def is stable.
+  fireCardTrigger(a->def, me, "on_attack");
+  // Reap any enemy creature the cleave/reaction killed.
   checkDeaths();
   return true;
 }
@@ -703,6 +721,21 @@ void Game::reactTo(const Event& e) {
       if (!absorbWard(enemy.board[idx[i]]))
         enemy.board[idx[i]].blindTurns = dur;
   }
+  // Requiem: each surviving ally answers a friendly death -- N to the enemy
+  // hero and N mended to your own. The dead body is already off the board, so a
+  // Requiem creature never fires off its own death. The mend routes through
+  // healHero, so it in turn feeds Reflux.
+  for (auto& c : owner.board) {
+    int rq = c.def->keywordN("requiem");
+    if (rq > 0) {
+      dealHeroDamage(players_[1 - e.player], rq);
+      healHero(owner, rq);
+    }
+  }
+  // Green Renewal: a dying creature pulls N random creature cards back from the
+  // grave to hand (its own card, already in the grave, may be among them).
+  int rn = e.card->keywordN("renewal");
+  if (rn > 0) reclaimFromGrave(owner, rn);
   // Data-driven triggers: the dying card's own `on_death` effects fire now. Its
   // controller is `owner`; the effects use auto-resolving selectors
   // (enemy_hero, all_friendly, ...) since a death trigger has no chosen target.
@@ -711,6 +744,22 @@ void Game::reactTo(const Event& e) {
   // enclosing checkDeaths loop.
   for (const auto& ef : e.card->effects)
     if (ef.trigger == "on_death") executeAction(ef, owner, 0, e.card);
+}
+
+void Game::fireCardTrigger(const CardDef* def, Player& owner,
+                           const std::string& trigger) {
+  for (const auto& ef : def->effects)
+    if (ef.trigger == trigger) executeAction(ef, owner, 0, def);
+}
+
+void Game::fireBoardTrigger(Player& p, const std::string& trigger) {
+  // Snapshot the reacting defs first: an effect may summon or kill creatures
+  // (mutating p.board), but each reaction is keyed off a card's static effects,
+  // so a stable list of defs is all we read.
+  std::vector<const CardDef*> defs;
+  defs.reserve(p.board.size());
+  for (const auto& c : p.board) defs.push_back(c.def);
+  for (const auto* d : defs) fireCardTrigger(d, p, trigger);
 }
 
 EntityId Game::summonToken(Player& p, const CardDef* def, bool sick,
@@ -773,13 +822,41 @@ int Game::damageCreature(Creature& target, int amount, const Creature* source,
   return amount;
 }
 
-void Game::healCreature(Creature& c, int amount) {
+void Game::healCreature(Creature& c, int amount, Player& owner) {
   if (amount <= 0) return;
   int cap = c.maxHp - c.unhealable;  // lingering wounds cannot be healed back
   if (cap < 0) cap = 0;
   int want = c.hp + amount;
   if (want > cap) want = cap;
-  if (want > c.hp) c.hp = want;
+  if (want > c.hp) {
+    c.hp = want;
+    onHealed(owner);  // an actual mend fires Reflux / on_heal
+  }
+}
+
+void Game::healHero(Player& p, int amount) {
+  if (amount <= 0) return;
+  int before = p.heroHp;
+  p.heroHp = std::min(HeroStartHp, p.heroHp + amount);
+  if (p.heroHp > before) onHealed(p);
+}
+
+void Game::onHealed(Player& healed) {
+  // Re-entrancy guard: a reaction here deals hero DAMAGE, never healing, so it
+  // cannot loop -- but a future healing reaction (or Requiem's mend arriving
+  // mid-chain) must not re-enter this same pass. One heal instance = one pass.
+  if (healReacting_) return;
+  healReacting_ = true;
+  Player& enemy = players_[1 - healed.index];
+  // Reflux keyword: each of your creatures pings the enemy hero when you heal.
+  for (const auto& c : healed.board) {
+    int rf = c.def->keywordN("reflux");
+    if (rf > 0) dealHeroDamage(enemy, rf);
+  }
+  // Data-driven on_heal effects on your board, for anything Reflux does not
+  // cover (auto-resolving selectors, no chosen target).
+  fireBoardTrigger(healed, "on_heal");
+  healReacting_ = false;
 }
 
 void Game::buffStats(Creature& c, int n) {
@@ -788,6 +865,26 @@ void Game::buffStats(Creature& c, int n) {
   c.baseMaxHp += n;
   c.maxHp += n;
   c.hp += n;
+}
+
+void Game::reclaimFromGrave(Player& p, int n) {
+  if (n <= 0) return;
+  // Only creature cards are recoverable. Pick n at random, newest-index-first
+  // when removing so earlier indices stay valid mid-loop.
+  std::vector<int> idx;
+  for (int i = 0; i < static_cast<int>(p.graveyard.size()); ++i)
+    if (p.graveyard[i]->type == CardType::Creature) idx.push_back(i);
+  std::shuffle(idx.begin(), idx.end(), rng_);
+  int take = std::min(n, static_cast<int>(idx.size()));
+  std::vector<int> chosen(idx.begin(), idx.begin() + take);
+  std::sort(chosen.rbegin(), chosen.rend());  // descending, so erase is stable
+  for (int i : chosen) {
+    if (static_cast<int>(p.hand.size()) >= HandLimit)
+      continue;  // no room -> the card stays in the graveyard (overflow stays)
+    const CardDef* def = p.graveyard[i];
+    p.graveyard.erase(p.graveyard.begin() + i);
+    p.hand.push_back(CardInstance{nextId_++, def});
+  }
 }
 
 void Game::recomputeContinuous() {
@@ -869,13 +966,22 @@ bool Game::playTargetLegal(const CardDef* def, const Player& owner,
     if (e.trigger != "on_play") continue;
     bool chooses = e.selector == "chosen_enemy_minion" ||
                    e.selector == "chosen_friendly_minion" ||
-                   e.selector == "chosen_any_minion";
+                   e.selector == "chosen_any_minion" ||
+                   e.selector == "chosen_blinded_enemy" ||
+                   e.selector == "chosen_any_target";
     if (!chooses) continue;
+    // chosen_any_target also accepts the enemy hero (a burn to the face).
+    if (e.selector == "chosen_any_target" && target == EnemyHeroTarget)
+      continue;
     // Is the supplied target a legal pick for this selector?
     const Creature* t = nullptr;
-    if (e.selector == "chosen_enemy_minion") {
+    if (e.selector == "chosen_enemy_minion" ||
+        e.selector == "chosen_any_target") {
       t = findCreature(opp, target);
       if (t && t->stealthed) t = nullptr;  // a hidden enemy cannot be chosen
+    } else if (e.selector == "chosen_blinded_enemy") {
+      t = findCreature(opp, target);
+      if (t && (t->stealthed || t->blindTurns == 0)) t = nullptr;
     } else if (e.selector == "chosen_friendly_minion") {
       t = findCreature(owner, target);
     } else {  // chosen_any_minion
@@ -950,6 +1056,14 @@ std::vector<EntityId> Game::legalTargets(const CardDef* def,
   for (const Player& side : players_)
     for (const Creature& c : side.board)
       if (playTargetLegal(def, owner, c.id)) out.push_back(c.id);
+  // The enemy hero is a legal pick only for a chosen_any_target effect (face
+  // burn), and only then is the sentinel offered at all.
+  for (const auto& e : def->effects)
+    if (e.trigger == "on_play" && e.selector == "chosen_any_target" &&
+        playTargetLegal(def, owner, EnemyHeroTarget)) {
+      out.push_back(EnemyHeroTarget);
+      break;
+    }
   return out;
 }
 
@@ -1153,8 +1267,16 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
   } else if (a == "blind") {
     for (Creature* t : selectTargets(e.selector, owner, target))
       if (!absorbWard(*t)) t->blindTurns = e.value;
+  } else if (a == "heal") {
+    if (e.selector == "friendly_hero") {
+      healHero(owner, e.value);
+    } else {
+      for (Creature* t : selectTargets(e.selector, owner, target))
+        healCreature(*t, e.value, owner);
+    }
   } else if (a == "damage") {
-    if (e.selector == "enemy_hero") {
+    if (e.selector == "enemy_hero" ||
+        (e.selector == "chosen_any_target" && target == EnemyHeroTarget)) {
       dealHeroDamage(opp, e.value);
     } else {
       bool pin = src && src->hasKeyword("pinpoint");  // spell: through Щит+Нимб
@@ -1170,6 +1292,37 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
   } else if (a == "destroy") {
     for (Creature* t : selectTargets(e.selector, owner, target))
       if (!absorbWard(*t)) t->hp = 0;  // checkDeaths reaps
+  } else if (a == "buff") {
+    // Permanent stat change over the selector; +value/+value, or a debuff when
+    // value is negative (a wound may drop hp <=0 -> the caller's checkDeaths
+    // reaps it). flourish = buff over all_friendly; Waning Light = negative.
+    for (Creature* t : selectTargets(e.selector, owner, target))
+      buffStats(*t, e.value);
+  } else if (a == "sprout") {
+    // Summon `value` 1/1 sprouts, filling to the board cap.
+    const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
+    for (int k = 0;
+         k < e.value && static_cast<int>(owner.board.size()) < BoardLimit; ++k)
+      summonToken(owner, sprout, /*sick=*/true, /*hpOverride=*/-1, -1);
+  } else if (a == "sacrifice") {
+    // Send the selected friendly bodies to the grave, firing every friendly-
+    // death reaction (spores/haunt/Requiem/compost/on_death via checkDeaths).
+    // `value` is face damage per body sacrificed (Wake = 2; a plain sacrifice
+    // uses 0). A self-sacrifice is never warded.
+    int count = 0;
+    for (Creature* t : selectTargets(e.selector, owner, target)) {
+      t->hp = 0;
+      ++count;
+    }
+    if (count > 0) checkDeaths();  // resolve the death chains before the payoff
+    if (e.value > 0 && count > 0) dealHeroDamage(opp, e.value * count);
+  } else if (a == "reclaim") {
+    reclaimFromGrave(owner, e.value);
+  } else if (a == "chain_burn") {
+    // Base value plus one extra per EARLIER spell cast this turn. The counter
+    // already includes this spell (incremented at play), so subtract one.
+    int prior = owner.spellsCastThisTurn > 0 ? owner.spellsCastThisTurn - 1 : 0;
+    dealHeroDamage(opp, e.value + prior);
   } else if (a == "draw") {
     draw(owner, e.value);
   } else if (a == "add_crystal") {
@@ -1422,11 +1575,29 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
   std::vector<Creature*> out;
   if (selector == "all_enemies") {
     for (auto& c : players_[1 - owner.index].board) out.push_back(&c);
+  } else if (selector == "all_friendly") {
+    for (auto& c : owner.board) out.push_back(&c);
   } else if (selector == "all_creatures") {
     for (auto& pl : players_)
       for (auto& c : pl.board) out.push_back(&c);
+  } else if (selector == "most_wounded_friendly") {
+    // The friendly creature missing the most HP; ties keep the lowest index
+    // (strict >). Only an actually wounded creature qualifies. Auto-resolving:
+    // heal payoffs (Dawnlight / Stained Glass) pick their own target.
+    Creature* worst = nullptr;
+    for (auto& c : owner.board) {
+      int wound = c.maxHp - c.hp;
+      if (wound > 0 && (!worst || wound > worst->maxHp - worst->hp)) worst = &c;
+    }
+    if (worst) out.push_back(worst);
   } else if (Creature* t = findSelected(selector, owner, target)) {
     Player& opp = players_[1 - owner.index];
+    // Only the three hand-picked minion selectors bend/split; auto-resolving
+    // and hero-capable selectors (chosen_any_target, chosen_blinded_enemy) do
+    // not.
+    bool splashable = selector == "chosen_enemy_minion" ||
+                      selector == "chosen_friendly_minion" ||
+                      selector == "chosen_any_minion";
     // Violet refract: an enemy effect aimed at this creature bends onto a
     // random other enemy creature instead.
     if (selector == "chosen_enemy_minion" && t->def->hasKeyword("refract"))
@@ -1434,7 +1605,7 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
     out.push_back(t);
     // Blue birefringence: the caster's targeted effect splits onto a second
     // random valid target of the same side (the beam is doubly refracted).
-    if (selector.rfind("chosen_", 0) == 0 && ownerHasBirefringence(owner)) {
+    if (splashable && ownerHasBirefringence(owner)) {
       std::vector<Creature*> pool;
       auto gather = [&](Player& pl) {
         for (auto& c : pl.board)
@@ -1470,7 +1641,15 @@ Creature* Game::findSelected(const std::string& selector, Player& owner,
     Creature* c = findCreature(owner, target);
     return c ? c : findCreature(opp, target);
   }
-  return findCreature(opp, target);  // chosen_enemy_minion / default
+  if (selector == "chosen_blinded_enemy") {
+    // Snuffing Verdict and kin: only a blinded enemy is a legal pick.
+    Creature* c = findCreature(opp, target);
+    return (c && c->blindTurns > 0) ? c : nullptr;
+  }
+  // chosen_any_target picks an enemy creature here; an enemy-hero pick is the
+  // EnemyHeroTarget sentinel and is routed straight to the hero by the action.
+  return findCreature(opp,
+                      target);  // chosen_enemy_minion / any_target / default
 }
 
 void Game::endTurn() {

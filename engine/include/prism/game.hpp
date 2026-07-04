@@ -28,6 +28,11 @@ inline constexpr int OpeningSecond = 5;  // second player's hand (its only comp)
 
 using EntityId = int;  // unique per card instance for the whole game
 
+// Sentinel target for effects that may point at the enemy hero rather than a
+// creature (selector chosen_any_target, e.g. face burn). Real ids start at 1
+// and 0 means "no target", so a negative sentinel can never collide.
+inline constexpr EntityId EnemyHeroTarget = -1;
+
 // A card sitting in a hand or deck: just its identity plus its template.
 struct CardInstance {
   EntityId id;
@@ -103,7 +108,14 @@ struct Creature {
 // Died (for deathrattle-style abilities and death chains); the other types are
 // declared as the growth points for future keywords. Turn-start and on_play
 // effects are player-initiated and handled directly, not through this queue.
-enum class EventType { TurnStart, TurnEnd, Summoned, Died, DamageDealt };
+enum class EventType {
+  TurnStart,
+  TurnEnd,
+  Summoned,
+  Died,
+  DamageDealt,
+  SpellCast
+};
 
 struct Event {
   EventType type;
@@ -135,7 +147,8 @@ struct Player {
   // each turn; a passive fires while uses are below its own per-turn limit (1
   // today, could be 2+ for a future hero) and then increments it.
   int heroPowerUses = 0;
-  bool mulliganDone = false;  // has this player finished its mulligan?
+  int spellsCastThisTurn = 0;  // counts spells hard-cast this turn (chain_burn)
+  bool mulliganDone = false;   // has this player finished its mulligan?
   ManaPool mana;
   std::vector<CardInstance> hand;
   std::vector<CardInstance> deck;
@@ -382,6 +395,14 @@ class Game {
   void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
   void executeAction(const EffectDef& e, Player& owner, EntityId target,
                      const CardDef* src = nullptr);
+  // Fire one card's data-driven `trigger` effects (owner controls it). The
+  // reacting card is not itself the chosen target, so its effects use
+  // auto-resolving selectors (enemy_hero, all_friendly, ...).
+  void fireCardTrigger(const CardDef* def, Player& owner,
+                       const std::string& trigger);
+  // Same, for every creature on `p`'s board -- the board-scan triggers
+  // (on_spell_cast, start_of_turn).
+  void fireBoardTrigger(Player& p, const std::string& trigger);
   // Penta sub-games: open a decision and (once submitted) resolve each kind.
   void startDecision(DecisionKind k, int caster, int value);
   // Run a deferred Echo copy of a sub-game spell now that its decision cleared.
@@ -451,7 +472,17 @@ class Game {
   // dealt to hp.
   int damageCreature(Creature& target, int amount, const Creature* source,
                      bool pierceShield = false);
-  void healCreature(Creature& c, int amount);  // capped by maxHp - unhealable
+  // capped by maxHp - unhealable; a heal that raises hp fires on_heal on
+  // `owner`
+  void healCreature(Creature& c, int amount, Player& owner);
+  // clamp a hero back up to full; a heal that raises hp fires on_heal
+  void healHero(Player& p, int amount);
+  // Reaction to any heal on `healed`'s side: Reflux keyword + data on_heal
+  // effects. Re-entrancy is guarded so a reaction's own healing cannot re-fire.
+  void onHealed(Player& healed);
+  // Move up to n random creature cards from p's graveyard back to hand (Green
+  // Renewal / the reclaim action), respecting the hand cap; overflow stays.
+  void reclaimFromGrave(Player& p, int n);
   void buffStats(Creature& c, int n);  // permanent "+n/+n" (base atk +n)
   // Recompute every creature's effective atk from baseAtk plus the live
   // continuous layer: undergrowth (+N per other ally), resonance (+N per
@@ -477,6 +508,7 @@ class Game {
   int turn_ = 0;
   bool over_ = false;
   bool mirrorReflecting_ = false;  // guards Prism Mirror's reflect from looping
+  bool healReacting_ = false;      // guards on_heal (Reflux) from re-entering
   bool mulliganPhase_ = false;     // true between dealing and the first turn
   int scryPlayer_ = -1;            // who is mid-scry (-1 = nobody)
   std::vector<CardInstance> scryPeek_;  // top cards peeked, awaiting a choice

@@ -206,11 +206,20 @@ legalActions / сериализация / реплеи / фазз / лог де�
 текущих, отвязаны. Все инварианты/решения — в дизайн-доке.
 
 **Порядок (ДВИЖОК-ПЕРВЫМ):**
-1. Движковая фаза: триггеры `on_heal`/`on_spell_cast`; кейворды `attune`/Reflux/Requiem/Bulwark/
-   Renewal/warden/sprout/flourish; действия fight/sacrifice/chain_burn/add_crystal; селекторы. Список
-   — `engine_work` в JSON. (`lingering` НЕ делаем; прауэс = `attune`, не `echo`.)
+1. Движковая фаза. Список — `engine_work` в JSON. (`lingering` НЕ делаем; прауэс = `attune`/`prowess`,
+   не `echo`. Геройские пассивки из ростера НЕ кодируем — 4 текущих героя оставлены, остальные пассивки
+   сворачиваются в кейворды/карты; Clairvoyance/Кьяра выпадает.)
+   - СДЕЛАНО: триггеры-данные `on_death`/`on_spell_cast`/`start_of_turn`/`on_attack`/`on_heal` (+`fireBoardTrigger`/
+     `fireCardTrigger`, счётчик `spellsCastThisTurn`, единый heal-путь `healHero`/`healCreature(owner)`);
+     кейворды Reflux/Requiem; селекторы `most_wounded_friendly`/`chosen_blinded_enemy`/`chosen_any_target`
+     (+ sentinel `EnemyHeroTarget`), `all_friendly`; действие `heal`. Всё под edge-тестами.
+   - ОСТАЛОСЬ: действия `chain_burn`/`sacrifice`(1 и 0..n)/`fight`(два таргета)/`reclaim`(+Renewal)/`flourish`/
+     `sprout`; кейворды Bulwark/warden/harvest/prowess; timed-modifier инфра (temp-баффы: prowess, False
+     Dawn EOT, Into the Mirage until-next-turn); warden = N случайных незаслеплённых врагов.
 2. Карты пачками (по колоде), байт-в-байт `cards/sample.json` + `client-godot/cards.json`.
-3. Клиент: глоссарий новых кейвордов, пресеты в колодостроитель.
+3. Клиент: глоссарий новых кейвордов, пресеты в колодостроитель. + **дроп бёрн-спелла на портрет врага
+   шлёт target=`EnemyHeroTarget`(−1)** — движок принимает, клиент/протокол пока нет (нужно для
+   `chosen_any_target`).
 4. Баланс: покарточно на бумаге НЕ делали (числа сдвинутся); настоящий — плейтест + self-play (слеп
    к контролю/спеллам) с ≥2 колод. ~25 из 55 матчапов не расписаны.
 ### Реворк сета v1 — ГОТОВО (2026-06, пересобран набело) — заменяется deck-first пересбором выше
