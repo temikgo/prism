@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 
 #include "json.hpp"
@@ -58,6 +59,7 @@ json creatureJson(const Creature& c) {
               {"shield", c.shield},
               {"warded", c.warded},
               {"stealthed", c.stealthed},
+              {"hauntGhost", c.hauntGhost},
               {"unhealable", c.unhealable}};
 }
 
@@ -88,6 +90,8 @@ json playerJson(const Player& p) {
   j["fatigue"] = p.fatigue;
   j["placedManaThisTurn"] = p.placedManaThisTurn;
   j["summonedThisTurn"] = p.summonedThisTurn;
+  j["lensUsedThisTurn"] = p.lensUsedThisTurn;
+  j["echoUsedThisTurn"] = p.echoUsedThisTurn;
   j["heroPowerUses"] = p.heroPowerUses;
   j["mulliganDone"] = p.mulliganDone;
   j["mana"] = {{"crystals", manaArr(p.mana.crystals)},
@@ -218,6 +222,12 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
     g->scryPeek_.push_back(instFrom(ji));
 
   const json& players = j.at("players");
+  // Guard malformed input: indexing players[0]/players[1] on a non-array or a
+  // short array is undefined behavior. Fail cleanly instead (json::parse and
+  // the .at() calls already throw on other shape errors; callers should
+  // try/catch).
+  if (!players.is_array() || players.size() < 2)
+    throw std::runtime_error("fromJson: 'players' must be an array of 2");
   for (int pi = 0; pi < 2; ++pi) {
     const json& pj = players[pi];
     Player& p = g->players_[pi];
@@ -228,6 +238,8 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
     p.fatigue = pj.value("fatigue", 0);
     p.placedManaThisTurn = pj.value("placedManaThisTurn", false);
     p.summonedThisTurn = pj.value("summonedThisTurn", false);
+    p.lensUsedThisTurn = pj.value("lensUsedThisTurn", false);
+    p.echoUsedThisTurn = pj.value("echoUsedThisTurn", false);
     p.heroPowerUses = pj.value("heroPowerUses", 0);
     p.mulliganDone = pj.value("mulliganDone", false);
     const json& mj = pj.at("mana");
@@ -268,6 +280,7 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
       c.shield = cj.value("shield", false);
       c.warded = cj.value("warded", false);
       c.stealthed = cj.value("stealthed", false);
+      c.hauntGhost = cj.value("hauntGhost", false);
       c.unhealable = cj.value("unhealable", 0);
       p.board.push_back(c);
     }

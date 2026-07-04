@@ -2878,7 +2878,12 @@ TEST_CASE("penta Prism Echo doubles Rainbow Muster (draws six)") {
   CHECK(g.player(0).board.size() == 6);
 }
 
-TEST_CASE("penta Prism Echo doubles Crystallize (gains crystals twice)") {
+TEST_CASE(
+    "penta Prism Echo: Crystallize copy fizzles on the destroyed target") {
+  // Echo re-resolves your first spell on the SAME target; a target the first
+  // pass destroyed is gone, so the copy fizzles (the uniform "killed target ->
+  // no second hit" rule). Crystallize's reward is the target's colours, so with
+  // the target gone it grants crystals ONCE, not twice.
   CardLibrary lib = testLib();
   Game g(lib, {"echoaura", "crystalspell", "bear", "bear"},
          {"dualfree", "bear", "bear", "bear"}, 7);
@@ -2890,11 +2895,83 @@ TEST_CASE("penta Prism Echo doubles Crystallize (gains crystals twice)") {
   int r0 = g.player(0).mana.crystals[idx(Color::Red)];
   int b0 = g.player(0).mana.crystals[idx(Color::Blue)];
   EntityId id = g.player(1).board[0].id;
+  CHECK(g.playCard(handIndexOf(g, 0, "crystalspell"), id));
+  CHECK(g.player(1).board.empty());  // destroyed once
+  CHECK(g.player(0).mana.crystals[idx(Color::Red)] == r0 + 1);   // gained once
+  CHECK(g.player(0).mana.crystals[idx(Color::Blue)] == b0 + 1);  // not twice
+}
+
+TEST_CASE("resume preserves per-turn flags (Lens/Echo spent this turn)") {
+  // lensUsedThisTurn / echoUsedThisTurn are per-turn latches: after the first
+  // spell they must stay set through a mid-turn save/reload, or a resumed game
+  // would refocus/recopy a second spell the original never would.
+  CardLibrary lib = testLib();
+  Game g(lib, {"lensaura", "echoaura", "crystalspell", "bear"},
+         {"bear", "bear", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "lensaura")));
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bear")));  // a target for the spell
+  g.endTurn();
+  EntityId t = g.player(1).board[0].id;
+  CHECK(g.playCard(handIndexOf(g, 0, "crystalspell"), t));  // first spell
+  REQUIRE(g.player(0).lensUsedThisTurn);
+  REQUIRE(g.player(0).echoUsedThisTurn);
+
+  std::string saved = g.toJson();
+  auto g2 = Game::fromJson(lib, saved);
+  CHECK(g2->player(0).lensUsedThisTurn);  // survived the round-trip
+  CHECK(g2->player(0).echoUsedThisTurn);
+  CHECK(g2->toJson() == saved);  // byte-identical -> every field round-tripped
+}
+
+TEST_CASE("resume preserves hauntGhost (the ghost body's no-re-haunt mark)") {
+  // hauntGhost marks a body spawned by haunt so it cannot haunt again; it must
+  // survive a save/reload, or the resumed game would spawn an extra ghost. Kill
+  // a haunter in combat to spawn its ghost, then round-trip.
+  CardLibrary lib = testLib();
+  Game g(lib, {"haunter", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "haunter")));  // 2/2 haunter
+  g.endTurn();
+  CHECK(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 to do the killing
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                                             // bruiser awakes
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));  // haunter dies
+  REQUIRE(g.player(0).board.size() == 1);  // its ghost took its place
+  REQUIRE(g.player(0).board[0].hauntGhost);
+
+  std::string saved = g.toJson();
+  auto g2 = Game::fromJson(lib, saved);
+  CHECK(g2->toJson() == saved);  // byte-identical -> hauntGhost round-tripped
+  REQUIRE(g2->player(0).board.size() == 1);
+  CHECK(g2->player(0).board[0].hauntGhost);
+}
+
+TEST_CASE(
+    "penta Echo: a decision that ends the game spawns no phantom sub-game") {
+  // Ultimatum cast under Echo defers its copy until the decision clears. If the
+  // decision ends the game, the deferred copy must be dropped -- not reopened
+  // as a phantom sub-game on a finished board (over_ && decisionPending), and a
+  // late decision must be refused.
+  CardLibrary lib = testLib();
+  Game g(lib, {"echoaura", "ultimatumspell", "bear", "bear"},
+         {"bear", "bear", "bear", "bear"}, 7);
+  begin(g);
+  CHECK(g.playCard(handIndexOf(g, 0, "echoaura")));
+  g.endTurn();
+  g.endTurn();
+  g.player(1).heroHp = 5;  // taking the Ultimatum's 5 is now lethal
   CHECK(
-      g.playCard(handIndexOf(g, 0, "crystalspell"), id));  // doubled on target
-  CHECK(g.player(1).board.empty());
-  CHECK(g.player(0).mana.crystals[idx(Color::Red)] == r0 + 2);  // gained twice
-  CHECK(g.player(0).mana.crystals[idx(Color::Blue)] == b0 + 2);
+      g.playCard(handIndexOf(g, 0, "ultimatumspell")));  // opens + defers copy
+  REQUIRE(g.decisionPending());
+  CHECK(g.submitDecision(1, 1));  // opponent takes 5 -> dies
+  CHECK(g.isOver());
+  CHECK_FALSE(g.decisionPending());  // no phantom sub-game reopened
+  CHECK_FALSE(
+      g.submitDecision(1, 0));  // a finished game refuses late decisions
 }
 
 TEST_CASE(

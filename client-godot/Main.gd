@@ -297,7 +297,21 @@ func _send(obj: Dictionary) -> void:
 
 # Apply a fresh view: diff creature HP against the last one (GameState) to drive
 # damage / death / summon animations, then rebuild.
+# A view is safe to apply only if it carries both players and a valid own-seat.
+func _valid_view(v: Dictionary) -> bool:
+	if typeof(v.get("players")) != TYPE_ARRAY or (v["players"] as Array).size() < 2:
+		return false
+	return int(v.get("you", -1)) in [0, 1]
+
+
 func _ingest_view(new_view: Dictionary) -> void:
+	# Guard a malformed/partial view once here: everything below (GameState.diff,
+	# _rebuild, rules.gd) indexes players[you]/players[1-you] unchecked, so a view
+	# without a 2-element players array or a seat outside {0,1} would crash ingest.
+	# Drop such a view rather than half-applying it.
+	if not _valid_view(new_view):
+		push_warning("ignored malformed view (no players[2] / bad 'you')")
+		return
 	# A new view means the board changed: an open mana picker would point at a
 	# now-stale index, so drop it (and any open floodlight peek).
 	_close_picker()

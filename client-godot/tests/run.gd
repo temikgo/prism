@@ -190,6 +190,16 @@ func _test_main_helpers() -> void:
 	_eq(int(hd.get(1, 0)), 4, "enemy hero took 4 face damage (24->20)")
 	_ok(not hd.has(0), "your hero unchanged -> no entry")
 
+	# _valid_view: a view is only safe to apply with players[2] and a seat in {0,1}
+	# (ingest indexes players[you]/[1-you] unchecked below the guard -- B12/B13).
+	_ok(_main._valid_view(hv), "a well-formed view is valid")
+	_ok(not _main._valid_view({}), "empty view rejected (no players)")
+	_ok(not _main._valid_view({"players": []}), "short players array rejected")
+	_ok(not _main._valid_view({"turn": 3, "over": false}), "players-less view rejected")
+	_ok(not _main._valid_view({"players": [{}, {}], "you": 2}),
+		"seat outside {0,1} rejected")
+	_ok(not _main._valid_view({"players": [{}, {}]}), "missing 'you' rejected")
+
 	# Pile pulse wiring: the deck/discard/hand count tiles must be exposed for BOTH
 	# sides (the coordinator pulses any tile whose number changed, either player's).
 	var pmine := DevKit.player({"deckCount": 20, "graveyardCount": 2, "handCount": 5,

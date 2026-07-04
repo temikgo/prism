@@ -22,9 +22,11 @@ HERO_KW = {"spectral_shift", "lighteater", "palette", "facet", "clairvoyance", "
 
 # Bespoke penta (5-colour) keywords: legal vocabulary, but outside the catalog so
 # they do NOT count toward the 4x density (card_kw_instances only sums KW_COLOR).
-PENTA_KW = {"echo", "mirror", "vanguard"}
+PENTA_KW = {"echo", "mirror", "vanguard", "breaker", "cleave"}
 
-ALLOWED_ACTIONS = {"freeze", "blind", "damage", "destroy", "draw", "dispel", "scry", "scatter", "mirage"}
+ALLOWED_ACTIONS = {"freeze", "blind", "damage", "destroy", "draw", "dispel", "scry", "scatter", "mirage",
+                   # Penta Wave-2 engine actions (bespoke sub-games / ramp), implemented in executeAction.
+                   "auction", "standoff", "ultimatum", "crystallize", "muster", "decay"}
 ALLOWED_SELECTORS = {"enemy_hero", "chosen_enemy_minion", "chosen_friendly_minion",
                      "chosen_any_minion", "all_enemies", "all_creatures",
                      "chosen_enemy_aura"}

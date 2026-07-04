@@ -405,8 +405,15 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
           // A sub-game spell (Ultimatum/Standoff/Auction) paused the game; the
           // copy cannot resolve now, so defer it until that decision clears.
           echoDeferred_ = EchoDeferred{def, p.index, target};
-        else
+        else {
+          // Reap bodies the first pass killed before the copy runs, so the copy
+          // fizzles on a target the first resolution destroyed -- upholding the
+          // "a target killed by the first pass yields no second hit" rule for
+          // every spell uniformly (e.g. Crystallize does not grant its crystals
+          // twice off one creature).
+          checkDeaths();
           resolveOnPlay(def, p, target);
+        }
       }
     }
   }
@@ -1286,6 +1293,8 @@ int Game::defaultDecisionChoice(int player) const {
 }
 
 bool Game::submitDecision(int player, int choice) {
+  if (over_)
+    return false;  // a finished game is never mutated by a late decision
   Decision& d = decision_;
   if (d.kind == DecisionKind::None) return false;
   if (player < 0 || player > 1) return false;
@@ -1365,7 +1374,15 @@ void Game::resolveAuction(int winner) {
 // decision cleared, resolve the copy once (it may open a second sub-game, which
 // is fine -- the deferred slot is consumed first, so there is no loop).
 void Game::fireDeferredEcho() {
-  if (!echoDeferred_.def || decisionPending()) return;
+  if (!echoDeferred_.def) return;
+  // The first decision ended the game: drop the copy instead of opening a
+  // phantom sub-game on a finished board (which would leave over_ &&
+  // decisionPending on the losing seat).
+  if (over_) {
+    echoDeferred_ = EchoDeferred{};
+    return;
+  }
+  if (decisionPending()) return;
   EchoDeferred d = echoDeferred_;
   echoDeferred_ = EchoDeferred{};
   resolveOnPlay(d.def, players_[d.owner], d.target);
