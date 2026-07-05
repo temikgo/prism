@@ -187,8 +187,9 @@ struct Action {
   int handIndex = -1;
   Color color = Color::Colorless;
   int manaRowIndex = -1;
-  EntityId target = 0;  // play/awaken effect target, or attack defender
-  int pos = -1;         // play/awaken board slot (-1 = append); not enumerated
+  EntityId target = 0;   // play/awaken effect target, or attack defender
+  EntityId target2 = 0;  // second chosen target for a two-target play (fight)
+  int pos = -1;          // play/awaken board slot (-1 = append); not enumerated
   EntityId attacker = 0;  // attacking creature
   EntityId id = 0;        // activate: the creature
 };
@@ -275,7 +276,8 @@ class Game {
   // default) appends to the right.
   bool playCard(
       int handIndex, EntityId target = 0, int pos = -1,
-      std::optional<std::array<int, ColorCount>> genericPay = std::nullopt);
+      std::optional<std::array<int, ColorCount>> genericPay = std::nullopt,
+      EntityId target2 = 0);
   // Violet awaken: play a card straight from the mana row. The banked crystal
   // pays 1 of the cost in its own color (or 1 generic if that color isn't
   // required); the remainder is paid from your other available crystals, and
@@ -394,9 +396,10 @@ class Game {
   // OPPONENT of its owner has a Brittle source in play. True if `target` is
   // frozen and should be shattered by incoming damage.
   bool brittleShatters(const Creature& target) const;
-  void resolveOnPlay(const CardDef* def, Player& owner, EntityId target);
+  void resolveOnPlay(const CardDef* def, Player& owner, EntityId target,
+                     EntityId target2 = 0);
   void executeAction(const EffectDef& e, Player& owner, EntityId target,
-                     const CardDef* src = nullptr);
+                     const CardDef* src = nullptr, EntityId target2 = 0);
   // Fire one card's data-driven `trigger` effects (owner controls it). The
   // reacting card is not itself the chosen target, so its effects use
   // auto-resolving selectors (enemy_hero, all_friendly, ...).
@@ -418,12 +421,12 @@ class Game {
   // True if `target` is a legal target for the card's on_play effects (a
   // chosen_enemy_minion must exist and not be stealthed). Const: a pure check,
   // shared by playCard / awaken (committing) and legalActions (enumerating).
-  bool playTargetLegal(const CardDef* def, const Player& owner,
-                       EntityId target) const;
+  bool playTargetLegal(const CardDef* def, const Player& owner, EntityId target,
+                       EntityId target2 = 0) const;
   // Put an already-paid-for card into play and run its effects. Shared by
   // playCard (from hand) and awaken (from the mana row).
-  void playResolved(Player& p, const CardInstance& ci, EntityId target,
-                    int pos);
+  void playResolved(Player& p, const CardInstance& ci, EntityId target, int pos,
+                    EntityId target2 = 0);
 
   // Prism `spectral_shift`: if `cost` is unpayable normally but becomes payable
   // by retuning ONE available crystal to a spectrum-adjacent color (R-Y-G-B-V),

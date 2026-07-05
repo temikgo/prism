@@ -65,6 +65,7 @@ static CardDef parseCard(const json& j) {
       EffectDef ef;
       ef.trigger = e.value("trigger", std::string{});
       ef.selector = e.value("selector", std::string{});
+      ef.selector2 = e.value("selector2", std::string{});
       ef.action = e.value("action", std::string{});
       ef.value = e.value("value", 0);
       ef.required = e.value("required", false);

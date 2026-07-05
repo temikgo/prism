@@ -96,6 +96,11 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "all_friendly",
                   "action": "buff_temp", "value": 2 }] },
+  { "id": "duel", "name": { "ru": "Стравливание" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "selector2": "chosen_enemy_minion", "action": "fight",
+                  "required": true }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -1032,6 +1037,47 @@ TEST_CASE("a temp HP buff wearing off can drop a wounded creature") {
   CHECK(g.player(0).board[0].hp == 2);  // 6 - 4, still up on the temp HP
   g.endTurn();  // temp +2 HP wears off -> 2 - 2 = 0 -> reaped
   CHECK(g.player(0).board.empty());
+}
+
+TEST_CASE("fight makes two chosen creatures strike each other at once") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "duel", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4
+  EntityId ally = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
+  EntityId foe = g.player(1).board[0].id;
+  g.endTurn();  // -> p0
+  // The enemy target is required: no target2 is an illegal fight.
+  CHECK_FALSE(g.playCard(handIndexOf(g, 0, "duel"), ally, -1, std::nullopt, 0));
+  // legalActions offers the friendly x enemy pair.
+  bool pairOffered = false;
+  for (const auto& act : g.legalActions())
+    if (act.type == Action::Type::Play && act.target == ally &&
+        act.target2 == foe)
+      pairOffered = true;
+  CHECK(pairOffered);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "duel"), ally, -1, std::nullopt, foe));
+  CHECK(g.player(0).board.empty());     // the 3/4 took 4 and died
+  CHECK(g.player(1).board[0].hp == 1);  // the 4/4 took 3 and lived
+}
+
+TEST_CASE("a creature killed in a fight still fires its on_death") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"deathknell", "duel", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "deathknell")));  // 1/1, on_death: 2 face
+  EntityId ally = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 will kill it back
+  EntityId foe = g.player(1).board[0].id;
+  g.endTurn();  // -> p0
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "duel"), ally, -1, std::nullopt, foe));
+  CHECK(g.player(0).board.empty());     // deathknell died in the fight
+  CHECK(g.player(1).heroHp == hp - 2);  // its on_death still hit the foe
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

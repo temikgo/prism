@@ -299,7 +299,8 @@ std::optional<ManaPool> Game::shiftedPool(const ManaPool& pool,
 }
 
 bool Game::playCard(int handIndex, EntityId target, int pos,
-                    std::optional<std::array<int, ColorCount>> genericPay) {
+                    std::optional<std::array<int, ColorCount>> genericPay,
+                    EntityId target2) {
   if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   if (handIndex < 0 || handIndex >= static_cast<int>(p.hand.size()))
@@ -321,7 +322,7 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
   if (def->type == CardType::Aura &&
       (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
     return false;
-  if (!playTargetLegal(def, p, target)) return false;
+  if (!playTargetLegal(def, p, target, target2)) return false;
   // Pay last, after every legality check, so a rejected play never spends mana.
   if (normal) {
     // Honour the player's chosen generic breakdown if one was given and is
@@ -335,7 +336,7 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
     p.heroPowerUses += 1;  // the spectral shift counts as a hero-power use
   }
   p.hand.erase(p.hand.begin() + handIndex);
-  playResolved(p, ci, target, pos);
+  playResolved(p, ci, target, pos, target2);
   return true;
 }
 
@@ -343,7 +344,7 @@ bool Game::playCard(int handIndex, EntityId target, int pos,
 // auras stay in play; spells resolve and go to the graveyard. Any on_play
 // effect runs against `target`.
 void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
-                        int pos) {
+                        int pos, EntityId target2) {
   const CardDef* def = ci.def;
   // Count the cast up front so a spell's own chain_burn sees itself (the Nth
   // spell reads spellsCastThisTurn == N). A delayed spell still counts as cast
@@ -414,7 +415,7 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
       if (e.trigger == "on_play")
         p.pending.push_back(DelayedEffect{e, n, target, def});
   } else {
-    resolveOnPlay(def, p, target);
+    resolveOnPlay(def, p, target, target2);
     // Penta Prism Echo (aura): your FIRST spell each turn resolves a second
     // time on the same target. Once per turn (the copy itself does not
     // re-trigger, so there is no loop); a target killed by the first pass
@@ -992,7 +993,7 @@ const CardDef* Game::internToken(const std::string& id, Stats s) {
 // An on_play effect that picks an enemy creature needs a real, non-stealthed
 // target; otherwise the whole play is illegal (checked before paying).
 bool Game::playTargetLegal(const CardDef* def, const Player& owner,
-                           EntityId target) const {
+                           EntityId target, EntityId target2) const {
   const Player& opp = players_[1 - owner.index];
   for (const auto& e : def->effects) {
     if (e.trigger != "on_play") continue;
@@ -1023,12 +1024,21 @@ bool Game::playTargetLegal(const CardDef* def, const Player& owner,
         if (t && t->stealthed) t = nullptr;
       }
     }
-    if (t) continue;  // a valid target was chosen -> fine
-    // No valid target. If the player did supply one (non-zero) it was illegal,
-    // so reject regardless. With no target chosen, an optional effect just
-    // skips (the card still plays); only a `required` cost effect blocks the
-    // play.
-    if (target != 0 || e.required) return false;
+    if (!t) {
+      // No valid primary target. If the player did supply one (non-zero) it was
+      // illegal, so reject regardless. With no target chosen, an optional
+      // effect just skips (the card still plays); only a `required` cost effect
+      // blocks.
+      if (target != 0 || e.required) return false;
+      continue;
+    }
+    // A valid primary target. For a two-target effect (fight), the second
+    // chosen target (selector2, an enemy minion) must also be a real, unhidden
+    // pick.
+    if (!e.selector2.empty()) {
+      const Creature* t2 = findCreature(opp, target2);
+      if (!t2 || t2->stealthed) return false;
+    }
   }
   return true;
 }
@@ -1152,6 +1162,25 @@ void Game::appendPlayActions(std::vector<Action>& out, const Player& p) const {
     if (def->type == CardType::Aura &&
         (hasAura(p, def->id) || static_cast<int>(p.auras.size()) >= AuraLimit))
       continue;
+    // A two-target card (fight): enumerate every legal friendly x enemy pair.
+    const EffectDef* twoTarget = nullptr;
+    for (const auto& e : def->effects)
+      if (e.trigger == "on_play" && !e.selector2.empty()) twoTarget = &e;
+    if (twoTarget) {
+      const Player& opp = players_[1 - p.index];
+      for (const Creature& f : p.board)
+        for (const Creature& x : opp.board) {
+          if (x.stealthed) continue;
+          if (!playTargetLegal(def, p, f.id, x.id)) continue;
+          Action a;
+          a.type = Action::Type::Play;
+          a.handIndex = i;
+          a.target = f.id;
+          a.target2 = x.id;
+          out.push_back(a);
+        }
+      continue;
+    }
     for (EntityId t : legalTargets(def, p)) {
       Action a;
       a.type = Action::Type::Play;
@@ -1238,7 +1267,8 @@ void Game::appendAttackActions(std::vector<Action>& out, const Player& p,
 // [trigger]+[selector]->[action]. Only the actions used by current cards are
 // implemented; adding a new action is a new branch here plus a new selector
 // case if needed.
-void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
+void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target,
+                         EntityId target2) {
   // Blue Lens: the first spell each turn is focused -- +1 to its effect values.
   // Only spells (the spell-theme payoff), once per turn, and only the hard cast
   // claims it (a repeat via echo finds the lens already spent).
@@ -1252,7 +1282,7 @@ void Game::resolveOnPlay(const CardDef* def, Player& owner, EntityId target) {
     if (e.trigger == "on_play") {
       EffectDef ee = e;
       ee.value += bonus;
-      executeAction(ee, owner, target, def);
+      executeAction(ee, owner, target, def, target2);
     }
 }
 
@@ -1290,7 +1320,7 @@ void Game::applyLingering(Creature& t, int dealt, const CardDef* src) {
 }
 
 void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
-                         const CardDef* src) {
+                         const CardDef* src, EntityId target2) {
   Player& opp = players_[1 - owner.index];
   const std::string& a = e.action;
   if (a == "freeze") {
@@ -1358,6 +1388,19 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
     }
     if (count > 0) checkDeaths();  // resolve the death chains before the payoff
     if (e.value > 0 && count > 0) dealHeroDamage(opp, e.value * count);
+  } else if (a == "fight") {
+    // Two chosen creatures strike each other at once: `target` is the friendly
+    // (selector), `target2` the enemy (selector2). Snapshot both attacks first
+    // so neither death cancels the other's blow; the caller's checkDeaths reaps
+    // bodies and fires on_death for both. Combat damage -> shields absorb.
+    Creature* ally = findCreature(owner, target);
+    Creature* foe = findCreature(opp, target2);
+    if (ally && foe) {
+      int aAtk = ally->atk;
+      int fAtk = foe->atk;
+      damageCreature(*foe, aAtk, ally);
+      damageCreature(*ally, fAtk, foe);
+    }
   } else if (a == "reclaim") {
     reclaimFromGrave(owner, e.value);
   } else if (a == "chain_burn") {

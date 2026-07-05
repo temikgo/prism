@@ -25,6 +25,9 @@ struct KeywordRef {
 struct EffectDef {
   std::string trigger;
   std::string selector;
+  // A second chosen target for two-target actions (fight): `selector` picks the
+  // friendly, `selector2` the enemy. Empty for every single-target effect.
+  std::string selector2;
   std::string action;
   int value = 0;
   // A targeted effect is optional by default: if there is no valid target it is

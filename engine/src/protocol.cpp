@@ -231,6 +231,7 @@ static json actionObj(const Action& a) {
     case Action::Type::Play: {
       json j{{"action", "play"}, {"handIndex", a.handIndex}};
       if (a.target) j["target"] = a.target;
+      if (a.target2) j["target2"] = a.target2;  // fight's enemy target
       return j;
     }
     case Action::Type::Awaken: {
@@ -315,7 +316,7 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
       genericPay = gp;
     }
     return g.playCard(j.value("handIndex", -1), j.value("target", 0),
-                      j.value("pos", -1), genericPay);
+                      j.value("pos", -1), genericPay, j.value("target2", 0));
   }
   if (a == "awaken") {
     std::optional<std::array<int, ColorCount>> genericPay;

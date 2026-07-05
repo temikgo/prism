@@ -121,6 +121,7 @@ std::string serializeAction(const Action& a) {
       j = {{"action", "play"},
            {"handIndex", a.handIndex},
            {"target", a.target},
+           {"target2", a.target2},
            {"pos", a.pos}};
       break;
     case Action::Type::Awaken:
