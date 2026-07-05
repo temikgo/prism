@@ -239,10 +239,13 @@ static json actionObj(const Action& a) {
       if (a.target) j["target"] = a.target;
       return j;
     }
-    case Action::Type::Activate:
-      return json{{"action", "activate"},
-                  {"id", a.id},
-                  {"color", std::string(colorName(a.color))}};
+    case Action::Type::Activate: {
+      json j{{"action", "activate"},
+             {"id", a.id},
+             {"color", std::string(colorName(a.color))}};
+      if (a.target) j["target"] = a.target;  // harvest's sacrifice
+      return j;
+    }
     case Action::Type::AttackCreature:
       return json{{"action", "attackCreature"},
                   {"attacker", a.attacker},
@@ -334,7 +337,8 @@ bool applyAction(Game& g, int actor, const std::string& actionJson) {
   if (a == "activate")
     return g.activate(j.value("id", 0),
                       colorFromString(j.value("color", std::string{}))
-                          .value_or(Color::Colorless));
+                          .value_or(Color::Colorless),
+                      j.value("target", 0));
   if (a == "attackCreature")
     return g.attackCreature(j.value("attacker", 0), j.value("target", 0));
   if (a == "attackHero") return g.attackHero(j.value("attacker", 0));

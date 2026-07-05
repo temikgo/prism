@@ -62,7 +62,9 @@ json creatureJson(const Creature& c) {
               {"hauntGhost", c.hauntGhost},
               {"unhealable", c.unhealable},
               {"tempAtk", c.tempAtk},
-              {"tempHp", c.tempHp}};
+              {"tempHp", c.tempHp},
+              {"tempRefract", c.tempRefract},
+              {"untilNextTurn", c.untilNextTurn}};
 }
 
 json effectJson(const EffectDef& e) {
@@ -284,6 +286,8 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
       c.stealthed = cj.value("stealthed", false);
       c.tempAtk = cj.value("tempAtk", 0);
       c.tempHp = cj.value("tempHp", 0);
+      c.tempRefract = cj.value("tempRefract", false);
+      c.untilNextTurn = cj.value("untilNextTurn", false);
       c.hauntGhost = cj.value("hauntGhost", false);
       c.unhealable = cj.value("unhealable", 0);
       p.board.push_back(c);

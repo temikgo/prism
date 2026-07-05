@@ -92,6 +92,9 @@ static const char* kTestCards = R"json([
   { "id": "prowler", "name": { "ru": "Созвучный клинок" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 3 },
     "keywords": [{ "id": "prowess", "n": 1 }] },
+  { "id": "harvester", "name": { "ru": "Жнец полей" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 2 },
+    "keywords": [{ "id": "harvest", "n": 2 }] },
   { "id": "dawnspell", "name": { "ru": "Ложный рассвет" }, "type": "spell",
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "all_friendly",
@@ -101,6 +104,10 @@ static const char* kTestCards = R"json([
     "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
                   "selector2": "chosen_enemy_minion", "action": "fight",
                   "required": true }] },
+  { "id": "veilspell", "name": { "ru": "В мираж" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "action": "veil", "required": true }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -1078,6 +1085,61 @@ TEST_CASE("a creature killed in a fight still fires its on_death") {
   REQUIRE(g.playCard(handIndexOf(g, 0, "duel"), ally, -1, std::nullopt, foe));
   CHECK(g.player(0).board.empty());     // deathknell died in the fight
   CHECK(g.player(1).heroHp == hp - 2);  // its on_death still hit the foe
+}
+
+TEST_CASE("harvest sacrifices a chosen ally to grow, firing its on_death") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"harvester", "deathknell", "bear", "bear"}, repeat("bear", 30),
+         22);
+  begin(g);
+  REQUIRE(g.placeCardToMana(handIndexOf(g, 0, "bear"), Color::Colorless));
+  REQUIRE(g.playCard(handIndexOf(g, 0, "harvester")));   // 2/2, harvest 2
+  REQUIRE(g.playCard(handIndexOf(g, 0, "deathknell")));  // fodder, on_death: 2
+  EntityId h = g.player(0).board[0].id;
+  EntityId victim = g.player(0).board[1].id;
+  CHECK_FALSE(g.activate(h, Color::Colorless, h));  // cannot eat itself
+  CHECK_FALSE(g.activate(h, Color::Colorless, 0));  // needs a sacrifice target
+  int hp = g.player(1).heroHp;
+  REQUIRE(g.activate(h, Color::Colorless, victim));  // eat deathknell, +2/+2
+  CHECK(g.player(0).board.size() == 1);              // only the harvester left
+  CHECK(g.player(0).board[0].atk == 4);              // 2 + 2
+  CHECK(g.player(0).board[0].hp == 4);
+  CHECK(g.player(1).heroHp == hp - 2);  // the sacrifice fired on_death
+  CHECK(g.player(0).mana.totalAvailable() == 0);  // the crystal was spent
+  CHECK_FALSE(g.activate(h, Color::Colorless, victim));  // once per turn / gone
+}
+
+TEST_CASE("veil cloaks an ally with stealth + refract until your next turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "veilspell", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4
+  EntityId b = g.player(0).board[0].id;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "veilspell"), b));  // cloak it
+  CHECK(g.player(0).board[0].stealthed);
+  CHECK(g.player(0).board[0].tempRefract);
+  CHECK(g.player(0).board[0].untilNextTurn);
+  g.endTurn();                            // opponent's turn: still cloaked
+  CHECK(g.player(0).board[0].stealthed);  // survives the foe's turn
+  g.endTurn();                            // your next turn start: grant lifts
+  CHECK_FALSE(g.player(0).board[0].stealthed);
+  CHECK_FALSE(g.player(0).board[0].tempRefract);
+  CHECK_FALSE(g.player(0).board[0].untilNextTurn);
+}
+
+TEST_CASE("a veiled creature keeps its refract after attacking drops stealth") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "veilspell", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4
+  EntityId b = g.player(0).board[0].id;
+  g.endTurn();
+  g.endTurn();  // -> p0, the bear wakes
+  REQUIRE(g.playCard(handIndexOf(g, 0, "veilspell"), b));  // stealth + refract
+  CHECK(g.player(0).board[0].stealthed);
+  REQUIRE(g.attackHero(b));                     // attacking reveals it
+  CHECK_FALSE(g.player(0).board[0].stealthed);  // stealth spent
+  CHECK(g.player(0).board[0].tempRefract);      // refract still granted
 }
 
 TEST_CASE("a mirage of a haunt creature haunts once; its ghost does not") {

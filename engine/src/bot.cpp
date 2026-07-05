@@ -131,7 +131,7 @@ std::string serializeAction(const Action& a) {
            {"pos", a.pos}};
       break;
     case Action::Type::Activate:
-      j = {{"action", "activate"}, {"id", a.id}};
+      j = {{"action", "activate"}, {"id", a.id}, {"target", a.target}};
       break;
     case Action::Type::AttackCreature:
       j = {{"action", "attackCreature"},

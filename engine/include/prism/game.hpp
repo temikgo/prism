@@ -87,6 +87,9 @@ struct Creature {
   int unhealable = 0;      // Red lingering wounds that healing cannot restore
   int tempAtk = 0;         // temp buff cleared at the controller's turn end
   int tempHp = 0;  // (prowess, False Dawn); folded in recomputeContinuous
+  bool tempRefract = false;  // Violet veil: a granted refract (no def keyword)
+  bool untilNextTurn = false;  // veil grants expire at the controller's next
+                               // turn start (stealth + tempRefract)
 
   // May this creature attack right now? It must be un-sick, not have attacked,
   // not be frozen or blinded, and have positive atk (0-atk creatures are
@@ -94,6 +97,10 @@ struct Creature {
   bool canAttack() const {
     return !sick && !attacked && frozenTurns == 0 && blindTurns == 0 && atk > 0;
   }
+
+  // Refract (Violet) bends an enemy effect/attack aimed here onto another
+  // enemy. A creature may have it printed or gain it temporarily from a veil.
+  bool hasRefract() const { return def->hasKeyword("refract") || tempRefract; }
 
   // Spend one attack. Yellow strobe grants a second strike per turn: the first
   // attack only burns the strobe bonus, leaving the creature able to attack
@@ -293,7 +300,8 @@ class Game {
   // greedily". False if the creature has no ability, already used it this turn,
   // you have no spare crystal (of `payColor`, if named), or germinate has no
   // board slot.
-  bool activate(EntityId id, Color payColor = Color::Colorless);
+  bool activate(EntityId id, Color payColor = Color::Colorless,
+                EntityId target = 0);
   // Both creatures deal their atk to each other simultaneously.
   bool attackCreature(EntityId attacker, EntityId target);
   // Attacker hits the enemy hero (no retaliation; heroes do not fight back).

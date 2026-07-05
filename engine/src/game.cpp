@@ -71,6 +71,14 @@ bool Game::mulligan(int player, const std::vector<int>& indices) {
 // Turn order (DESIGN §1): refill mana -> start triggers -> draw -> main phase.
 void Game::startTurn() {
   Player& p = players_[current_];
+  // Veil grants (stealth + refract) last until your next turn -- lift them now,
+  // before this turn's triggers and combat.
+  for (auto& c : p.board)
+    if (c.untilNextTurn) {
+      c.stealthed = false;
+      c.tempRefract = false;
+      c.untilNextTurn = false;
+    }
   p.mana.refill();
   p.placedManaThisTurn = false;
   p.summonedThisTurn = false;
@@ -536,16 +544,23 @@ bool Game::hasAura(const Player& p, const std::string& id) const {
 // provoker; Pierce sends lethal excess to the enemy hero; Stealth hides a
 // creature from being targeted; lifesteal heals the attacker for the damage it
 // dealt.
-bool Game::activate(EntityId id, Color payColor) {
+bool Game::activate(EntityId id, Color payColor, EntityId target) {
   if (over_ || decisionPending()) return false;
   Player& p = players_[current_];
   Creature* c = findCreature(p, id);
   if (!c || c->usedActive) return false;
   int germ = c->def->keywordN("germinate");
   int spark = c->def->keywordN("spark");
-  if (germ <= 0 && spark <= 0) return false;
+  int harv = c->def->keywordN("harvest");
+  if (germ <= 0 && spark <= 0 && harv <= 0) return false;
   // Germinate needs an open board slot; spark (a bolt to the face) does not.
   if (germ > 0 && static_cast<int>(p.board.size()) >= BoardLimit) return false;
+  // Harvest eats another friendly (never itself); reject before paying if the
+  // chosen sacrifice is missing or is the harvester.
+  if (harv > 0) {
+    Creature* victim = findCreature(p, target);
+    if (!victim || victim->id == id) return false;
+  }
   Cost one;
   one.generic = 1;  // every activated ability costs 1 crystal of any color
   if (!p.mana.canPay(one)) return false;
@@ -568,6 +583,16 @@ bool Game::activate(EntityId id, Color payColor) {
         internToken("token_sprout" + std::to_string(germ), Stats{germ, germ});
     summonToken(p, sprout, /*sick=*/true, /*hpOverride=*/-1, idx + 1);
     recomputeContinuous();  // the new body shifts undergrowth totals
+  } else if (harv > 0) {
+    // Green harvest: sacrifice the chosen ally, then grow +N/+N. Buff first
+    // (the harvester pointer is still valid), then kill the victim and let
+    // checkDeaths reap it and fire its death reactions
+    // (spores/Requiem/on_death).
+    Creature* victim = findCreature(p, target);
+    buffStats(*c, harv);
+    victim->hp = 0;
+    checkDeaths();
+    recomputeContinuous();
   } else {
     // Red spark: flick a glowing ember at the enemy hero for N.
     dealHeroDamage(players_[1 - p.index], spark);
@@ -587,7 +612,7 @@ bool Game::attackCreature(EntityId attacker, EntityId target) {
   if (enemyHasProvoke(opp) && !b->def->hasKeyword("provoke")) return false;
   // Violet refract: an attack aimed at this creature bends onto a random other
   // enemy creature (the strike never reaches the one that bent it).
-  if (b->def->hasKeyword("refract")) b = refractTarget(opp, b);
+  if (b->hasRefract()) b = refractTarget(opp, b);
   int targetHpBefore = b->hp;
   int dealt = damageCreature(*b, a->atk, a);
   // Blind (Yellow) puts out a creature's combat damage entirely: a blinded
@@ -1235,6 +1260,16 @@ void Game::appendActivateActions(std::vector<Action>& out,
       a.id = c.id;
       out.push_back(a);
     }
+    // Harvest: one Activate per other friendly it could sacrifice.
+    if (c.def->keywordN("harvest") > 0)
+      for (const Creature& v : p.board)
+        if (v.id != c.id) {
+          Action a;
+          a.type = Action::Type::Activate;
+          a.id = c.id;
+          a.target = v.id;
+          out.push_back(a);
+        }
   }
 }
 
@@ -1370,6 +1405,14 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
       t->tempHp += e.value;
     }
     recomputeContinuous();
+  } else if (a == "veil") {
+    // Violet Into the Mirage: cloak the selected allies in stealth + refract
+    // until your next turn (startTurn clears the grant).
+    for (Creature* t : selectTargets(e.selector, owner, target)) {
+      t->stealthed = true;
+      t->tempRefract = true;
+      t->untilNextTurn = true;
+    }
   } else if (a == "sprout") {
     // Summon `value` 1/1 sprouts, filling to the board cap.
     const CardDef* sprout = internToken("token_sprout", Stats{1, 1});
@@ -1685,7 +1728,7 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
                       selector == "chosen_any_minion";
     // Violet refract: an enemy effect aimed at this creature bends onto a
     // random other enemy creature instead.
-    if (selector == "chosen_enemy_minion" && t->def->hasKeyword("refract"))
+    if (selector == "chosen_enemy_minion" && t->hasRefract())
       t = refractTarget(opp, t);
     out.push_back(t);
     // Blue birefringence: the caster's targeted effect splits onto a second
