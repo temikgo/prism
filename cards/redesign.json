@@ -1730,5 +1730,1157 @@
         "value": 3
       }
     ]
+  },
+  {
+    "id": "blue_focal_drake",
+    "name": {
+      "ru": "Фокальный дракончик",
+      "en": "Focal Drake"
+    },
+    "text": {
+      "ru": "Смотрит на шаг вперёд остальных."
+    },
+    "art": "a small crystalline drake of blue ray-light peering through a lens of ice, the future faint in its eye",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "blue": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "scry",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_frost_sentinel",
+    "name": {
+      "ru": "Ледяной часовой",
+      "en": "Frost Sentinel"
+    },
+    "text": {
+      "ru": "Встал на пост — и всё вокруг застыло."
+    },
+    "art": "a tall sentinel-form of blue ice-light planting a frost-halberd, a hoarfrost bloom locking a foe in place",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 4
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "freeze",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_glacier_wall",
+    "name": {
+      "ru": "Ледниковая стена",
+      "en": "Glacier Wall"
+    },
+    "text": {
+      "ru": "Медленно, но не сдвинуть."
+    },
+    "art": "a sheer wall of blue glacier-ice, faint shapes of the deck's next cards frozen visible within it",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 1
+    },
+    "stats": {
+      "atk": 0,
+      "hp": 6
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "scry",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_ebb_spirit",
+    "name": {
+      "ru": "Отливный дух",
+      "en": "Ebb Spirit"
+    },
+    "text": {
+      "ru": "Придёт волна — и унесёт лишнее обратно."
+    },
+    "art": "a rolling spirit of blue tidewater pulling an enemy shape off the field on its receding wave",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 3
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "scatter"
+      }
+    ]
+  },
+  {
+    "id": "blue_facet_oracle",
+    "name": {
+      "ru": "Гранёный оракул",
+      "en": "Facet Oracle"
+    },
+    "text": {
+      "ru": "Каждое заклинание точит его грани."
+    },
+    "art": "a floating multi-faceted crystal of blue light, each edge flaring sharper as arcane energy passes near",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "prowess",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_mirror_ray",
+    "name": {
+      "ru": "Зеркальный луч",
+      "en": "Mirror Ray"
+    },
+    "text": {
+      "ru": "Один луч входит — два выходят."
+    },
+    "art": "a blade of blue light passing through a prism-body and splitting into two diverging beams",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "birefringence"
+      }
+    ]
+  },
+  {
+    "id": "blue_refractor",
+    "name": {
+      "ru": "Мерцающий рефрактор",
+      "en": "Refractor"
+    },
+    "text": {
+      "ru": "Копит свет заклинаний и бьёт им."
+    },
+    "art": "a large rotating cut-glass refractor of blue light, storing each passing spell as a brightening glare",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "prowess",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "blue_hoarfrost_colossus",
+    "name": {
+      "ru": "Заиндевевший колосс",
+      "en": "Hoarfrost Colossus"
+    },
+    "text": {
+      "ru": "Дышит — и рядом всё покрывается инеем."
+    },
+    "art": "a towering colossus sheathed in blue hoarfrost, its breath locking a nearby foe in a rime of ice",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 4,
+      "blue": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 9
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "freeze",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_deep_leviathan",
+    "name": {
+      "ru": "Глубинный левиафан",
+      "en": "Deep Leviathan"
+    },
+    "text": {
+      "ru": "Всплывёт из глубины — и море встанет льдом."
+    },
+    "art": "a vast leviathan of deep-blue light surfacing, a shock of cold flash-freezing the whole enemy line",
+    "type": "creature",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 3,
+      "blue": 3
+    },
+    "stats": {
+      "atk": 5,
+      "hp": 8
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "freeze",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_frostgrip",
+    "name": {
+      "ru": "Морозный захват",
+      "en": "Frostgrip"
+    },
+    "text": {
+      "ru": "Схватит за горло холодом."
+    },
+    "art": "a claw of blue frost closing around a single target, ice creeping up to hold it fast",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "blue": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "freeze",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_undertow",
+    "name": {
+      "ru": "Отбойная волна",
+      "en": "Undertow"
+    },
+    "text": {
+      "ru": "Утянет чужого — или спасёт своего."
+    },
+    "art": "a strong blue undertow curling back off a shore, dragging a single figure out with it",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "blue": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_any_minion",
+        "action": "scatter"
+      }
+    ]
+  },
+  {
+    "id": "blue_farsight",
+    "name": {
+      "ru": "Дальний взор",
+      "en": "Farsight"
+    },
+    "text": {
+      "ru": "Видит дальше — берёт лучшее."
+    },
+    "art": "a still blue scrying-pool showing three distant cards, one lifting out of the water as light",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "scry",
+        "value": 2
+      },
+      {
+        "trigger": "on_play",
+        "action": "draw",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_splinter_beam",
+    "name": {
+      "ru": "Острый разлёт",
+      "en": "Splinter Beam"
+    },
+    "text": {
+      "ru": "Луч, что не гасят ни щит, ни нимб."
+    },
+    "art": "a needle-thin blue beam punching clean through a shielded figure, the shield shattering uselessly",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 2
+    },
+    "keywords": [
+      {
+        "id": "pinpoint"
+      }
+    ],
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "damage",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "blue_creeping_frost",
+    "name": {
+      "ru": "Медленный мороз",
+      "en": "Creeping Frost"
+    },
+    "text": {
+      "ru": "Тянется медленно — а укроет всех."
+    },
+    "art": "a slow sheet of blue frost creeping across the whole enemy field, about to close over it",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 1
+    },
+    "keywords": [
+      {
+        "id": "delay",
+        "n": 1
+      }
+    ],
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "damage",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "blue_deep_freeze",
+    "name": {
+      "ru": "Глубокая заморозка",
+      "en": "Deep Freeze"
+    },
+    "text": {
+      "ru": "Разом и надолго."
+    },
+    "art": "the entire enemy line flash-frozen inside a single block of clear blue ice",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "freeze",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "blue_winter_stream",
+    "name": {
+      "ru": "Зимний поток",
+      "en": "Winter Stream"
+    },
+    "text": {
+      "ru": "Течёт под льдом — и не иссякает."
+    },
+    "art": "a bright blue meltwater stream running beneath ice, a fan of cards carried up in its current",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 3,
+      "blue": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "scry",
+        "value": 2
+      },
+      {
+        "trigger": "on_play",
+        "action": "draw",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "blue_ice_tomb",
+    "name": {
+      "ru": "Ледяная гробница",
+      "en": "Ice Tomb"
+    },
+    "text": {
+      "ru": "Ляжет весь строй — и надолго."
+    },
+    "art": "the whole enemy army entombed upright in towering blue ice, sealed for a long winter",
+    "type": "spell",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 3
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "freeze",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "blue_cold_snap",
+    "name": {
+      "ru": "Холодный щёлк",
+      "en": "Cold Snap"
+    },
+    "text": {
+      "ru": "Мороз кусает — и рука слабеет."
+    },
+    "art": "a sudden blue cold-front rolling over the field, enemy silhouettes hunching and dimming in the chill",
+    "type": "aura",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 2,
+      "blue": 1
+    },
+    "keywords": [
+      {
+        "id": "chill",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_haze_veil",
+    "name": {
+      "ru": "Дымная завеса",
+      "en": "Haze Veil"
+    },
+    "text": {
+      "ru": "Сквозь дымку и заклинание идёт с трудом."
+    },
+    "art": "a hanging veil of pale blue mist across the field, muffling and thickening the air",
+    "type": "aura",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "generic": 1,
+      "blue": 1
+    },
+    "keywords": [
+      {
+        "id": "haze",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "blue_double_vision",
+    "name": {
+      "ru": "Двойное зрение",
+      "en": "Double Vision"
+    },
+    "text": {
+      "ru": "Всё двоится — и удар тоже."
+    },
+    "art": "a shimmering doubled blue after-image over the field, every shape softly split in two",
+    "type": "aura",
+    "color": [
+      "blue"
+    ],
+    "cost": {
+      "blue": 1
+    },
+    "keywords": [
+      {
+        "id": "birefringence"
+      }
+    ]
+  },
+  {
+    "id": "violet_dim_ember",
+    "name": {
+      "ru": "Тусклый огонёк",
+      "en": "Dim Ember"
+    },
+    "text": {
+      "ru": "Пока не вспыхнет — его не видно."
+    },
+    "art": "a faint violet ember drifting low, half-swallowed by shadow, unseen until it flares",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      }
+    ]
+  },
+  {
+    "id": "violet_halflight",
+    "name": {
+      "ru": "Полуявь",
+      "en": "Halflight"
+    },
+    "text": {
+      "ru": "Явь ли, тень ли — поди разбери, которая."
+    },
+    "art": "a violet half-real figure flickering into three faint overlapping copies of itself",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "split",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "violet_unseen_prowler",
+    "name": {
+      "ru": "Незримый лазутчик",
+      "en": "Unseen Prowler"
+    },
+    "text": {
+      "ru": "Ты его заметишь, когда уже поздно."
+    },
+    "art": "a low prowling shape of violet shadow-light, edges dissolving into the dark around it",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      }
+    ]
+  },
+  {
+    "id": "violet_duskwing",
+    "name": {
+      "ru": "Сумеречный мотылёк",
+      "en": "Duskwing"
+    },
+    "text": {
+      "ru": "В его тени легко спрятать первый шаг."
+    },
+    "art": "a broad-winged moth of violet dusk-light, its shadow spilling wide to hide what enters beneath it",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "glimmer"
+      }
+    ]
+  },
+  {
+    "id": "violet_waning_light",
+    "name": {
+      "ru": "Убывающий свет",
+      "en": "Waning Light"
+    },
+    "text": {
+      "ru": "Свет уходит — и с ним сила."
+    },
+    "art": "a violet dusk draining the glow from a single figure, leaving it shrunken and faint",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "buff",
+        "value": -2,
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "violet_into_the_mirage",
+    "name": {
+      "ru": "Провал в морок",
+      "en": "Into the Mirage"
+    },
+    "text": {
+      "ru": "Шагни в марево — и пропади для чужих глаз."
+    },
+    "art": "a violet heat-mirage swallowing a friendly figure whole, leaving only a wavering blur",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_friendly_minion",
+        "action": "veil",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "violet_twin_shade",
+    "name": {
+      "ru": "Тень-близнец",
+      "en": "Twin Shade"
+    },
+    "text": {
+      "ru": "Их двое — а бьёт настоящий."
+    },
+    "art": "a violet shadow-figure and its faint twin standing side by side, one solid, one a hollow copy",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      },
+      {
+        "id": "split",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "violet_glimmer_lantern",
+    "name": {
+      "ru": "Мерцающий фонарь",
+      "en": "Glimmer Lantern"
+    },
+    "text": {
+      "ru": "Светит так, что вокруг только тени."
+    },
+    "art": "a hovering violet lantern casting more shadow than light, pooling darkness for allies to slip into",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "glimmer"
+      }
+    ]
+  },
+  {
+    "id": "violet_fractured_whisper",
+    "name": {
+      "ru": "Расколотый шёпот",
+      "en": "Fractured Whisper"
+    },
+    "text": {
+      "ru": "Повтори слух — и вот их уже двое."
+    },
+    "art": "a violet whisper splintering in the air into a faint hollow duplicate of a nearby creature",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_any_minion",
+        "action": "mirage",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "violet_hidden_blade",
+    "name": {
+      "ru": "Тайный клинок",
+      "en": "Hidden Blade"
+    },
+    "text": {
+      "ru": "Спрятан в рукаве до самого удара."
+    },
+    "art": "a slim violet dagger of shadow-light held reversed and unseen, waiting a beat to strike",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      },
+      {
+        "id": "decoy",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "violet_nightmirage",
+    "name": {
+      "ru": "Ночной морок",
+      "en": "Nightmirage"
+    },
+    "text": {
+      "ru": "Убьёшь — а он приснится снова."
+    },
+    "art": "a large prowling night-terror of violet shadow, a fainter echo of itself trailing a step behind",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 3
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      },
+      {
+        "id": "haunt"
+      }
+    ]
+  },
+  {
+    "id": "violet_false_dawn",
+    "name": {
+      "ru": "Ложный рассвет",
+      "en": "False Dawn"
+    },
+    "text": {
+      "ru": "Ложный свет — но бьёт по-настоящему."
+    },
+    "art": "a fake violet dawn flaring over your ranks, every shadow-figure surging brighter for a moment",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "violet": 3
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_friendly",
+        "action": "buff_temp",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "violet_mirage_swarm",
+    "name": {
+      "ru": "Морочный рой",
+      "en": "Mirage Swarm"
+    },
+    "text": {
+      "ru": "Не рой, а морок роя — но с когтями."
+    },
+    "art": "a violet haze breaking into a swarm of three small flickering illusory shapes",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "sprout",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "violet_haunting_double",
+    "name": {
+      "ru": "Морочный двойник",
+      "en": "Haunting Double"
+    },
+    "text": {
+      "ru": "Одного мало — их всегда чуть больше."
+    },
+    "art": "a violet duelist-shade beside a hollow copy, a third faint outline already forming behind them",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "haunt"
+      },
+      {
+        "id": "split",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "violet_shifting_ward",
+    "name": {
+      "ru": "Зыбкий страж",
+      "en": "Shifting Ward"
+    },
+    "text": {
+      "ru": "Целься в него — попадёшь в другого."
+    },
+    "art": "a wavering violet guardian of shifting shadow, an incoming beam bending off it toward another shape",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "stealth"
+      },
+      {
+        "id": "refract"
+      }
+    ]
+  },
+  {
+    "id": "violet_unmaking",
+    "name": {
+      "ru": "Развоплощение",
+      "en": "Unmaking"
+    },
+    "text": {
+      "ru": "Не убить — просто отменить."
+    },
+    "art": "a single figure unravelling into violet threads of light and blowing away into nothing",
+    "type": "spell",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "destroy",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "violet_false_marshal",
+    "name": {
+      "ru": "Ложный полководец",
+      "en": "False Marshal"
+    },
+    "text": {
+      "ru": "Чем гуще мороки вокруг, тем он грознее."
+    },
+    "art": "a violet shadow-commander drawing strength from a crowd of faint illusory soldiers around it",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 1,
+      "violet": 3
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "undergrowth",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "violet_mirage_sovereign",
+    "name": {
+      "ru": "Владыка мороков",
+      "en": "Mirage Sovereign"
+    },
+    "text": {
+      "ru": "Правит войском, которого нет."
+    },
+    "art": "a crowned violet shadow-sovereign atop a host of hollow phantoms, hostile light bending away from it",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 3
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "undergrowth",
+        "n": 2
+      },
+      {
+        "id": "refract"
+      }
+    ]
+  },
+  {
+    "id": "violet_sleeping_threat",
+    "name": {
+      "ru": "Спящая угроза",
+      "en": "Sleeping Threat"
+    },
+    "text": {
+      "ru": "Дремлет среди кристаллов — пока не проснётся."
+    },
+    "art": "a huge coiled violet shadow-beast sleeping disguised among banked crystals, one eye cracking open",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 2,
+      "violet": 3
+    },
+    "stats": {
+      "atk": 6,
+      "hp": 6
+    },
+    "keywords": [
+      {
+        "id": "decoy",
+        "n": 2
+      },
+      {
+        "id": "haunt"
+      }
+    ]
+  },
+  {
+    "id": "violet_the_returned",
+    "name": {
+      "ru": "Возвращённый",
+      "en": "The Returned"
+    },
+    "text": {
+      "ru": "Схорони его загодя — вернётся в свой час."
+    },
+    "art": "a towering violet revenant rising from a cache of buried crystals, hostile light sliding off its form",
+    "type": "creature",
+    "color": [
+      "violet"
+    ],
+    "cost": {
+      "generic": 3,
+      "violet": 3
+    },
+    "stats": {
+      "atk": 7,
+      "hp": 7
+    },
+    "keywords": [
+      {
+        "id": "awaken"
+      },
+      {
+        "id": "refract"
+      }
+    ]
   }
 ]
