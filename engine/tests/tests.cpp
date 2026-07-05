@@ -1087,6 +1087,23 @@ TEST_CASE("a creature killed in a fight still fires its on_death") {
   CHECK(g.player(1).heroHp == hp - 2);  // its on_death still hit the foe
 }
 
+TEST_CASE("fight kills both creatures when the trade is lethal both ways") {
+  // The core property: attacks are snapshot before either lands, so the first
+  // creature's death cannot cancel its own already-dealt blow.
+  CardLibrary lib = testLib();
+  Game g(lib, {"bruiser", "duel", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bruiser")));  // 4/4
+  EntityId ally = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
+  EntityId foe = g.player(1).board[0].id;
+  g.endTurn();  // -> p0
+  REQUIRE(g.playCard(handIndexOf(g, 0, "duel"), ally, -1, std::nullopt, foe));
+  CHECK(g.player(0).board.empty());  // both 4/4s took 4 and died together
+  CHECK(g.player(1).board.empty());
+}
+
 TEST_CASE("harvest sacrifices a chosen ally to grow, firing its on_death") {
   CardLibrary lib = testLib();
   Game g(lib, {"harvester", "deathknell", "bear", "bear"}, repeat("bear", 30),
@@ -2751,6 +2768,33 @@ TEST_CASE("serialize: round-trips a rich mid-game state exactly") {
   CHECK(applyAction(*g2, 0, R"({"action":"endTurn"})"));
   CHECK(viewJson(g, 0) == viewJson(*g2, 0));
   CHECK(viewJson(g, 1) == viewJson(*g2, 1));
+}
+
+TEST_CASE(
+    "serialize: the redesign's temp fields and spell counter round-trip") {
+  // Guards the new mutable state (temp buffs, veil grants, spellsCastThisTurn)
+  // against being dropped on reconnect/clone -- a state a mid-turn save hits.
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "dawnspell", "veilspell", "boltspell"},
+         repeat("bear", 30), 9);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // 3/4
+  EntityId b = g.player(0).board[0].id;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "dawnspell")));  // +2/+2 temp (spell #1)
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "veilspell"), b));  // stealth+refract (#2)
+  REQUIRE(g.player(0).spellsCastThisTurn == 2);
+  REQUIRE(g.player(0).board[0].tempAtk == 2);
+
+  auto g2 = Game::fromJson(lib, g.toJson());
+  const Creature& c = g2->player(0).board[0];
+  CHECK(c.tempAtk == 2);
+  CHECK(c.tempHp == 2);
+  CHECK(c.tempRefract);
+  CHECK(c.untilNextTurn);
+  CHECK(c.stealthed);
+  CHECK(g2->player(0).spellsCastThisTurn == 2);  // the counter survived
+  CHECK(g2->toJson() == g.toJson());             // and the whole state is exact
 }
 
 TEST_CASE("replay: a recorded game reproduces the exact final state") {

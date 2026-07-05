@@ -97,6 +97,7 @@ json playerJson(const Player& p) {
   j["lensUsedThisTurn"] = p.lensUsedThisTurn;
   j["echoUsedThisTurn"] = p.echoUsedThisTurn;
   j["heroPowerUses"] = p.heroPowerUses;
+  j["spellsCastThisTurn"] = p.spellsCastThisTurn;
   j["mulliganDone"] = p.mulliganDone;
   j["mana"] = {{"crystals", manaArr(p.mana.crystals)},
                {"available", manaArr(p.mana.available)}};
@@ -245,6 +246,7 @@ std::unique_ptr<Game> Game::fromJson(const CardLibrary& lib,
     p.lensUsedThisTurn = pj.value("lensUsedThisTurn", false);
     p.echoUsedThisTurn = pj.value("echoUsedThisTurn", false);
     p.heroPowerUses = pj.value("heroPowerUses", 0);
+    p.spellsCastThisTurn = pj.value("spellsCastThisTurn", 0);
     p.mulliganDone = pj.value("mulliganDone", false);
     const json& mj = pj.at("mana");
     p.mana.crystals = manaArrFrom(mj.at("crystals"));
