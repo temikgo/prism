@@ -13,6 +13,7 @@ extends Control
 # Clicking does the same via a two-step "select, then pick target" flow.
 
 const BOARD_LIMIT := 8  # max creatures per side (mirrors the engine)
+const ENEMY_HERO_TARGET := -1  # play target sentinel for a burn aimed at the face
 # Card geometry lives in Tokens (shared with CardView); aliases keep call sites short.
 const CARD_SIZE := Tokens.CARD_SIZE
 const RIM := Tokens.RIM
@@ -715,6 +716,9 @@ func _hero_medallion(hero: Dictionary, mine: bool) -> Control:
 	var m := HeroMedallion.new()
 	if not mine:
 		m.attack_hero_requested.connect(_attack_hero)
+		# A chosen_any_target burn dropped on the face -> play it at the enemy hero.
+		m.cast_face_requested.connect(func(data: Variant) -> void:
+			_play_payload(data, ENEMY_HERO_TARGET))
 	m.setup(hero, mine, view)
 	if mine:
 		_my_hero_node = m   # where your own face-damage numbers spawn
@@ -802,6 +806,7 @@ func _refresh_hand_card(card: UiCard, cid: String, index: int) -> void:
 		"needs_target": _needs_target(cid), "is_creature": _is_creature(cid),
 		"draggable": _my_turn(), "playable": playable,
 		"target_side": _target_side(cid),
+		"hits_face": CardData.hits_face(cid), "is_fight": CardData.is_fight(cid),
 	}
 	card.drag_label = _name_of(cid)
 	# Dim cards you cannot play this turn so the playable ones stand out.
@@ -874,7 +879,52 @@ func _play_payload(data: Variant, target: int) -> void:
 	if data.get("kind", "") == "awaken":
 		_send_awaken(int(data["manaRowIndex"]), target, -1, data)
 		return
+	# Fight is two-target: `target` is the friendly you dropped it on; now pick the
+	# enemy it fights before sending.
+	if bool(data.get("is_fight", false)):
+		_prompt_fight_enemy(data, target)
+		return
 	_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]), "target": target})
+
+
+# Second step of a fight cast: a small modal listing the enemy creatures. Pick one
+# and the play goes out with target = your creature, target2 = the enemy.
+func _prompt_fight_enemy(data: Variant, friendly_target: int) -> void:
+	var opp: Dictionary = view["players"][1 - int(view["you"])]
+	var enemies: Array = []
+	for c in opp.get("board", []):
+		if not bool(c.get("stealth", false)):
+			enemies.append(c)
+	if enemies.is_empty():
+		return  # no legal enemy -> nothing to fight; drop the cast
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # block the board behind the modal
+	dim.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.pressed:
+			dim.queue_free())
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.add_child(center)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	box.add_child(Ui.label("Стравить с вражеским существом:", 18, Ui.INK, true))
+	for c in enemies:
+		var cid := int(c.get("id", 0))
+		var lbl := "%s   %d/%d" % [_name_of(String(c.get("card", ""))),
+			int(c.get("atk", 0)), int(c.get("hp", 0))]
+		var b := Ui.mbtn(lbl, "solid", ENEMY_ACCENT, 320)
+		b.pressed.connect(func() -> void:
+			dim.queue_free()
+			_dispatch_play(data, {"action": "play", "handIndex": int(data["index"]),
+				"target": friendly_target, "target2": cid}))
+		box.add_child(b)
+	var cancel := Ui.mbtn("Отмена", "ghost", Ui.ACC_VIOLET, 320)
+	cancel.pressed.connect(func() -> void: dim.queue_free())
+	box.add_child(cancel)
+	center.add_child(box)
+	add_child(dim)
 
 
 # When a spell is played, dissolve a ghost of its face at the drop point so the

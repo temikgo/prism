@@ -8,6 +8,7 @@ extends UiCard
 # each view, so its drop hook always captures the live row's data via Rules.
 
 signal attack_hero_requested(attacker_id: int)
+signal cast_face_requested(data: Variant)  # a chosen_any_target burn dropped on the face
 
 const ME_ACCENT := Color(0.34, 0.62, 0.98)
 const ENEMY_ACCENT := Color(0.92, 0.36, 0.42)
@@ -19,13 +20,25 @@ func setup(hero: Dictionary, mine: bool, view: Dictionary) -> void:
 	size_flags_vertical = Control.SIZE_FILL
 	add_theme_stylebox_override("panel", Ui.medallion(accent))
 	if not mine:
-		# Attack the face: blocked by a provoker unless the attacker has Bypass.
+		# The face is a drop target for two things: an attacker (blocked by a
+		# provoker unless it has Bypass), and a chosen_any_target burn spell (aim
+		# it at the hero instead of a creature).
 		can_drop_fn = func(data: Variant) -> bool:
-			if typeof(data) != TYPE_DICTIONARY or data.get("kind", "") != "attacker":
+			if typeof(data) != TYPE_DICTIONARY:
 				return false
-			return not Rules.enemy_has_provoke(view) or bool(data.get("bypass", false))
+			if data.get("kind", "") == "attacker":
+				return not Rules.enemy_has_provoke(view) or bool(data.get("bypass", false))
+			if data.get("kind", "") == "hand":
+				return bool(data.get("hits_face", false)) and bool(data.get("playable", true))
+			return false
+		highlight_check = func(data: Variant) -> bool:
+			return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "hand" \
+				and bool(data.get("hits_face", false))
 		drop_fn = func(data: Variant) -> void:
-			attack_hero_requested.emit(int(data["id"]))
+			if data.get("kind", "") == "attacker":
+				attack_hero_requested.emit(int(data["id"]))
+			else:
+				cast_face_requested.emit(data)
 
 	var v := VBoxContainer.new()
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE

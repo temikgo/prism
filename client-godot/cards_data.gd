@@ -99,7 +99,7 @@ static func target_side(card_id: String) -> String:
 	var d: Dictionary = db.get(card_id, {})
 	for e in d.get("effects", []):
 		match String(e.get("selector", "")):
-			"chosen_enemy_minion":
+			"chosen_enemy_minion", "chosen_blinded_enemy", "chosen_any_target":
 				return "enemy"
 			"chosen_friendly_minion":
 				return "friendly"
@@ -108,6 +108,26 @@ static func target_side(card_id: String) -> String:
 			"chosen_enemy_aura":
 				return "enemy_aura"
 	return ""
+
+
+# True if any on_play effect can hit the enemy hero directly (chosen_any_target):
+# the enemy hero medallion becomes a drop target that sends EnemyHeroTarget (-1).
+static func hits_face(card_id: String) -> bool:
+	var d: Dictionary = db.get(card_id, {})
+	for e in d.get("effects", []):
+		if String(e.get("selector", "")) == "chosen_any_target":
+			return true
+	return false
+
+
+# True if the card carries a fight effect (needs a second chosen target: your
+# creature + an enemy creature).
+static func is_fight(card_id: String) -> bool:
+	var d: Dictionary = db.get(card_id, {})
+	for e in d.get("effects", []):
+		if String(e.get("action", "")) == "fight":
+			return true
+	return false
 
 
 static func needs_target(card_id: String) -> bool:

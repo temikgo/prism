@@ -78,6 +78,15 @@ func _test_card_data() -> void:
 	_ok(CardData.has("red_cinder_moth"), "has() true for a real card")
 	_ok(not CardData.has("no_such_card_xyz"), "has() false for a removed card")
 
+	# redesign targeting: any-target burn hits enemy creatures AND the face;
+	# blinded-only removal targets enemy; fight is flagged two-target.
+	_eq(CardData.target_side("red_firespit"), "enemy", "any-target burn targets enemy creatures")
+	_ok(CardData.hits_face("red_firespit"), "any-target burn can hit the face")
+	_ok(not CardData.hits_face("blue_frostgrip"), "a plain freeze cannot hit the face")
+	_eq(CardData.target_side("violet_snuffing_verdict"), "enemy", "blinded-only removal targets enemy")
+	_ok(CardData.is_fight("green_strangleveil"), "fight card is flagged two-target")
+	_ok(not CardData.is_fight("red_firespit"), "a burn is not a fight")
+
 	# target_required: no current card is a required-target cost -> all false...
 	_ok(not CardData.target_required("blue_frostgrip"), "optional target not required")
 	# ...but the flag is honored when present (synthetic fixture).
