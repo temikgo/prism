@@ -112,6 +112,15 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "start_of_turn", "selector": "most_wounded_friendly",
                   "action": "heal", "value": 2 }] },
+  { "id": "incandbody", "name": { "ru": "Костровое тело" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
+    "keywords": [{ "id": "incandescence", "n": 1 }] },
+  { "id": "glimmerbody", "name": { "ru": "Мерцающее тело" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 1 },
+    "keywords": [{ "id": "glimmer" }] },
+  { "id": "mulchbody", "name": { "ru": "Мульчевое тело" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 4, "hp": 5 },
+    "keywords": [{ "id": "mulch" }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -1146,6 +1155,46 @@ TEST_CASE("veil cloaks an ally with stealth + refract until your next turn") {
   CHECK_FALSE(g.player(0).board[0].stealthed);
   CHECK_FALSE(g.player(0).board[0].tempRefract);
   CHECK_FALSE(g.player(0).board[0].untilNextTurn);
+}
+
+TEST_CASE("incandescence on a creature body anthems the board, like the aura") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"incandbody", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "incandbody")));  // 1/4, incandescence 1
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));        // 3/4
+  CHECK(g.player(0).board[0].atk == 2);  // the body buffs itself too (1 + 1)
+  CHECK(g.player(0).board[1].atk == 4);  // and the bear (3 + 1)
+}
+
+TEST_CASE("glimmer on a creature body cloaks your first creature each turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"glimmerbody", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "glimmerbody")));  // first -> self-cloak
+  CHECK(g.player(0).board[0].stealthed);
+  g.endTurn();
+  g.endTurn();                                     // -> p0's next turn
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // first creature this turn
+  CHECK(g.player(0).board.back().stealthed);       // the body grants it stealth
+}
+
+TEST_CASE("mulch on a creature body mends the most-wounded ally each turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"mulchbody", "wall", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mulchbody")));  // 4/5, mulch
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wall")));       // 0/5
+  EntityId w = g.player(0).board[1].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                       // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, w));  // wall -> 1/5
+  CHECK(g.player(0).board[1].hp == 1);
+  g.endTurn();  // -> p0: mulch body mends most-wounded
+  CHECK(g.player(0).board[1].hp == 2);
 }
 
 TEST_CASE("an aura's start_of_turn data effect fires (Stained Glass heal)") {

@@ -180,10 +180,13 @@ void Game::applyTurnStartTriggers(Player& p) {
   for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
   for (const auto* a : p.auras) ramp += a->keywordN("photosynthesis");
   if (ramp > 0) p.mana.addTemporary(Color::Colorless, ramp);
-  // Green mulch: a slow regrowth field mends your single most-wounded ally.
+  // Green mulch: a slow regrowth field mends your single most-wounded ally --
+  // from a mulch aura OR a mulch body (Elder Oak) in play.
   bool hasMulch = false;
   for (const auto* a : p.auras)
     if (a->hasKeyword("mulch")) hasMulch = true;
+  for (const auto& c : p.board)
+    if (c.def->hasKeyword("mulch")) hasMulch = true;
   if (hasMulch) {
     Creature* worst = nullptr;
     for (auto& c : p.board)
@@ -381,13 +384,17 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
                  ? pos
                  : static_cast<int>(p.board.size());
     p.board.insert(p.board.begin() + at, nc);
-    // Violet glimmer: the first creature you play each turn slips in unseen.
-    if (!p.summonedThisTurn)
+    // Violet glimmer: the first creature you play each turn slips in unseen --
+    // granted by a glimmer aura OR a glimmer body already in play (a body may
+    // cloak itself when it is that first creature).
+    if (!p.summonedThisTurn) {
+      bool glim = false;
       for (const auto* a : p.auras)
-        if (a->hasKeyword("glimmer")) {
-          p.board[at].stealthed = true;
-          break;
-        }
+        if (a->hasKeyword("glimmer")) glim = true;
+      for (const auto& c : p.board)
+        if (c.def->hasKeyword("glimmer")) glim = true;
+      if (glim) p.board[at].stealthed = true;
+    }
     p.summonedThisTurn = true;
     // Violet split: spawn N permanent illusion copies of this card -- same atk
     // and keywords but 1 HP, normal summoning sickness. summonToken does not
@@ -953,8 +960,9 @@ void Game::recomputeContinuous() {
     Player& opp = players_[1 - pi];
     int enemyChill = 0;
     for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
-    int myIncand = 0;  // Red Накал: your auras add attack to your whole board
+    int myIncand = 0;  // Red Накал: attack anthem from your auras OR bodies
     for (const auto* a : me.auras) myIncand += a->keywordN("incandescence");
+    for (const auto& c : me.board) myIncand += c.def->keywordN("incandescence");
     int allies = static_cast<int>(me.board.size());
     for (auto& c : me.board) {
       // Resonance is a summon-time snapshot (see playResolved); only
