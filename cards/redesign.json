@@ -3056,33 +3056,6 @@
     ]
   },
   {
-    "id": "red_cinder_spit",
-    "name": {
-      "ru": "Тлеющий плевок",
-      "en": "Cinder Spit"
-    },
-    "text": {
-      "ru": "Жгучий комок — в кого укажешь."
-    },
-    "art": "a spat wad of red cinder-fire arcing toward a target",
-    "type": "spell",
-    "color": [
-      "red"
-    ],
-    "cost": {
-      "generic": 1,
-      "red": 1
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "chosen_any_target",
-        "action": "damage",
-        "value": 3
-      }
-    ]
-  },
-  {
     "id": "green_sacrificial_sheaf",
     "name": {
       "ru": "Жертвенный сноп",
@@ -3204,35 +3177,6 @@
     "keywords": [
       {
         "id": "cauterize"
-      }
-    ]
-  },
-  {
-    "id": "red_cinder_boar",
-    "name": {
-      "ru": "Тлеющий кабан",
-      "en": "Cinder Boar"
-    },
-    "text": {
-      "ru": "Падёт — и обдаст жаром напоследок."
-    },
-    "art": "a heavy boar of red ember-light, its bristles glowing, venting heat as it charges",
-    "type": "creature",
-    "color": [
-      "red"
-    ],
-    "cost": {
-      "generic": 2,
-      "red": 1
-    },
-    "stats": {
-      "atk": 3,
-      "hp": 3
-    },
-    "keywords": [
-      {
-        "id": "sear",
-        "n": 2
       }
     ]
   },
@@ -4018,35 +3962,6 @@
     ]
   },
   {
-    "id": "green_spore_mother",
-    "name": {
-      "ru": "Матерь спор",
-      "en": "Spore Mother"
-    },
-    "text": {
-      "ru": "Умрёт — и поле в ростках."
-    },
-    "art": "a bloated matron-mushroom of green light drawn as flat glowing light-lines heavy with spores, not a realistic painted person",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 3
-    },
-    "keywords": [
-      {
-        "id": "spores",
-        "n": 2
-      }
-    ]
-  },
-  {
     "id": "violet_dim_phantom",
     "name": {
       "ru": "Тусклый призрак",
@@ -4136,34 +4051,6 @@
     ]
   },
   {
-    "id": "green_grove_skirmish",
-    "name": {
-      "ru": "Стычка в роще",
-      "en": "Grove Skirmish"
-    },
-    "text": {
-      "ru": "Стравить в чаще — дело зелёное."
-    },
-    "art": "two beasts of green light-brambles lunging to gore each other in a thicket",
-    "type": "spell",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 2
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "chosen_friendly_minion",
-        "selector2": "chosen_enemy_minion",
-        "action": "fight",
-        "required": true
-      }
-    ]
-  },
-  {
     "id": "green_violet_barrow_ivy",
     "name": {
       "ru": "Плющ-могильник",
@@ -4231,33 +4118,6 @@
       {
         "trigger": "on_play",
         "selector": "chosen_friendly_minion",
-        "action": "mirage",
-        "required": true
-      }
-    ]
-  },
-  {
-    "id": "violet_mirror_garden",
-    "name": {
-      "ru": "Зеркальный сад",
-      "en": "Mirror Garden"
-    },
-    "text": {
-      "ru": "В зеркальной листве всё двоится."
-    },
-    "art": "a violet garden of mirror-leaves throwing back a hollow copy of a nearby creature",
-    "type": "spell",
-    "color": [
-      "violet"
-    ],
-    "cost": {
-      "generic": 2,
-      "violet": 2
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "chosen_any_minion",
         "action": "mirage",
         "required": true
       }
@@ -4630,33 +4490,6 @@
     ]
   },
   {
-    "id": "yellow_blinding_glint",
-    "name": {
-      "ru": "Ослепляющий блик",
-      "en": "Blinding Glint"
-    },
-    "text": {
-      "ru": "Один резкий блик — и в глазах темно."
-    },
-    "art": "a sharp stab of yellow glare flashing across a single foe's eyes",
-    "type": "spell",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "generic": 1,
-      "yellow": 1
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "chosen_enemy_minion",
-        "action": "blind",
-        "value": 2
-      }
-    ]
-  },
-  {
     "id": "violet_splinter_mirage",
     "name": {
       "ru": "Расколотый мираж",
@@ -4788,37 +4621,6 @@
     ]
   },
   {
-    "id": "violet_refracting_shade",
-    "name": {
-      "ru": "Преломляющий морок",
-      "en": "Refracting Shade"
-    },
-    "text": {
-      "ru": "Целься в него — луч уйдёт вбок."
-    },
-    "art": "a wavering violet shade of shadow-light bending an aimed beam off toward another",
-    "type": "creature",
-    "color": [
-      "violet"
-    ],
-    "cost": {
-      "generic": 1,
-      "violet": 2
-    },
-    "stats": {
-      "atk": 3,
-      "hp": 2
-    },
-    "keywords": [
-      {
-        "id": "refract"
-      },
-      {
-        "id": "stealth"
-      }
-    ]
-  },
-  {
     "id": "yellow_watch_beacon",
     "name": {
       "ru": "Смотрящий маяк",
@@ -4878,33 +4680,6 @@
       },
       {
         "id": "stealth"
-      }
-    ]
-  },
-  {
-    "id": "yellow_long_dusk",
-    "name": {
-      "ru": "Долгие сумерки",
-      "en": "Long Dusk"
-    },
-    "text": {
-      "ru": "Сумерки лягут на весь чужой строй."
-    },
-    "art": "a long yellow dusk falling over the whole enemy line, every foe squinting blind",
-    "type": "spell",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "generic": 1,
-      "yellow": 2
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "all_enemies",
-        "action": "blind",
-        "value": 1
       }
     ]
   },
@@ -5227,35 +5002,6 @@
     ]
   },
   {
-    "id": "green_wellspring",
-    "name": {
-      "ru": "Родник",
-      "en": "Wellspring"
-    },
-    "text": {
-      "ru": "Бьёт тихо, но не иссякает."
-    },
-    "art": "a small green light-spring welling steadily, a crystal beading at its lip",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 1,
-      "hp": 3
-    },
-    "keywords": [
-      {
-        "id": "photosynthesis",
-        "n": 1
-      }
-    ]
-  },
-  {
     "id": "green_mudskipper",
     "name": {
       "ru": "Илистый прыгун",
@@ -5276,35 +5022,6 @@
     "stats": {
       "atk": 2,
       "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "germinate",
-        "n": 1
-      }
-    ]
-  },
-  {
-    "id": "green_marsh_sower",
-    "name": {
-      "ru": "Сеятель топи",
-      "en": "Marsh Sower"
-    },
-    "text": {
-      "ru": "Засевает трясину пушечным мясом."
-    },
-    "art": "a marsh-strider of green light drawn as flat glowing light-lines flinging seeds across a bog, not a realistic painted person",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 2,
-      "green": 1
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 3
     },
     "keywords": [
       {
@@ -5367,32 +5084,6 @@
         "trigger": "on_play",
         "selector": "all_friendly",
         "action": "buff",
-        "value": 1
-      }
-    ]
-  },
-  {
-    "id": "blue_iceover",
-    "name": {
-      "ru": "Ледостав",
-      "en": "Iceover"
-    },
-    "text": {
-      "ru": "Река встала — и цель вместе с ней."
-    },
-    "art": "a sudden blue sheet of river-ice locking a single figure fast",
-    "type": "spell",
-    "color": [
-      "blue"
-    ],
-    "cost": {
-      "blue": 1
-    },
-    "effects": [
-      {
-        "trigger": "on_play",
-        "selector": "chosen_enemy_minion",
-        "action": "freeze",
         "value": 1
       }
     ]
@@ -5477,31 +5168,6 @@
         "selector": "chosen_enemy_minion",
         "action": "freeze",
         "value": 2
-      }
-    ]
-  },
-  {
-    "id": "blue_first_frost",
-    "name": {
-      "ru": "Первый лёд",
-      "en": "First Frost"
-    },
-    "text": {
-      "ru": "Первый холод — и рука слабеет."
-    },
-    "art": "a first blue frost creeping over the field, enemy shapes hunching and dimming",
-    "type": "aura",
-    "color": [
-      "blue"
-    ],
-    "cost": {
-      "generic": 2,
-      "blue": 1
-    },
-    "keywords": [
-      {
-        "id": "chill",
-        "n": 1
       }
     ]
   },
@@ -5809,95 +5475,6 @@
     ]
   },
   {
-    "id": "yellow_portico",
-    "name": {
-      "ru": "Портик",
-      "en": "Portico"
-    },
-    "text": {
-      "ru": "Врата тянут удар на себя и держат первый."
-    },
-    "art": "a low portico-arch of yellow light barring the way, a shield-halo soaking the first blow",
-    "type": "creature",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "yellow": 1
-    },
-    "stats": {
-      "atk": 0,
-      "hp": 3
-    },
-    "keywords": [
-      {
-        "id": "provoke"
-      },
-      {
-        "id": "shield"
-      }
-    ]
-  },
-  {
-    "id": "yellow_halberdier",
-    "name": {
-      "ru": "Алебардщик",
-      "en": "Halberdier"
-    },
-    "text": {
-      "ru": "Достаёт первым — нападающий и не бьёт."
-    },
-    "art": "a halberd-post of yellow light lowering its blade to strike the attacker before it lands",
-    "type": "creature",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "yellow": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 3
-    },
-    "keywords": [
-      {
-        "id": "provoke"
-      },
-      {
-        "id": "firststrike"
-      }
-    ]
-  },
-  {
-    "id": "green_sunflower",
-    "name": {
-      "ru": "Подсолнух",
-      "en": "Sunflower"
-    },
-    "text": {
-      "ru": "Ловит свет и роняет кристалл."
-    },
-    "art": "a green light-sunflower turning to the light, a crystal ripening at its heart",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 1,
-      "hp": 2
-    },
-    "keywords": [
-      {
-        "id": "photosynthesis",
-        "n": 1
-      }
-    ]
-  },
-  {
     "id": "green_ivy",
     "name": {
       "ru": "Плющ",
@@ -5987,30 +5564,6 @@
       {
         "id": "growth",
         "n": 1
-      }
-    ]
-  },
-  {
-    "id": "green_sward",
-    "name": {
-      "ru": "Дернина",
-      "en": "Sward"
-    },
-    "text": {
-      "ru": "Дёрн чинит стены между разменами."
-    },
-    "art": "a green light-turf mat over the field, mending the most-hurt defender rooted in it",
-    "type": "aura",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 2,
-      "green": 1
-    },
-    "keywords": [
-      {
-        "id": "mulch"
       }
     ]
   },
