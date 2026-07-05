@@ -811,10 +811,14 @@ void Game::fireCardTrigger(const CardDef* def, Player& owner,
 void Game::fireBoardTrigger(Player& p, const std::string& trigger) {
   // Snapshot the reacting defs first: an effect may summon or kill creatures
   // (mutating p.board), but each reaction is keyed off a card's static effects,
-  // so a stable list of defs is all we read.
+  // so a stable list of defs is all we read. Auras react too -- they carry
+  // recurring data effects (Stained Glass: start_of_turn heal) the same way a
+  // creature does; they never have on_attack/on_death, so this only fires for
+  // the board-scan triggers this function is called with.
   std::vector<const CardDef*> defs;
-  defs.reserve(p.board.size());
+  defs.reserve(p.board.size() + p.auras.size());
   for (const auto& c : p.board) defs.push_back(c.def);
+  for (const auto* a : p.auras) defs.push_back(a);
   for (const auto* d : defs) fireCardTrigger(d, p, trigger);
 }
 

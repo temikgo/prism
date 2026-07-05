@@ -108,6 +108,10 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
                   "action": "veil", "required": true }] },
+  { "id": "glassaura", "name": { "ru": "Витраж" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "start_of_turn", "selector": "most_wounded_friendly",
+                  "action": "heal", "value": 2 }] },
   { "id": "wall", "name": { "ru": "Стена" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 0, "hp": 5 } },
   { "id": "redpip", "name": { "ru": "Алый" }, "type": "creature",
@@ -1142,6 +1146,24 @@ TEST_CASE("veil cloaks an ally with stealth + refract until your next turn") {
   CHECK_FALSE(g.player(0).board[0].stealthed);
   CHECK_FALSE(g.player(0).board[0].tempRefract);
   CHECK_FALSE(g.player(0).board[0].untilNextTurn);
+}
+
+TEST_CASE("an aura's start_of_turn data effect fires (Stained Glass heal)") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"wall", "glassaura", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wall")));       // 0/5
+  REQUIRE(g.playCard(handIndexOf(g, 0, "glassaura")));  // heals most-wounded 2
+  EntityId w = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                       // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, w));  // wall -> 1/5
+  CHECK(g.player(0).board[0].hp == 1);
+  g.endTurn();  // -> p0: the aura heals the most-wounded ally 2
+  CHECK(g.player(0).board[0].hp == 3);
 }
 
 TEST_CASE("a veiled creature keeps its refract after attacking drops stealth") {
