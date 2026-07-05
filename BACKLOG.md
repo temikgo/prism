@@ -225,14 +225,17 @@ legalActions / сериализация / реплеи / фазз / лог де�
 2. Карты пачками (по колоде). Staging-пул — `cards/redesign.json` (авторю там, линчу standalone
    `python3 tools/<lint>.py cards/redesign.json`), затем своп в живые `cards/sample.json` +
    `client-godot/cards.json` (байт-в-байт; `run_client.sh` сам копирует sample→cards при запуске).
-   - **5/11 моно-колод ГОТОВЫ и в проде** (R Открытое пламя, Y Долгий полдень, G Буйный рост,
-     B Стеклянный час, V Ложный свет = 100 карт + 4 героя). Играбельны: пресеты + арт-плейсхолдеры.
-   - Всплывшие при сборке карт движок-добавки (сделаны+тесты): ауры реагируют на data-триггеры
-     (`fireBoardTrigger` сканит и `auras`); incandescence/glimmer/mulch читаются и с тел существ.
-   - Подстановки: Mirage Swarm = `sprout 3`; False Dawn +2/+1 = `buff_temp` +2/+2 (симметрия).
-   - ОСТАЛОСЬ: **6 двуцветных** (RG/RB/GV/YV/GB/YG, ~85 карт; каждая обязана нести ≥2 свойства
-     обоих цветов — см. `docs/set_redesign_decks.json` decks[5..10]). Имена: варьировать длину
-     (не все 2 слова), реальные слова, уникальные субъекты, нечеловекоподобный/предметный субъект.
+   - **ВСЕ 11 КОЛОД ГОТОВЫ и в проде** (218 карт живого пула = 4 героя + 214). Играбельны: 11 пресетов
+     + арт-плейсхолдеры. Пул строю в `cards/redesign.json` скриптами (scratchpad/dual*.py — парсер
+     cost/kw + карты), потом swap в sample/cards.json.
+   - Всплывшие при сборке движок-добавки (все сделаны+тесты): ауры реагируют на data-триггеры;
+     incandescence/glimmer/mulch/reflux/bulwark читаются и с аур, и с тел; `guard` (грант shield+ward);
+     `random_enemy` селектор. Подстановки: Mirage Swarm=`sprout 3`, False Dawn +2/+1=`buff_temp` +2/+2.
+   - Дедуп: 7 карт шарятся с моно-пулом (Spark Gunner/Mirror Ray/Eclipse/…); пресеты генерятся из
+     деклистов `docs/set_redesign_decks.json` с alias-мапой переименований (см. scratchpad/gen_all_presets.py:
+     Ashwhelp/Bloodtick/Firespit/Refractor/… — держать при регенерации пресетов).
+   - НЕ сделана консолидация до ~185 (агенты дали 214): есть мягкие дубли (несколько freeze/ramp/wall
+     вариаций). Свести при балансе, если мешают.
 3. Клиент/пресеты/арт:
    - **Пресеты** = `client-godot/presets.json` (data, генерю по цвету: 20 карт цвета ×2 = 40),
      грузятся в `Decks.builtin()`; в loadout отдельной группой «Пресеты» + тумблер
