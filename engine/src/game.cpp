@@ -157,7 +157,7 @@ void Game::applyTurnStartTriggers(Player& p) {
     int g = c.def->keywordN("growth");
     if (g > 0) buffStats(c, g);
     // Yellow Bulwark: layer N hero armor each of your turns (it accumulates and
-    // is spent by dealHeroDamage before HP).
+    // is spent by dealHeroDamage before HP). Auras carry it too (see below).
     int bw = c.def->keywordN("bulwark");
     if (bw > 0) p.heroArmor += bw;
     // Yellow warden: blind N random un-blinded, unhidden enemies for their next
@@ -180,6 +180,9 @@ void Game::applyTurnStartTriggers(Player& p) {
   for (const auto& c : p.board) ramp += c.def->keywordN("photosynthesis");
   for (const auto* a : p.auras) ramp += a->keywordN("photosynthesis");
   if (ramp > 0) p.mana.addTemporary(Color::Colorless, ramp);
+  // Bulwark on an aura (Clear Day) layers hero armor too -- the body case is
+  // handled in the board loop above.
+  for (const auto* a : p.auras) p.heroArmor += a->keywordN("bulwark");
   // Green mulch: a slow regrowth field mends your single most-wounded ally --
   // from a mulch aura OR a mulch body (Elder Oak) in play.
   bool hasMulch = false;
@@ -915,9 +918,14 @@ void Game::onHealed(Player& healed) {
   if (healReacting_) return;
   healReacting_ = true;
   Player& enemy = players_[1 - healed.index];
-  // Reflux keyword: each of your creatures pings the enemy hero when you heal.
+  // Reflux keyword: each of your reflux sources (creature OR aura) pings the
+  // enemy hero when you heal.
   for (const auto& c : healed.board) {
     int rf = c.def->keywordN("reflux");
+    if (rf > 0) dealHeroDamage(enemy, rf);
+  }
+  for (const auto* a : healed.auras) {
+    int rf = a->keywordN("reflux");
     if (rf > 0) dealHeroDamage(enemy, rf);
   }
   // Data-driven on_heal effects on your board, for anything Reflux does not
@@ -1417,6 +1425,13 @@ void Game::executeAction(const EffectDef& e, Player& owner, EntityId target,
       t->tempHp += e.value;
     }
     recomputeContinuous();
+  } else if (a == "guard") {
+    // Yellow Mantle: grant shield + ward to the selected allies (soak the next
+    // hit AND the next harmful targeted effect).
+    for (Creature* t : selectTargets(e.selector, owner, target)) {
+      t->shield = true;
+      t->warded = true;
+    }
   } else if (a == "veil") {
     // Violet Into the Mirage: cloak the selected allies in stealth + refract
     // until your next turn (startTurn clears the grant).
@@ -1713,7 +1728,13 @@ Creature* Game::refractTarget(Player& opp, Creature* hit) {
 std::vector<Creature*> Game::selectTargets(const std::string& selector,
                                            Player& owner, EntityId target) {
   std::vector<Creature*> out;
-  if (selector == "all_enemies") {
+  if (selector == "random_enemy") {
+    // One random unhidden enemy creature (Cage Keeper's on-entry blind).
+    std::vector<Creature*> pool;
+    for (auto& c : players_[1 - owner.index].board)
+      if (!c.stealthed) pool.push_back(&c);
+    if (!pool.empty()) out.push_back(pool[rng_() % pool.size()]);
+  } else if (selector == "all_enemies") {
     for (auto& c : players_[1 - owner.index].board) out.push_back(&c);
   } else if (selector == "all_friendly") {
     for (auto& c : owner.board) out.push_back(&c);

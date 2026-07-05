@@ -112,6 +112,18 @@ static const char* kTestCards = R"json([
     "color": [], "cost": { "generic": 0 },
     "effects": [{ "trigger": "start_of_turn", "selector": "most_wounded_friendly",
                   "action": "heal", "value": 2 }] },
+  { "id": "refluxaura", "name": { "ru": "Отсветная аура" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "reflux", "n": 1 }] },
+  { "id": "bulwarkaura", "name": { "ru": "Оплотная аура" }, "type": "aura",
+    "color": [], "cost": { "generic": 0 }, "keywords": [{ "id": "bulwark", "n": 1 }] },
+  { "id": "guardspell", "name": { "ru": "Покров" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "chosen_friendly_minion",
+                  "action": "guard", "required": true }] },
+  { "id": "blindrandspell", "name": { "ru": "Случайная слепота" }, "type": "spell",
+    "color": [], "cost": { "generic": 0 },
+    "effects": [{ "trigger": "on_play", "selector": "random_enemy",
+                  "action": "blind", "value": 2 }] },
   { "id": "incandbody", "name": { "ru": "Костровое тело" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
     "keywords": [{ "id": "incandescence", "n": 1 }] },
@@ -1155,6 +1167,61 @@ TEST_CASE("veil cloaks an ally with stealth + refract until your next turn") {
   CHECK_FALSE(g.player(0).board[0].stealthed);
   CHECK_FALSE(g.player(0).board[0].tempRefract);
   CHECK_FALSE(g.player(0).board[0].untilNextTurn);
+}
+
+TEST_CASE("guard grants shield + ward to the chosen ally") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"bear", "guardspell", "bear", "bear"}, repeat("bruiser", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));
+  EntityId b = g.player(0).board[0].id;
+  REQUIRE(g.playCard(handIndexOf(g, 0, "guardspell"), b));
+  CHECK(g.player(0).board[0].shield);
+  CHECK(g.player(0).board[0].warded);
+}
+
+TEST_CASE("random_enemy blinds one enemy creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"blindrandspell", "bear", "bear", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // sole enemy creature
+  g.endTurn();                                        // -> p0
+  REQUIRE(g.playCard(handIndexOf(g, 0, "blindrandspell")));
+  CHECK(g.player(1).board[0].blindTurns > 0);
+}
+
+TEST_CASE("Reflux on an aura pings the enemy hero when you heal") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"refluxaura", "wall", "mender", "bear"}, repeat("bruiser", 30),
+         7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "refluxaura")));  // aura, reflux 1
+  REQUIRE(g.playCard(handIndexOf(g, 0, "wall")));        // 0/5 to wound + heal
+  EntityId w = g.player(0).board[0].id;
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));
+  EntityId br = g.player(1).board[0].id;
+  g.endTurn();
+  g.endTurn();                       // -> p1, bruiser awakes
+  REQUIRE(g.attackCreature(br, w));  // wall -> 1/5
+  int hp = g.player(1).heroHp;
+  g.endTurn();                                       // -> p0
+  REQUIRE(g.playCard(handIndexOf(g, 0, "mender")));  // heal most-wounded 3
+  CHECK(g.player(1).heroHp == hp - 1);               // the aura's Reflux fired
+}
+
+TEST_CASE("Bulwark on an aura layers hero armor each turn") {
+  CardLibrary lib = testLib();
+  Game g(lib, repeat("bear", 30), repeat("bruiser", 30), 7);
+  begin(g);
+  g.player(0).hand.push_back(CardInstance{902, lib.find("bulwarkaura")});
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bulwarkaura")));  // aura, bulwark 1
+  CHECK(g.player(0).heroArmor == 0);
+  g.endTurn();
+  g.endTurn();  // -> p0's next turn start
+  CHECK(g.player(0).heroArmor == 1);
 }
 
 TEST_CASE("incandescence on a creature body anthems the board, like the aura") {
