@@ -23,3 +23,9 @@ timers/tooltip_delay_sec=0.25
 [rendering]
 
 textures/default_filters/texture_mipmap_bias=-1.0
+
+[importer_defaults]
+
+texture={
+"mipmaps/generate": true
+}
