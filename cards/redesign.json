@@ -1,0 +1,1734 @@
+[
+  {
+    "id": "red_cinder_moth",
+    "name": {
+      "ru": "Гарь-мотылёк",
+      "en": "Cinder Moth"
+    },
+    "text": {
+      "ru": "Летит на чужой огонь и приносит свой."
+    },
+    "art": "a small moth woven from red ray-light, wings trailing sparks, darting low past a line of shields straight at its mark",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "bypass"
+      }
+    ]
+  },
+  {
+    "id": "red_coal_slinger",
+    "name": {
+      "ru": "Уголёк-пращник",
+      "en": "Coal Slinger"
+    },
+    "text": {
+      "ru": "Каждый камень в его праще ещё дышит жаром."
+    },
+    "art": "a lean crab-like creature of glowing red embers whipping a sling of molten coals, one shot arcing away as a bright spark",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "spark",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "red_ashwhelp",
+    "name": {
+      "ru": "Жаровой птенец",
+      "en": "Ashwhelp"
+    },
+    "text": {
+      "ru": "Даже погаснув, успевает лизнуть напоследок."
+    },
+    "art": "a tiny wingless drake-hatchling made of red ray-light and cooling ash, mouth open in a last hot breath",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "sear",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "red_lance_gnat",
+    "name": {
+      "ru": "Копейный комар",
+      "en": "Lance Gnat"
+    },
+    "text": {
+      "ru": "Тонок, да пробивает насквозь."
+    },
+    "art": "a large gnat of red ray-light with a long needle-lance for a proboscis, lowered to run a target through",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "pierce"
+      }
+    ]
+  },
+  {
+    "id": "red_bloodtick",
+    "name": {
+      "ru": "Кровопийца",
+      "en": "Bloodtick"
+    },
+    "text": {
+      "ru": "Чем больше пьёт, тем дольше тлеет."
+    },
+    "art": "a swollen tick of dark red ray-light, latched on and glowing brighter as it drinks",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "self_lifesteal"
+      }
+    ]
+  },
+  {
+    "id": "red_hornet_of_embers",
+    "name": {
+      "ru": "Шершень углей",
+      "en": "Hornet of Embers"
+    },
+    "text": {
+      "ru": "Один укол — и щит уже ни при чём."
+    },
+    "art": "a hornet of red ray-light with an oversized barbed stinger, driving it clean through a blocker into the space beyond",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "pierce"
+      }
+    ]
+  },
+  {
+    "id": "red_ash_courser",
+    "name": {
+      "ru": "Пепельный скакун",
+      "en": "Ash Courser"
+    },
+    "text": {
+      "ru": "Проносится сквозь строй, будто того и нет."
+    },
+    "art": "a galloping horse-shaped beast of red embers and ash, streaking past a wall of defenders untouched",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "bypass"
+      }
+    ]
+  },
+  {
+    "id": "red_smoulder_dancer",
+    "name": {
+      "ru": "Тлеющий плясун",
+      "en": "Smoulder Dancer"
+    },
+    "text": {
+      "ru": "Пляшет — и раны хозяина затягивает жаром."
+    },
+    "art": "a whirling serpentine creature of red ray-light spinning in a fire-dance, warm light flowing back toward its caster",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "cauterize"
+      }
+    ]
+  },
+  {
+    "id": "red_crimson_lynx",
+    "name": {
+      "ru": "Багряная рысь",
+      "en": "Crimson Lynx"
+    },
+    "text": {
+      "ru": "Рвёт — и чужой кровью гасит собственные раны."
+    },
+    "art": "a lean lynx of crimson ray-light mid-pounce, claws bared, its own wounds sealing in the heat",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "self_lifesteal"
+      }
+    ]
+  },
+  {
+    "id": "red_dawn_of_blood",
+    "name": {
+      "ru": "Багровый рассвет",
+      "en": "Dawn of Blood"
+    },
+    "text": {
+      "ru": "Небо занялось — и каждый клинок стал злее."
+    },
+    "art": "a low crimson sunrise breaking over a battlefield, a wash of red light lending every silhouette a sharper glow",
+    "type": "aura",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 1
+    },
+    "keywords": [
+      {
+        "id": "incandescence",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "red_firespit",
+    "name": {
+      "ru": "Огненный плевок",
+      "en": "Firespit"
+    },
+    "text": {
+      "ru": "Плюнуть жаром — недолго и недалеко, но метко."
+    },
+    "art": "a sudden gout of red fire spat from off-frame, a compact bolt of flame streaking toward its target",
+    "type": "spell",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_any_target",
+        "action": "damage",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "id": "red_blast_beetle",
+    "name": {
+      "ru": "Подрывной жук",
+      "en": "Blast Beetle"
+    },
+    "text": {
+      "ru": "Панцирь набит жаром, и он не любит терпеть."
+    },
+    "art": "a fat armored beetle of red ray-light, its cracked shell venting bright heat, an instant from bursting",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "sear",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "red_spark_gunner",
+    "name": {
+      "ru": "Искровой стрелок",
+      "en": "Spark Gunner"
+    },
+    "text": {
+      "ru": "Заряжает кристаллом, стреляет углями."
+    },
+    "art": "a mantis-like creature of red ray-light shouldering a glowing ember-cannon, a bright spark leaving the muzzle",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "spark",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "red_brand_warden",
+    "name": {
+      "ru": "Клеймёный страж",
+      "en": "Brand Warden"
+    },
+    "text": {
+      "ru": "Что клинок отнимает, то жар возвращает хозяину."
+    },
+    "art": "a broad-shouldered beast of red ray-light branded with glowing marks, warm light streaming back to its master with every blow",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 2
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "cauterize"
+      }
+    ]
+  },
+  {
+    "id": "red_bonfire_polyp",
+    "name": {
+      "ru": "Костровой полип",
+      "en": "Bonfire Polyp"
+    },
+    "text": {
+      "ru": "Пока горит — вокруг всё точит когти жарче."
+    },
+    "art": "a squat coral-like polyp of red ray-light rooted to the ground, radiating a heat-haze that sharpens everything near it",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 2
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "incandescence",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "red_drums_of_war",
+    "name": {
+      "ru": "Барабаны войны",
+      "en": "Drums of War"
+    },
+    "text": {
+      "ru": "Ритм гонит вперёд и не даёт остыть."
+    },
+    "art": "a pair of taut war-drums wreathed in red ray-light, shockwaves of heat pulsing outward with each beat",
+    "type": "aura",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 2
+    },
+    "keywords": [
+      {
+        "id": "incandescence",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "red_wrath_of_pyrrhus",
+    "name": {
+      "ru": "Гнев Пирра",
+      "en": "Wrath of Pyrrhus"
+    },
+    "text": {
+      "ru": "Он не целит в строй — он целит выше."
+    },
+    "art": "a towering column of red fire falling from a blood-red sky onto a single distant point, everything between it untouched",
+    "type": "spell",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "red": 3
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "enemy_hero",
+        "action": "damage",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "red_ember_cannon",
+    "name": {
+      "ru": "Угольная пушка",
+      "en": "Ember Cannon"
+    },
+    "text": {
+      "ru": "Толстостенна и терпелива — бьёт весь бой."
+    },
+    "art": "a heavy siege-turtle of red ray-light with an ember-cannon fused to its thick shell, belching a bright spark",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 2,
+      "red": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "spark",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "red_searing_comet",
+    "name": {
+      "ru": "Жгучая комета",
+      "en": "Searing Comet"
+    },
+    "text": {
+      "ru": "Летит долго, а падает точно в лоб."
+    },
+    "art": "a red-hot comet with a long ember tail plunging out of a dark sky toward a single far target",
+    "type": "spell",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 2,
+      "red": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "enemy_hero",
+        "action": "damage",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "red_flame_titan",
+    "name": {
+      "ru": "Огненный титан",
+      "en": "Flame Titan"
+    },
+    "text": {
+      "ru": "Идёт напрямик, и даже смерть его обжигает."
+    },
+    "art": "a towering colossus of red ray-light and molten stone striding through a wall of defenders, heat bleeding off its cracked hide",
+    "type": "creature",
+    "color": [
+      "red"
+    ],
+    "cost": {
+      "generic": 1,
+      "red": 3
+    },
+    "stats": {
+      "atk": 5,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "bypass"
+      },
+      {
+        "id": "sear",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_heat_haze",
+    "name": {
+      "ru": "Марево",
+      "en": "Heat Haze"
+    },
+    "text": {
+      "ru": "Смотришь сквозь — и не понимаешь, где стена."
+    },
+    "art": "a shimmering wall of yellow heat-haze, air rippling into a barrier that turns aside the first blow",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 0,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "provoke"
+      },
+      {
+        "id": "shield"
+      }
+    ]
+  },
+  {
+    "id": "yellow_glint",
+    "name": {
+      "ru": "Проблеск",
+      "en": "Glint"
+    },
+    "text": {
+      "ru": "Успевает сверкнуть первым."
+    },
+    "art": "a darting mote of yellow ray-light with a needle of glare, flashing to strike before anything reaches it",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "firststrike"
+      },
+      {
+        "id": "regen",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "yellow_waymark",
+    "name": {
+      "ru": "Веха",
+      "en": "Waymark"
+    },
+    "text": {
+      "ru": "Стоит на своём и не сходит."
+    },
+    "art": "a tall standing stone of warm yellow light planted in the ground, mending its own chips as travellers pass",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "provoke"
+      },
+      {
+        "id": "regen",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "yellow_talisman",
+    "name": {
+      "ru": "Оберег",
+      "en": "Talisman"
+    },
+    "text": {
+      "ru": "Возьмёт чужую беду на себя."
+    },
+    "art": "a hanging amulet of yellow ray-light glowing before an ally, drinking a hostile spell into its halo",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "ward"
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_dawnblade",
+    "name": {
+      "ru": "Клинок зари",
+      "en": "Dawnblade"
+    },
+    "text": {
+      "ru": "Кто идёт на него — тот падает первым."
+    },
+    "art": "a floating sword of dawn-yellow light standing guard, cutting down each attacker before it can land a hit",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "firststrike"
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_eclipse",
+    "name": {
+      "ru": "Затмение",
+      "en": "Eclipse"
+    },
+    "text": {
+      "ru": "На два удара света не станет."
+    },
+    "art": "a small dark disc sliding across a bright sun, dropping one distant figure into shadow",
+    "type": "spell",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "blind",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_lull",
+    "name": {
+      "ru": "Затишье",
+      "en": "Lull"
+    },
+    "text": {
+      "ru": "Полдень замирает, и раны стихают."
+    },
+    "art": "a still noon meadow bathed in warm yellow light, wounds closing under the calm",
+    "type": "spell",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "friendly_hero",
+        "action": "heal",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "yellow_corona",
+    "name": {
+      "ru": "Венец",
+      "en": "Corona"
+    },
+    "text": {
+      "ru": "Каждый глоток света возвращается врагу жаром."
+    },
+    "art": "a broad ringed sun-crown of yellow light hovering low, throwing a hot lance outward whenever light gathers",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "reflux",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "yellow_heat_lightning",
+    "name": {
+      "ru": "Зарница",
+      "en": "Heat Lightning"
+    },
+    "text": {
+      "ru": "Полыхнёт — и противник слепнет на подходе."
+    },
+    "art": "a jagged fork of yellow heat-lightning frozen mid-strike, a lone enemy shape blinded white in its flash",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "provoke"
+      }
+    ],
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_enemy_minion",
+        "action": "blind",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_pillar_of_light",
+    "name": {
+      "ru": "Столп света",
+      "en": "Pillar of Light"
+    },
+    "text": {
+      "ru": "Что о него разбивается, то лечит хозяина."
+    },
+    "art": "a towering pillar of solid yellow light rooted to the field, its glow flowing back to seal its master's wounds",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "cauterize"
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_stained_glass",
+    "name": {
+      "ru": "Витраж",
+      "en": "Stained Glass"
+    },
+    "text": {
+      "ru": "Свет, процеженный сквозь цвет, чинит павших."
+    },
+    "art": "a great stained-glass rose window ablaze with yellow light, warm beams knitting the most broken defender whole",
+    "type": "aura",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 2
+    },
+    "effects": [
+      {
+        "trigger": "start_of_turn",
+        "selector": "most_wounded_friendly",
+        "action": "heal",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_noon_glare",
+    "name": {
+      "ru": "Полдень",
+      "en": "Noon Glare"
+    },
+    "text": {
+      "ru": "В зените никто не смотрит вверх."
+    },
+    "art": "a blinding overhead noon sun flooding the field white, every enemy shielding its eyes",
+    "type": "spell",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 1,
+      "yellow": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "blind",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "yellow_dawn_rampart",
+    "name": {
+      "ru": "Оплот зари",
+      "en": "Dawn Rampart"
+    },
+    "text": {
+      "ru": "За ним и герой становится стеной."
+    },
+    "art": "a long rampart of dawn-yellow light rising each morning, layering a glowing bulwark over the hero behind it",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 6
+    },
+    "keywords": [
+      {
+        "id": "bulwark",
+        "n": 2
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_fading_light",
+    "name": {
+      "ru": "Гаснущий свет",
+      "en": "Fading Light"
+    },
+    "text": {
+      "ru": "Гаснет — и напоследок слепит убийц."
+    },
+    "art": "a guttering lantern-form of yellow light, its final burst flaring blinding-bright across nearby foes",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "flare",
+        "n": 2
+      },
+      {
+        "id": "ward"
+      }
+    ]
+  },
+  {
+    "id": "yellow_swelter",
+    "name": {
+      "ru": "Зной",
+      "en": "Swelter"
+    },
+    "text": {
+      "ru": "Изматывает жарой, а сам всё крепче."
+    },
+    "art": "a heavy heat-mirage bull of thick yellow light standing in the field, its form thickening as the day burns on",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 3,
+      "yellow": 1
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 6
+    },
+    "keywords": [
+      {
+        "id": "provoke"
+      },
+      {
+        "id": "regen",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_heliodore",
+    "name": {
+      "ru": "Гелиодор",
+      "en": "Heliodore"
+    },
+    "text": {
+      "ru": "Разит первым и раной кормит хозяина."
+    },
+    "art": "a faceted golden-yellow gemstone beast, edges flashing to strike first while warm light returns to its wielder",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 2
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "firststrike"
+      },
+      {
+        "id": "cauterize"
+      }
+    ]
+  },
+  {
+    "id": "yellow_zenith",
+    "name": {
+      "ru": "Зенит",
+      "en": "Zenith"
+    },
+    "text": {
+      "ru": "В высшей точке бьёт дважды и не гаснет."
+    },
+    "art": "a blazing sun at its highest point, twin lances of yellow light lashing out as it mends itself",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 3
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 7
+    },
+    "keywords": [
+      {
+        "id": "strobe"
+      },
+      {
+        "id": "regen",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "yellow_solstice",
+    "name": {
+      "ru": "Солнцеворот",
+      "en": "Solstice"
+    },
+    "text": {
+      "ru": "Всякий целебный луч он оборачивает клинком."
+    },
+    "art": "a vast slow-turning solar wheel of yellow light walling the field, each mending glow flung back as a burning spoke",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 2,
+      "yellow": 3
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 8
+    },
+    "keywords": [
+      {
+        "id": "reflux",
+        "n": 2
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_helios",
+    "name": {
+      "ru": "Гелиос",
+      "en": "Helios"
+    },
+    "text": {
+      "ru": "Держит строй и добивает светом дважды."
+    },
+    "art": "a colossal radiant sun-titan of yellow light guarding the line, striking the far hero twice in a single blazing turn",
+    "type": "creature",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 3,
+      "yellow": 3
+    },
+    "stats": {
+      "atk": 5,
+      "hp": 9
+    },
+    "keywords": [
+      {
+        "id": "strobe"
+      },
+      {
+        "id": "provoke"
+      }
+    ]
+  },
+  {
+    "id": "yellow_total_eclipse",
+    "name": {
+      "ru": "Затмение полдня",
+      "en": "Total Eclipse"
+    },
+    "text": {
+      "ru": "Свет уходит весь — и возвращается только к тебе."
+    },
+    "art": "a total solar eclipse blacking out the sky over the enemy ranks, a thin corona of yellow light bleeding back toward the caster",
+    "type": "spell",
+    "color": [
+      "yellow"
+    ],
+    "cost": {
+      "generic": 4,
+      "yellow": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_enemies",
+        "action": "blind",
+        "value": 3
+      },
+      {
+        "trigger": "on_play",
+        "selector": "friendly_hero",
+        "action": "heal",
+        "value": 6
+      }
+    ]
+  },
+  {
+    "id": "green_primrose",
+    "name": {
+      "ru": "Первоцвет",
+      "en": "Primrose"
+    },
+    "text": {
+      "ru": "Первый цветок дня — и первый лишний кристалл."
+    },
+    "art": "a small primrose bud of green ray-light unfurling at dawn, drawing a bright crystal from the light",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 1,
+      "green": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 1
+    },
+    "keywords": [
+      {
+        "id": "photosynthesis",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_springlight",
+    "name": {
+      "ru": "Родник света",
+      "en": "Springlight"
+    },
+    "text": {
+      "ru": "Забьёт из земли — и щедро."
+    },
+    "art": "a spring of green light welling up from cracked earth, two crystals rising in the flow",
+    "type": "spell",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 1,
+      "green": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "add_crystal",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "green_crystal_mole",
+    "name": {
+      "ru": "Кристальный крот",
+      "en": "Crystal Mole"
+    },
+    "text": {
+      "ru": "Роет вглубь и выносит свет наружу."
+    },
+    "art": "a burrowing mole of packed green light with crystal claws, surfacing with a fresh glowing shard",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 1
+    },
+    "stats": {
+      "atk": 0,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "photosynthesis",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_sower",
+    "name": {
+      "ru": "Сеятель",
+      "en": "Sower"
+    },
+    "text": {
+      "ru": "Горсть за горстью — и поле полно всходов."
+    },
+    "art": "a walking seed-pod creature of green ray-light scattering glowing spores that sprout where they land",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 1
+    },
+    "stats": {
+      "atk": 1,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "germinate",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_strangleveil",
+    "name": {
+      "ru": "Хищный вьюн",
+      "en": "Strangleveil"
+    },
+    "text": {
+      "ru": "Обовьёт и стравит — сам в стороне."
+    },
+    "art": "a mass of green light-vines lashing out to drag one creature against another in a strangling tangle",
+    "type": "spell",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_friendly_minion",
+        "selector2": "chosen_enemy_minion",
+        "action": "fight",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "green_wild_growth",
+    "name": {
+      "ru": "Дикий рост",
+      "en": "Wild Growth"
+    },
+    "text": {
+      "ru": "Дай ему волю — и он перерастёт всё."
+    },
+    "art": "a single sapling of green light erupting into a huge crown of leaves in one surge",
+    "type": "spell",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 1
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "chosen_friendly_minion",
+        "action": "buff",
+        "value": 4,
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": "green_sporeburst",
+    "name": {
+      "ru": "Всплеск спор",
+      "en": "Sporeburst"
+    },
+    "text": {
+      "ru": "Лопнет — и на его месте двое."
+    },
+    "art": "a bloated green light-puffball, mid-burst, two small sprout-forms spilling from the cloud",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "spores",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_thornwall",
+    "name": {
+      "ru": "Терновая стена",
+      "en": "Thornwall"
+    },
+    "text": {
+      "ru": "С каждым днём гуще и злее."
+    },
+    "art": "a dense hedge-wall of green light and long thorns, thickening taller season by season",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 6
+    },
+    "keywords": [
+      {
+        "id": "growth",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_bramble_swarm",
+    "name": {
+      "ru": "Вьюнковый рой",
+      "en": "Bramble Swarm"
+    },
+    "text": {
+      "ru": "Чем гуще подлесок, тем оно сильнее."
+    },
+    "art": "a knot of writhing green light-brambles that swells larger the more growth crowds around it",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 1
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 2
+    },
+    "keywords": [
+      {
+        "id": "undergrowth",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_elder_oak",
+    "name": {
+      "ru": "Матёрый дуб",
+      "en": "Elder Oak"
+    },
+    "text": {
+      "ru": "Под его сенью раны заживают сами."
+    },
+    "art": "a broad ancient oak of green ray-light, a soft fall of glowing leaf-litter mending the wounded beneath it",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 2
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "mulch"
+      }
+    ]
+  },
+  {
+    "id": "green_bounty_tree",
+    "name": {
+      "ru": "Древо изобилия",
+      "en": "Bounty Tree"
+    },
+    "text": {
+      "ru": "Что ни утро — то полная горсть."
+    },
+    "art": "a heavy fruit-laden tree of green light, two bright crystals dropping ripe from its boughs each dawn",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 2
+    },
+    "stats": {
+      "atk": 2,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "photosynthesis",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_grove_warden",
+    "name": {
+      "ru": "Хранитель рощи",
+      "en": "Grove Warden"
+    },
+    "text": {
+      "ru": "Растёт быстрее, чем его успевают срубить."
+    },
+    "art": "a towering treant-warden of green ray-light, visibly swelling broader and taller each turn",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 2
+    },
+    "stats": {
+      "atk": 4,
+      "hp": 6
+    },
+    "keywords": [
+      {
+        "id": "growth",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_everbloom",
+    "name": {
+      "ru": "Вечноцвет",
+      "en": "Everbloom"
+    },
+    "text": {
+      "ru": "Срежь его — и семя вернётся в ладонь."
+    },
+    "art": "a perennial flower of green light shedding a bright seed as it falls, the seed drifting back to the gardener",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 2
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 4
+    },
+    "keywords": [
+      {
+        "id": "renewal",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_living_mound",
+    "name": {
+      "ru": "Живая насыпь",
+      "en": "Living Mound"
+    },
+    "text": {
+      "ru": "Кормится всем, что умирает вокруг."
+    },
+    "art": "a heaving mound of green light and rich soil that swells with every death nearby",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 4,
+      "green": 1
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 5
+    },
+    "keywords": [
+      {
+        "id": "compost",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "green_waking_wood",
+    "name": {
+      "ru": "Пробуждение леса",
+      "en": "Waking Wood"
+    },
+    "text": {
+      "ru": "Лес встаёт весь и разом."
+    },
+    "art": "a whole grove of green light-trees tearing their roots free and rising together",
+    "type": "spell",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "selector": "all_friendly",
+        "action": "buff",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "green_heartwood",
+    "name": {
+      "ru": "Сердце чащи",
+      "en": "Heartwood"
+    },
+    "text": {
+      "ru": "Размером с всё, что ты успел скопить."
+    },
+    "art": "a vast pulsing core of green heartwood-light, its size swelling with the mana hoarded around it",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 4,
+      "green": 2
+    },
+    "stats": {
+      "atk": 0,
+      "hp": 0
+    },
+    "keywords": [
+      {
+        "id": "resonance",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_undergrowth_colossus",
+    "name": {
+      "ru": "Колосс подлеска",
+      "en": "Undergrowth Colossus"
+    },
+    "text": {
+      "ru": "Целый подлесок, сросшийся в одно."
+    },
+    "art": "a lumbering colossus woven from a whole tangled undergrowth of green light, larger the fuller the field",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 3,
+      "green": 3
+    },
+    "stats": {
+      "atk": 3,
+      "hp": 3
+    },
+    "keywords": [
+      {
+        "id": "undergrowth",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_ancient_titan",
+    "name": {
+      "ru": "Вековой исполин",
+      "en": "Ancient Titan"
+    },
+    "text": {
+      "ru": "Столетия роста в одном шаге."
+    },
+    "art": "an immense ancient treant-titan of green ray-light, each step leaving it visibly greater than the last",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 4,
+      "green": 3
+    },
+    "stats": {
+      "atk": 8,
+      "hp": 8
+    },
+    "keywords": [
+      {
+        "id": "growth",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_worldroot",
+    "name": {
+      "ru": "Прародитель леса",
+      "en": "Worldroot"
+    },
+    "text": {
+      "ru": "Корень, из которого поднялся весь лес."
+    },
+    "art": "a world-spanning root-being of green light rising from the earth, its canopy still climbing",
+    "type": "creature",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 5,
+      "green": 3
+    },
+    "stats": {
+      "atk": 10,
+      "hp": 10
+    },
+    "keywords": [
+      {
+        "id": "growth",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "green_sunwell",
+    "name": {
+      "ru": "Солнечный колодец",
+      "en": "Sunwell"
+    },
+    "text": {
+      "ru": "Черпай — не вычерпаешь."
+    },
+    "art": "a deep well brimming with liquid green-gold light, three crystals welling up over the rim",
+    "type": "spell",
+    "color": [
+      "green"
+    ],
+    "cost": {
+      "generic": 2,
+      "green": 2
+    },
+    "effects": [
+      {
+        "trigger": "on_play",
+        "action": "add_crystal",
+        "value": 3
+      }
+    ]
+  }
+]
