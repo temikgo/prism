@@ -67,6 +67,16 @@ const EFFECT := {
 	"mirage": "Создайте иллюзорную копию существа (1 HP).",
 	"add_crystal": "Добавьте N бесцветных кристалла(ов) в свой пул навсегда.",
 	"dispel": "Уничтожьте ауру.",
+	"heal": "Восстановите N HP существу.",
+	"buff": "Дайте существу +N/+N навсегда.",
+	"buff_temp": "Дайте существу +N/+N до конца хода.",
+	"sprout": "Создайте N ростков 1/1.",
+	"sacrifice": "Пожертвуйте существо.",
+	"reclaim": "Верните N случайных существ из сброса в руку.",
+	"chain_burn": "Нанесите N урона вражескому герою, +1 за каждое другое заклинание, сыгранное за ход.",
+	"fight": "Стравите ваше существо с вражеским — они наносят друг другу свою атаку.",
+	"veil": "Дайте существу незримость и преломление до вашего следующего хода.",
+	"guard": "Дайте существу щит и нимб.",
 }
 
 
@@ -93,6 +103,7 @@ static func _fix_plurals(s: String, n: int) -> String:
 	s = s.replace("случайных врагов", _pl(n, "случайного врага", "случайных врага", "случайных врагов"))
 	s = s.replace("иллюзий", _pl(n, "иллюзию", "иллюзии", "иллюзий"))
 	s = s.replace("ростков", _pl(n, "росток", "ростка", "ростков"))
+	s = s.replace("случайных существ", _pl(n, "случайное существо", "случайных существа", "случайных существ"))
 	s = s.replace("верхних карт колоды", _pl(n, "верхнюю карту колоды", "верхние карты колоды", "верхних карт колоды"))
 	s = s.replace("ваших ходов", _pl(n, "ваш ход", "ваших хода", "ваших ходов"))
 	return s
@@ -138,9 +149,13 @@ static func effect_text(e: Dictionary) -> String:
 			s = "Нанесите N урона всем врагам."
 		elif sel == "chosen_enemy_minion":
 			s = "Нанесите N урона вражескому существу."
+		elif sel == "chosen_any_target":
+			s = "Нанесите N урона существу или герою."
 	elif a == "blind":
 		if sel == "all_enemies":
 			s = "Ослепите всех врагов на N ход(ов)."
+		elif sel == "random_enemy":
+			s = "Ослепите случайного врага на N ход(ов)."
 	elif a == "freeze":
 		if sel == "all_enemies":
 			s = "Заморозьте всех врагов на N ход(ов)."
@@ -168,6 +183,32 @@ static func effect_text(e: Dictionary) -> String:
 				s = "Уничтожьте ауру."
 			else:
 				s = "Уничтожьте N ауры."
+	elif a == "destroy":
+		if sel == "chosen_blinded_enemy":
+			s = "Уничтожьте ослеплённое вражеское существо."
+	elif a == "heal":
+		if sel == "friendly_hero":
+			s = "Восстановите N HP вашему герою."
+		elif sel == "most_wounded_friendly":
+			s = "Восстановите N HP самому раненому вашему существу."
+		elif sel == "all_friendly":
+			s = "Восстановите N HP вашим существам."
+	elif a == "buff" or a == "buff_temp":
+		# Build the ±X/±X stat directly so a debuff (Waning Light −2) reads right;
+		# no "N" is left for the substitution below.
+		var v := int(e.get("value", 0))
+		var stat := ("+%d/+%d" % [v, v]) if v >= 0 else ("−%d/−%d" % [-v, -v])
+		var suffix := "навсегда" if a == "buff" else "до конца хода"
+		if sel == "all_friendly":
+			s = "Дайте вашим существам %s %s." % [stat, suffix]
+		else:
+			s = "Дайте существу %s %s." % [stat, suffix]
+	elif a == "sacrifice":
+		if sel == "all_friendly":
+			if int(e.get("value", 0)) > 0:
+				s = "Пожертвуйте любое число своих существ; N урона вражескому герою за каждое."
+			else:
+				s = "Пожертвуйте любое число своих существ."
 	if e.has("value"):
 		var n := int(e["value"])
 		s = _fix_plurals(s.replace("N", str(n)), n)
