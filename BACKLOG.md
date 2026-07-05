@@ -209,13 +209,14 @@ legalActions / сериализация / реплеи / фазз / лог де�
 1. Движковая фаза. Список — `engine_work` в JSON. (`lingering` НЕ делаем; прауэс = `attune`/`prowess`,
    не `echo`. Геройские пассивки из ростера НЕ кодируем — 4 текущих героя оставлены, остальные пассивки
    сворачиваются в кейворды/карты; Clairvoyance/Кьяра выпадает.)
-   - СДЕЛАНО: триггеры-данные `on_death`/`on_spell_cast`/`start_of_turn`/`on_attack`/`on_heal` (+`fireBoardTrigger`/
-     `fireCardTrigger`, счётчик `spellsCastThisTurn`, единый heal-путь `healHero`/`healCreature(owner)`);
-     кейворды Reflux/Requiem; селекторы `most_wounded_friendly`/`chosen_blinded_enemy`/`chosen_any_target`
-     (+ sentinel `EnemyHeroTarget`), `all_friendly`; действие `heal`. Всё под edge-тестами.
-   - ОСТАЛОСЬ: действия `chain_burn`/`sacrifice`(1 и 0..n)/`fight`(два таргета)/`reclaim`(+Renewal)/`flourish`/
-     `sprout`; кейворды Bulwark/warden/harvest/prowess; timed-modifier инфра (temp-баффы: prowess, False
-     Dawn EOT, Into the Mirage until-next-turn); warden = N случайных незаслеплённых врагов.
+   - **ГОТОВО ЦЕЛИКОМ** (183 движковых теста): триггеры-данные `on_death`/`on_spell_cast`/`start_of_turn`/
+     `on_attack`/`on_heal` (+`fireBoardTrigger`/`fireCardTrigger`, `spellsCastThisTurn`, единый heal-путь);
+     кейворды Reflux/Requiem/Renewal/Bulwark/warden/harvest/prowess; селекторы `most_wounded_friendly`/
+     `chosen_blinded_enemy`/`chosen_any_target`(+sentinel `EnemyHeroTarget`)/`all_friendly`; действия
+     `heal`/`buff`/`buff_temp`/`sprout`/`sacrifice`(1 и 0..n)/`reclaim`/`chain_burn`/`fight`(два таргета,
+     `selector2`+`target2`)/`veil`; timed-моды (`tempAtk`/`tempHp`, EOT) + veil-гранты (stealth+refract
+     до след. хода). Всё сериализуется.
+   - False Dawn (+2/+1): `buff_temp` пока симметричный (+N/+N); асимметрия ждёт второго числа в `EffectDef`.
 2. Карты пачками (по колоде), байт-в-байт `cards/sample.json` + `client-godot/cards.json`.
 3. Клиент: глоссарий новых кейвордов, пресеты в колодостроитель. + **дроп бёрн-спелла на портрет врага
    шлёт target=`EnemyHeroTarget`(−1)** — движок принимает, клиент/протокол пока нет (нужно для
