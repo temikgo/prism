@@ -51,11 +51,11 @@ func _initialize() -> void:
 
 func _test_decks() -> void:
 	# Prune drops ids no longer in the set (a removed/renamed card); real ids stay.
-	_eq(Decks._prune(["red_barbed_wasp", "no_such_card_xyz"]), ["red_barbed_wasp"],
+	_eq(Decks._prune(["red_cinder_moth", "no_such_card_xyz"]), ["red_cinder_moth"],
 		"prune removes the dead card id")
 	_eq(DeckRules.counts(["a", "a", "b"]), {"a": 2, "b": 1}, "counts tallies copies")
 	# A deck left short by pruning reads as illegal (cannot be queued).
-	_ok(not DeckRules.list_legal(["red_barbed_wasp"]), "a short deck is illegal")
+	_ok(not DeckRules.list_legal(["red_cinder_moth"]), "a short deck is illegal")
 
 
 func _test_devkit() -> void:
@@ -70,16 +70,16 @@ func _test_devkit() -> void:
 
 func _test_card_data() -> void:
 	# target side / needs_target on real cards
-	_eq(CardData.target_side("blue_frost_grip"), "enemy", "frost_grip targets enemy")
+	_eq(CardData.target_side("blue_frostgrip"), "enemy", "frost_grip targets enemy")
 	_eq(CardData.target_side("blue_undertow"), "any", "undertow targets any")
-	_eq(CardData.target_side("red_barbed_wasp"), "", "plain creature has no target")
-	_ok(CardData.needs_target("blue_frost_grip"), "frost_grip needs a target")
-	_ok(not CardData.needs_target("red_barbed_wasp"), "plain creature needs no target")
-	_ok(CardData.has("red_barbed_wasp"), "has() true for a real card")
+	_eq(CardData.target_side("red_cinder_moth"), "", "plain creature has no target")
+	_ok(CardData.needs_target("blue_frostgrip"), "frost_grip needs a target")
+	_ok(not CardData.needs_target("red_cinder_moth"), "plain creature needs no target")
+	_ok(CardData.has("red_cinder_moth"), "has() true for a real card")
 	_ok(not CardData.has("no_such_card_xyz"), "has() false for a removed card")
 
 	# target_required: no current card is a required-target cost -> all false...
-	_ok(not CardData.target_required("blue_frost_grip"), "optional target not required")
+	_ok(not CardData.target_required("blue_frostgrip"), "optional target not required")
 	# ...but the flag is honored when present (synthetic fixture).
 	CardData.db["__test_sacrifice"] = {
 		"id": "__test_sacrifice", "type": "spell", "name": {"ru": "T"},
@@ -90,8 +90,8 @@ func _test_card_data() -> void:
 	CardData.db.erase("__test_sacrifice")
 
 	# type predicates
-	_ok(CardData.is_creature("red_barbed_wasp"), "barbed_wasp is a creature")
-	_ok(CardData.is_spell("blue_frost_grip"), "frost_grip is a spell")
+	_ok(CardData.is_creature("red_cinder_moth"), "barbed_wasp is a creature")
+	_ok(CardData.is_spell("blue_frostgrip"), "frost_grip is a spell")
 
 	# token display id falls back to the base family
 	_eq(CardData.display_id("token_sprout2"), "token_sprout", "numbered token -> base family")
@@ -113,8 +113,8 @@ func _test_card_data() -> void:
 
 func _test_game_state() -> void:
 	var v := DevKit.view(
-		DevKit.player({"board": [DevKit.creature(11, "red_barbed_wasp", 2, 2, 3)]}),
-		DevKit.player({"board": [DevKit.creature(21, "yellow_gilded_sentry", 0, 3, 4)]}))
+		DevKit.player({"board": [DevKit.creature(11, "red_cinder_moth", 2, 2, 3)]}),
+		DevKit.player({"board": [DevKit.creature(21, "yellow_heat_haze", 0, 3, 4)]}))
 	var d := GameState.diff({11: 3, 99: 5}, v)
 	_eq(int(d["hp"][11]), 2, "diff records current hp")
 	_eq(int(d["dmg"][11]), 1, "creature 11 took 1 damage (3->2)")
@@ -126,8 +126,8 @@ func _test_game_state() -> void:
 func _test_rules() -> void:
 	# A live board: your turn, you have mixed crystals, enemy has a provoker (warden)
 	# and a stealthed creature.
-	var enemy_board := [DevKit.creature(21, "yellow_gilded_sentry", 0, 4, 4),
-		DevKit.creature(22, "violet_lurking_shade", 2, 3, 3, {"stealth": true})]
+	var enemy_board := [DevKit.creature(21, "yellow_heat_haze", 0, 4, 4),
+		DevKit.creature(22, "violet_unseen_prowler", 2, 3, 3, {"stealth": true})]
 	var v := DevKit.view(
 		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),
 		DevKit.player({"board": enemy_board}))
@@ -135,17 +135,17 @@ func _test_rules() -> void:
 	_ok(Rules.my_turn(v), "you=0, current=0 -> your turn")
 	_ok(not Rules.my_turn(DevKit.view(DevKit.player({}), DevKit.player({}), {"current": 1})),
 		"current=1 -> not your turn")
-	_ok(Rules.has_legal_target(v, "blue_frost_grip"), "enemy has a non-stealth target")
+	_ok(Rules.has_legal_target(v, "blue_frostgrip"), "enemy has a non-stealth target")
 	_ok(Rules.enemy_has_provoke(v), "warden provokes")
 	_ok(Rules.valid_attack_target(v, enemy_board[0]), "the provoker is a valid attack target")
 	_ok(not Rules.valid_attack_target(v, enemy_board[1]), "stealth/non-provoker is not")
 
 	# generic-spend choice: needs >generic free crystals across >=2 colors
-	_ok(not Rules.generic_choices(v, "red_lance_beetle").is_empty(),
+	_ok(not Rules.generic_choices(v, "red_blast_beetle").is_empty(),
 		"two+ free colors -> offer a generic-spend choice")
 	var v1 := v.duplicate(true)
 	v1["players"][0]["mana"]["available"] = DevKit.pool(0, 0, 0, 3, 0, 0)
-	_eq(Rules.generic_choices(v1, "red_lance_beetle"), {}, "one color free -> no choice")
+	_eq(Rules.generic_choices(v1, "red_blast_beetle"), {}, "one color free -> no choice")
 
 	# awaken's generic (after the banked crystal pays its pip) is payable >1 way
 	var awv := DevKit.view(
@@ -159,7 +159,7 @@ func _test_rules() -> void:
 		"awaken: one color free -> no choice")
 
 	# no legal target when the enemy board is empty
-	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frost_grip"),
+	_ok(not Rules.has_legal_target(DevKit.view(DevKit.player({}), DevKit.player({})), "blue_frostgrip"),
 		"empty enemy board -> no target")
 
 	# can_play_here / can_cast_on operate on the drag payload
@@ -219,13 +219,13 @@ func _test_main_helpers() -> void:
 func _test_turn_player() -> void:
 	# A creature play is paced (pop-in + settle) but has no centre reveal; a spell
 	# play is paced AND reveals (it leaves no board entrance of its own).
-	var opp_cr := {"you": 0, "event": {"seat": 1, "action": "play", "card": "red_barbed_wasp"}}
+	var opp_cr := {"you": 0, "event": {"seat": 1, "action": "play", "card": "red_cinder_moth"}}
 	_ok(TurnPlayer.is_paced(opp_cr, opp_cr["event"]), "opponent creature play is paced")
 	_approx(TurnPlayer.reveal_secs(opp_cr["event"]), 0.0, "creature play has no reveal lead")
-	var opp_sp := {"you": 0, "event": {"seat": 1, "action": "play", "card": "yellow_sunstrike"}}
+	var opp_sp := {"you": 0, "event": {"seat": 1, "action": "play", "card": "yellow_eclipse"}}
 	_approx(TurnPlayer.reveal_secs(opp_sp["event"]), 1.1, "spell play reveals before applying")
 
-	var my_play := {"you": 0, "event": {"seat": 0, "action": "play", "card": "yellow_sunstrike"}}
+	var my_play := {"you": 0, "event": {"seat": 0, "action": "play", "card": "yellow_eclipse"}}
 	_ok(not TurnPlayer.is_paced(my_play, my_play["event"]), "your own action is instant")
 
 	var no_event := {"you": 0}

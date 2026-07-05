@@ -3019,50 +3019,47 @@ TEST_CASE("fuzz: random games hold invariants and legalActions stays sound") {
 TEST_CASE("sample.json loads with expected schema") {
   CardLibrary lib;
   lib.loadFile(PRISM_SAMPLE);
-  CHECK(lib.size() >=
-        160);  // 4 heroes + 160 cards (mono/bicolor/colorless/penta)
+  CHECK(lib.size() >= 100);  // 4 heroes + the deck-first mono set (grows with
+                             // the dual decks)
 
-  // mono creature carrying a single keyword
-  const CardDef* wasp = lib.find("red_barbed_wasp");
-  REQUIRE(wasp != nullptr);
-  CHECK(wasp->type == CardType::Creature);
-  CHECK(wasp->colors.size() == 1);
-  CHECK(wasp->colors[0] == Color::Red);
-  CHECK(wasp->cost.generic == 1);
-  CHECK(wasp->cost.pips[idx(Color::Red)] == 1);
-  CHECK(wasp->stats.atk == 2);
-  CHECK(wasp->stats.hp == 1);
-  REQUIRE(wasp->keywords.size() == 1);
-  CHECK(wasp->keywords[0].id == "pierce");
+  // mono creature carrying a single keyword, committed to a pure pip
+  const CardDef* gnat = lib.find("red_lance_gnat");
+  REQUIRE(gnat != nullptr);
+  CHECK(gnat->type == CardType::Creature);
+  CHECK(gnat->colors.size() == 1);
+  CHECK(gnat->colors[0] == Color::Red);
+  CHECK(gnat->cost.generic == 0);
+  CHECK(gnat->cost.pips[idx(Color::Red)] == 1);
+  CHECK(gnat->stats.atk == 2);
+  CHECK(gnat->stats.hp == 1);
+  REQUIRE(gnat->keywords.size() == 1);
+  CHECK(gnat->keywords[0].id == "pierce");
 
-  // two-colour creature with an N-keyword
-  const CardDef* golem = lib.find("green_violet_amethyst_golem");
-  REQUIRE(golem != nullptr);
-  CHECK(golem->colors.size() == 2);
-  CHECK(golem->cost.generic == 0);
-  CHECK(golem->cost.pips[idx(Color::Green)] == 1);
-  CHECK(golem->cost.pips[idx(Color::Violet)] == 1);
-  REQUIRE(golem->keywords.size() == 2);
-  CHECK(golem->keywords[0].id == "undergrowth");
-  REQUIRE(golem->keywords[0].n.has_value());
-  CHECK(golem->keywords[0].n.value() == 1);
+  // a heavier body with an N-keyword and a double pip
+  const CardDef* warden = lib.find("green_grove_warden");
+  REQUIRE(warden != nullptr);
+  CHECK(warden->cost.pips[idx(Color::Green)] == 2);
+  CHECK(warden->keywordN("growth") == 2);
 
-  // colourless body (no colour pips)
-  const CardDef* pebble = lib.find("neutral_pebble_golem");
-  REQUIRE(pebble != nullptr);
-  CHECK(pebble->colors.size() == 0);
-  CHECK(pebble->cost.generic == 0);
+  // a spell that carries an on_play effect (face/any burn)
+  const CardDef* spit = lib.find("red_firespit");
+  REQUIRE(spit != nullptr);
+  CHECK(spit->type == CardType::Spell);
+  REQUIRE(spit->effects.size() == 1);
+  CHECK(spit->effects[0].trigger == "on_play");
+  CHECK(spit->effects[0].selector == "chosen_any_target");
+  CHECK(spit->effects[0].action == "damage");
+  CHECK(spit->effects[0].value == 3);
 
-  // five-colour penta
-  const CardDef* colossus = lib.find("prismatic_rainbow_colossus");
-  REQUIRE(colossus != nullptr);
-  CHECK(colossus->colors.size() == 5);
-  CHECK(colossus->cost.generic == 3);
-  CHECK(colossus->cost.pips[idx(Color::Red)] == 1);
-  CHECK(colossus->cost.pips[idx(Color::Violet)] == 1);
-  CHECK(colossus->stats.atk == 6);
-  CHECK(colossus->stats.hp == 6);
-  CHECK(colossus->keywordN("cleave") == 3);
+  // an aura carrying a static keyword
+  const CardDef* dawn = lib.find("red_dawn_of_blood");
+  REQUIRE(dawn != nullptr);
+  CHECK(dawn->type == CardType::Aura);
+  CHECK(dawn->keywordN("incandescence") == 1);
+
+  // the four decoupled heroes still ship
+  REQUIRE(lib.find("hero_prism") != nullptr);
+  CHECK(lib.find("hero_prism")->type == CardType::Hero);
 }
 
 TEST_CASE("dispel destroys the chosen enemy aura by index") {

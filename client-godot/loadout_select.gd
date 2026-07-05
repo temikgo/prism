@@ -38,9 +38,14 @@ func _apply_defaults() -> void:
 	var heroes := CardData.heroes()
 	if (_hero_id == "" or not heroes.has(_hero_id)) and not heroes.is_empty():
 		_hero_id = String(heroes[0])
-	var decks := Decks.all()
-	if (_deck_id == "" or Decks.by_id(_deck_id).is_empty()) and not decks.is_empty():
-		_deck_id = String(decks[0]["id"])
+	# Default to a VISIBLE deck: your own first, else a preset unless presets are
+	# hidden. (all() still resolves a hidden preset already chosen, so a kept
+	# selection survives toggling.)
+	var visible := Decks.user_decks()
+	if not Decks.presets_hidden():
+		visible += Decks.builtin()
+	if (_deck_id == "" or Decks.by_id(_deck_id).is_empty()) and not visible.is_empty():
+		_deck_id = String(visible[0]["id"])
 
 
 func _ready() -> void:
@@ -225,27 +230,61 @@ func _hero_inner(hero: Dictionary) -> Control:
 # --- deck column -------------------------------------------------------------
 
 func _deck_column() -> Control:
-	var decks := Decks.all()
+	var users := Decks.user_decks()
+	var presets := Decks.builtin()
+	var hidden := Decks.presets_hidden()
+	var shown := users.size() + (0 if hidden else presets.size())
 	var content := VBoxContainer.new()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 12)
-	if decks.is_empty():
+	if users.is_empty() and presets.is_empty():
 		var center := CenterContainer.new()
 		center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		center.add_child(Ui.label("У вас пока нет колод.\nСоздайте колоду, чтобы играть.",
 			16, Ui.INK_DIM, true))
 		content.add_child(center)
 	else:
-		var list := VBoxContainer.new()
-		list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		list.add_theme_constant_override("separation", 12)
-		for d in decks:
-			list.add_child(_deck_tile(d))  # registers the panel in _deck_cards itself
-		content.add_child(list)
+		# Your decks first, then the preset group with a hide/show toggle.
+		if not users.is_empty():
+			content.add_child(_deck_group_header("Мои колоды", null))
+			content.add_child(_deck_list(users))
+		if not presets.is_empty():
+			var toggle := Ui.mbtn("Показать" if hidden else "Скрыть", "ghost", Ui.ACC_VIOLET, 120)
+			toggle.pressed.connect(func() -> void:
+				Decks.set_presets_hidden(not hidden)
+				_rebuild())
+			content.add_child(_deck_group_header("Пресеты", toggle))
+			if not hidden:
+				content.add_child(_deck_list(presets))
 	var create := Ui.mbtn("Создать колоду", "ghost", Ui.ACC_VIOLET, 300)
 	create.pressed.connect(func() -> void: create_deck.emit())
 	content.add_child(create)
-	return _column_panel("Колоды", "%d %s" % [decks.size(), _decks_word(decks.size())], content)
+	return _column_panel("Колоды", "%d %s" % [shown, _decks_word(shown)], content)
+
+
+# A titled group header inside the deck column, with an optional trailing control
+# (the presets toggle). The rule under it separates it from the tiles below.
+func _deck_group_header(title: String, trailing: Control) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var lab := Ui.label(title.to_upper(), 12, Ui.INK_DIM)
+	lab.add_theme_constant_override("outline_size", 0)
+	row.add_child(lab)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	if trailing != null:
+		row.add_child(trailing)
+	return row
+
+
+func _deck_list(decks: Array) -> Control:
+	var list := VBoxContainer.new()
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 12)
+	for d in decks:
+		list.add_child(_deck_tile(d))  # registers the panel in _deck_cards itself
+	return list
 
 
 # Russian plural for "колода" (1 колода / 2 колоды / 5 колод).

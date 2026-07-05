@@ -135,17 +135,17 @@ static func demo_view() -> Dictionary:
 		"hero": hero("hero_prism", "Ирида", "spectral_shift", 27, 0),
 		"mana": mana(pool(2, 0, 1, 1, 0, 1), pool(1, 0, 1, 1, 0, 1)),
 		"manaRow": [
-			{"color": "red", "card": "red_barbed_wasp", "age": 1},
+			{"color": "red", "card": "red_cinder_moth", "age": 1},
 			{"color": "green", "age": 2},
 			{"color": "colorless", "age": 0},
 		],
-		"hand": ["green_sunleaf_elk", "blue_winter_stream", "yellow_blue_beam_sentinel",
-			"prismatic_prism_echo"],
+		"hand": ["green_grove_warden", "blue_winter_stream", "yellow_corona",
+			"blue_farsight"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"board": [
-			creature(11, "red_barbed_wasp", 2, 1, 1),
-			creature(12, "green_sun_polyp", 1, 2, 2, {"shield": true}),
-			creature(13, "yellow_gilded_sentry", 0, 4, 4),
+			creature(11, "red_cinder_moth", 2, 1, 1),
+			creature(12, "green_bounty_tree", 1, 2, 2, {"shield": true}),
+			creature(13, "yellow_heat_haze", 0, 4, 4),
 		],
 		"auras": [{"card": "blue_cold_snap"}],
 	})
@@ -155,8 +155,8 @@ static func demo_view() -> Dictionary:
 		"manaRow": [{"color": "yellow"}, {"color": "violet"}],
 		"handCount": 5, "deckCount": 16, "graveyardCount": 1, "pendingCount": 1,
 		"board": [
-			creature(21, "blue_tide_warden", 2, 4, 4, {"frozen": 1}),
-			creature(22, "violet_lurking_shade", 2, 3, 3, {"stealth": true}),
+			creature(21, "blue_frost_sentinel", 2, 4, 4, {"frozen": 1}),
+			creature(22, "violet_unseen_prowler", 2, 3, 3, {"stealth": true}),
 		],
 	})
 	return view(me, opp, {"turn": 5, "current": 0, "you": 0})

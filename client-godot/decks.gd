@@ -14,10 +14,26 @@ static func all() -> Array:
 	return builtin() + user_decks()
 
 
-# Built-in decks shipped with the client (archetype presets land here in M4
-# phase 3; none yet).
+# Built-in preset decks shipped with the client, read from res://presets.json
+# (generated from the redesign deck data). Each is { id, name, cards } like a
+# user deck, but read-only: the loadout can pick them; they are not saved or
+# edited in place. Illegal ids are pruned once card data is loaded.
 static func builtin() -> Array:
-	return []
+	var f := FileAccess.open("res://presets.json", FileAccess.READ)
+	if f == null:
+		return []
+	var data: Variant = JSON.parse_string(f.get_as_text())
+	if typeof(data) != TYPE_ARRAY:
+		return []
+	var out: Array = []
+	for d in data:
+		out.append({
+			"id": String(d.get("id", "")),
+			"name": String(d.get("name", "")),
+			"cards": _prune(d.get("cards", [])),
+			"preset": true,
+		})
+	return out
 
 
 static func user_decks() -> Array:
@@ -55,6 +71,22 @@ static func by_id(deck_id: String) -> Dictionary:
 		if d["id"] == deck_id:
 			return d
 	return {}
+
+
+# Whether the built-in preset group is hidden in the deck lists. Stored beside
+# the user decks (a [prefs] section) so the choice sticks. Presets stay in all()
+# for id resolution -- this flag only collapses their display.
+static func presets_hidden() -> bool:
+	var cfg := ConfigFile.new()
+	cfg.load(USER_PATH)  # missing file -> default false
+	return bool(cfg.get_value("prefs", "presets_hidden", false))
+
+
+static func set_presets_hidden(v: bool) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(USER_PATH)
+	cfg.set_value("prefs", "presets_hidden", v)
+	cfg.save(USER_PATH)
 
 
 # Write (or overwrite) a user deck. deck = { id, name, cards }.
