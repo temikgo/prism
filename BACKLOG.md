@@ -240,9 +240,19 @@ legalActions / сериализация / реплеи / фазз / лог де�
    - **Пресеты** = `client-godot/presets.json` (data, генерю по цвету: 20 карт цвета ×2 = 40),
      грузятся в `Decks.builtin()`; в loadout отдельной группой «Пресеты» + тумблер
      `Decks.presets_hidden()`. Read-only. Герой выбирается отдельно.
-   - **Арт**: `ART_PROMPTS.md` (`python3 tools/build_prompts.py`) — промпт+путь на карту; генерю в MJ →
-     `client-godot/art/<id>.png`. Мипмапы теперь авто (`[importer_defaults]` в project.godot). Для
-     колодостроителя — `python3 tools/gen_thumbs.py`. `run_client.sh` достаточно, чтобы играть с артом.
+   - **Арт**: `ART_PROMPTS.md` (все) / `ART_PROMPTS_TODO.md` (только 179 без арта) — `python3 tools/build_prompts.py`;
+     генерю в MJ → `client-godot/art/<id>.png`. 23 уже с артом (4 героя + 19 совпавших имён). Мипмапы авто
+     (`[importer_defaults]`); для колодостроителя — `gen_thumbs.py`; `run_client.sh` достаточно.
+   - **СЛЕДУЮЩИЙ ШАГ — ВОРКФЛОУ переписать `art`-субъекты всех 202 карт** (текущие плохие: имя↔арт не
+     совпадают, существа-карты имеют субъектом ПРЕДМЕТ/ЯВЛЕНИЕ вместо живого). Правила — в шапке
+     `tools/build_prompts.py` (1..5) + память feedback_art_prompt_authoring: (2a) существо = ЖИВОЕ
+     (зверь/дух/спрайт/растение), НЕ явление/объект (явления только для spell/aura); (2b) гуманоидов
+     анкорить «drawn as flat glowing light-lines, not a realistic painted person»; имя-концепт = ONE core
+     image в центре; мультицвет — вплести элементы ОБОИХ цветов поровну. Враппер build_prompts держит
+     стиль/палитру/цвет-лок, агент пишет ТОЛЬКО субъект (поле `art`). Схема: агенты по колодам/пачкам →
+     вернуть {id: new_art} → смержить в `cards/sample.json`+`client-godot/cards.json` (байт-в-байт!) →
+     regen `build_prompts.py` (blue-defence OK) → check_cards_sync. Эталон: Coal Slinger «уголь — герой
+     кадра, субъект живой»; Corona «змея с короной-венцом»; Dim Ember «ember-moth, не уголёк».
    - Клиент-таргетинг для новых селекторов СДЕЛАН: chosen_any_target — дроп на существо ИЛИ на медальон
      врага (target=−1); chosen_blinded_enemy кастуется (движок валидирует ослепление); fight — дроп на
      своё существо → модальный пикер вражеского (target+target2). NB: fight-модал не тестился интерактивно.
