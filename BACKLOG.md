@@ -243,9 +243,6 @@ legalActions / сериализация / реплеи / фазз / лог де�
    - **Арт**: `ART_PROMPTS.md` (`python3 tools/build_prompts.py`) — промпт+путь на карту; генерю в MJ →
      `client-godot/art/<id>.png`. Мипмапы теперь авто (`[importer_defaults]` в project.godot). Для
      колодостроителя — `python3 tools/gen_thumbs.py`. `run_client.sh` достаточно, чтобы играть с артом.
-   - **Глоссарий**: клиентский генератор текста правил (`glossary.gd`) может не знать новые *действия*
-     (veil/chain_burn/sprout/fight/reclaim/sacrifice/buff_temp/heal/add_crystal) → у спеллов скупой
-     текст. Допилить глоссарий.
    - **дроп бёрн-спелла на портрет врага** шлёт target=`EnemyHeroTarget`(−1); `fight` шлёт `target2` —
      движок принимает, клиент/протокол пока не умеют выбрать эти цели (нужно для chosen_any_target/fight).
 4. Баланс: покарточно на бумаге НЕ делали (числа сдвинутся); настоящий — плейтест + self-play (слеп
