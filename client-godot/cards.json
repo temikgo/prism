@@ -125,7 +125,7 @@
   {
     "id": "red_ashwhelp",
     "name": {
-      "ru": "Жаровой птенец",
+      "ru": "Пепельный змеёныш",
       "en": "Ashwhelp"
     },
     "text": {
@@ -153,7 +153,7 @@
   {
     "id": "red_lance_gnat",
     "name": {
-      "ru": "Копейный комар",
+      "ru": "Комар-копейщик",
       "en": "Lance Gnat"
     },
     "text": {
@@ -180,7 +180,7 @@
   {
     "id": "red_bloodtick",
     "name": {
-      "ru": "Кровопийца",
+      "ru": "Кровавый клещ",
       "en": "Bloodtick"
     },
     "text": {
@@ -315,7 +315,7 @@
   {
     "id": "red_dawn_of_blood",
     "name": {
-      "ru": "Багровый рассвет",
+      "ru": "Кровавая заря",
       "en": "Dawn of Blood"
     },
     "text": {
@@ -366,7 +366,7 @@
   {
     "id": "red_blast_beetle",
     "name": {
-      "ru": "Подрывной жук",
+      "ru": "Взрывной жук",
       "en": "Blast Beetle"
     },
     "text": {
@@ -951,7 +951,7 @@
   {
     "id": "yellow_noon_glare",
     "name": {
-      "ru": "Полдень",
+      "ru": "Слепящий полдень",
       "en": "Noon Glare"
     },
     "text": {
@@ -1200,7 +1200,7 @@
   {
     "id": "yellow_total_eclipse",
     "name": {
-      "ru": "Затмение полдня",
+      "ru": "Полное затмение",
       "en": "Total Eclipse"
     },
     "text": {
@@ -1346,7 +1346,7 @@
   {
     "id": "green_strangleveil",
     "name": {
-      "ru": "Хищный вьюн",
+      "ru": "Удушающие лозы",
       "en": "Strangleveil"
     },
     "text": {
@@ -1460,7 +1460,7 @@
   {
     "id": "green_bramble_swarm",
     "name": {
-      "ru": "Вьюнковый рой",
+      "ru": "Колючий рой",
       "en": "Bramble Swarm"
     },
     "text": {
@@ -1747,7 +1747,7 @@
   {
     "id": "green_worldroot",
     "name": {
-      "ru": "Прародитель леса",
+      "ru": "Корень мира",
       "en": "Worldroot"
     },
     "text": {
@@ -1892,7 +1892,7 @@
   {
     "id": "blue_ebb_spirit",
     "name": {
-      "ru": "Отливный дух",
+      "ru": "Дух отлива",
       "en": "Ebb Spirit"
     },
     "text": {
@@ -1951,7 +1951,7 @@
   {
     "id": "blue_mirror_ray",
     "name": {
-      "ru": "Зеркальный луч",
+      "ru": "Зеркальный скат",
       "en": "Mirror Ray"
     },
     "text": {
@@ -2096,7 +2096,7 @@
   {
     "id": "blue_undertow",
     "name": {
-      "ru": "Отбойная волна",
+      "ru": "Отбойное течение",
       "en": "Undertow"
     },
     "text": {
@@ -2152,7 +2152,7 @@
   {
     "id": "blue_splinter_beam",
     "name": {
-      "ru": "Острый разлёт",
+      "ru": "Осколочный луч",
       "en": "Splinter Beam"
     },
     "text": {
@@ -2184,7 +2184,7 @@
   {
     "id": "blue_creeping_frost",
     "name": {
-      "ru": "Медленный мороз",
+      "ru": "Ползучий мороз",
       "en": "Creeping Frost"
     },
     "text": {
@@ -2302,7 +2302,7 @@
   {
     "id": "blue_cold_snap",
     "name": {
-      "ru": "Холодный щёлк",
+      "ru": "Резкая стужа",
       "en": "Cold Snap"
     },
     "text": {
@@ -2327,7 +2327,7 @@
   {
     "id": "blue_haze_veil",
     "name": {
-      "ru": "Дымная завеса",
+      "ru": "Морозная завеса",
       "en": "Haze Veil"
     },
     "text": {
@@ -2740,7 +2740,7 @@
   {
     "id": "violet_haunting_double",
     "name": {
-      "ru": "Морочный двойник",
+      "ru": "Призрачный двойник",
       "en": "Haunting Double"
     },
     "text": {
@@ -3039,7 +3039,7 @@
   {
     "id": "green_carrion_scarab",
     "name": {
-      "ru": "Падальный жук",
+      "ru": "Падальный скарабей",
       "en": "Carrion Scarab"
     },
     "text": {
@@ -3189,7 +3189,7 @@
   {
     "id": "red_green_blood_bramble",
     "name": {
-      "ru": "Кровавая поросль",
+      "ru": "Кровавый терновник",
       "en": "Blood Bramble"
     },
     "text": {
@@ -3223,7 +3223,7 @@
   {
     "id": "red_coal_wolf",
     "name": {
-      "ru": "Углевой волк",
+      "ru": "Угольный волк",
       "en": "Coal Wolf"
     },
     "text": {
@@ -3280,7 +3280,7 @@
   {
     "id": "green_bloatcap",
     "name": {
-      "ru": "Труповик",
+      "ru": "Вздутый дождевик",
       "en": "Bloatcap"
     },
     "text": {
@@ -3340,7 +3340,7 @@
   {
     "id": "red_green_crimson_surge",
     "name": {
-      "ru": "Кровавый прибой",
+      "ru": "Багряный прибой",
       "en": "Crimson Surge"
     },
     "text": {
@@ -3581,7 +3581,7 @@
   {
     "id": "red_blue_volt_eel",
     "name": {
-      "ru": "Вольтова мурена",
+      "ru": "Вольтов угорь",
       "en": "Volt Eel"
     },
     "text": {
@@ -3611,7 +3611,7 @@
   {
     "id": "red_blue_twin_hornet",
     "name": {
-      "ru": "Двоякий шершень",
+      "ru": "Сдвоенный шершень",
       "en": "Twin Hornet"
     },
     "text": {
@@ -3891,7 +3891,7 @@
   {
     "id": "red_blue_thunderhead",
     "name": {
-      "ru": "Грозовой разряд",
+      "ru": "Грозовая наковальня",
       "en": "Thunderhead"
     },
     "text": {
@@ -4063,7 +4063,7 @@
   {
     "id": "violet_splintered_effigy",
     "name": {
-      "ru": "Дроблёный истукан",
+      "ru": "Расщеплённый истукан",
       "en": "Splintered Effigy"
     },
     "text": {
@@ -4092,7 +4092,7 @@
   {
     "id": "green_fen_cultivator",
     "name": {
-      "ru": "Топкий возделыватель",
+      "ru": "Топяной пахарь",
       "en": "Fen Cultivator"
     },
     "text": {
@@ -4155,7 +4155,7 @@
   {
     "id": "green_violet_echo_fawn",
     "name": {
-      "ru": "Двойная лань",
+      "ru": "Оленёнок-отголосок",
       "en": "Echo Fawn"
     },
     "text": {
@@ -4348,7 +4348,7 @@
   {
     "id": "green_compost_bed",
     "name": {
-      "ru": "Перегнойная гряда",
+      "ru": "Компостная гряда",
       "en": "Compost Bed"
     },
     "text": {
@@ -4691,7 +4691,7 @@
   {
     "id": "yellow_watch_beacon",
     "name": {
-      "ru": "Смотрящий маяк",
+      "ru": "Дозорный маяк",
       "en": "Watch Beacon"
     },
     "text": {
@@ -4722,7 +4722,7 @@
   {
     "id": "violet_buried_blade",
     "name": {
-      "ru": "Затаённый клинок",
+      "ru": "Зарытый клинок",
       "en": "Buried Blade"
     },
     "text": {
@@ -4786,7 +4786,7 @@
   {
     "id": "yellow_prison_warden",
     "name": {
-      "ru": "Тюремный смотритель",
+      "ru": "Тюремщик",
       "en": "Prison Warden"
     },
     "text": {
@@ -4815,7 +4815,7 @@
   {
     "id": "yellow_dawnkeeper",
     "name": {
-      "ru": "Заря-хранитель",
+      "ru": "Хранитель рассвета",
       "en": "Dawnkeeper"
     },
     "text": {
@@ -5101,7 +5101,7 @@
   {
     "id": "green_fertile_flats",
     "name": {
-      "ru": "Пойменный ил",
+      "ru": "Плодородная пойма",
       "en": "Fertile Flats"
     },
     "text": {
@@ -5184,7 +5184,7 @@
   {
     "id": "blue_frost_minnow",
     "name": {
-      "ru": "Стужный гольян",
+      "ru": "Студёный гольян",
       "en": "Frost Minnow"
     },
     "text": {
@@ -5215,7 +5215,7 @@
   {
     "id": "blue_ice_jam",
     "name": {
-      "ru": "Затор",
+      "ru": "Ледяной затор",
       "en": "Ice Jam"
     },
     "text": {
@@ -5242,7 +5242,7 @@
   {
     "id": "green_blue_duckweed_raft",
     "name": {
-      "ru": "Рясковый настил",
+      "ru": "Рясковый плот",
       "en": "Duckweed Raft"
     },
     "text": {
@@ -5467,7 +5467,7 @@
   {
     "id": "green_blue_spate_giant",
     "name": {
-      "ru": "Половодный титан",
+      "ru": "Паводковый исполин",
       "en": "Spate Giant"
     },
     "text": {
@@ -5954,7 +5954,7 @@
   {
     "id": "yellow_green_atlas_oak",
     "name": {
-      "ru": "Атлантов дуб",
+      "ru": "Дуб-атлант",
       "en": "Atlas Oak"
     },
     "text": {
