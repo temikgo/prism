@@ -95,15 +95,15 @@
     ]
   },
   {
-    "id": "red_coal_slinger",
+    "id": "red_ember_archerfish",
     "name": {
-      "ru": "Уголёк-пращник",
-      "en": "Coal Slinger"
+      "ru": "Жар-брызгун",
+      "en": "Ember Archerfish"
     },
     "text": {
-      "ru": "Каждый камень в его праще ещё дышит жаром."
+      "ru": "Один плевок — и цель уже тлеет."
     },
-    "art": "a lean crab-clawed creature whirling a sling of molten coals, one blazing coal arcing away as the brightest point",
+    "art": "an archerfish of red ray-light spitting a hard jet of sparks at a distant mark, the spark-jet the brightest line in the frame",
     "type": "creature",
     "color": [
       "red"
@@ -401,7 +401,7 @@
     "text": {
       "ru": "Заряжает кристаллом, стреляет углями."
     },
-    "art": "a scorpion-like creature raising a tail fused into a glowing ember-cannon, a bright spark leaving the muzzle",
+    "art": "a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it, no separate weapon",
     "type": "creature",
     "color": [
       "red"
@@ -487,7 +487,7 @@
     "text": {
       "ru": "Ритм гонит вперёд и не даёт остыть."
     },
-    "art": "a pair of taut war-drums wreathed in fire, a shockwave of heat pulsing outward with every beat",
+    "art": "concentric shockwaves of red war-light pulsing outward across the field in a hammering drumbeat rhythm, the air throbbing hotter with each pulse, no physical drum",
     "type": "aura",
     "color": [
       "red"
@@ -1837,7 +1837,7 @@
     "text": {
       "ru": "Встал на пост — и всё вокруг застыло."
     },
-    "art": "a horned ice-feathered owl perched watch on a frozen post, its unblinking stare sheathing a single foe in creeping rime",
+    "art": "a tall heron of blue ice-light standing sentinel on one leg, its breath blooming into hoarfrost that locks a nearby foe in place",
     "type": "creature",
     "color": [
       "blue"
@@ -2577,7 +2577,7 @@
     "text": {
       "ru": "Светит так, что вокруг только тени."
     },
-    "art": "a deep violet anglerfish trailing a dim lure that casts more shadow than light, pooling darkness for allies to hide in",
+    "art": "a deep-violet anglerfish-shade of shadow-light, a dim glimmering lure dangling before it, deepening the dark all around into a pool of shadow for allies to slip into",
     "type": "creature",
     "color": [
       "violet"
@@ -2632,7 +2632,7 @@
     "text": {
       "ru": "Спрятан в рукаве до самого удара."
     },
-    "art": "a violet shadow-mantis holding its blade-arms folded and unseen, poised a single breath before the killing strike",
+    "art": "a violet mantis of shadow-light, its long blade-limbs folded flat and hidden against its body, edges melting into the dark until the strike",
     "type": "creature",
     "color": [
       "violet"
@@ -3016,7 +3016,7 @@
     "text": {
       "ru": "Летит в лицо и там сгорает."
     },
-    "art": "a small soot-trailing fly of guttering ember, flaring white-hot as it is snuffed against its target",
+    "art": "a small fly of red ember-light, its whole body flaring searing-bright red as it is snuffed against its mark, no soot trail",
     "type": "creature",
     "color": [
       "red"
@@ -3132,7 +3132,7 @@
     "text": {
       "ru": "Сноп под серп — а взамен полные руки."
     },
-    "art": "a bound sheaf of grain-stalks cut through by a curved sickle, two cards lifting free from the falling straw",
+    "art": "a bound sheaf of green light-stalks collapsing and scattering apart in a bright fall, two glowing cards of green light rising up out of the spilling grain",
     "type": "spell",
     "color": [
       "green"
@@ -3315,7 +3315,7 @@
     "text": {
       "ru": "Что скосит своё — тем и растёт."
     },
-    "art": "a towering scythe-limbed mantis of red blades and green stalk-armor, cutting down a small friendly sprout-wisp and swelling as it harvests it",
+    "art": "a mantis-like reaper-beast of flat glowing red-and-green light, its two forelimbs curved into long scythe-blades of that same living light, small ally-wisps withering as it swells, one single centred glowing body, not a realistic painted person",
     "type": "creature",
     "color": [
       "red",
@@ -3897,7 +3897,7 @@
     "text": {
       "ru": "Чем больше искр за ход, тем громче удар."
     },
-    "art": "a roiling thundercloud crackling between ember-heat and frost, hurling a single enormous bolt down at a distant target, louder with every spark",
+    "art": "a churning red-and-blue storm-anvil built entirely of glowing ray-light, lit brightly from within, discharging a single massive forked bolt down at a distant point",
     "type": "spell",
     "color": [
       "red",
@@ -4127,7 +4127,7 @@
     "text": {
       "ru": "Оплетает могилы и тянет мёртвых назад."
     },
-    "art": "a serpentine ivy-creature of green leaves and violet grave-shade coiling over a burial mound, dragging up a pale phantom as a bright seed drifts back to hand",
+    "art": "a coiling serpent-like mass of green-and-violet ivy-light, pale grave-blossoms opening along its glowing tendrils, the whole vine-being filling the frame",
     "type": "creature",
     "color": [
       "green",
@@ -4728,7 +4728,7 @@
     "text": {
       "ru": "Спит в кристаллах, встанет незримым."
     },
-    "art": "a violet shadow-scorpion buried among banked crystals, blade-tail raised to strike the instant it wakes unseen",
+    "art": "a violet scorpion-shade of shadow-light half-buried among glowing violet crystals, its long blade-tail coiled and unseen, waking to strike",
     "type": "creature",
     "color": [
       "violet"
@@ -5551,7 +5551,7 @@
     "text": {
       "ru": "Тихо оплетает и дорастает до стены."
     },
-    "art": "a coil of living ivy creeping upward, its vines thickening broader and stronger turn by turn into a strangling curtain",
+    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn, no wall",
     "type": "creature",
     "color": [
       "green"
