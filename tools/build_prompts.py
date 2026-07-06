@@ -259,6 +259,22 @@ def main():
     open(dest, "w", encoding="utf-8").write("\n".join(out))
     print("wrote " + dest + " with " + str(n) + " prompts")
 
+    art_dir = os.path.join(ROOT, "client-godot", "art")
+    have = {f[:-4] for f in os.listdir(art_dir) if f.endswith(".png")} if os.path.isdir(art_dir) else set()
+    kept = []
+    for b in re.split(r"(?=^## )", "\n".join(out), flags=re.M):
+        if not b.startswith("## "):
+            continue
+        m = re.search(r"`([a-z_0-9]+)`", b.split("\n", 1)[0])
+        if m and m.group(1) not in have:
+            kept.append(b)
+    todo = ("# ART TODO — карты без арта (" + str(len(kept)) + " шт.)\n\n"
+            "Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. "
+            "Сохраняй PNG по строке `save:`.\n\n" + "".join(kept))
+    todo_dest = os.path.join(ROOT, "ART_PROMPTS_TODO.md")
+    open(todo_dest, "w", encoding="utf-8").write(todo)
+    print("wrote " + todo_dest + " with " + str(len(kept)) + " prompts (no art yet)")
+
     issues = verify_blue(pool + TOKENS)
     if issues:
         print("blue-defence: " + str(len(issues)) + " issue(s)")
