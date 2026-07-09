@@ -34,6 +34,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      three-quarter view and one clear action, no tangle of thin overlapping
 #      limbs; describe colour asymmetry as left/right, never "one wing ...
 #      the other".
+#   7. SPELL/AURA: NEVER NAME THE EFFECT'S TARGET. "at the enemy", "a lone
+#      figure", "sealing the enemy line", "toward the caster's hand" -- MJ
+#      draws that being (usually as a person) instead of the phenomenon.
+#      Stage the phenomenon on neutral scenery (ground, stones, ice, reeds,
+#      sky) with a visible SOURCE and DIRECTION, so the event reads without
+#      a victim in frame. Creature-card bystanders follow the same idea:
+#      shields and beasts, never defenders/soldiers/figures.
+#   8. NO NEGATION IN THE PROMPT BODY. "no creature or person", "never blue"
+#      -- MJ sees the token and draws it. Bans live ONLY in --no (the wrapper
+#      owns them); the subject must simply not contain the word.
 
 TONE = {
     "red": "red and crimson",
@@ -113,13 +123,19 @@ CREATURE_HEAD = (
     "in a simple uncluttered pose, "
 )
 EFFECT_HEAD = (
-    "a " + _FLAT + " of glowing {g}light, the subject rendered in bold {g}light "
-    "and {g}energy, no creature or person, "
+    "a " + _FLAT + " of a pure {g}light phenomenon, the subject rendered in "
+    "bold {g}light and {g}energy alone, "
 )
 TAIL = (
     ", on a deep dark flat background of swirling {g}energy in the same palette "
     "with drifting {g}light-motes, clean and graphic, the subject large and "
     "centered, filling the frame"
+)
+EFFECT_TAIL = (
+    ", on a deep dark flat background of swirling {g}energy in the same palette "
+    "with drifting {g}light-motes, clean and graphic, one clear event with a "
+    "visible source and direction, framed from a middle distance above a low "
+    "dark ground line, the whole scene readable at a glance"
 )
 HERO_STYLE = (
     "a " + _FLAT + " character portrait, glowing light accents tracing the "
@@ -207,7 +223,8 @@ def style_for(card):
         flags = flags.replace("building, architecture, ", "")
     # Colour-matched style anchors last, so the URL list terminates the --no list.
     flags = flags + _sref(cols)
-    body = head + palette(cols) + TAIL.format(g=g)
+    tail = EFFECT_TAIL if is_effect else TAIL
+    body = head + palette(cols) + tail.format(g=g)
     return body, flags
 
 
