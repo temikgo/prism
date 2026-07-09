@@ -780,7 +780,7 @@
     "text": {
       "ru": "На два удара света не станет."
     },
-    "art": "a small dark disc sliding across the blazing sun, a long cone of deep shadow falling across the ground below",
+    "art": "a dark moon biting into the blazing sun, a long cone of shadow sweeping across the plain below",
     "type": "spell",
     "color": [
       "yellow"
@@ -1206,7 +1206,7 @@
     "text": {
       "ru": "Свет уходит весь — и возвращается только к тебе."
     },
-    "art": "a total eclipse blacking out the whole sky, only a thin burning corona left, its light draining down toward the near edge of the frame",
+    "art": "a black sun ringed by a thin burning corona hanging low over a dark plain, a river of gold light draining down toward the near edge of the frame",
     "type": "spell",
     "color": [
       "yellow"
