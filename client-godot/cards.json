@@ -719,7 +719,7 @@
     "text": {
       "ru": "Возьмёт чужую беду на себя."
     },
-    "art": "a small ward-spirit shaped like a hanging sun-charm, drinking a hostile spell out of the air and pulling blows onto itself",
+    "art": "a small ward-spirit shaped like a hanging sun-charm, drinking a hostile curse-bolt out of the air and pulling blows onto itself",
     "type": "creature",
     "color": [
       "yellow"
@@ -957,7 +957,7 @@
     "text": {
       "ru": "В зените никто не смотрит вверх."
     },
-    "art": "the sky itself burning as one vast white-gold flare, hard rays fanning down from the top edge of the frame, the land below dissolving into pale gold haze",
+    "art": "one vertical blinding column of noon-light slamming straight down from the zenith onto a bare plain, the ground at its foot burned pure white-gold, hard rays fanning out from the impact",
     "type": "spell",
     "color": [
       "yellow"
@@ -1016,7 +1016,7 @@
     "text": {
       "ru": "Гаснет — и напоследок слепит убийц."
     },
-    "art": "a lantern-moth of guttering light, its halo swallowing a hostile spell, its dying flash flooding the dark around it with blinding light",
+    "art": "a lantern-moth of guttering light, its halo swallowing a hostile curse-bolt, its dying flash flooding the dark around it with blinding light",
     "type": "creature",
     "color": [
       "yellow"
@@ -1928,7 +1928,7 @@
     "text": {
       "ru": "Каждое заклинание точит его грани."
     },
-    "art": "a faceted crystal dragonfly hovering in place, every wing-edge flaring keener each time a spell is cast nearby",
+    "art": "a faceted crystal dragonfly hovering in place, every wing-edge flaring keener each time a stray bolt of light crackles past",
     "type": "creature",
     "color": [
       "blue"
@@ -1985,7 +1985,7 @@
     "text": {
       "ru": "Копит свет заклинаний и бьёт им."
     },
-    "art": "a slowly drifting cut-glass jellyfish, its faceted bell hoarding each passing spell as an ever-brightening inner glare",
+    "art": "a slowly drifting cut-glass jellyfish, its faceted bell hoarding each passing bolt of light as an ever-brightening inner glare",
     "type": "creature",
     "color": [
       "blue"
@@ -2333,7 +2333,7 @@
     "text": {
       "ru": "Сквозь дымку и заклинание идёт с трудом."
     },
-    "art": "a hanging curtain of pale freezing mist drawn across the field, thickening the air until it muffles every spell",
+    "art": "a hanging curtain of pale freezing mist drawn across the field, the air behind it thick and still",
     "type": "aura",
     "color": [
       "blue"
@@ -2605,7 +2605,7 @@
     "text": {
       "ru": "Повтори слух — и вот их уже двое."
     },
-    "art": "a violet whisper of sound made visible, shattering in the air into two identical drifting echoes",
+    "art": "a violet echo-ripple spreading from a point in the dark, splitting into two identical rings drifting apart",
     "type": "spell",
     "color": [
       "violet"
@@ -3497,7 +3497,7 @@
     "text": {
       "ru": "Каждое заклинание — новая искра в брюшке."
     },
-    "art": "a firefly whose ember-abdomen flares brighter each time a spell crackles past",
+    "art": "a firefly whose ember-abdomen flares brighter each time a stray bolt crackles past",
     "type": "creature",
     "color": [
       "red"
@@ -3688,7 +3688,7 @@
     "text": {
       "ru": "Гроза слушается каждого его слова."
     },
-    "art": "a towering storm-drake, embers in its throat and frost on its wings, lightning gathering along its horns as spells are spoken",
+    "art": "a towering storm-drake, embers in its throat and frost on its wings, lightning gathering along its horns as the storm speaks around it",
     "type": "creature",
     "color": [
       "red",
@@ -4666,7 +4666,7 @@
     "text": {
       "ru": "Молча глотает первое проклятье за союзника."
     },
-    "art": "a squat sentinel-toad planted square in the lane, silently gulping the first hostile spell down its throat and drawing blows onto itself",
+    "art": "a squat sentinel-toad planted square in the lane, silently gulping a hostile curse-bolt down its throat and drawing blows onto itself",
     "type": "creature",
     "color": [
       "yellow"
@@ -5644,7 +5644,7 @@
     "text": {
       "ru": "Накинь покров — и удар, и проклятье мимо."
     },
-    "art": "a mantle of golden light settling like a cloak over empty air, a shield-halo and a ward-halo kindling within its folds",
+    "art": "a mantle of golden light settling like a cloak over a rough standing stone, a shield-halo and a ward-halo kindling around it",
     "type": "spell",
     "color": [
       "yellow"

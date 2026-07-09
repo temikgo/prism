@@ -44,6 +44,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #   8. NO NEGATION IN THE PROMPT BODY. "no creature or person", "never blue"
 #      -- MJ sees the token and draws it. Bans live ONLY in --no (the wrapper
 #      owns them); the subject must simply not contain the word.
+#   9. PHENOMENA ONLY IN PROVEN TEMPLATES -- no freeform compositions. Every
+#      spell/aura subject must be one of:
+#        T1 ground event: a crack/wave/sheet/front moving ACROSS dark ground,
+#           source and direction visible (crimson rift).
+#        T2 column: a bolt/column/beam from the sky DOWN to one impact point
+#           on a plain (wrath of pyrrhus).
+#        T3 prop protagonist: one concrete inanimate thing doing one thing
+#           (well, window, curtain, sheaf, pillar, standing stone).
+#      NEVER: sky-wide formless light ("the sky itself burning"), a bare
+#      glowing disc overhead (reads as a UFO), light with nothing concrete
+#      in frame. Also avoid the word "spell" in subjects (summons a caster);
+#      call it a bolt/curse/beam.
 
 TONE = {
     "red": "red and crimson",
