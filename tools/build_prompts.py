@@ -29,6 +29,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      + spore-clouds; an unmaking ray erasing a form into motes).
 #   5. ONE CORE IMAGE. Don't cram every keyword's flavour in; pick the defining
 #      visual so name <-> art <-> mechanic read as one subject.
+#   6. NO LIMB COUNTS, SIMPLE POSES. Never number body parts ("one leg",
+#      "six legs" -- MJ miscounts and draws extras). Prefer a side or
+#      three-quarter view and one clear action, no tangle of thin overlapping
+#      limbs; describe colour asymmetry as left/right, never "one wing ...
+#      the other".
 
 TONE = {
     "red": "red and crimson",
@@ -62,12 +67,36 @@ RANGE = {c: "any shade of " + s[0] + ", freely varied -- " + ", ".join(s[1:])
 # renders blue and a soft --no can't override it. So --no stays short.
 NEG = {c: s[0] for c, s in SHADES.items()}
 
-# STYLE LOCK. MJ v7 drifts between flat-2D and 3D/realistic renders. The reliable
-# cure for "some come out 3D, some 2D" is a STYLE REFERENCE: generate one card you
-# love, copy its image URL, and set STYLE_REF below to ' --sref <url>' (keep the
-# leading space). Every prompt then inherits that exact look. Until then the text
-# below leans hard on flat-2D, but --sref is what truly locks it.
-STYLE_REF = ""
+# STYLE LOCK. MJ v7 drifts between flat-2D and 3D/realistic renders, and its
+# aesthetic prior leaks blue into non-blue cards. Two defences layered here:
+#   (1) --s 25 in FLAGS. Stylize defaults to 100 and is exactly where the blue
+#       "MJ look" sneaks in; near-zero stylize follows the prompt literally and
+#       keeps colours true. Also no mood-grading words in the wrapper (dropped
+#       "moody" -- it graded backgrounds teal).
+#   (2) PER-COLOUR STYLE ANCHORS -- the true lock. A single shared --sref was
+#       rejected: a style reference transfers its own palette, so one anchor
+#       poisons every other colour. Per-colour anchors turn that into the fix:
+#       each card references an anchor of ITS OWN colour, so the palette pull
+#       reinforces the card's colour instead of fighting it; duals reference
+#       BOTH parents' anchors and MJ blends them evenly (= the two-colour mix
+#       we want). Style stays uniform because all five anchors come from the
+#       same series.
+#       Bootstrap (once): for each colour, generate cards with the bare prompt
+#       until ONE comes out perfect (red/blue can start from the best existing
+#       art in client-godot/art/); in MJ copy that image's URL and paste it
+#       into ANCHORS below; rerun this script. Cards of a colour whose anchor
+#       is still "" just get no --sref until it is filled in.
+#       Tuning: anchor colour overpowering the subject -> lower ANCHOR_SW to
+#       50; style still drifting to 3D -> raise toward 300.
+ANCHORS = {"red": "", "yellow": "", "green": "", "blue": "", "violet": ""}
+ANCHOR_SW = 100
+
+
+def _sref(cols):
+    urls = [ANCHORS[c] for c in cols if ANCHORS.get(c, "")]
+    if not urls or len(cols) >= 5:
+        return ""
+    return " --sref " + " ".join(urls) + " --sw " + str(ANCHOR_SW)
 
 # Flat-2D vocabulary, repeated so it wins over v7's default realism. NO "energy
 # given form" / "depth" (those invite volumetric 3D).
@@ -80,27 +109,29 @@ _FLAT = (
 # card. This binding -- not --no -- is what actually locks the colour.
 CREATURE_HEAD = (
     "a " + _FLAT + " of a being made of living {g}light, glowing {g}light-lines "
-    "tracing its shape, "
+    "tracing its shape, one single creature with a clean readable silhouette "
+    "in a simple uncluttered pose, "
 )
 EFFECT_HEAD = (
     "a " + _FLAT + " of glowing {g}light, the subject rendered in bold {g}light "
     "and {g}energy, no creature or person, "
 )
 TAIL = (
-    ", on a deep moody flat background of swirling {g}energy in the same palette "
+    ", on a deep dark flat background of swirling {g}energy in the same palette "
     "with drifting {g}light-motes, clean and graphic, the subject large and "
     "centered, filling the frame"
 )
 HERO_STYLE = (
     "a " + _FLAT + " character portrait, glowing light accents tracing the "
-    "figure, faint spectrum glints, on a deep moody flat background of swirling "
+    "figure, faint spectrum glints, on a deep dark flat background of swirling "
     "luminous energy, centered portrait"
 )
 FLAGS = (
-    "--ar 2:3 --v 7 --style raw --c 0" + STYLE_REF
+    "--ar 2:3 --v 7 --style raw --c 0 --s 25"
     + " --no border, frame, panel, text, building, architecture, photo,"
     " photorealistic, 3D, 3d render, CGI, octane render, realistic shading,"
-    " volumetric lighting, depth of field, plain background"
+    " volumetric lighting, depth of field, plain background, deformed,"
+    " mutated, extra limbs, extra legs, fused limbs"
 )
 EFFECT_FLAGS = FLAGS + ", creature, character, person, figure, monster, animal, face"
 HERO_FLAGS = FLAGS.replace("--ar 2:3", "--ar 1:1")
@@ -174,6 +205,8 @@ def style_for(card):
     # two terms for such cards.
     if any(w in card.get("art", "").lower() for w in ("wall", "rampart", "barricade", "lighthouse", "tower")):
         flags = flags.replace("building, architecture, ", "")
+    # Colour-matched style anchors last, so the URL list terminates the --no list.
+    flags = flags + _sref(cols)
     body = head + palette(cols) + TAIL.format(g=g)
     return body, flags
 
@@ -227,8 +260,24 @@ def main():
     out = [
         "# Prism — промпты артов (Midjourney v7)",
         "",
-        "Единый стиль текстовым суффиксом + `--c 0`. Палитра у каждой карты строго своя.",
+        "Единый стиль текстовым суффиксом + `--c 0 --s 25` (низкий stylize = буквальное следование",
+        "промпту: меньше «синего дрейфа» и отсебятины). Палитра у каждой карты строго своя.",
         "Существа = «being of light», заклинания/ауры = «effect of light, no creature».",
+        "",
+        "**Калибровка (один раз, ДО массовой генерации): пер-цветовые якоря.** Общий sref на весь",
+        "сет отвергнут — он тянет СВОЮ палитру во все карты. Вместо этого один эталон НА ЦВЕТ:",
+        "1) для каждого из 5 цветов генери карты голым промптом, пока одна не выйдет идеальной",
+        "   (красному/синему можно стартовать с лучшего готового арта из `client-godot/art/`);",
+        "2) URL этих 5 картинок впиши в `ANCHORS` в `tools/build_prompts.py` и перегенери файл.",
+        "Дальше каждая карта ссылается на якорь СВОЕГО цвета (перенос палитры работает за нас),",
+        "двуцветки — на ОБА якоря сразу (MJ смешивает их поровну — ровно нужный микс цветов).",
+        "Якорь пережимает сюжет → снижай `ANCHOR_SW` к 50; стиль уплывает в 3D → поднимай к 300.",
+        "",
+        "**Если конкретный арт не удался:** (1) перезапусти тот же промпт ещё раз; (2) кривые или",
+        "лишние лапы — Editor → Vary Region по месту, остальное не трогая; (3) карта упорно синит",
+        "или 3D — замени в её промпте `--v 7` на `--niji 7` (обвязка та же, ниджи сильнее",
+        "в плоской 2D-графике и чистых линиях).",
+        "",
         "Вставь промпт → выбери лучший из 4 → **Download** → сохрани в путь.",
         "",
     ]

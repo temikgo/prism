@@ -399,7 +399,7 @@
       "en": "Spark Gunner"
     },
     "text": {
-      "ru": "Заряжает кристаллом, стреляет углями."
+      "ru": "Заряжает кристаллом, стреляет искрами."
     },
     "art": "a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it, no separate weapon",
     "type": "creature",
@@ -1464,7 +1464,7 @@
       "en": "Bramble Swarm"
     },
     "text": {
-      "ru": "Чем гуще подлесок, тем оно сильнее."
+      "ru": "Чем гуще подлесок, тем злее рой."
     },
     "art": "a seething swarm of small thorn-shelled crawlers knotting into one mass, growing fiercer the denser the thicket crowding around them",
     "type": "creature",
@@ -1664,7 +1664,7 @@
       "en": "Heartwood"
     },
     "text": {
-      "ru": "Размером с всё, что ты успел скопить."
+      "ru": "Размером со всё, что ты успел скопить."
     },
     "art": "a vast slumbering forest-spirit grown from living heartwood, its pulsing core swelling larger the more crystals lie hoarded around it",
     "type": "creature",
@@ -1837,7 +1837,7 @@
     "text": {
       "ru": "Встал на пост — и всё вокруг застыло."
     },
-    "art": "a tall heron of blue ice-light standing sentinel on one leg, its breath blooming into hoarfrost that locks a nearby foe in place",
+    "art": "a tall heron of blue ice-light standing sentinel, its breath blooming into hoarfrost that locks a nearby foe in place",
     "type": "creature",
     "color": [
       "blue"
@@ -3130,7 +3130,7 @@
       "en": "Sacrificial Sheaf"
     },
     "text": {
-      "ru": "Сноп под серп — а взамен полные руки."
+      "ru": "Один сноп в жертву — и полные руки взамен."
     },
     "art": "a bound sheaf of green light-stalks collapsing and scattering apart in a bright fall, two glowing cards of green light rising up out of the spilling grain",
     "type": "spell",
@@ -3162,7 +3162,7 @@
       "en": "Blood Acolyte"
     },
     "text": {
-      "ru": "Каждая ваша рана — чужая беда."
+      "ru": "Что вас лечит, то врага жжёт."
     },
     "art": "a squat blood-drinking pitcher-plant creature veined red and green, spitting a searing thorn at the enemy whenever a nearby ally is healed",
     "type": "creature",
@@ -3554,7 +3554,7 @@
     "text": {
       "ru": "Молнией мимо строя — прямо в лицо."
     },
-    "art": "a darting swift crackling with lightning, one wing shedding embers and the other trailing frost, slipping low past a line of defenders",
+    "art": "a darting swift crackling with lightning, embers streaming off its left wing and frost trailing from its right, slipping low past a line of defenders",
     "type": "creature",
     "color": [
       "red",
@@ -4159,7 +4159,7 @@
       "en": "Echo Fawn"
     },
     "text": {
-      "ru": "Одна лань — а следов вдвое."
+      "ru": "Один оленёнок — а следов вдвое."
     },
     "art": "a slender fawn crowned with moss-and-fern antlers casting a hollow violet double of itself, both standing bolder amid a crowding thicket",
     "type": "creature",
@@ -4198,7 +4198,7 @@
       "en": "Crystal Colossus"
     },
     "text": {
-      "ru": "Размером со всё, что ты скопил."
+      "ru": "Сколько скопишь, столько и поднимется."
     },
     "art": "a lumbering colossus grown from green crystal-vines with a violet phantom twin looming behind it, its bulk swelling to match the mana hoarded near",
     "type": "creature",
@@ -4328,7 +4328,7 @@
       "en": "Veil of Glints"
     },
     "text": {
-      "ru": "В россыпи бликов легко спрятать первый шаг."
+      "ru": "Среди бликов не разглядеть идущего."
     },
     "art": "a hanging violet veil of scattered glints, pooling deep shadow for allies to slip unseen into",
     "type": "aura",
@@ -4441,7 +4441,7 @@
       "en": "Keeper of Echoes"
     },
     "text": {
-      "ru": "Целься в него — попадёшь в эхо."
+      "ru": "Бей — отзовётся только эхо."
     },
     "art": "a violet shadow-bat wheeling through the dark, an incoming beam bending off it toward a fainter echo of itself",
     "type": "creature",
@@ -4726,7 +4726,7 @@
       "en": "Buried Blade"
     },
     "text": {
-      "ru": "Спит в кристаллах, встанет незримым."
+      "ru": "Зарыт среди кристаллов — до первого удара."
     },
     "art": "a violet scorpion-shade of shadow-light half-buried among glowing violet crystals, its long blade-tail coiled and unseen, waking to strike",
     "type": "creature",
@@ -4984,7 +4984,7 @@
       "en": "Duskbound Matriarch"
     },
     "text": {
-      "ru": "Незримая — и гасит по одному каждый ход."
+      "ru": "Прядёт сумрак — по одному врагу за ночь."
     },
     "art": "a huge matriarch spider crouched in violet dusk-webs, her many eyes and silk glinting gold, dimming one foe's glow each turn while hidden",
     "type": "creature",
@@ -5105,7 +5105,7 @@
       "en": "Fertile Flats"
     },
     "text": {
-      "ru": "Плодородная пойма — полные руки."
+      "ru": "Разлив ушёл — а руки полны."
     },
     "art": "a rich fertile floodplain suddenly bursting into lush growth, two broad leaves unfurling and lifting free like drawn cards",
     "type": "spell",
@@ -5219,7 +5219,7 @@
       "en": "Ice Jam"
     },
     "text": {
-      "ru": "Затор льда — надолго встанет."
+      "ru": "Встал сам — и всё за ним встало."
     },
     "art": "a grinding jam of river ice-floes crushing together around a single figure, pinning it locked in place",
     "type": "spell",
@@ -5699,7 +5699,7 @@
       "en": "Young Oak"
     },
     "text": {
-      "ru": "Растёт в титана и топит клок агро."
+      "ru": "Растёт — и с каждым кольцом хозяину теплее."
     },
     "art": "a young oak broadening its trunk each turn, warm light streaming back from its boughs to its keeper",
     "type": "creature",
@@ -5819,7 +5819,7 @@
       "en": "Hawthorn"
     },
     "text": {
-      "ru": "Растёт в неубиваемое тело."
+      "ru": "Год от года гуще — и уже не выкорчевать."
     },
     "art": "a broad hawthorn shrub bristling with long thorns, swelling denser and larger every turn into an unkillable thicket",
     "type": "creature",
@@ -5886,7 +5886,7 @@
       "en": "Oakwood"
     },
     "text": {
-      "ru": "Раздувается от целого строя стен."
+      "ru": "Чем гуще лес за ним, тем шире рога."
     },
     "art": "a towering elk whose antlers branch into a whole golden-leafed oak grove, spreading broader and barring the road as more woodland crowds in behind it",
     "type": "creature",
@@ -5958,7 +5958,7 @@
       "en": "Atlas Oak"
     },
     "text": {
-      "ru": "Растёт и бьёт дважды под бронёй."
+      "ru": "Держит небо — и дважды роняет его на врага."
     },
     "art": "a colossal oak-titan straining to hold up the sky on its golden boughs, its green-barked trunk swelling as two massive limb-arms hammer down twice",
     "type": "creature",
@@ -5992,7 +5992,7 @@
       "en": "Donjon"
     },
     "text": {
-      "ru": "Башня, что бьёт дважды телом от всего строя."
+      "ru": "Башня, что сама идёт на приступ — и бьёт дважды."
     },
     "art": "a towering keep-shaped guardian of interlaced golden roots and green bramble rising from a dense thicket, barring the way and slamming down twice with root-fists",
     "type": "creature",
