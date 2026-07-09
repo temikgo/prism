@@ -56,6 +56,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      glowing disc overhead (reads as a UFO), light with nothing concrete
 #      in frame. Also avoid the word "spell" in subjects (summons a caster);
 #      call it a bolt/curse/beam.
+#      The template must SERVE the name, never replace it (a sun card keeps
+#      its sun). Name-concepts get their strong graphic archetype: a sun is
+#      a SUNBURST (white-hot core + a full crown of rays in every direction,
+#      never a bare disc); an eclipse is a BLACK SUN ringed by a thin corona.
 
 TONE = {
     "red": "red and crimson",
