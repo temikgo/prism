@@ -133,9 +133,9 @@ TAIL = (
 )
 EFFECT_TAIL = (
     ", on a deep dark flat background of swirling {g}energy in the same palette "
-    "with drifting {g}light-motes, clean and graphic, one clear event with a "
-    "visible source and direction, framed from a middle distance above a low "
-    "dark ground line, the whole scene readable at a glance"
+    "with drifting {g}light-motes, clean and graphic with crisp fine linework, "
+    "one clear event with a visible source and direction, framed from a middle "
+    "distance, the whole scene readable at a glance"
 )
 HERO_STYLE = (
     "a " + _FLAT + " character portrait, glowing light accents tracing the "
