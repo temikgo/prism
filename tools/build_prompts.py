@@ -68,6 +68,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      (fought the wrapper's "filling the frame" and lost). Convey smallness
 #      by CONTRAST (a far larger fish looming behind) or context ("small
 #      against the dark"), and put the subject itself "in sharp close-up".
+#  12. A CREATURE SUBJECT MUST HAVE A BODY MJ CAN DRAW. Two killers, seen live
+#      (Floodlord rendered as a wave):
+#        a. VAGUE CREATURE NOUNS (leviathan / colossus / titan / behemoth /
+#           giant / spirit / wisp / being) carry no anatomy -- always pair them
+#           with a body plan ("whale-bodied leviathan", "bull-shaped giant",
+#           "its horned head and massive arms clearly drawn").
+#        b. A BODY MADE OF A FLOWING ELEMENT ("of surging floodwater", "woven
+#           from whitewater", "spirit of tidewater") dissolves into that
+#           element. The creature stands IN the element; the element may be its
+#           mane/breath/trail, never its whole body.
+#      Plus: ONE scene event max -- a second event (a shore freezing over
+#      behind the beast) competes for the frame and wins.
+#      verify_subjects() below enforces 6/7/8/11/12 at generation time.
 #  10. BIJECTION TEST. Given all 198 arts and all 198 names, a player must be
 #      able to match them 1:1. So every subject carries ONE unique visual key
 #      = the name's noun, literally in frame ("Drums of War" shows a drum --
@@ -217,7 +230,7 @@ TOKENS = [
         "name": {"ru": "Росток"},
         "color": ["green"],
         "type": "creature",
-        "art": "a tiny fresh sprout of green light, two small unfurling leaves rising, soft motes of pollen-light drifting upward",
+        "art": "a fresh young sprout of green light in sharp close-up, two unfurling leaves rising, soft motes of pollen-light drifting upward",
     },
 ]
 
@@ -314,6 +327,58 @@ def entry(card, style, flags):
 
 
 _BLUE_RE = re.compile(r"\b(blue|cyan|teal|azure|turquoise)\b")
+
+# --- Subject lints: every art-authoring rule we have violated at least once,
+# --- encoded so it can never silently recur (run on every generation).
+_VAGUE_RE = re.compile(
+    r"^(?:\S+\s+){0,7}?\S*(leviathan|colossus|titan|behemoth|giant|spirit|wisp|being)\b")
+_ANATOMY_RE = re.compile(
+    r"(-shaped|-bodied|-like\b|clearly drawn|head|jaws|arms?\b|legged|legs|paws|"
+    r"wings?\b|fins|antlers|horn|coils|shoulders|whiskers|tail\b|limbs|"
+    r"whale|bull|bear|ox\b|tortoise|serpent|otter|raven|cuttlefish|toad|stag|"
+    r"boar|wolf|panther|fox\b|moth|beetle|spider|crab|owl|heron|mantis|scarab|"
+    r"lynx|drake|dragon|phoenix|basilisk|mammoth|elk|newt|kingfisher|hound|"
+    r"mastiff|rhinoceros|pangolin|armadillo|jellyfish|anglerfish|eel|minnow|"
+    r"archerfish|salamander|hornet|gnat|tick\b|flea|fly\b|firefly|dragonfly|"
+    r"swift\b|nightjar|bat\b|marten|peacock|cicada|stick-insect|scorpion|slug|"
+    r"snail|mole|hawk|lion|aurochs|crane|sunbird|glowfly|horse|figure)")
+_FLOWING_BODY_RE = re.compile(
+    r"\b(woven from|made of|built of|formed of|body of|creature of|spirit of|beast of)\s+"
+    r"(surging |rushing |drifting |ebbing )?"
+    r"(the )?(flood(water)?|whitewater|tidewater|meltwater)\b")
+_SIZE_OPEN_RE = re.compile(r"^a (tiny|small|little) ")
+_LIMB_COUNT_RE = re.compile(
+    r"\b(one|two|three|four|five|six|seven|eight) (leg|wing|arm|eye|head|tail)s?\b")
+_NEGATION_RE = re.compile(r"\bno \w+|\bnever\b|\bwithout\b")
+_TARGET_RE = re.compile(
+    r"\b(enemy|enemies|foe|foes|ally|allies|caster|hero|soldier|defender|person|figure)\b")
+_ANCHOR_PHRASE = "not a realistic painted person"
+
+
+def verify_subjects(cards):
+    """Enforce rules 6/7/8/11/12 on every art subject. Returns violations."""
+    bad = []
+    for c in cards:
+        if c.get("type") == "hero":
+            continue
+        art = c.get("art", "")
+        low = art.lower()
+        body = low.replace(_ANCHOR_PHRASE, "")
+        if _SIZE_OPEN_RE.match(low):
+            bad.append((c["id"], "size word on the main subject (rule 11)"))
+        if _LIMB_COUNT_RE.search(low):
+            bad.append((c["id"], "counted body parts (rule 6)"))
+        if _NEGATION_RE.search(body):
+            bad.append((c["id"], "negation in the subject body (rule 8)"))
+        if c.get("type") in ("spell", "aura"):
+            if _TARGET_RE.search(low):
+                bad.append((c["id"], "names the effect's target (rule 7)"))
+        else:
+            if _FLOWING_BODY_RE.search(low):
+                bad.append((c["id"], "body made of a flowing element (rule 12b)"))
+            if _VAGUE_RE.search(low) and not _ANATOMY_RE.search(low):
+                bad.append((c["id"], "vague creature noun without anatomy (rule 12a)"))
+    return bad
 
 
 def verify_blue(cards):
@@ -418,6 +483,14 @@ def main():
             print("  - " + cid + ": " + why)
     else:
         print("blue-defence: OK (every non-blue card locked against blue)")
+
+    subj = verify_subjects(pool + TOKENS)
+    if subj:
+        print("subject-lint: " + str(len(subj)) + " issue(s)")
+        for cid, why in subj:
+            print("  - " + cid + ": " + why)
+        sys.exit(1)
+    print("subject-lint: OK (anatomy, no flowing bodies, no targets/negations/size/limb-counts)")
 
 
 if __name__ == "__main__":

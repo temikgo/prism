@@ -240,7 +240,7 @@
     "text": {
       "ru": "Проносится сквозь строй, будто того и нет."
     },
-    "art": "a galloping horse-shaped beast of drifting ash and embers streaking untouched past a braced wall of shields",
+    "art": "a galloping horse-shaped beast with a solid clearly drawn body, its mane and tail streaming off as ash and embers, streaking past a braced wall of shields",
     "type": "creature",
     "color": [
       "red"
@@ -267,7 +267,7 @@
     "text": {
       "ru": "Пляшет — и раны хозяина затягивает жаром."
     },
-    "art": "a whirling serpentine ember-creature spinning in a fire-dance, threads of warm light spiralling back off-frame",
+    "art": "a long-bodied ember-serpent rearing upright in a spinning fire-dance, its coils clearly drawn, threads of warm light spiralling off-frame",
     "type": "creature",
     "color": [
       "red"
@@ -594,7 +594,7 @@
     "text": {
       "ru": "Идёт напрямик, и даже смерть его обжигает."
     },
-    "art": "a towering colossus of molten stone striding straight through a crumbling shield-wall, heat bleeding from its cracked hide",
+    "art": "a towering titan of molten stone, its huge horned head and massive arms clearly drawn, striding straight through a crumbling shield-wall, heat bleeding from its cracked hide",
     "type": "creature",
     "color": [
       "red"
@@ -1666,7 +1666,7 @@
     "text": {
       "ru": "Размером со всё, что ты успел скопить."
     },
-    "art": "a vast slumbering forest-spirit grown from living heartwood, its pulsing core swelling larger the more crystals lie hoarded around it",
+    "art": "a vast slumbering wooden beast curled up asleep, its body grown of living heartwood around a glowing pulsing heart-core, swelling larger the more crystals lie hoarded around it",
     "type": "creature",
     "color": [
       "green"
@@ -1695,7 +1695,7 @@
     "text": {
       "ru": "Целый подлесок, сросшийся в одно."
     },
-    "art": "a lumbering colossus woven from a whole tangled undergrowth of vine and root, bulkier the fuller the field",
+    "art": "a hulking bear-shaped colossus woven of vine and knotted root, rearing upright, bulkier the fuller the field around it grows",
     "type": "creature",
     "color": [
       "green"
@@ -1753,7 +1753,7 @@
     "text": {
       "ru": "Корень, из которого поднялся весь лес."
     },
-    "art": "a vast root-being heaving up out of the earth, its canopy still climbing toward the sky",
+    "art": "a world-spanning root heaving up out of the earth, its tangled root-limbs clearly drawn, its young canopy still climbing toward the sky",
     "type": "creature",
     "color": [
       "green"
@@ -1898,7 +1898,7 @@
     "text": {
       "ru": "Придёт волна — и унесёт лишнее обратно."
     },
-    "art": "a rolling spirit of tidewater sweeping across the field, its receding wave dragging a swirl of flotsam back off the shore",
+    "art": "a long sea-serpent spirit with a clearly drawn finned body curling back off the shore, the tide drawn out after it, flotsam dragged in its wake",
     "type": "creature",
     "color": [
       "blue"
@@ -2014,7 +2014,7 @@
     "text": {
       "ru": "Дышит — и рядом всё покрывается инеем."
     },
-    "art": "a towering colossus sheathed in thick hoarfrost, its frozen breath sheathing the ground before it in a hard crust of rime",
+    "art": "a towering colossus sheathed in thick hoarfrost, its broad shoulders and heavy fists clearly drawn, its frozen breath sheathing the ground before it in a hard crust of rime",
     "type": "creature",
     "color": [
       "blue"
@@ -2045,7 +2045,7 @@
     "text": {
       "ru": "Всплывёт из глубины — и море встанет льдом."
     },
-    "art": "a vast deep-sea leviathan breaching the surface, the shock of cold flash-freezing the whole sea's surface at once",
+    "art": "a whale-like deep-sea leviathan breaching, its barnacled head and jaws towering over the water, the sea freezing solid in rings around its body",
     "type": "creature",
     "color": [
       "blue"
@@ -4038,7 +4038,7 @@
     "text": {
       "ru": "Убьёшь — вернётся тенью."
     },
-    "art": "a dim violet phantom-wisp half-dissolved into shadow, a fainter echo of itself drifting a step behind",
+    "art": "a dim violet phantom with a hooded wraith-like form, half-dissolved into shadow, a fainter echo of itself drifting a step behind",
     "type": "creature",
     "color": [
       "violet"
@@ -4200,7 +4200,7 @@
     "text": {
       "ru": "Сколько скопишь, столько и поднимется."
     },
-    "art": "a lumbering colossus grown from green crystal-vines with a violet phantom twin looming behind it, its bulk swelling to match the mana hoarded near",
+    "art": "a four-legged colossus of green crystal with a violet phantom twin looming behind it, its bulk swelling to match the mana hoarded near",
     "type": "creature",
     "color": [
       "green",
@@ -4234,7 +4234,7 @@
     "text": {
       "ru": "Один морок сеет целый рой."
     },
-    "art": "a wisp-spirit of tangled green vines and violet haze budding a faint hollow copy of itself, both sprawling denser as the undergrowth crowds in around them",
+    "art": "a round-bodied wisp-creature, a floating orb of tangled green vines wrapped in violet haze, budding a faint hollow copy of itself as the undergrowth thickens",
     "type": "creature",
     "color": [
       "green",
@@ -4915,7 +4915,7 @@
     "text": {
       "ru": "Проснётся — и весь строй ослепнет."
     },
-    "art": "a vast stone-shelled colossus buried in violet dusk among banked crystals, heaving awake and loosing a blinding golden flash across the whole horizon",
+    "art": "a mountainous four-legged stone-shelled beast heaving awake from under banked crystals in violet dusk, loosing one blinding golden flash across the horizon",
     "type": "creature",
     "color": [
       "yellow",
@@ -5325,7 +5325,7 @@
     "text": {
       "ru": "Несёт ростки и студит берега."
     },
-    "art": "a lithe river-otter woven from rushing green-and-blue whitewater, scattering sprouting seeds from its wake, hoarfrost trailing off its whiskers into the spray",
+    "art": "a sleek river-otter with a solid clearly drawn body riding the rushing rapids, seeds scattering from its wake, hoarfrost trailing off its whiskers",
     "type": "creature",
     "color": [
       "green",
@@ -5473,7 +5473,7 @@
     "text": {
       "ru": "Растёт с рекой и студит на подходе."
     },
-    "art": "a colossal reed-maned river-behemoth of surging floodwater, swelling with every crystal you hoard, its frozen breath sheeting the shallows with ice as it wades ashore",
+    "art": "a towering bull-shaped river-giant wading ashore chest-deep through the flood, moss and reeds matted across its massive shoulders, frost crackling out from every step",
     "type": "creature",
     "color": [
       "green",
@@ -5512,7 +5512,7 @@
     "text": {
       "ru": "Разольётся — и весь берег во льду."
     },
-    "art": "a vast river-leviathan surging up from the green-and-blue flood, sprouting reeds streaming from its hide, a sheet of frost flash-freezing the whole far shore",
+    "art": "a colossal whale-bodied leviathan rearing head and shoulders up out of the flood, green reeds streaming like a mane down its neck, its bellowing breath sheeting the water below with frost",
     "type": "creature",
     "color": [
       "green",
