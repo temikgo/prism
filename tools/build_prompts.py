@@ -129,28 +129,35 @@ NEG = {c: s[0] for c, s in SHADES.items()}
 #       "MJ look" sneaks in; near-zero stylize follows the prompt literally and
 #       keeps colours true. Also no mood-grading words in the wrapper (dropped
 #       "moody" -- it graded backgrounds teal).
-#   (2) ONE NUMERIC STYLE CODE for the whole set -- the true lock. Image srefs
-#       were tried and REJECTED twice: an image reference always carries its
-#       palette (per-colour anchors made yellow wavy-vs-bold and every recolour
-#       hack tinted the hue), and bare prompts style-lottery every job. A
-#       NUMERIC --sref code is a pure style embedding with no palette payload:
-#       colour comes only from the prompt text (which holds colour perfectly),
-#       and the SAME code on all 203 prompts means one manner, one quality, for
-#       every colour, creature, phenomenon, structure and hero, by construction.
-#       Hunt (once): run any creature prompt with " --sref random" appended a
-#       few times; each finished job reveals the concrete code it used (in the
-#       job's prompt line). Pick the grid whose manner matches the coal wolf
-#       (bold thick outlines, flat cel fills), paste that number into
-#       STYLE_CODE below and rerun this script. Tuning: style too weak ->
-#       raise STYLE_SW toward 300; composition getting hijacked -> lower to 50.
-STYLE_CODE = ""
-STYLE_SW = 100
+#   (2) PER-COLOUR STYLE ANCHORS -- the proven lock (restored after the numeric
+#       style-code detour failed). Field results: red 9/9 accepted in one batch,
+#       violet re-anchored and accepted, dual blends accepted. Numeric codes
+#       were a lottery AND can carry a colour core (the one good code tinted
+#       everything green at any weight); recolour hacks tint hue. Same-colour
+#       image anchors have no palette problem BY DESIGN: the palette pull
+#       reinforces the card's own colour. Duals reference both parents' anchors
+#       and MJ blends them evenly. The 4-grid variance that remains is inherent
+#       to MJ -- "first try" means the first grid contains a keeper.
+#       The one failure mode: an anchor whose MANNER is off (the wavy stag)
+#       leaks its manner into its colour. Fix at the source -- reroll that
+#       anchor with the bare prompt until its manner matches the other four,
+#       then paste its URL here. NEVER recolour an anchor and never borrow a
+#       cross-colour sref: an image reference always carries its palette.
+ANCHORS = {
+    "red": "https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png",
+    "yellow": "",
+    "green": "https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png",
+    "blue": "https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png",
+    "violet": "https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png",
+}
+ANCHOR_SW = 100
 
 
 def _sref(cols):
-    if not STYLE_CODE:
+    urls = [ANCHORS[c] for c in cols if ANCHORS.get(c, "")]
+    if not urls or len(cols) >= 5:
         return ""
-    return " --sref " + STYLE_CODE + " --sw " + str(STYLE_SW)
+    return " --sref " + " ".join(urls) + " --sw " + str(ANCHOR_SW)
 
 # Flat-2D vocabulary, repeated so it wins over v7's default realism. NO "energy
 # given form" / "depth" (those invite volumetric 3D).
@@ -408,15 +415,14 @@ def main():
         "промпту: меньше «синего дрейфа» и отсебятины). Палитра у каждой карты строго своя.",
         "Существа = «being of light», заклинания/ауры = «effect of light, no creature».",
         "",
-        "**Замок стиля = ОДИН числовой style-код на весь сет.** Картинки-референсы отвергнуты:",
-        "они всегда несут свою палитру (жёлтый уезжал в манеру/оттенок якоря). Числовой код",
-        "`--sref N` — чистый отпечаток манеры БЕЗ цвета: цвет держит текст промпта, а одинаковый",
-        "код на всех промптах даёт один стиль и одно качество всем цветам и типам по построению.",
-        "**Охота за кодом (один раз):** к промпту любого существа допиши ` --sref random` и прогони",
-        "несколько раз; готовая работа показывает конкретный номер кода в строке промпта. Выбери",
-        "сетку в манере угольного волка (толстый контур, плоские заливки), впиши номер в",
-        "`STYLE_CODE` в `tools/build_prompts.py`, перегенери — код получат все промпты разом.",
-        "Стиль слабоват → `STYLE_SW` к 300; код ломает композицию → к 50.",
+        "**Замок стиля = пер-цветовые якоря (проверено боем: красный 9/9 одной пачкой).** Каждая",
+        "карта ссылается на эталон СВОЕГО цвета — перенос палитры усиливает цвет карты, а не",
+        "борется с ним; двуцветки берут оба якоря (MJ мешает поровну). Числовые style-коды",
+        "отвергнуты: лотерея + бывают с цветовым ядром (лучший код зеленил всё на любом весе).",
+        "Якорь перекрашивать НЕЛЬЗЯ и чужой цвет одалживать НЕЛЬЗЯ — image-ref всегда несёт палитру.",
+        "Если якорь выбился МАНЕРОЙ (волнистый олень) — перегенерить сам якорь голым промптом",
+        "(без --sref), пока манера не совпадёт с остальными, и вписать URL в ANCHORS.",
+        "Разброс внутри сетки 4 — свойство MJ: «с первого раза» = в первой сетке есть годный кадр.",
         "",
         "**Если конкретный арт не удался:** (1) перезапусти тот же промпт ещё раз; (2) кривые или",
         "лишние лапы — Editor → Vary Region по месту, остальное не трогая; (3) карта упорно синит",
