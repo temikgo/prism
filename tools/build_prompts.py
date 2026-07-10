@@ -152,7 +152,7 @@ NEG = {c: s[0] for c, s in SHADES.items()}
 #       cross-colour sref: an image reference always carries its palette.
 ANCHORS = {
     "red": "https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png",
-    "yellow": "",
+    "yellow": "https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png",
     "green": "https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png",
     "blue": "https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png",
     "violet": "https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png",
