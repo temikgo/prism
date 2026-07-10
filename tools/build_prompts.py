@@ -136,7 +136,7 @@ ANCHORS = {
     "yellow": "https://cdn.midjourney.com/429fedec-2bf5-4763-9dbc-bb408d8acb80/0_0.png",
     "green": "https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png",
     "blue": "https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png",
-    "violet": "https://cdn.midjourney.com/ea7d4479-235d-4b0b-a318-455d63f5ee1a/0_2.png",
+    "violet": "https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png",
 }
 ANCHOR_SW = 100
 
@@ -294,13 +294,17 @@ def style_for(card):
     return body, flags
 
 
+_TYPE_RU = {"creature": "существо", "spell": "заклинание", "aura": "аура", "hero": "герой"}
+
+
 def entry(card, style, flags):
     art = card.get("art", "")
     if not art:
         return []
     name = card.get("name", {}).get("ru", card["id"])
+    kind = _TYPE_RU.get(card.get("type", ""), card.get("type", ""))
     return [
-        "## " + name + " — `" + card["id"] + "`",
+        "## " + name + " — `" + card["id"] + "`  (" + kind + ")",
         "save: `client-godot/art/" + card["id"] + ".png`",
         "```",
         art + ", " + style + " " + flags,
