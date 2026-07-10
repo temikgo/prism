@@ -139,13 +139,13 @@ static func demo_view() -> Dictionary:
 			{"color": "green", "age": 2},
 			{"color": "colorless", "age": 0},
 		],
-		"hand": ["green_grove_warden", "blue_winter_stream", "yellow_corona",
+		"hand": ["green_grove_warden", "blue_winter_stream", "yellow_corona_serpent",
 			"blue_farsight"],
 		"heroPowerUsed": false, "deckCount": 18, "graveyardCount": 3, "pendingCount": 0,
 		"board": [
 			creature(11, "red_cinder_moth", 2, 1, 1),
 			creature(12, "green_bounty_tree", 1, 2, 2, {"shield": true}),
-			creature(13, "yellow_heat_haze", 0, 4, 4),
+			creature(13, "yellow_haze_wall", 0, 4, 4),
 		],
 		"auras": [{"card": "blue_cold_snap"}],
 	})

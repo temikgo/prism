@@ -123,7 +123,7 @@ func _test_card_data() -> void:
 func _test_game_state() -> void:
 	var v := DevKit.view(
 		DevKit.player({"board": [DevKit.creature(11, "red_cinder_moth", 2, 2, 3)]}),
-		DevKit.player({"board": [DevKit.creature(21, "yellow_heat_haze", 0, 3, 4)]}))
+		DevKit.player({"board": [DevKit.creature(21, "yellow_haze_wall", 0, 3, 4)]}))
 	var d := GameState.diff({11: 3, 99: 5}, v)
 	_eq(int(d["hp"][11]), 2, "diff records current hp")
 	_eq(int(d["dmg"][11]), 1, "creature 11 took 1 damage (3->2)")
@@ -135,7 +135,7 @@ func _test_game_state() -> void:
 func _test_rules() -> void:
 	# A live board: your turn, you have mixed crystals, enemy has a provoker (warden)
 	# and a stealthed creature.
-	var enemy_board := [DevKit.creature(21, "yellow_heat_haze", 0, 4, 4),
+	var enemy_board := [DevKit.creature(21, "yellow_haze_wall", 0, 4, 4),
 		DevKit.creature(22, "violet_unseen_prowler", 2, 3, 3, {"stealth": true})]
 	var v := DevKit.view(
 		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),

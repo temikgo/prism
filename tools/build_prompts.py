@@ -129,36 +129,28 @@ NEG = {c: s[0] for c, s in SHADES.items()}
 #       "MJ look" sneaks in; near-zero stylize follows the prompt literally and
 #       keeps colours true. Also no mood-grading words in the wrapper (dropped
 #       "moody" -- it graded backgrounds teal).
-#   (2) PER-COLOUR STYLE ANCHORS -- the true lock. A single shared --sref was
-#       rejected: a style reference transfers its own palette, so one anchor
-#       poisons every other colour. Per-colour anchors turn that into the fix:
-#       each card references an anchor of ITS OWN colour, so the palette pull
-#       reinforces the card's colour instead of fighting it; duals reference
-#       BOTH parents' anchors and MJ blends them evenly (= the two-colour mix
-#       we want). Style stays uniform because all five anchors come from the
-#       same series.
-#       Bootstrap (once): for each colour, generate cards with the bare prompt
-#       until ONE comes out perfect (red/blue can start from the best existing
-#       art in client-godot/art/); in MJ copy that image's URL and paste it
-#       into ANCHORS below; rerun this script. Cards of a colour whose anchor
-#       is still "" just get no --sref until it is filled in.
-#       Tuning: anchor colour overpowering the subject -> lower ANCHOR_SW to
-#       50; style still drifting to 3D -> raise toward 300.
-ANCHORS = {
-    "red": "https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png",
-    "yellow": "https://cdn.midjourney.com/429fedec-2bf5-4763-9dbc-bb408d8acb80/0_0.png",
-    "green": "https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png",
-    "blue": "https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png",
-    "violet": "https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png",
-}
-ANCHOR_SW = 100
+#   (2) ONE NUMERIC STYLE CODE for the whole set -- the true lock. Image srefs
+#       were tried and REJECTED twice: an image reference always carries its
+#       palette (per-colour anchors made yellow wavy-vs-bold and every recolour
+#       hack tinted the hue), and bare prompts style-lottery every job. A
+#       NUMERIC --sref code is a pure style embedding with no palette payload:
+#       colour comes only from the prompt text (which holds colour perfectly),
+#       and the SAME code on all 203 prompts means one manner, one quality, for
+#       every colour, creature, phenomenon, structure and hero, by construction.
+#       Hunt (once): run any creature prompt with " --sref random" appended a
+#       few times; each finished job reveals the concrete code it used (in the
+#       job's prompt line). Pick the grid whose manner matches the coal wolf
+#       (bold thick outlines, flat cel fills), paste that number into
+#       STYLE_CODE below and rerun this script. Tuning: style too weak ->
+#       raise STYLE_SW toward 300; composition getting hijacked -> lower to 50.
+STYLE_CODE = ""
+STYLE_SW = 100
 
 
 def _sref(cols):
-    urls = [ANCHORS[c] for c in cols if ANCHORS.get(c, "")]
-    if not urls or len(cols) >= 5:
+    if not STYLE_CODE:
         return ""
-    return " --sref " + " ".join(urls) + " --sw " + str(ANCHOR_SW)
+    return " --sref " + STYLE_CODE + " --sw " + str(STYLE_SW)
 
 # Flat-2D vocabulary, repeated so it wins over v7's default realism. NO "energy
 # given form" / "depth" (those invite volumetric 3D).
@@ -416,14 +408,15 @@ def main():
         "промпту: меньше «синего дрейфа» и отсебятины). Палитра у каждой карты строго своя.",
         "Существа = «being of light», заклинания/ауры = «effect of light, no creature».",
         "",
-        "**Калибровка (один раз, ДО массовой генерации): пер-цветовые якоря.** Общий sref на весь",
-        "сет отвергнут — он тянет СВОЮ палитру во все карты. Вместо этого один эталон НА ЦВЕТ:",
-        "1) для каждого из 5 цветов генери карты голым промптом, пока одна не выйдет идеальной",
-        "   (красному/синему можно стартовать с лучшего готового арта из `client-godot/art/`);",
-        "2) URL этих 5 картинок впиши в `ANCHORS` в `tools/build_prompts.py` и перегенери файл.",
-        "Дальше каждая карта ссылается на якорь СВОЕГО цвета (перенос палитры работает за нас),",
-        "двуцветки — на ОБА якоря сразу (MJ смешивает их поровну — ровно нужный микс цветов).",
-        "Якорь пережимает сюжет → снижай `ANCHOR_SW` к 50; стиль уплывает в 3D → поднимай к 300.",
+        "**Замок стиля = ОДИН числовой style-код на весь сет.** Картинки-референсы отвергнуты:",
+        "они всегда несут свою палитру (жёлтый уезжал в манеру/оттенок якоря). Числовой код",
+        "`--sref N` — чистый отпечаток манеры БЕЗ цвета: цвет держит текст промпта, а одинаковый",
+        "код на всех промптах даёт один стиль и одно качество всем цветам и типам по построению.",
+        "**Охота за кодом (один раз):** к промпту любого существа допиши ` --sref random` и прогони",
+        "несколько раз; готовая работа показывает конкретный номер кода в строке промпта. Выбери",
+        "сетку в манере угольного волка (толстый контур, плоские заливки), впиши номер в",
+        "`STYLE_CODE` в `tools/build_prompts.py`, перегенери — код получат все промпты разом.",
+        "Стиль слабоват → `STYLE_SW` к 300; код ломает композицию → к 50.",
         "",
         "**Если конкретный арт не удался:** (1) перезапусти тот же промпт ещё раз; (2) кривые или",
         "лишние лапы — Editor → Vary Region по месту, остальное не трогая; (3) карта упорно синит",
@@ -453,7 +446,7 @@ def main():
         n += 1
     out += ["## — ГЕРОИ —", ""]
     for c in heroes:
-        out += entry(c, HERO_STYLE, HERO_FLAGS)
+        out += entry(c, HERO_STYLE, HERO_FLAGS + _sref([]))
         n += 1
 
     dest = os.path.join(ROOT, "ART_PROMPTS.md")

@@ -618,10 +618,10 @@
     ]
   },
   {
-    "id": "yellow_heat_haze",
+    "id": "yellow_haze_wall",
     "name": {
-      "ru": "Марево",
-      "en": "Heat Haze"
+      "ru": "Стена марева",
+      "en": "Haze Wall"
     },
     "text": {
       "ru": "Смотришь сквозь — и не понимаешь, где стена."
@@ -648,10 +648,10 @@
     ]
   },
   {
-    "id": "yellow_glint",
+    "id": "yellow_glint_sunbird",
     "name": {
-      "ru": "Проблеск",
-      "en": "Glint"
+      "ru": "Птица-проблеск",
+      "en": "Glint Sunbird"
     },
     "text": {
       "ru": "Успевает сверкнуть первым."
@@ -679,10 +679,10 @@
     ]
   },
   {
-    "id": "yellow_waymark",
+    "id": "yellow_waymark_stone",
     "name": {
-      "ru": "Веха",
-      "en": "Waymark"
+      "ru": "Путевая веха",
+      "en": "Waymark Stone"
     },
     "text": {
       "ru": "Стоит на своём и не сходит."
@@ -711,10 +711,10 @@
     ]
   },
   {
-    "id": "yellow_talisman",
+    "id": "yellow_talisman_spirit",
     "name": {
-      "ru": "Оберег",
-      "en": "Talisman"
+      "ru": "Дух-оберег",
+      "en": "Talisman Spirit"
     },
     "text": {
       "ru": "Возьмёт чужую беду на себя."
@@ -826,10 +826,10 @@
     ]
   },
   {
-    "id": "yellow_corona",
+    "id": "yellow_corona_serpent",
     "name": {
-      "ru": "Венец",
-      "en": "Corona"
+      "ru": "Змей-венец",
+      "en": "Corona Serpent"
     },
     "text": {
       "ru": "Каждый глоток света возвращается врагу жаром."
@@ -855,10 +855,10 @@
     ]
   },
   {
-    "id": "yellow_heat_lightning",
+    "id": "yellow_lightning_hawk",
     "name": {
-      "ru": "Зарница",
-      "en": "Heat Lightning"
+      "ru": "Ястреб-зарница",
+      "en": "Lightning Hawk"
     },
     "text": {
       "ru": "Полыхнёт — и противник слепнет на подходе."
@@ -1040,10 +1040,10 @@
     ]
   },
   {
-    "id": "yellow_swelter",
+    "id": "yellow_swelter_aurochs",
     "name": {
-      "ru": "Зной",
-      "en": "Swelter"
+      "ru": "Знойный тур",
+      "en": "Swelter Aurochs"
     },
     "text": {
       "ru": "Изматывает жарой, а сам всё крепче."
@@ -1072,10 +1072,10 @@
     ]
   },
   {
-    "id": "yellow_heliodore",
+    "id": "yellow_heliodore_scarab",
     "name": {
-      "ru": "Гелиодор",
-      "en": "Heliodore"
+      "ru": "Скарабей-гелиодор",
+      "en": "Heliodore Scarab"
     },
     "text": {
       "ru": "Разит первым и раной кормит хозяина."
@@ -1103,10 +1103,10 @@
     ]
   },
   {
-    "id": "yellow_zenith",
+    "id": "yellow_zenith_phoenix",
     "name": {
-      "ru": "Зенит",
-      "en": "Zenith"
+      "ru": "Феникс зенита",
+      "en": "Zenith Phoenix"
     },
     "text": {
       "ru": "В высшей точке бьёт дважды и не гаснет."
@@ -1135,10 +1135,10 @@
     ]
   },
   {
-    "id": "yellow_solstice",
+    "id": "yellow_solstice_dragon",
     "name": {
-      "ru": "Солнцеворот",
-      "en": "Solstice"
+      "ru": "Дракон-солнцеворот",
+      "en": "Solstice Dragon"
     },
     "text": {
       "ru": "Всякий целебный луч он оборачивает клинком."
@@ -1167,10 +1167,10 @@
     ]
   },
   {
-    "id": "yellow_helios",
+    "id": "yellow_lion_of_helios",
     "name": {
-      "ru": "Гелиос",
-      "en": "Helios"
+      "ru": "Лев Гелиоса",
+      "en": "Lion of Helios"
     },
     "text": {
       "ru": "Держит строй и добивает светом дважды."
