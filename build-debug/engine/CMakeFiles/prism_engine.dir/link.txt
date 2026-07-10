@@ -1,0 +1,2 @@
+/usr/bin/ar qc libprism_engine.a CMakeFiles/prism_engine.dir/src/bot.cpp.o CMakeFiles/prism_engine.dir/src/card.cpp.o CMakeFiles/prism_engine.dir/src/deck.cpp.o CMakeFiles/prism_engine.dir/src/game.cpp.o CMakeFiles/prism_engine.dir/src/protocol.cpp.o CMakeFiles/prism_engine.dir/src/serialize.cpp.o
+/usr/bin/ranlib libprism_engine.a

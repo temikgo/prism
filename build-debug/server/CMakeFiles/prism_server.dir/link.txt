@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/prism_server.dir/src/main.cpp.o -o prism_server  ../engine/libprism_engine.a 

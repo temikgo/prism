@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/prism_tests.dir/tests/tests.cpp.o -o prism_tests  libprism_engine.a 

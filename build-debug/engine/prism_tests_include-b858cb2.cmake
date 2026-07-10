@@ -1,0 +1,5 @@
+if(EXISTS "/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/prism_tests_tests-b858cb2.cmake")
+  include("/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/prism_tests_tests-b858cb2.cmake")
+else()
+  add_test(prism_tests_NOT_BUILT-b858cb2 prism_tests_NOT_BUILT-b858cb2)
+endif()

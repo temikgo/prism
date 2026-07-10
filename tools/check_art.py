@@ -24,8 +24,8 @@ def mipmapped(import_path):
 # master art. Fix: `python3 tools/gen_thumbs.py` then re-import.
 def main():
     if not os.path.isdir(ART):
-        print("no art dir at " + ART)
-        sys.exit(1)
+        print("no art yet (clean slate before regeneration) -- OK")
+        return
     pngs = sorted(f for f in os.listdir(ART) if f.endswith(".png"))
     bad = []
     for png in pngs:

@@ -1,0 +1,14 @@
+/home/temikgo/main/MyFiles/junk/prism/build-debug/CMakeFiles/test.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/CMakeFiles/edit_cache.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/CMakeFiles/rebuild_cache.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/prism_engine.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/prism_replay.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/prism_selfplay.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/prism_tests.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/test.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/edit_cache.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/CMakeFiles/rebuild_cache.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/server/CMakeFiles/prism_server.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/server/CMakeFiles/test.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/server/CMakeFiles/edit_cache.dir
+/home/temikgo/main/MyFiles/junk/prism/build-debug/server/CMakeFiles/rebuild_cache.dir

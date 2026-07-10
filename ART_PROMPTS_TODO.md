@@ -1,6 +1,96 @@
-# ART TODO — карты без арта (157 шт.)
+# ART TODO — карты без арта (203 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
+
+## Гарь-мотылёк — `red_cinder_moth`  (существо)
+save: `client-godot/art/red_cinder_moth.png`
+```
+a moth in sharp close-up with smouldering cinder-dusted wings trailing sparks, darting low beneath raised shields straight at its mark, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Жар-брызгун — `red_ember_archerfish`  (существо)
+save: `client-godot/art/red_ember_archerfish.png`
+```
+an archerfish of red ray-light spitting a hard jet of sparks at a distant mark, the spark-jet the brightest line in the frame, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Пепельный змеёныш — `red_ashwhelp`  (существо)
+save: `client-godot/art/red_ashwhelp.png`
+```
+a wingless drake hatchling of cooling ash in sharp close-up, small against the dark, jaws parting for one last scorching breath, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Комар-копейщик — `red_lance_gnat`  (существо)
+save: `client-godot/art/red_lance_gnat.png`
+```
+a large gnat with a long needle-lance for a proboscis, lowered like a couched spear to run its target clean through, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Кровавый клещ — `red_bloodtick`  (существо)
+save: `client-godot/art/red_bloodtick.png`
+```
+a swollen tick latched onto its prey, its body glowing hotter and fuller the more it drinks, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Шершень углей — `red_hornet_of_embers`  (существо)
+save: `client-godot/art/red_hornet_of_embers.png`
+```
+a hornet with an oversized barbed stinger, driving it clean through a raised shield into the space beyond, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Пепельный скакун — `red_ash_courser`  (существо)
+save: `client-godot/art/red_ash_courser.png`
+```
+a galloping horse-shaped beast with a solid clearly drawn body, its mane and tail streaming off as ash and embers, streaking past a braced wall of shields, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Тлеющий плясун — `red_smoulder_dancer`  (существо)
+save: `client-godot/art/red_smoulder_dancer.png`
+```
+a long-bodied ember-serpent rearing upright in a spinning fire-dance, its coils clearly drawn, threads of warm light spiralling off-frame, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Багряная рысь — `red_crimson_lynx`  (существо)
+save: `client-godot/art/red_crimson_lynx.png`
+```
+a lean tuft-eared lynx mid-pounce with claws bared, its own gashes searing shut in the heat as it strikes, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Взрывной жук — `red_blast_beetle`  (существо)
+save: `client-godot/art/red_blast_beetle.png`
+```
+a fat armored beetle with a cracked venting shell packed with heat, swelling an instant from bursting, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Искровой стрелок — `red_spark_gunner`  (существо)
+save: `client-godot/art/red_spark_gunner.png`
+```
+a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Клеймёный страж — `red_brand_warden`  (существо)
+save: `client-godot/art/red_brand_warden.png`
+```
+a heavy branded ox-beast marked with searing glyphs, warm light streaming back off-frame with every goring blow, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Костровой полип — `red_bonfire_polyp`  (существо)
+save: `client-godot/art/red_bonfire_polyp.png`
+```
+a squat coral-like polyp burning like a small bonfire, flames crowning its crown of arms, a shimmering heat-haze sharpening everything near it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Угольная пушка — `red_ember_cannon`  (существо)
+save: `client-godot/art/red_ember_cannon.png`
+```
+a heavy siege-turtle with an ember-cannon fused to its thick shell, belching a bright spark downrange, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
+
+## Огненный титан — `red_flame_titan`  (существо)
+save: `client-godot/art/red_flame_titan.png`
+```
+a towering titan of molten stone, its huge horned head and massive arms clearly drawn, striding straight through a crumbling shield-wall, heat bleeding from its cracked hide, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
+```
 
 ## Стена марева — `yellow_haze_wall`  (существо)
 save: `client-godot/art/yellow_haze_wall.png`
@@ -74,6 +164,12 @@ save: `client-godot/art/yellow_heliodore_scarab.png`
 a scarab beetle sheathed in faceted heliodor-gem plates, its edged shell flashing to strike first, each blow that breaks on it streaming back off-frame as warmth, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey
 ```
 
+## Феникс зенита — `yellow_zenith_phoenix`  (существо)
+save: `client-godot/art/yellow_zenith_phoenix.png`
+```
+a blazing phoenix at the peak of its climb, lashing twice with wings of noon-fire and mending itself as it hangs aloft, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey
+```
+
 ## Дракон-солнцеворот — `yellow_solstice_dragon`  (существо)
 save: `client-godot/art/yellow_solstice_dragon.png`
 ```
@@ -96,6 +192,12 @@ a primrose bud in sharp close-up unfurling at dawn, drawing a single crystal out
 save: `client-godot/art/green_crystal_mole.png`
 ```
 a burrowing mole with broad crystal-tipped claws, surfacing from the soil clutching a freshly unearthed shard, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
+```
+
+## Сеятель — `green_sower`  (существо)
+save: `client-godot/art/green_sower.png`
+```
+a lone sower striding across a furrowed field, casting a wide sweeping arc of glowing seed from a shoulder-bag, green sprouts rising in neat rows in the turned earth behind, the figure drawn as flat glowing green light-lines, not a realistic painted person, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
 ```
 
 ## Всплеск спор — `green_sporeburst`  (существо)
@@ -170,16 +272,58 @@ save: `client-godot/art/green_worldroot.png`
 a world-spanning root heaving up out of the earth, its tangled root-limbs clearly drawn, its young canopy still climbing toward the sky, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
 ```
 
+## Фокальный дракончик — `blue_focal_drake`  (существо)
+save: `client-godot/art/blue_focal_drake.png`
+```
+a crystalline drake in sharp close-up peering through a clear lens of ice, a faint image of the next card surfacing in its eye, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
+## Ледяной часовой — `blue_frost_sentinel`  (существо)
+save: `client-godot/art/blue_frost_sentinel.png`
+```
+a tall heron of blue ice-light standing sentinel, its breath blooming into hoarfrost that rimes the reeds and pond around it solid, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
+## Ледниковая стена — `blue_glacier_wall`  (существо)
+save: `client-godot/art/blue_glacier_wall.png`
+```
+a towering glacier wall of clear blue ice spanning the whole field, immovable, the deck's coming cards frozen dimly visible deep within it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living blue light, glowing blue light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
+## Дух отлива — `blue_ebb_spirit`  (существо)
+save: `client-godot/art/blue_ebb_spirit.png`
+```
+a long sea-serpent spirit with a clearly drawn finned body curling back off the shore, the tide drawn out after it, flotsam dragged in its wake, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
 ## Гранёный оракул — `blue_facet_oracle`  (существо)
 save: `client-godot/art/blue_facet_oracle.png`
 ```
 a faceted crystal dragonfly hovering in place, every wing-edge flaring keener each time a stray bolt of light crackles past, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
 ```
 
+## Зеркальный скат — `blue_mirror_ray`  (существо)
+save: `client-godot/art/blue_mirror_ray.png`
+```
+a gliding crystalline manta ray, a single beam entering its clear body and leaving as two diverging rays, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
 ## Мерцающий рефрактор — `blue_refractor`  (существо)
 save: `client-godot/art/blue_refractor.png`
 ```
 a slowly drifting cut-glass jellyfish, its faceted bell hoarding each passing bolt of light as an ever-brightening inner glare, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
+## Заиндевевший колосс — `blue_hoarfrost_colossus`  (существо)
+save: `client-godot/art/blue_hoarfrost_colossus.png`
+```
+a towering colossus sheathed in thick hoarfrost, its broad shoulders and heavy fists clearly drawn, its frozen breath sheathing the ground before it in a hard crust of rime, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
+```
+
+## Глубинный левиафан — `blue_deep_leviathan`  (существо)
+save: `client-godot/art/blue_deep_leviathan.png`
+```
+a whale-like deep-sea leviathan breaching, its barnacled head and jaws towering over the water, the sea freezing solid in rings around its body, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
 ```
 
 ## Тусклый огонёк — `violet_dim_ember`  (существо)
@@ -194,10 +338,22 @@ save: `client-godot/art/violet_halflight.png`
 a lone figure of violet shadow caught half-dissolved, flickering between solid form and empty air, three faint overlapping copies of it trailing off, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
 ```
 
+## Незримый лазутчик — `violet_unseen_prowler`  (существо)
+save: `client-godot/art/violet_unseen_prowler.png`
+```
+a powerful violet panther prowling low and taut in sharp close-up, muscles bold and clearly drawn, eyes fixed ahead, deep shadow pooling around its paws as it steals forward unseen, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
+```
+
 ## Сумеречный мотылёк — `violet_duskwing`  (существо)
 save: `client-godot/art/violet_duskwing.png`
 ```
 a broad-winged violet moth at dusk, its wide shadow spilling across the ground to hide whatever slips beneath it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
+```
+
+## Тень-близнец — `violet_twin_shade`  (существо)
+save: `client-godot/art/violet_twin_shade.png`
+```
+two identical violet shadow-figures standing side by side in mirror poses, one solid and one a hollow echo, impossible to tell apart, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
 ```
 
 ## Мерцающий фонарь — `violet_glimmer_lantern`  (существо)
@@ -234,6 +390,12 @@ a wavering violet shadow-serpent coiled in guard, an incoming beam bending off i
 save: `client-godot/art/violet_false_marshal.png`
 ```
 a violet raven-shade growing fiercer as a flock of faint illusory ravens wheels ever thicker around it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
+```
+
+## Владыка мороков — `violet_mirage_sovereign`  (существо)
+save: `client-godot/art/violet_mirage_sovereign.png`
+```
+a vast crowned violet shadow-cuttlefish throned above a host of hollow phantom copies, hostile light sliding off its mantle, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey
 ```
 
 ## Спящая угроза — `violet_sleeping_threat`  (существо)
@@ -294,6 +456,12 @@ a squat blood-drinking pitcher-plant creature veined red and green, spitting a s
 save: `client-godot/art/red_green_blood_bramble.png`
 ```
 a tangled thorn-bramble beast lapping blood with red barbed thorns while its green creepers fatten on the corpses rotting around it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red and green light, glowing red and green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only red and crimson and lime green and grass green tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling red and green energy in the same palette with drifting red and green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, blue, violet, grey, cyan, teal
+```
+
+## Угольный волк — `red_coal_wolf`  (существо)
+save: `client-godot/art/red_coal_wolf.png`
+```
+a lean wolf with coal-glowing eyes mid-lunge, warm light flowing back to seal its master's wounds, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey
 ```
 
 ## Грибной пастырь — `green_spore_shepherd`  (существо)
@@ -446,6 +614,12 @@ save: `client-godot/art/green_violet_dormant_rampart.png`
 a hulking tortoise-beast asleep among banked crystals under a violet cloak of shadow, its mossy green shell rising in crenellated wall-tiers like a rampart, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green and violet light, glowing green and violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only lime green and grass green and violet and purple tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and violet energy in the same palette with drifting green and violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, grey, cyan, teal
 ```
 
+## Терновый тур — `green_bramble_ox`  (существо)
+save: `client-godot/art/green_bramble_ox.png`
+```
+a shaggy plodding ox woven from living thorn-brambles, its bristling coat thickening taller and broader with every turn, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
+```
+
 ## Сумеречный ловчий — `violet_dusk_hunter`  (существо)
 save: `client-godot/art/violet_dusk_hunter.png`
 ```
@@ -524,6 +698,12 @@ save: `client-godot/art/yellow_prison_warden.png`
 a slow-pacing gaol-keeper basilisk, its stare snuffing one cell-light after another as it passes, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey
 ```
 
+## Хранитель рассвета — `yellow_dawnkeeper`  (существо)
+save: `client-godot/art/yellow_dawnkeeper.png`
+```
+a great antlered stag of dawn braced across the pass at first light, its wounds closing again by morning, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey
+```
+
 ## Тюремный мираж — `violet_gaol_mirage`  (существо)
 save: `client-godot/art/violet_gaol_mirage.png`
 ```
@@ -558,6 +738,12 @@ a broad lily pad afloat on still water, drawing a crystal up from the depths ben
 save: `client-godot/art/green_mudskipper.png`
 ```
 a mudskipper fish hopping across glistening silt, a young sprout springing up in its wake, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
+```
+
+## Студёный гольян — `blue_frost_minnow`  (существо)
+save: `client-godot/art/blue_frost_minnow.png`
+```
+a sleek minnow in sharp close-up darting across the frame, its wake glittering with frost, a far larger fish looming half-seen behind it rimed stiff and motionless, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey
 ```
 
 ## Рясковый плот — `green_blue_duckweed_raft`  (существо)
@@ -602,10 +788,22 @@ save: `client-godot/art/green_blue_spate_giant.png`
 a towering bull-shaped river-giant wading ashore chest-deep through the flood, moss and reeds matted across its massive shoulders, frost crackling out from every step, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green and blue light, glowing green and blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only lime green and grass green and deep blue and cyan tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and blue energy in the same palette with drifting green and blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, violet, grey
 ```
 
+## Владыка разлива — `green_blue_floodlord`  (существо)
+save: `client-godot/art/green_blue_floodlord.png`
+```
+a colossal whale-bodied leviathan rearing head and shoulders up out of the flood, green reeds streaming like a mane down its neck, its bellowing breath sheeting the water below with frost, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green and blue light, glowing green and blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only lime green and grass green and deep blue and cyan tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and blue energy in the same palette with drifting green and blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, violet, grey
+```
+
 ## Плющ — `green_ivy`  (существо)
 save: `client-godot/art/green_ivy.png`
 ```
 a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
+```
+
+## Барбакан — `yellow_barbican`  (существо)
+save: `client-godot/art/yellow_barbican.png`
+```
+a massive fortified barbican gatehouse of golden light barring the road, its raised gate layering fresh armor onto the hero sheltered within, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living yellow light, glowing yellow light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey
 ```
 
 ## Живая изгородь — `green_hedgerow`  (существо)
@@ -678,6 +876,12 @@ a low blood-red sunrise cresting over a scorched empty plain, long knife-sharp r
 save: `client-godot/art/red_firespit.png`
 ```
 a compact gout of fire streaking flat across the frame, tight and aimed, sparks peeling off its tail, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure red light phenomenon, the subject rendered in bold red light and red energy alone, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, gold, green, blue, violet, grey
+```
+
+## Барабаны войны — `red_drums_of_war`  (аура)
+save: `client-godot/art/red_drums_of_war.png`
+```
+a great round war-drum of red ray-light, its struck skin rippling, concentric shockwaves of heat rolling out with every beat, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure red light phenomenon, the subject rendered in bold red light and red energy alone, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, gold, green, blue, violet, grey
 ```
 
 ## Гнев Пирра — `red_wrath_of_pyrrhus`  (заклинание)
@@ -758,6 +962,18 @@ save: `client-godot/art/blue_frostgrip.png`
 a huge clawed hand of jagged frost clamping shut around empty air, hoarfrost spraying from between its closing talons, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
 ```
 
+## Отбойное течение — `blue_undertow`  (заклинание)
+save: `client-godot/art/blue_undertow.png`
+```
+a violent spiralling current twisting down beneath a calm sea surface, dragging weed and driftwood under in its funnel, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Дальний взор — `blue_farsight`  (заклинание)
+save: `client-godot/art/blue_farsight.png`
+```
+a still scrying-pool mirroring several distant cards, one of them rising up out of the water as light, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
 ## Осколочный луч — `blue_splinter_beam`  (заклинание)
 save: `client-godot/art/blue_splinter_beam.png`
 ```
@@ -770,10 +986,40 @@ save: `client-godot/art/blue_creeping_frost.png`
 root-like fingers of frost creeping in from one edge of dark ground, branching as they crawl toward the far side, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
 ```
 
+## Глубокая заморозка — `blue_deep_freeze`  (заклинание)
+save: `client-godot/art/blue_deep_freeze.png`
+```
+a whole stretch of ground and air sealed inside one solid block of clear ice, frozen mid-motion, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Зимний поток — `blue_winter_stream`  (заклинание)
+save: `client-godot/art/blue_winter_stream.png`
+```
+a swift meltwater stream running beneath a lid of ice, a spreading fan of cards carried up in its current, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Ледяная гробница — `blue_ice_tomb`  (заклинание)
+save: `client-godot/art/blue_ice_tomb.png`
+```
+upright hollow sarcophagi of clear ice standing in silent rows on dark ground, a long winter sealed inside them, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Резкая стужа — `blue_cold_snap`  (аура)
+save: `client-godot/art/blue_cold_snap.png`
+```
+a radial burst of hoarfrost snapping outward from a single point in one instant, icicle spikes frozen mid-leap, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
 ## Морозная завеса — `blue_haze_veil`  (аура)
 save: `client-godot/art/blue_haze_veil.png`
 ```
 a hanging curtain of pale freezing mist drawn across the field, the air behind it thick and still, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
+```
+
+## Двойное зрение — `blue_double_vision`  (аура)
+save: `client-godot/art/blue_double_vision.png`
+```
+a shimmering doubled after-image lying over the whole field, every shape softly split into two overlapping copies, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure blue light phenomenon, the subject rendered in bold blue light and blue energy alone, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, green, violet, grey
 ```
 
 ## Убывающий свет — `violet_waning_light`  (заклинание)
@@ -944,3 +1190,32 @@ save: `client-godot/art/green_crystal_garden.png`
 a tended garden plot where crystals bloom on stalks like flowers, two fresh shards ripening and hardening each dawn, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure green light phenomenon, the subject rendered in bold green light and green energy alone, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, red, gold, blue, violet, grey, cyan, teal
 ```
 
+## Росток — `token_sprout`  (существо)
+save: `client-godot/art/token_sprout.png`
+```
+a fresh young sprout of green light in sharp close-up, two unfurling leaves rising, soft motes of pollen-light drifting upward, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal
+```
+
+## Ирида — `hero_prism`  (герой)
+save: `client-godot/art/hero_prism.png`
+```
+Iris, a poised duelist-painter, raises a faceted glass prism; a beam of white light enters and arcs out of it as a rainbow fan sweeping across her, her brush trailing refracted color, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D character portrait, glowing light accents tracing the figure, faint spectrum glints, on a deep dark flat background of swirling luminous energy, centered portrait --ar 1:1 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs
+```
+
+## Эреб — `hero_eclipse`  (герой)
+save: `client-godot/art/hero_eclipse.png`
+```
+Erebus, half-swallowed in shadow, haloed by the bright corona of a total eclipse; darkness drips from his brush as he paints with the absence of light, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D character portrait, glowing light accents tracing the figure, faint spectrum glints, on a deep dark flat background of swirling luminous energy, centered portrait --ar 1:1 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs
+```
+
+## Тициана — `hero_palette`  (герой)
+save: `client-godot/art/hero_palette.png`
+```
+Tiziana, a painter holding up a large round glowing artist's palette laden with light-paints in one hand, sweeping a broad brush across it with the other as two colours stream together and bloom into a third where they meet, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D character portrait, glowing light accents tracing the figure, faint spectrum glints, on a deep dark flat background of swirling luminous energy, centered portrait --ar 1:1 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs
+```
+
+## Гемма — `hero_facet`  (герой)
+save: `client-godot/art/hero_facet.png`
+```
+Gemma holds a many-faceted crystal up to the light and strikes a clean facet, splitting a thin beam into sharp geometric glints, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D character portrait, glowing light accents tracing the figure, faint spectrum glints, on a deep dark flat background of swirling luminous energy, centered portrait --ar 1:1 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs
+```
