@@ -81,6 +81,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      Plus: ONE scene event max -- a second event (a shore freezing over
 #      behind the beast) competes for the frame and wins.
 #      verify_subjects() below enforces 6/7/8/11/12 at generation time.
+#  13. AVOID STANDING FULL-BODY QUADRUPEDS ON VISIBLE GROUND. The leg-to-ground
+#      contact is an MJ weak spot: hooves/paws end strangely, the ground under
+#      them renders as mush (killed several stag rerolls). Prefer, in order:
+#      chest-up portrait (no legs in frame); legs sunk in pooled mist/shadow/
+#      light ("deep shadow pooling around its paws" -- the panther trick);
+#      airborne/mid-leap pose. A standing pose with visible hooves on open
+#      ground needs a strong reason.
 #  10. BIJECTION TEST. Given all 198 arts and all 198 names, a player must be
 #      able to match them 1:1. So every subject carries ONE unique visual key
 #      = the name's noun, literally in frame ("Drums of War" shows a drum --
