@@ -1,60 +1,6 @@
-# ART TODO — карты без арта (166 шт.)
+# ART TODO — карты без арта (157 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
-
-## Жар-брызгун — `red_ember_archerfish`  (существо)
-save: `client-godot/art/red_ember_archerfish.png`
-```
-an archerfish of red ray-light spitting a hard jet of sparks at a distant mark, the spark-jet the brightest line in the frame, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Пепельный змеёныш — `red_ashwhelp`  (существо)
-save: `client-godot/art/red_ashwhelp.png`
-```
-a wingless drake hatchling of cooling ash in sharp close-up, small against the dark, jaws parting for one last scorching breath, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Комар-копейщик — `red_lance_gnat`  (существо)
-save: `client-godot/art/red_lance_gnat.png`
-```
-a large gnat with a long needle-lance for a proboscis, lowered like a couched spear to run its target clean through, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Кровавый клещ — `red_bloodtick`  (существо)
-save: `client-godot/art/red_bloodtick.png`
-```
-a swollen tick latched onto its prey, its body glowing hotter and fuller the more it drinks, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Шершень углей — `red_hornet_of_embers`  (существо)
-save: `client-godot/art/red_hornet_of_embers.png`
-```
-a hornet with an oversized barbed stinger, driving it clean through a raised shield into the space beyond, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Пепельный скакун — `red_ash_courser`  (существо)
-save: `client-godot/art/red_ash_courser.png`
-```
-a galloping horse-shaped beast with a solid clearly drawn body, its mane and tail streaming off as ash and embers, streaking past a braced wall of shields, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Тлеющий плясун — `red_smoulder_dancer`  (существо)
-save: `client-godot/art/red_smoulder_dancer.png`
-```
-a long-bodied ember-serpent rearing upright in a spinning fire-dance, its coils clearly drawn, threads of warm light spiralling off-frame, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Костровой полип — `red_bonfire_polyp`  (существо)
-save: `client-godot/art/red_bonfire_polyp.png`
-```
-a squat coral-like polyp burning like a small bonfire, flames crowning its crown of arms, a shimmering heat-haze sharpening everything near it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
-
-## Огненный титан — `red_flame_titan`  (существо)
-save: `client-godot/art/red_flame_titan.png`
-```
-a towering titan of molten stone, its huge horned head and massive arms clearly drawn, striding straight through a crumbling shield-wall, heat bleeding from its cracked hide, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
-```
 
 ## Марево — `yellow_heat_haze`  (существо)
 save: `client-godot/art/yellow_heat_haze.png`
