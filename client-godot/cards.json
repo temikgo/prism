@@ -1048,7 +1048,7 @@
     "text": {
       "ru": "Изматывает жарой, а сам всё крепче."
     },
-    "art": "a massive heat-shimmer aurochs standing its ground in the field, wearing attackers down, its bulk thickening as the day burns hotter",
+    "art": "a massive heat-shimmer aurochs standing its ground, golden haze pooling deep around its legs and hiding the ground, its bulk thickening as the day burns hotter",
     "type": "creature",
     "color": [
       "yellow"
@@ -1175,7 +1175,7 @@
     "text": {
       "ru": "Держит строй и добивает светом дважды."
     },
-    "art": "a colossal radiant lion-titan maned in noon-fire holding the line, striking the far hero twice in one blazing charge",
+    "art": "a colossal radiant lion-titan maned in noon-fire in a heroic chest-up portrait, its mane blazing to the frame's edge, roaring toward a far horizon",
     "type": "creature",
     "color": [
       "yellow"
@@ -1837,7 +1837,7 @@
     "text": {
       "ru": "Встал на пост — и всё вокруг застыло."
     },
-    "art": "a tall heron of blue ice-light standing sentinel, its breath blooming into hoarfrost that rimes the reeds and pond around it solid",
+    "art": "a tall heron of blue ice-light standing sentinel, freezing mist pooling around its legs, its breath blooming into hoarfrost over the rimed reeds",
     "type": "creature",
     "color": [
       "blue"
@@ -4161,7 +4161,7 @@
     "text": {
       "ru": "Один оленёнок — а следов вдвое."
     },
-    "art": "a slender fawn crowned with moss-and-fern antlers casting a hollow violet double of itself, both standing bolder amid a crowding thicket",
+    "art": "a slender fawn crowned with moss-and-fern antlers in a chest-up portrait, a hollow violet double of itself overlapping a half-step behind",
     "type": "creature",
     "color": [
       "green",
@@ -4630,7 +4630,7 @@
     "text": {
       "ru": "Входит — и гасит первого попавшегося."
     },
-    "art": "a hulking gaoler-hound of golden light standing over a barred cage of light, its first hard glare snuffing the captive glow inside",
+    "art": "a hulking gaoler-hound of golden light looming chest-up over a barred cage of light, its first hard glare snuffing the captive glow inside",
     "type": "creature",
     "color": [
       "yellow"
