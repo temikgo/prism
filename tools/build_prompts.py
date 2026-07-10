@@ -165,6 +165,26 @@ EFFECT_HEAD = (
     "a " + _FLAT + " of a pure {g}light phenomenon, the subject rendered in "
     "bold {g}light and {g}energy alone, "
 )
+# Some creature cards are named after a STRUCTURE or OBJECT (a wall, rampart,
+# blade, pillar); their art headlines that object, so "one single creature"
+# would fight it. This head keeps the light-line look without demanding a beast.
+STRUCT_HEAD = (
+    "a " + _FLAT + " of a structure of living {g}light, glowing {g}light-lines "
+    "tracing its form, one single bold object with a clean readable silhouette "
+    "in a simple uncluttered pose, "
+)
+# Words that mark a creature card whose subject is really an object/structure.
+# Matched only against the OPENING of the art (the headline noun), so an
+# incidental "shield-wall" or "blade-arms" on a real beast doesn't trip it.
+_STRUCT_WORDS = (
+    "wall", "rampart", "barbican", "ravelin", "gatehouse", "vault", "pillar",
+    "shutter", "sword", "waymark", "standing stone",
+)
+
+
+def _is_struct(art):
+    head = " ".join(art.lower().split()[:6])
+    return any(w in head for w in _STRUCT_WORDS)
 TAIL = (
     ", on a deep dark flat background of swirling {g}energy in the same palette "
     "with drifting {g}light-motes, clean and graphic, the subject large and "
@@ -233,7 +253,14 @@ def style_for(card):
     cols = card.get("color", [])
     g = _glow(cols)
     is_effect = card["type"] in ("spell", "aura")
-    head = (EFFECT_HEAD if is_effect else CREATURE_HEAD).format(g=g)
+    is_struct = (not is_effect) and _is_struct(card.get("art", ""))
+    if is_effect:
+        head = EFFECT_HEAD.format(g=g)
+    elif is_struct:
+        head = STRUCT_HEAD.format(g=g)
+    else:
+        head = CREATURE_HEAD.format(g=g)
+    # A structure subject must not carry the creature/animal --no bans.
     flags = EFFECT_FLAGS if is_effect else FLAGS
     # Colour lock for 1- and 2-colour cards: exclude every colour NOT in the
     # card's identity, plus the grey/steel tones the moody background drifts into

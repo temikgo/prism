@@ -626,7 +626,7 @@
     "text": {
       "ru": "Смотришь сквозь — и не понимаешь, где стена."
     },
-    "art": "a broad manta-ray of shimmering heat-mirage gliding wide across the lane, spreading to take the first blow and wave it aside",
+    "art": "a broad shimmering wall of golden heat-haze rippling across the lane, the air behind it warping and doubling, swelling to swallow the first blow",
     "type": "creature",
     "color": [
       "yellow"
@@ -687,7 +687,7 @@
     "text": {
       "ru": "Стоит на своём и не сходит."
     },
-    "art": "a long-legged crane standing immovable as a roadside marker, refusing to yield the path, its wounds closing overnight",
+    "art": "a tall standing waymark stone crowned with golden light on an open road, immovable, holding the path against all who would pass",
     "type": "creature",
     "color": [
       "yellow"
@@ -750,7 +750,7 @@
     "text": {
       "ru": "Кто идёт на него — тот падает первым."
     },
-    "art": "a slender blade-armed mantis of dawn keeping guard, its edged forelimbs cutting down each attacker before it can land a hit",
+    "art": "a great upright sword of dawn-gold light standing on guard, cutting down each attacker that closes before it can land a blow",
     "type": "creature",
     "color": [
       "yellow"
@@ -899,7 +899,7 @@
     "text": {
       "ru": "Что о него разбивается, то лечит хозяина."
     },
-    "art": "a towering pillar-trunked treant rooted to the field, each blow that breaks on its bark sending warmth streaming back off-frame",
+    "art": "a towering pillar of solid golden light rooted to the field, each blow that breaks against it sending warmth streaming back off-frame",
     "type": "creature",
     "color": [
       "yellow"
@@ -984,7 +984,7 @@
     "text": {
       "ru": "За ним и герой становится стеной."
     },
-    "art": "a hulking dawn-shelled tortoise planting itself as a living rampart, its broad back hardening the hero behind into armor",
+    "art": "a long crenellated rampart wall of dawn-gold light standing across the field, the hero sheltering behind it sheathed in fresh golden armor",
     "type": "creature",
     "color": [
       "yellow"
@@ -1868,7 +1868,7 @@
     "text": {
       "ru": "Медленно, но не сдвинуть."
     },
-    "art": "a massive ice-shelled tortoise squatting immovable, the deck's coming cards frozen dimly visible deep within its translucent glacial shell",
+    "art": "a towering glacier wall of clear blue ice spanning the whole field, immovable, the deck's coming cards frozen dimly visible deep within it",
     "type": "creature",
     "color": [
       "blue"
@@ -2408,7 +2408,7 @@
     "text": {
       "ru": "Явь ли, тень ли — поди разбери, которая."
     },
-    "art": "a half-real violet jellyfish drifting through gloom, its body flickering apart into three faint overlapping copies",
+    "art": "a lone figure of violet shadow caught half-dissolved, flickering between solid form and empty air, three faint overlapping copies of it trailing off",
     "type": "creature",
     "color": [
       "violet"
@@ -2545,7 +2545,7 @@
     "text": {
       "ru": "Их двое — а бьёт настоящий."
     },
-    "art": "a sleek violet shadow-fox padding beside its own hollow twin, one of them solid, the other an empty copy",
+    "art": "two identical violet shadow-figures standing side by side in mirror poses, one solid and one a hollow echo, impossible to tell apart",
     "type": "creature",
     "color": [
       "violet"
@@ -4504,7 +4504,7 @@
     "text": {
       "ru": "Затаится в кристаллах, встанет незримой."
     },
-    "art": "a slender violet stick-insect of shadow lurking motionless among banked crystals, its edges dissolving into the dark",
+    "art": "a flat violet shadow-shape lurking hidden in a row of banked glowing violet crystals, its edges melting into the dark gaps between them",
     "type": "creature",
     "color": [
       "violet"
@@ -4598,7 +4598,7 @@
     "text": {
       "ru": "Заслонка держит и чинит сама себя."
     },
-    "art": "an armored armadillo curling into a living shutter across the lane, its cracked plates knitting shut again each turn",
+    "art": "a tall shutter of interlocking golden light-slats sliding shut across the lane, its cracked slats knitting whole again each turn",
     "type": "creature",
     "color": [
       "yellow"
@@ -4630,7 +4630,7 @@
     "text": {
       "ru": "Входит — и гасит первого попавшегося."
     },
-    "art": "a broad watch-mastiff barring the gate, its first hard glare snuffing a stray light in the dark as it takes its post",
+    "art": "a hulking gaoler-hound of golden light standing over a barred cage of light, its first hard glare snuffing the captive glow inside",
     "type": "creature",
     "color": [
       "yellow"
@@ -5580,7 +5580,7 @@
     "text": {
       "ru": "Держит фронт и куёт герою броню."
     },
-    "art": "a heavy-horned rhinoceros planted as a living gatehouse, its braced stance layering fresh armor over the hero behind it",
+    "art": "a massive fortified barbican gatehouse of golden light barring the road, its raised gate layering fresh armor onto the hero sheltered within",
     "type": "creature",
     "color": [
       "yellow"
@@ -5758,7 +5758,7 @@
     "text": {
       "ru": "Стягивает удары и глотает первое проклятье."
     },
-    "art": "a broad pangolin braced at a hard angle, its overlapping scales pulling blows onto it while a halo swallows the first hostile spell",
+    "art": "a broad angular ravelin bastion of golden light jutting forward in a hard wedge, incoming blows sliding off its sloped faces while a halo swallows the first curse-bolt",
     "type": "creature",
     "color": [
       "yellow"
@@ -5789,7 +5789,7 @@
     "text": {
       "ru": "И в смерти вспыхнет врагу в глаза."
     },
-    "art": "a bristle-backed boar plated in flaking mica-scales holding the lane, its plates flaring blinding as it finally breaks",
+    "art": "a high rampart wall built of glittering mica-plated golden light holding the lane, its flaking scales flaring blinding-white as it finally cracks apart",
     "type": "creature",
     "color": [
       "yellow"
@@ -5850,7 +5850,7 @@
     "text": {
       "ru": "Растущий бастион под бронёй."
     },
-    "art": "a vast world-tortoise, its domed mossy shell arching like the firmament and plating thicker with golden light as it swells into a wall",
+    "art": "a vast arching vault of golden-and-green light curving overhead like a domed firmament, thickening into a towering wall as it swells",
     "type": "creature",
     "color": [
       "yellow",
