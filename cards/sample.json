@@ -458,7 +458,7 @@
     "text": {
       "ru": "Пока горит — вокруг всё точит когти жарче."
     },
-    "art": "a squat coral-like polyp rooted to the ground, radiating a shimmering heat-haze that sharpens everything near it",
+    "art": "a squat coral-like polyp burning like a small bonfire, flames crowning its crown of arms, a shimmering heat-haze sharpening everything near it",
     "type": "creature",
     "color": [
       "red"
@@ -1016,7 +1016,7 @@
     "text": {
       "ru": "Гаснет — и напоследок слепит убийц."
     },
-    "art": "a lantern-moth of guttering light, its halo swallowing a hostile curse-bolt, its dying flash flooding the dark around it with blinding light",
+    "art": "a dying flame of golden light collapsing into one last brilliant flash, a moth-shape folded inside the guttering glow, its halo swallowing a hostile curse-bolt",
     "type": "creature",
     "color": [
       "yellow"
@@ -4127,7 +4127,7 @@
     "text": {
       "ru": "Оплетает могилы и тянет мёртвых назад."
     },
-    "art": "a coiling serpent-like mass of green-and-violet ivy-light, pale grave-blossoms opening along its glowing tendrils, the whole vine-being filling the frame",
+    "art": "a coiling serpent-like mass of green-and-violet ivy winding over a low grave-barrow of stones, pale grave-blossoms opening along its glowing tendrils",
     "type": "creature",
     "color": [
       "green",
@@ -4295,7 +4295,7 @@
     "text": {
       "ru": "Дремлет в кристаллах — и растёт во сне."
     },
-    "art": "a hulking tortoise-beast with a mossy green rampart-shell, sleeping disguised among banked crystals beneath a violet cloak of shadow, thickening as it grows",
+    "art": "a hulking tortoise-beast asleep among banked crystals under a violet cloak of shadow, its mossy green shell rising in crenellated wall-tiers like a rampart",
     "type": "creature",
     "color": [
       "green",
@@ -4697,7 +4697,7 @@
     "text": {
       "ru": "Высветит всё, что враг прячет в запасе."
     },
-    "art": "a great watch-owl perched high, its searchlight gaze sweeping the dark and laying every hidden thing bare while it dares blows onto itself",
+    "art": "a great watch-owl perched atop a blazing beacon-pyre, its searchlight gaze sweeping the dark and laying every hidden thing bare",
     "type": "creature",
     "color": [
       "yellow"
@@ -4728,7 +4728,7 @@
     "text": {
       "ru": "Зарыт среди кристаллов — до первого удара."
     },
-    "art": "a violet scorpion-shade of shadow-light half-buried among glowing violet crystals, its long blade-tail coiled and unseen, waking to strike",
+    "art": "a violet scorpion-shade half-buried among glowing violet crystals, only the bright bared tip of its long blade-tail glinting above the shards, poised to strike",
     "type": "creature",
     "color": [
       "violet"
@@ -4760,7 +4760,7 @@
     "text": {
       "ru": "Разобьётся — и полыхнёт по глазам."
     },
-    "art": "a crystal-winged dragonfly striking first, and when it shatters its splintering flash floods everything near with blinding light",
+    "art": "a crystal dragonfly caught at the instant of shattering, its fracturing wings bursting into a blinding flare that floods everything near",
     "type": "creature",
     "color": [
       "yellow"
