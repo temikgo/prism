@@ -60,6 +60,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      its sun). Name-concepts get their strong graphic archetype: a sun is
 #      a SUNBURST (white-hot core + a full crown of rays in every direction,
 #      never a bare disc); an eclipse is a BLACK SUN ringed by a thin corona.
+#  10. BIJECTION TEST. Given all 198 arts and all 198 names, a player must be
+#      able to match them 1:1. So every subject carries ONE unique visual key
+#      = the name's noun, literally in frame ("Drums of War" shows a drum --
+#      made of light if the material is banned); a species/archetype appears
+#      at most once per colour; recurring motifs (a copy beside its owner,
+#      lurking among crystals, a hedge, a puffball, receding water) must
+#      differ by species AND pose. If the NAME itself cannot be staged
+#      recognisably, RENAME the card (the name serves the art; mechanics are
+#      untouchable). Mechanic adjectives stay banned in names.
 
 TONE = {
     "red": "red and crimson",
