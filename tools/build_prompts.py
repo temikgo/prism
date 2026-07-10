@@ -15,10 +15,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      "a battering-ram", "a collapsing star") gives MJ no creature, so it invents
 #      a random one (a ripple -> a jellyfish). Phenomena/objects are ONLY for
 #      spells and auras. Order: design mechanics -> name from them -> art from name.
-#   2b. NO BARE HUMANOID -> REALISM. A humanoid subject ("a sovereign", "a knight")
-#      renders as a realistic painted person and breaks the flat light-line look.
-#      Prefer non-humanoids; if a figure is unavoidable, anchor it: "drawn as flat
-#      glowing light-lines, not a realistic painted person".
+#   2b. HUMANOIDS ARE ALLOWED, SPARINGLY, AND ALWAYS ANCHORED. A human figure is
+#      fine when it is the CLEAREST read of the name (a "Sower" sowing beats any
+#      beast), but a BARE humanoid renders as a realistic painted person and
+#      breaks the flat light-line look -- so always anchor it: "drawn as flat
+#      glowing <colour> light-lines, not a realistic painted person". Keep them
+#      the minority of the set (most cards read fine as beasts/spirits/plants);
+#      never let recognizability lose to a no-humanoid reflex -- rule 10 wins.
 #   3. MULTICOLOR = WEAVE EVERY COLOUR INTO THE SUBJECT, BALANCED. One colour's
 #      imagery silently dominates (frost/rime/mist=blue, fire/ember=red,
 #      bloom=green) and the palette line does NOT fix it -- the SUBJECT words set
