@@ -128,7 +128,13 @@ NEG = {c: s[0] for c, s in SHADES.items()}
 #       is still "" just get no --sref until it is filled in.
 #       Tuning: anchor colour overpowering the subject -> lower ANCHOR_SW to
 #       50; style still drifting to 3D -> raise toward 300.
-ANCHORS = {"red": "", "yellow": "", "green": "", "blue": "", "violet": ""}
+ANCHORS = {
+    "red": "https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png",
+    "yellow": "https://cdn.midjourney.com/429fedec-2bf5-4763-9dbc-bb408d8acb80/0_0.png",
+    "green": "https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png",
+    "blue": "https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png",
+    "violet": "https://cdn.midjourney.com/ea7d4479-235d-4b0b-a318-455d63f5ee1a/0_2.png",
+}
 ANCHOR_SW = 100
 
 
