@@ -60,6 +60,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      its sun). Name-concepts get their strong graphic archetype: a sun is
 #      a SUNBURST (white-hot core + a full crown of rays in every direction,
 #      never a bare disc); an eclipse is a BLACK SUN ringed by a thin corona.
+#  11. NO SIZE WORDS ON THE MAIN SUBJECT. Opening with "a tiny/small X" makes
+#      MJ render X small in the canvas -- few pixels, sketch-level detail
+#      (fought the wrapper's "filling the frame" and lost). Convey smallness
+#      by CONTRAST (a far larger fish looming behind) or context ("small
+#      against the dark"), and put the subject itself "in sharp close-up".
 #  10. BIJECTION TEST. Given all 198 arts and all 198 names, a player must be
 #      able to match them 1:1. So every subject carries ONE unique visual key
 #      = the name's noun, literally in frame ("Drums of War" shows a drum --

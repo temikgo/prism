@@ -76,7 +76,7 @@
     "text": {
       "ru": "Летит на чужой огонь и приносит свой."
     },
-    "art": "a small moth with smouldering cinder-dusted wings trailing sparks, darting low beneath raised shields straight at its mark",
+    "art": "a moth in sharp close-up with smouldering cinder-dusted wings trailing sparks, darting low beneath raised shields straight at its mark",
     "type": "creature",
     "color": [
       "red"
@@ -131,7 +131,7 @@
     "text": {
       "ru": "Даже погаснув, успевает лизнуть напоследок."
     },
-    "art": "a tiny wingless drake hatchling of cooling ash, jaws parting for one last scorching breath",
+    "art": "a wingless drake hatchling of cooling ash in sharp close-up, small against the dark, jaws parting for one last scorching breath",
     "type": "creature",
     "color": [
       "red"
@@ -401,7 +401,7 @@
     "text": {
       "ru": "Заряжает кристаллом, стреляет искрами."
     },
-    "art": "a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it, no separate weapon",
+    "art": "a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it",
     "type": "creature",
     "color": [
       "red"
@@ -656,7 +656,7 @@
     "text": {
       "ru": "Успевает сверкнуть первым."
     },
-    "art": "a tiny glass-winged sunbird flashing in on a needle of glare, stabbing first, its nicks sealing as it hovers",
+    "art": "a glass-winged sunbird in sharp close-up flashing in on a needle of glare, stabbing first, its nicks sealing as it hovers",
     "type": "creature",
     "color": [
       "yellow"
@@ -719,7 +719,7 @@
     "text": {
       "ru": "Возьмёт чужую беду на себя."
     },
-    "art": "a small ward-spirit shaped like a hanging sun-charm, drinking a hostile curse-bolt out of the air and pulling blows onto itself",
+    "art": "a ward-spirit shaped like a hanging sun-charm in sharp close-up, drinking a hostile curse-bolt out of the air and pulling blows onto itself",
     "type": "creature",
     "color": [
       "yellow"
@@ -1239,7 +1239,7 @@
     "text": {
       "ru": "Первый цветок дня — и первый лишний кристалл."
     },
-    "art": "a small primrose bud unfurling at dawn, drawing a single crystal out of the first light",
+    "art": "a primrose bud in sharp close-up unfurling at dawn, drawing a single crystal out of the first light",
     "type": "creature",
     "color": [
       "green"
@@ -1808,7 +1808,7 @@
     "text": {
       "ru": "Смотрит на шаг вперёд остальных."
     },
-    "art": "a small crystalline drake peering through a clear lens of ice, a faint image of the next card surfacing in its eye",
+    "art": "a crystalline drake in sharp close-up peering through a clear lens of ice, a faint image of the next card surfacing in its eye",
     "type": "creature",
     "color": [
       "blue"
@@ -2381,7 +2381,7 @@
     "text": {
       "ru": "Пока не вспыхнет — его не видно."
     },
-    "art": "a tiny violet glow-beetle dimming its own light to a faint ember, unseen in the dark until it suddenly flares",
+    "art": "a violet glow-beetle in sharp close-up dimming its own light to a faint ember, unseen in the dark until it suddenly flares",
     "type": "creature",
     "color": [
       "violet"
@@ -2960,7 +2960,7 @@
     "text": {
       "ru": "Лопнет искрой — и достанет до лица."
     },
-    "art": "a tiny flat-bodied tick crackling with pent sparks, leaping high and bursting into a hot flash as it lands",
+    "art": "a flat-bodied tick in sharp close-up crackling with pent sparks, leaping high and bursting into a hot flash as it lands",
     "type": "creature",
     "color": [
       "red"
@@ -3016,7 +3016,7 @@
     "text": {
       "ru": "Летит в лицо и там сгорает."
     },
-    "art": "a small fly of red ember-light, its whole body flaring searing-bright red as it is snuffed against its mark, no soot trail",
+    "art": "a fly of red ember-light in sharp close-up, its whole body flaring searing-bright as it is snuffed against its mark",
     "type": "creature",
     "color": [
       "red"
@@ -5551,7 +5551,7 @@
     "text": {
       "ru": "Тихо оплетает и дорастает до стены."
     },
-    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn, no wall",
+    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn",
     "type": "creature",
     "color": [
       "green"
