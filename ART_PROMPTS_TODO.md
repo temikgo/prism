@@ -1,4 +1,4 @@
-# ART TODO — карты без арта (157 шт.)
+# ART TODO — карты без арта (159 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
 
@@ -72,6 +72,12 @@ a massive heat-shimmer aurochs standing its ground, golden haze pooling deep aro
 save: `client-godot/art/yellow_heliodore_scarab.png`
 ```
 a scarab beetle sheathed in faceted heliodor-gem plates, its edged shell flashing to strike first, each blow that breaks on it streaming back off-frame as warmth, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
+```
+
+## Феникс зенита — `yellow_zenith_phoenix`  (существо)
+save: `client-godot/art/yellow_zenith_phoenix.png`
+```
+a blazing phoenix at the peak of its climb, lashing twice with wings of noon-fire and mending itself as it hangs aloft, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
 ```
 
 ## Дракон-солнцеворот — `yellow_solstice_dragon`  (существо)
@@ -606,6 +612,12 @@ a towering bull-shaped river-giant wading ashore chest-deep through the flood, m
 save: `client-godot/art/green_ivy.png`
 ```
 a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
+```
+
+## Барбакан — `yellow_barbican`  (существо)
+save: `client-godot/art/yellow_barbican.png`
+```
+a massive fortified barbican gatehouse of golden light barring the road, its raised gate layering fresh armor onto the hero sheltered within, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living yellow light, glowing yellow light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
 ```
 
 ## Живая изгородь — `green_hedgerow`  (существо)
