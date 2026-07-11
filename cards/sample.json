@@ -1552,7 +1552,7 @@
     "text": {
       "ru": "Растёт быстрее, чем его успевают срубить."
     },
-    "art": "a towering treant warden of trunk and root, visibly swelling broader and taller with each passing turn",
+    "art": "a towering treant warden of trunk and root, visibly swelling broader and taller by the hour",
     "type": "creature",
     "color": [
       "green"
@@ -1808,7 +1808,7 @@
     "text": {
       "ru": "Смотрит на шаг вперёд остальных."
     },
-    "art": "a crystalline drake in sharp close-up peering through a clear lens of ice, a faint image of the next card surfacing in its eye",
+    "art": "a crystalline drake in sharp close-up peering through a clear lens of ice, a faint vision of what comes next surfacing in its eye",
     "type": "creature",
     "color": [
       "blue"
@@ -1868,7 +1868,7 @@
     "text": {
       "ru": "Встала — и не сдвинуть."
     },
-    "art": "a towering glacier wall of clear blue ice spanning the whole field, immovable, the deck's coming cards frozen dimly visible deep within it",
+    "art": "a towering glacier wall of clear blue ice spanning the whole field, immovable, shapes of things yet to come frozen dimly visible deep within it",
     "type": "creature",
     "color": [
       "blue"
@@ -2127,7 +2127,7 @@
     "text": {
       "ru": "Видит дальше — берёт лучшее."
     },
-    "art": "a still scrying-pool mirroring several distant cards, one of them rising up out of the water as light",
+    "art": "a still scrying-pool mirroring several far-off visions, one of them rising up out of the water as a pane of light",
     "type": "spell",
     "color": [
       "blue"
@@ -2250,7 +2250,7 @@
     "text": {
       "ru": "Течёт под льдом — и не иссякает."
     },
-    "art": "a swift meltwater stream running beneath a lid of ice, a spreading fan of cards carried up in its current",
+    "art": "a swift meltwater stream running beneath a lid of ice, a spreading fan of glowing light-panes carried up in its current",
     "type": "spell",
     "color": [
       "blue"
@@ -3132,7 +3132,7 @@
     "text": {
       "ru": "Один сноп в жертву — и полные руки взамен."
     },
-    "art": "a bound sheaf of green light-stalks collapsing and scattering apart in a bright fall, two glowing cards of green light rising up out of the spilling grain",
+    "art": "a bound sheaf of green light-stalks collapsing and scattering apart in a bright fall, two glowing panes of green light rising up out of the spilling grain",
     "type": "spell",
     "color": [
       "green"
@@ -3650,7 +3650,7 @@
     "text": {
       "ru": "Смотрит в угли и видит ход вперёд."
     },
-    "art": "a keen-eyed salamander crouched over live coals, frost misting off its spines, gazing into the embers to read the coming turn",
+    "art": "a keen-eyed salamander crouched over live coals, frost misting off its spines, reading what comes next in the glowing embers",
     "type": "creature",
     "color": [
       "red",
@@ -4200,7 +4200,7 @@
     "text": {
       "ru": "Сколько скопишь, столько и поднимется."
     },
-    "art": "a four-legged colossus of green crystal with a violet phantom twin looming behind it, its bulk swelling to match the mana hoarded near",
+    "art": "a four-legged colossus of green crystal with a violet phantom twin looming behind it, its bulk swelling to match the crystals hoarded near",
     "type": "creature",
     "color": [
       "green",
@@ -4378,7 +4378,7 @@
     "text": {
       "ru": "Растёт и вширь, и ввысь."
     },
-    "art": "a shaggy plodding ox woven from living thorn-brambles, its bristling coat thickening taller and broader with every turn",
+    "art": "a shaggy plodding ox woven from living thorn-brambles, its bristling coat thickening taller and broader by the day",
     "type": "creature",
     "color": [
       "green"
@@ -5107,7 +5107,7 @@
     "text": {
       "ru": "Разлив ушёл — а руки полны."
     },
-    "art": "a rich fertile floodplain suddenly bursting into lush growth, two broad leaves unfurling and lifting free like drawn cards",
+    "art": "a rich fertile floodplain suddenly bursting into lush growth, two broad leaves unfurling and lifting free into the air",
     "type": "spell",
     "color": [
       "green"
@@ -5286,7 +5286,7 @@
     "text": {
       "ru": "Копит камень — и дышит стужей."
     },
-    "art": "a newt with moss-green flanks and a spine of quartz ice, swelling with every crystal you hoard, breathing a rime of frost across the reeds",
+    "art": "a newt with moss-green flanks and a spine of quartz ice, swelling with every crystal hoarded beside it, breathing a rime of frost across the reeds",
     "type": "creature",
     "color": [
       "green",
@@ -5551,7 +5551,7 @@
     "text": {
       "ru": "Тихо оплетает и дорастает до стены."
     },
-    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening turn by turn",
+    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening hour by hour",
     "type": "creature",
     "color": [
       "green"
@@ -5821,7 +5821,7 @@
     "text": {
       "ru": "Год от года гуще — и уже не выкорчевать."
     },
-    "art": "a broad hawthorn shrub bristling with long thorns, swelling denser and larger every turn into an unkillable thicket",
+    "art": "a broad hawthorn shrub bristling with long thorns, swelling denser and larger year by year into an unkillable thicket",
     "type": "creature",
     "color": [
       "green"

@@ -378,6 +378,8 @@ _LIMB_COUNT_RE = re.compile(
 _NEGATION_RE = re.compile(r"\bno \w+|\bnever\b|\bwithout\b")
 _TARGET_RE = re.compile(
     r"\b(enemy|enemies|foe|foes|ally|allies|caster|hero|soldier|defender|person|figure)\b")
+_META_RE = re.compile(
+    r"\b(cards?|deck|mana|player|turns?)\b|you hoard|\byour\b")
 _ANCHOR_PHRASE = "not a realistic painted person"
 
 
@@ -494,6 +496,8 @@ def verify_subjects(cards):
             bad.append((c["id"], "counted body parts (rule 6)"))
         if _NEGATION_RE.search(body):
             bad.append((c["id"], "negation in the subject body (rule 8)"))
+        if _META_RE.search(low):
+            bad.append((c["id"], "game-meta vocabulary in the art (cards/deck/turn/mana/you)"))
         if c.get("type") in ("spell", "aura"):
             if _TARGET_RE.search(low):
                 bad.append((c["id"], "names the effect's target (rule 7)"))
