@@ -1,4 +1,4 @@
-# ART TODO — карты без арта (135 шт.)
+# ART TODO — карты без арта (133 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
 
@@ -18,18 +18,6 @@ a sleek long-whiskered seal of blue light curling back off the shore, the tide d
 save: `client-godot/art/blue_hoarfrost_colossus.png`
 ```
 a walrus-shaped colossus of ancient glacial ice seen from a low angle, colossal tusks of clear ice, hoarfrost shaggy on its bull neck, its frozen breath sheathing the ground before it in rime, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Мерцающий фонарь — `violet_glimmer_lantern`  (существо)
-save: `client-godot/art/violet_glimmer_lantern.png`
-```
-an anglerfish-shade of deep violet shadow, a small glowing lantern hanging from the lure-stalk arched over its head, the lantern the brightest point in the frame, its glimmer deepening the dark around into a hiding pool of shadow, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Ночной морок — `violet_night_mirage`  (существо)
-save: `client-godot/art/violet_night_mirage.png`
-```
-a great violet nightjar gliding silent through the dark, a fainter after-image trailing a wingbeat behind it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
 ```
 
 ## Призрачный двойник — `violet_haunting_double`  (существо)
