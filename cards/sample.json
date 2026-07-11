@@ -372,7 +372,7 @@
     "text": {
       "ru": "Панцирь набит жаром, и он не любит терпеть."
     },
-    "art": "a fat armored beetle with a cracked venting shell packed with heat, swelling an instant from bursting",
+    "art": "a fat armored beetle with a cracked venting shell packed with heat, jets of hot light hissing from the cracks, an instant from bursting apart",
     "type": "creature",
     "color": [
       "red"
@@ -626,7 +626,7 @@
     "text": {
       "ru": "Смотришь сквозь — и не понимаешь, где стена."
     },
-    "art": "a broad shimmering wall of golden heat-haze rippling across the lane, the air behind it warping and doubling, swelling to swallow the first blow",
+    "art": "a broad shimmering wall of golden heat-haze rippling across the lane, the air behind it warping and doubling, rising to swallow the first blow",
     "type": "creature",
     "color": [
       "yellow"
@@ -1048,7 +1048,7 @@
     "text": {
       "ru": "Изматывает жарой, а сам всё крепче."
     },
-    "art": "a massive heat-shimmer aurochs standing its ground, golden haze pooling deep around its legs and hiding the ground, its bulk thickening as the day burns hotter",
+    "art": "a massive heat-shimmer aurochs standing its ground, golden haze pooling deep around its legs, the air above its back warping harder as the day burns hotter",
     "type": "creature",
     "color": [
       "yellow"
@@ -1928,7 +1928,7 @@
     "text": {
       "ru": "Каждое заклинание точит его грани."
     },
-    "art": "a faceted crystal dragonfly hovering in place, every wing-edge flaring keener each time a stray bolt of light crackles past",
+    "art": "a faceted crystal dragonfly hovering in place, every wing-edge honed keener each time a stray bolt of light crackles past",
     "type": "creature",
     "color": [
       "blue"
@@ -2746,7 +2746,7 @@
     "text": {
       "ru": "Одного мало — их всегда чуть больше."
     },
-    "art": "two overlapping violet shadow-figures mid-stride, the front one solid, the other its exact ghostly double risen half-out of its back and mirroring the stride a beat late, drawn as flat glowing violet light-lines, not a realistic painted person",
+    "art": "two overlapping violet shadow-hares mid-bound, the front one solid, the other its exact ghostly double trailing the same leap a beat late",
     "type": "creature",
     "color": [
       "violet"
@@ -2960,7 +2960,7 @@
     "text": {
       "ru": "Лопнет искрой — и достанет до лица."
     },
-    "art": "a flat-bodied flea in sharp close-up crackling with pent sparks, leaping high and bursting into a hot flash as it lands",
+    "art": "a taut coiled flea at the apex of a towering leap, sparks crackling in a chain along its arc like a firecracker string",
     "type": "creature",
     "color": [
       "red"
@@ -2988,7 +2988,7 @@
     "text": {
       "ru": "Сгниёт — и на его месте новый."
     },
-    "art": "a cluster of slender honey-fungus mushrooms rotting on an old stump, one swollen spore-pod bulging to burst",
+    "art": "a cluster of slender honey-fungus mushrooms sagging rotten on an old stump, their caps sloughing away into a soft drift of spores",
     "type": "creature",
     "color": [
       "green"
@@ -3016,7 +3016,7 @@
     "text": {
       "ru": "Летит в лицо и там сгорает."
     },
-    "art": "a soot-dusted fly in sharp close-up limned in red ember-light, its whole body flaring searing-bright as it is snuffed against its mark",
+    "art": "a ragged soot-black fly dragging a long smear of soot across the frame, the dull red glow inside it guttering out in a final puff of soot against its mark",
     "type": "creature",
     "color": [
       "red"
@@ -3617,7 +3617,7 @@
     "text": {
       "ru": "Один укус — а жал будто два."
     },
-    "art": "a hornet driving its barbed stinger clean through a shield, the strike splitting into twin after-images, one ember-hot, one frost-cold",
+    "art": "a hornet mid-strike splitting into two mirrored after-images, the left one trailing embers and the right one trailing frost, their stingers striking as one",
     "type": "creature",
     "color": [
       "red",
@@ -4598,7 +4598,7 @@
     "text": {
       "ru": "Заслонка держит и чинит сама себя."
     },
-    "art": "a tall shutter of interlocking golden light-slats sliding shut across the lane, its cracked slats knitting whole again each turn",
+    "art": "a tall shutter of interlocking golden light-slats sliding shut across the lane, its cracked slats knitting whole again",
     "type": "creature",
     "color": [
       "yellow"
@@ -5701,7 +5701,7 @@
     "text": {
       "ru": "Растёт — и с каждым кольцом хозяину теплее."
     },
-    "art": "a young oak broadening its trunk each turn, warm light streaming back from its boughs to its keeper",
+    "art": "a young oak putting on a fresh bright growth-ring, warm light streaming back from its boughs to its keeper",
     "type": "creature",
     "color": [
       "green"
@@ -5960,7 +5960,7 @@
     "text": {
       "ru": "Держит небо — и дважды роняет его на врага."
     },
-    "art": "a colossal oak-titan straining to hold up the sky on its golden boughs, its green-barked trunk swelling as two massive limb-arms hammer down twice",
+    "art": "a colossal oak-titan straining to hold up the sky on its golden boughs, its green-barked trunk braced as two massive limb-arms hammer down twice",
     "type": "creature",
     "color": [
       "yellow",

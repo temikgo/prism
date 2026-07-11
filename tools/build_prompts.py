@@ -381,6 +381,104 @@ _TARGET_RE = re.compile(
 _ANCHOR_PHRASE = "not a realistic painted person"
 
 
+_STOP = set("""a an the of in on at to and or with its it their his her one two three
+from into out over under across behind before after against as like that this
+each every very more most other another same own back up down off drawn flat
+glowing light lines not realistic painted person sharp close-up close up light-lines
+clearly drawn frame""".split())
+
+
+def _sig(art):
+    words = re.findall(r"[a-z]+(?:-[a-z]+)?", art.lower())
+    return {w for w in words if len(w) > 3 and w not in _STOP}
+
+
+# Visual-formula classes: words that render the SAME on canvas. Two same-type
+# cards sharing a species-class AND an action-class are twins no matter how the
+# words differ (Sootfly the fly and Spark Flea the flea both drew "tiny red
+# insect + bright burst").
+_SPECIES_CLASS = {
+    "tiny-insect": ["fly", "flea", "gnat", "midge", "firefly", "tick"],
+    "moth": ["moth"], "hornet": ["hornet", "wasp"], "beetle": ["beetle", "weevil", "scarab"],
+    "mantis": ["mantis"], "dragonfly": ["dragonfly"], "spider": ["spider"],
+    "serpent": ["serpent", "snake", "cobra", "eel"], "drake": ["drake", "dragon", "wyrm"],
+    "bird": ["hawk", "owl", "crane", "heron", "kingfisher", "swift ", "shrike",
+             "raven", "nightjar", "sunbird", "phoenix", "bird"],
+    "canine": ["wolf", "hound", "mastiff", "fox"], "feline": ["lynx", "panther", "lion"],
+    "bovine": ["ox", "aurochs", "bull", "buffalo", "bison"],
+    "deer": ["stag", "elk", "fawn", "deer"], "boar": ["boar"], "ram": ["ram"],
+    "toad": ["toad", "frog"], "fish": ["fish", "minnow", "mudskipper"],
+    "ray": ["manta", "ray"], "whale": ["whale", "leviathan"],
+    "tortoise": ["tortoise", "turtle"], "crab": ["crab"], "scorpion": ["scorpion"],
+    "jellyfish": ["jellyfish"], "cuttlefish": ["cuttlefish", "octopus", "squid"],
+    "figure": ["figure", "figures", "sentry", "sower", "mourner", "bannerman", "marshal"],
+    "tree": ["oak", "elm", "treant", "tree"], "fungus": ["mushroom", "puffball",
+             "fungus", "toadstool"], "wall": ["wall", "rampart", "gatehouse",
+             "bastion", "vault", "shutter"],
+}
+_ACTION_CLASS = {
+    "burst": ["burst", "flash", "flaring", "flare", "explod", "snuffed",
+              "spark-pops", "detonat"],
+    "pierce-shield": ["through a shield", "through a raised shield", "clean through"],
+    "copy": ["double", "duplicate", "copies", "mirror-copy", "after-image",
+             "echo of itself", "twin"],
+    "lurk-crystals": ["among banked crystals", "among glowing violet crystals"],
+    "freeze-near": ["rime", "hoarfrost", "frozen breath", "flash-freez"],
+    "heal-back": ["streaming back", "flowing back", "warmth streaming"],
+    "grow-turn": ["thickening", "swelling", "broadening", "each turn", "every turn"],
+    "draw-crystal": ["drawing a", "crystal out of", "crystal up", "crystals welling"],
+}
+
+
+def _classes(art, table):
+    low = art.lower()
+    out = set()
+    for name, keys in table.items():
+        for k in keys:
+            if " " in k or "-" in k:
+                if k in low:
+                    out.add(name); break
+            elif re.search(r"\b" + k + r"\b", low):
+                out.add(name); break
+    return out
+
+
+def verify_formulas(cards):
+    pool = [(c["id"], c.get("type"), c.get("art", ""))
+            for c in cards if c.get("type") == "creature" and c.get("art")]
+    bad = []
+    for i in range(len(pool)):
+        for j in range(i + 1, len(pool)):
+            a, b = pool[i], pool[j]
+            sa, sb = _classes(a[2], _SPECIES_CLASS), _classes(b[2], _SPECIES_CLASS)
+            if not (sa & sb):
+                continue
+            aa, ab = _classes(a[2], _ACTION_CLASS), _classes(b[2], _ACTION_CLASS)
+            if aa & ab:
+                bad.append((a[0], b[0], ",".join(sa & sb) + "+" + ",".join(aa & ab)))
+    return bad
+
+
+def verify_pairs(cards, threshold=0.42):
+    """Twin-prompt lint: two subjects this lexically close render identically
+    (Sootfly vs Spark Flea: both 'small red insect bursting bright'). Compares
+    every same-type pair; fails the build above the threshold so near-duplicate
+    formulas can't slip back in."""
+    pool = [(c["id"], c.get("type"), _sig(c.get("art", "")))
+            for c in cards if c.get("type") != "hero" and c.get("art")]
+    bad = []
+    for i in range(len(pool)):
+        for j in range(i + 1, len(pool)):
+            a, b = pool[i], pool[j]
+            if a[1] != b[1] or not a[2] or not b[2]:
+                continue
+            inter = len(a[2] & b[2])
+            jac = inter / len(a[2] | b[2])
+            if jac >= threshold:
+                bad.append((a[0], b[0], round(jac, 2)))
+    return bad
+
+
 def verify_subjects(cards):
     """Enforce rules 6/7/8/11/12 on every art subject. Returns violations."""
     bad = []
@@ -517,6 +615,17 @@ def main():
             print("  - " + cid + ": " + why)
         sys.exit(1)
     print("subject-lint: OK (anatomy, no flowing bodies, no targets/negations/size/limb-counts)")
+
+    pairs = verify_pairs(pool)
+    formulas = verify_formulas(pool)
+    if pairs or formulas:
+        print("twin-lint: %d lexical + %d formula pair(s)" % (len(pairs), len(formulas)))
+        for a, b, jac in pairs:
+            print("  - %s ~ %s (jaccard %.2f)" % (a, b, jac))
+        for a, b, why in formulas:
+            print("  - %s ~ %s (formula %s)" % (a, b, why))
+        sys.exit(1)
+    print("twin-lint: OK (no two subjects share a visual formula)")
 
 
 if __name__ == "__main__":
