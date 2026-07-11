@@ -1,4 +1,4 @@
-# ART TODO — карты без арта (130 шт.)
+# ART TODO — карты без арта (126 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
 
@@ -6,30 +6,6 @@
 save: `client-godot/art/violet_haunting_double.png`
 ```
 two overlapping violet shadow-hares mid-bound, the front one solid, the other its exact ghostly double trailing the same leap a beat late, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of beings made of living violet light, glowing violet light-lines tracing their shapes, every figure in frame clearly drawn with a clean readable silhouette, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Зыбкий страж — `violet_shifting_ward`  (существо)
-save: `client-godot/art/violet_shifting_ward.png`
-```
-a hooded sentry of wavering violet shadow posted on guard, its outline rippling like heat-haze and melting from one form into another, an incoming beam bending aside off its shifting edge, drawn as flat glowing violet light-lines, not a realistic painted person, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Знаменосец теней — `violet_shade_bannerman`  (существо)
-save: `client-godot/art/violet_shade_bannerman.png`
-```
-a bannerman holding high a tattered banner of pure shadow, ranks of phantom soldiers mustering ever thicker beneath it, drawn as flat glowing violet light-lines, not a realistic painted person, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of beings made of living violet light, glowing violet light-lines tracing their shapes, every figure in frame clearly drawn with a clean readable silhouette, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Спящая угроза — `violet_sleeping_threat`  (существо)
-save: `client-godot/art/violet_sleeping_threat.png`
-```
-a huge violet shadow-crocodile lying deathly still among banked crystals, one heavy eye just cracking open, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Возвращённый — `violet_the_returned`  (существо)
-save: `client-godot/art/violet_the_returned.png`
-```
-a towering violet shadow-cicada clawing up from a cache of buried crystals, hostile light sliding off its carapace, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
 ```
 
 ## Искровая блоха — `red_spark_flea`  (существо)
