@@ -2381,7 +2381,7 @@
     "text": {
       "ru": "Пока не вспыхнет — его не видно."
     },
-    "art": "a plump round-bodied firefly beetle with folded wing-cases, its glowing tail-lantern dimmed down to a faint violet ember, unseen in the dark until it suddenly flares",
+    "art": "a firefly hovering on open blurred wings in deep darkness, its abdomen a soft lantern of violet light dimmed down to a faint ember, a thin trail of fading glow behind it",
     "type": "creature",
     "color": [
       "violet"
@@ -3497,7 +3497,7 @@
     "text": {
       "ru": "Каждое заклинание — новая искра в брюшке."
     },
-    "art": "a plump round-bodied firefly beetle with folded wing-cases, its glowing tail-lantern flaring brighter each time a stray bolt crackles past",
+    "art": "a firefly hovering on open blurred wings, its abdomen a bright lantern of red light flaring hotter each time a stray bolt crackles past, a thin trail of sparks behind it",
     "type": "creature",
     "color": [
       "red"
