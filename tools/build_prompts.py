@@ -88,6 +88,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      light ("deep shadow pooling around its paws" -- the panther trick);
 #      airborne/mid-leap pose. A standing pose with visible hooves on open
 #      ground needs a strong reason.
+#  14. COPY/SWARM CARDS: STATE THE COUNT IN THE OPENING WORDS. "a figure ...
+#      its double rises from its back" buries the twin mid-sentence and MJ
+#      drops it (Haunting Double rendered with no double). Open with the
+#      multiplicity -- "two overlapping figures, the front one solid, the
+#      other its ghostly double..." (Twin Shade worked exactly because of
+#      this). The wrapper auto-detects copy words and swaps "one single
+#      creature" for a group clause, but the SUBJECT must still lead with
+#      the count.
 #  10. BIJECTION TEST. Given all 198 arts and all 198 names, a player must be
 #      able to match them 1:1. So every subject carries ONE unique visual key
 #      = the name's noun, literally in frame ("Drums of War" shows a drum --
@@ -180,6 +188,16 @@ CREATURE_HEAD = (
     "tracing its shape, one single creature with a clean readable silhouette "
     "in a simple uncluttered pose, "
 )
+# Copy/swarm cards (a double, three duplicates, phantom ranks) must NOT get the
+# "one single creature" clause -- it fights the subject and MJ drops the copies.
+GROUP_HEAD = (
+    "a " + _FLAT + " of beings made of living {g}light, glowing {g}light-lines "
+    "tracing their shapes, every figure in frame clearly drawn with a clean "
+    "readable silhouette, "
+)
+_MULTI_RE = re.compile(
+    r"\b(two|three|twin|double|duplicates?|copies|copy of itself|pair of|"
+    r"swarm|flock|host|ranks)\b")
 EFFECT_HEAD = (
     "a " + _FLAT + " of a pure {g}light phenomenon, the subject rendered in "
     "bold {g}light and {g}energy alone, "
@@ -277,6 +295,8 @@ def style_for(card):
         head = EFFECT_HEAD.format(g=g)
     elif is_struct:
         head = STRUCT_HEAD.format(g=g)
+    elif _MULTI_RE.search(card.get("art", "").lower()):
+        head = GROUP_HEAD.format(g=g)
     else:
         head = CREATURE_HEAD.format(g=g)
     # A structure subject must not carry the creature/animal --no bans.

@@ -2408,7 +2408,7 @@
     "text": {
       "ru": "Явь ли, тень ли — поди разбери, которая."
     },
-    "art": "a violet wraith caught half-dissolved between solid form and empty air, three faint overlapping copies of it trailing off",
+    "art": "three overlapping images of one violet wraith caught half-dissolved between solid form and empty air, each copy fainter than the last",
     "type": "creature",
     "color": [
       "violet"
@@ -2746,7 +2746,7 @@
     "text": {
       "ru": "Одного мало — их всегда чуть больше."
     },
-    "art": "a solid violet shadow-figure striding forward while its exact ghostly double rises half-out of its back, mirroring the stride a beat late, drawn as flat glowing violet light-lines, not a realistic painted person",
+    "art": "two overlapping violet shadow-figures mid-stride, the front one solid, the other its exact ghostly double risen half-out of its back and mirroring the stride a beat late, drawn as flat glowing violet light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "violet"
@@ -4069,7 +4069,7 @@
     "text": {
       "ru": "Их сразу трое — поди пойми, который."
     },
-    "art": "a crude carved idol-totem of violet shadow-stone splitting into three overlapping duplicates that mirror its every sway",
+    "art": "three overlapping duplicates of one crude carved idol-totem of violet shadow-stone, splitting apart and mirroring each other's sway",
     "type": "creature",
     "color": [
       "violet"
@@ -4161,7 +4161,7 @@
     "text": {
       "ru": "Один оленёнок — а следов вдвое."
     },
-    "art": "a slender fawn crowned with moss-and-fern antlers in a chest-up portrait, a hollow violet double of itself overlapping a half-step behind",
+    "art": "two fawns crowned with moss-and-fern antlers in a chest-up portrait, one solid, the other its hollow violet echo overlapping a half-step behind",
     "type": "creature",
     "color": [
       "green",
@@ -4234,7 +4234,7 @@
     "text": {
       "ru": "Один морок сеет целый рой."
     },
-    "art": "a round-bodied mirage-creature, a floating orb of tangled green vines wrapped in violet haze, budding a faint hollow copy of itself as the undergrowth thickens",
+    "art": "two round wisp-orbs of tangled green vines wrapped in violet haze, the larger budding the smaller hollow copy straight out of its side",
     "type": "creature",
     "color": [
       "green",
@@ -4566,7 +4566,7 @@
     "text": {
       "ru": "Двое дразнят, бьют по обоим."
     },
-    "art": "a violet shadow-peacock fanning its tail beside a hollow mirror-copy, both fanned wide to draw every gaze",
+    "art": "two violet shadow-peacocks fanned side by side, one solid and one a hollow mirror-copy, both spreading their tails wide to draw every gaze",
     "type": "creature",
     "color": [
       "violet"
