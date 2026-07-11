@@ -267,7 +267,7 @@
     "text": {
       "ru": "Пляшет — и раны хозяина затягивает жаром."
     },
-    "art": "a long-bodied ember-serpent rearing upright in a spinning fire-dance, its coils clearly drawn, threads of warm light spiralling off-frame",
+    "art": "a long-legged ember-crane in a whirling fire-dance, wings fanned and neck arched, threads of warm light spiralling off-frame",
     "type": "creature",
     "color": [
       "red"
@@ -401,7 +401,7 @@
     "text": {
       "ru": "Заряжает кристаллом, стреляет искрами."
     },
-    "art": "a heavy carapaced beetle of red ray-light with a spark-launching vent grown into its own back, a single bright spark flaring from it",
+    "art": "a heavy armoured armadillo of red ray-light, a spark-launching vent grown into its back-plates, a single bright spark flaring from it",
     "type": "creature",
     "color": [
       "red"
@@ -430,7 +430,7 @@
     "text": {
       "ru": "Что клинок отнимает, то жар возвращает хозяину."
     },
-    "art": "a heavy branded ox-beast marked with searing glyphs, warm light streaming back off-frame with every goring blow",
+    "art": "a heavy branded ram marked with searing glyphs, warm light streaming back off-frame with every goring blow",
     "type": "creature",
     "color": [
       "red"
@@ -1898,7 +1898,7 @@
     "text": {
       "ru": "Придёт волна — и унесёт лишнее обратно."
     },
-    "art": "a long sea-serpent spirit with a clearly drawn finned body curling back off the shore, the tide drawn out after it, flotsam dragged in its wake",
+    "art": "a sleek long-whiskered seal of blue light curling back off the shore, the tide drawn out after it, flotsam dragged in its wake",
     "type": "creature",
     "color": [
       "blue"
@@ -2014,7 +2014,7 @@
     "text": {
       "ru": "Дышит — и рядом всё покрывается инеем."
     },
-    "art": "a mammoth-shaped colossus of ancient glacial ice seen from a low angle, colossal sweeping tusks of clear ice, hoarfrost shaggy on its high shoulders, its frozen breath sheathing the ground before it in rime",
+    "art": "a walrus-shaped colossus of ancient glacial ice seen from a low angle, colossal tusks of clear ice, hoarfrost shaggy on its bull neck, its frozen breath sheathing the ground before it in rime",
     "type": "creature",
     "color": [
       "blue"
@@ -2746,7 +2746,7 @@
     "text": {
       "ru": "Одного мало — их всегда чуть больше."
     },
-    "art": "a violet spectral stag beside its own hollow double, a third faint outline of antlers already forming behind them",
+    "art": "a solid violet shadow-figure striding forward while its exact ghostly double rises half-out of its back, mirroring the stride a beat late, drawn as flat glowing violet light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "violet"
@@ -2778,7 +2778,7 @@
     "text": {
       "ru": "Целься в него — попадёшь в другого."
     },
-    "art": "a wavering violet shadow-serpent coiled in guard, an incoming beam bending off its scales toward another shape entirely",
+    "art": "a hooded sentry of wavering violet shadow posted on guard, its outline rippling like heat-haze and melting from one form into another, an incoming beam bending aside off its shifting edge, drawn as flat glowing violet light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "violet"
@@ -2828,15 +2828,15 @@
     ]
   },
   {
-    "id": "violet_false_marshal",
+    "id": "violet_shade_bannerman",
     "name": {
-      "ru": "Ложный полководец",
-      "en": "False Marshal"
+      "ru": "Знаменосец теней",
+      "en": "Shade Bannerman"
     },
     "text": {
-      "ru": "Чем гуще мороки вокруг, тем он грознее."
+      "ru": "Под его знаменем встают даже тени."
     },
-    "art": "a violet raven-shade growing fiercer as a flock of faint illusory ravens wheels ever thicker around it",
+    "art": "a bannerman holding high a tattered banner of pure shadow, ranks of phantom soldiers mustering ever thicker beneath it, drawn as flat glowing violet light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "violet"
@@ -2897,7 +2897,7 @@
     "text": {
       "ru": "Дремлет среди кристаллов — пока не проснётся."
     },
-    "art": "a huge slumbering violet shadow-toad squatting disguised among banked crystals, one heavy eye just cracking open",
+    "art": "a huge violet shadow-crocodile lying deathly still among banked crystals, one heavy eye just cracking open",
     "type": "creature",
     "color": [
       "violet"
@@ -3257,7 +3257,7 @@
     "text": {
       "ru": "Пасёт грибное стадо."
     },
-    "art": "a fungus-antlered stag guiding a drifting flock of tiny spore-sprites along",
+    "art": "a shaggy fungus-horned goat guiding a drifting flock of tiny spore-sprites along",
     "type": "creature",
     "color": [
       "green"
@@ -3315,7 +3315,7 @@
     "text": {
       "ru": "Что скосит своё — тем и растёт."
     },
-    "art": "a mantis-like reaper-beast of flat glowing red-and-green light, its two forelimbs curved into long scythe-blades of that same living light, small ally-wisps withering as it swells, one single centred glowing body, not a realistic painted person",
+    "art": "a great locust of red-and-green light, its serrated hind-legs curved like long scythe-blades, small wisps withering around it as it swells",
     "type": "creature",
     "color": [
       "red",
@@ -3402,7 +3402,7 @@
     "text": {
       "ru": "Каждой смерти — плата кровью."
     },
-    "art": "a gaunt elk-spirit with green moss-antlers and red weeping flanks looming over grave-mounds, flinging a burning blood-mote skyward for every fresh grave",
+    "art": "a gaunt hooded mourner kneeling over grave-mounds, moss-green veils trailing from its shoulders, red weeping streaks down its cloak, flinging a burning blood-mote skyward for every fresh grave, drawn as flat glowing red and green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "red",
@@ -3688,7 +3688,7 @@
     "text": {
       "ru": "Гроза слушается каждого его слова."
     },
-    "art": "a towering storm-drake, embers in its throat and frost on its wings, lightning gathering along its horns as the storm speaks around it",
+    "art": "a towering tyrant-lizard with embers glowing in its throat and hoarfrost crusted along its spine, lightning gathering around its horns as the storm speaks around it",
     "type": "creature",
     "color": [
       "red",
@@ -3952,7 +3952,7 @@
     "text": {
       "ru": "Греется на свету — и копит его в кристалл."
     },
-    "art": "a moss-backed toad basking with its face to the light, drawing a single crystal down out of the light",
+    "art": "a moss-shelled giant snail basking with its face to the light, drawing a single crystal down out of the light",
     "type": "creature",
     "color": [
       "green"
@@ -4038,7 +4038,7 @@
     "text": {
       "ru": "Убьёшь — вернётся тенью."
     },
-    "art": "a dim violet phantom with a hooded wraith-like form, half-dissolved into shadow, a fainter echo of itself drifting a step behind",
+    "art": "a pale hooded phantom rising anew above its own crumpled husk fading on the ground, thinner and paler than before",
     "type": "creature",
     "color": [
       "violet"
@@ -4098,7 +4098,7 @@
     "text": {
       "ru": "Каждое утро — двойная жатва света."
     },
-    "art": "a hulking mud-caked fen-newt churning the marsh, two bright crystals welling up from the turned muck each dawn",
+    "art": "a hulking mud-caked water-buffalo churning marsh furrows with its horns, two bright crystals welling up from the turned muck each dawn",
     "type": "creature",
     "color": [
       "green"
@@ -4760,7 +4760,7 @@
     "text": {
       "ru": "Разобьётся — и полыхнёт по глазам."
     },
-    "art": "a crystal-winged dragonfly in sharp close-up striking first, its fracturing wings bursting at the shatter-instant into a blinding golden flare",
+    "art": "a dragonfly of brittle golden glass striking first, its wings bursting at the shatter-instant into a blinding golden flare",
     "type": "creature",
     "color": [
       "yellow"
@@ -4953,7 +4953,7 @@
     "text": {
       "ru": "Незрима — и бьёт дважды."
     },
-    "art": "a scythe-limbed mantis dissolving into violet shadow, its twin sickle-blades flashing with yellow glare as they cut a target down twice, unseen",
+    "art": "a hushed shrike of yellow glare half-dissolved into violet shadow, its sickle-hooked beak and wing-blades cutting its prey down twice, unseen",
     "type": "creature",
     "color": [
       "yellow",
