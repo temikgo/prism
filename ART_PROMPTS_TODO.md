@@ -1,36 +1,6 @@
-# ART TODO — карты без арта (142 шт.)
+# ART TODO — карты без арта (133 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
-
-## Фокальный дракончик — `blue_focal_drake`  (существо)
-save: `client-godot/art/blue_focal_drake.png`
-```
-a crystalline drake in sharp close-up peering through a clear lens of ice, a faint image of the next card surfacing in its eye, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Ледяной часовой — `blue_frost_sentinel`  (существо)
-save: `client-godot/art/blue_frost_sentinel.png`
-```
-a tall heron of blue ice-light standing sentinel, freezing mist pooling around its legs, its breath blooming into hoarfrost over the rimed reeds, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Ледниковая стена — `blue_glacier_wall`  (существо)
-save: `client-godot/art/blue_glacier_wall.png`
-```
-a towering glacier wall of clear blue ice spanning the whole field, immovable, the deck's coming cards frozen dimly visible deep within it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living blue light, glowing blue light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Дух отлива — `blue_ebb_spirit`  (существо)
-save: `client-godot/art/blue_ebb_spirit.png`
-```
-a long sea-serpent spirit with a clearly drawn finned body curling back off the shore, the tide drawn out after it, flotsam dragged in its wake, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Зеркальный скат — `blue_mirror_ray`  (существо)
-save: `client-godot/art/blue_mirror_ray.png`
-```
-a gliding crystalline manta ray, a single beam entering its clear body and leaving as two diverging rays, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
 
 ## Заиндевелый колосс — `blue_hoarfrost_colossus`  (существо)
 save: `client-godot/art/blue_hoarfrost_colossus.png`
@@ -38,34 +8,10 @@ save: `client-godot/art/blue_hoarfrost_colossus.png`
 a colossus hewn of solid glacial ice, massive angular block-cut limbs and squared shoulders, standing square and immovable like a monument seen from a low angle, hoarfrost smoking off its back, its frozen breath sheathing the ground before it in rime, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
 ```
 
-## Глубинный левиафан — `blue_deep_leviathan`  (существо)
-save: `client-godot/art/blue_deep_leviathan.png`
-```
-a whale-like deep-sea leviathan breaching, its barnacled head and jaws towering over the water, the sea freezing solid in rings around its body, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living blue light, glowing blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of blue, freely varied -- cyan, azure, teal, steel-blue, navy, and no other colour, on a deep dark flat background of swirling blue energy in the same palette with drifting blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, violet, grey --sref https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Тусклый светляк — `violet_dim_firefly`  (существо)
-save: `client-godot/art/violet_dim_firefly.png`
-```
-a firefly hovering on open blurred wings in deep darkness, its abdomen a soft lantern of violet light dimmed down to a faint ember, a thin trail of fading glow behind it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Сумеречный мотылёк — `violet_duskwing`  (существо)
-save: `client-godot/art/violet_duskwing.png`
-```
-a broad-winged violet moth at dusk, its wide shadow spilling across the ground to hide whatever slips beneath it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
 ## Мерцающий фонарь — `violet_glimmer_lantern`  (существо)
 save: `client-godot/art/violet_glimmer_lantern.png`
 ```
 an anglerfish-shade of deep violet shadow, a small glowing lantern hanging from the lure-stalk arched over its head, the lantern the brightest point in the frame, its glimmer deepening the dark around into a hiding pool of shadow, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Тайный клинок — `violet_hidden_blade`  (существо)
-save: `client-godot/art/violet_hidden_blade.png`
-```
-a violet mantis of shadow-light, its long blade-limbs folded flat and hidden against its body, edges melting into the dark until the strike, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
 ```
 
 ## Ночной морок — `violet_night_mirage`  (существо)
