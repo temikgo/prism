@@ -1,6 +1,24 @@
-# ART TODO — карты без арта (150 шт.)
+# ART TODO — карты без арта (154 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
+
+## Костровой полип — `red_bonfire_polyp`  (существо)
+save: `client-godot/art/red_bonfire_polyp.png`
+```
+a squat coral-like polyp burning like a small bonfire, flames dancing along its crown of arms, a shimmering heat-haze sharpening everything near it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
+```
+
+## Птица-проблеск — `yellow_glint_sunbird`  (существо)
+save: `client-godot/art/yellow_glint_sunbird.png`
+```
+a glass-winged sunbird in sharp close-up riding a needle-sharp glint of golden light, striking first before it is even seen, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
+```
+
+## Ястреб-зарница — `yellow_lightning_hawk`  (существо)
+save: `client-godot/art/yellow_lightning_hawk.png`
+```
+a great hawk of heat-lightning in a diving strike, its outspread wings branching into forks of silent lightning, flooding the pass below with blinding light, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
+```
 
 ## Мотылёк гаснущего света — `yellow_moth_of_fading_light`  (существо)
 save: `client-godot/art/yellow_moth_of_fading_light.png`
@@ -636,6 +654,12 @@ a low blood-red sunrise cresting over a scorched empty plain, long knife-sharp r
 save: `client-godot/art/red_firespit.png`
 ```
 a compact gout of fire streaking flat across the frame, tight and aimed, sparks peeling off its tail, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure red light phenomenon, the subject rendered in bold red light and red energy alone, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
+```
+
+## Барабаны войны — `red_drums_of_war`  (аура)
+save: `client-godot/art/red_drums_of_war.png`
+```
+a ring of great war-drums of red ray-light, their struck skins rippling, concentric shockwaves of heat rolling out with every beat, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a pure red light phenomenon, the subject rendered in bold red light and red energy alone, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic with crisp fine linework, one clear event with a visible source and direction, framed from a middle distance, the whole scene readable at a glance --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, creature, character, person, figure, monster, animal, face, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
 ```
 
 ## Гнев Пирра — `red_wrath_of_pyrrhus`  (заклинание)
