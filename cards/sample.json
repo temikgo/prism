@@ -458,7 +458,7 @@
     "text": {
       "ru": "Пока горит — вокруг всё точит когти жарче."
     },
-    "art": "a squat coral-like polyp burning like a small bonfire, flames crowning its crown of arms, a shimmering heat-haze sharpening everything near it",
+    "art": "a squat coral-like polyp burning like a small bonfire, flames dancing along its crown of arms, a shimmering heat-haze sharpening everything near it",
     "type": "creature",
     "color": [
       "red"
@@ -487,7 +487,7 @@
     "text": {
       "ru": "Ритм гонит вперёд и не даёт остыть."
     },
-    "art": "a great round war-drum of red ray-light, its struck skin rippling, concentric shockwaves of heat rolling out with every beat",
+    "art": "a ring of great war-drums of red ray-light, their struck skins rippling, concentric shockwaves of heat rolling out with every beat",
     "type": "aura",
     "color": [
       "red"
@@ -656,7 +656,7 @@
     "text": {
       "ru": "Успевает сверкнуть первым."
     },
-    "art": "a single needle-sharp glint of golden light darting through the dark, a barely-there bird-shape folded inside the flash, striking first before it is even seen",
+    "art": "a glass-winged sunbird in sharp close-up riding a needle-sharp glint of golden light, striking first before it is even seen",
     "type": "creature",
     "color": [
       "yellow"
@@ -863,7 +863,7 @@
     "text": {
       "ru": "Полыхнёт — и противник слепнет на подходе."
     },
-    "art": "a silent fork of heat lightning frozen mid-strike, its branching bolt folded into the rough shape of a diving hawk, flooding the pass below with blinding light",
+    "art": "a great hawk of heat-lightning in a diving strike, its outspread wings branching into forks of silent lightning, flooding the pass below with blinding light",
     "type": "creature",
     "color": [
       "yellow"
@@ -1078,7 +1078,7 @@
       "en": "Heliodore Scarab"
     },
     "text": {
-      "ru": "Разит первым и раной кормит хозяина."
+      "ru": "Разит первым, а удары по нему греют хозяина."
     },
     "art": "a scarab beetle sheathed in faceted heliodor-gem plates, its edged shell flashing to strike first, each blow that breaks on it streaming back off-frame as warmth",
     "type": "creature",
@@ -1173,7 +1173,7 @@
       "en": "Lion of Helios"
     },
     "text": {
-      "ru": "Держит строй и добивает светом дважды."
+      "ru": "Рык — и свет бьёт дважды."
     },
     "art": "a colossal radiant lion-titan maned in noon-fire in a heroic chest-up portrait, its mane blazing to the frame's edge, roaring toward a far horizon",
     "type": "creature",
@@ -1658,15 +1658,15 @@
     ]
   },
   {
-    "id": "green_heartwood",
+    "id": "green_heartwood_sloth",
     "name": {
-      "ru": "Сердце чащи",
-      "en": "Heartwood"
+      "ru": "Сердцевинный ленивец",
+      "en": "Heartwood Sloth"
     },
     "text": {
       "ru": "Размером со всё, что ты успел скопить."
     },
-    "art": "a vast slumbering wooden beast curled up asleep, its body grown of living heartwood around a glowing pulsing heart-core, swelling larger the more crystals lie hoarded around it",
+    "art": "a giant sloth of living heartwood curled up asleep, its slow body grown around a glowing pulsing heart-core, swelling larger the more crystals lie hoarded around it",
     "type": "creature",
     "color": [
       "green"
@@ -1866,7 +1866,7 @@
       "en": "Glacier Wall"
     },
     "text": {
-      "ru": "Медленно, но не сдвинуть."
+      "ru": "Встала — и не сдвинуть."
     },
     "art": "a towering glacier wall of clear blue ice spanning the whole field, immovable, the deck's coming cards frozen dimly visible deep within it",
     "type": "creature",
@@ -1977,10 +1977,10 @@
     ]
   },
   {
-    "id": "blue_refractor",
+    "id": "blue_crystal_jellyfish",
     "name": {
-      "ru": "Мерцающий рефрактор",
-      "en": "Refractor"
+      "ru": "Хрустальная медуза",
+      "en": "Crystal Jellyfish"
     },
     "text": {
       "ru": "Копит свет заклинаний и бьёт им."
@@ -2325,10 +2325,10 @@
     ]
   },
   {
-    "id": "blue_haze_veil",
+    "id": "blue_frost_veil",
     "name": {
       "ru": "Морозная завеса",
-      "en": "Haze Veil"
+      "en": "Frost Veil"
     },
     "text": {
       "ru": "Сквозь дымку и заклинание идёт с трудом."
@@ -2656,10 +2656,10 @@
     ]
   },
   {
-    "id": "violet_nightmirage",
+    "id": "violet_night_mirage",
     "name": {
       "ru": "Ночной морок",
-      "en": "Nightmirage"
+      "en": "Night Mirage"
     },
     "text": {
       "ru": "Убьёшь — а он приснится снова."
@@ -2952,15 +2952,15 @@
     ]
   },
   {
-    "id": "red_spark_tick",
+    "id": "red_spark_flea",
     "name": {
-      "ru": "Искровой клещ",
-      "en": "Spark Tick"
+      "ru": "Искровая блоха",
+      "en": "Spark Flea"
     },
     "text": {
       "ru": "Лопнет искрой — и достанет до лица."
     },
-    "art": "a flat-bodied tick in sharp close-up crackling with pent sparks, leaping high and bursting into a hot flash as it lands",
+    "art": "a flat-bodied flea in sharp close-up crackling with pent sparks, leaping high and bursting into a hot flash as it lands",
     "type": "creature",
     "color": [
       "red"
@@ -3016,7 +3016,7 @@
     "text": {
       "ru": "Летит в лицо и там сгорает."
     },
-    "art": "a fly of red ember-light in sharp close-up, its whole body flaring searing-bright as it is snuffed against its mark",
+    "art": "a soot-dusted fly in sharp close-up limned in red ember-light, its whole body flaring searing-bright as it is snuffed against its mark",
     "type": "creature",
     "color": [
       "red"
@@ -3284,7 +3284,7 @@
       "en": "Bloatcap"
     },
     "text": {
-      "ru": "Раздулся падалью — лопнет тремя."
+      "ru": "Раздулся падалью — и лопнет на три всхода."
     },
     "art": "a huge bloated puffball mushroom straining at its skin, three fat spore-sacs bulging and about to burst free",
     "type": "creature",
@@ -3950,7 +3950,7 @@
       "en": "Mossy Acolyte"
     },
     "text": {
-      "ru": "Тянет свет из-под мха."
+      "ru": "Греется на свету — и копит его в кристалл."
     },
     "art": "a moss-backed toad basking with its face to the light, drawing a single crystal down out of the light",
     "type": "creature",
@@ -3978,7 +3978,7 @@
       "en": "Sprout Warden"
     },
     "text": {
-      "ru": "Сеет пушечное мясо по требованию."
+      "ru": "Тряхнёт щетиной — и всходы тут как тут."
     },
     "art": "a squat bristly boar, seeds shaking loose from its hide to sprout around its hooves",
     "type": "creature",
@@ -4030,10 +4030,10 @@
     ]
   },
   {
-    "id": "violet_dim_phantom",
+    "id": "violet_pale_phantom",
     "name": {
-      "ru": "Тусклый призрак",
-      "en": "Dim Phantom"
+      "ru": "Блёклый призрак",
+      "en": "Pale Phantom"
     },
     "text": {
       "ru": "Убьёшь — вернётся тенью."
@@ -4096,7 +4096,7 @@
       "en": "Fen Cultivator"
     },
     "text": {
-      "ru": "С каждого утра — двойная жатва света."
+      "ru": "Каждое утро — двойная жатва света."
     },
     "art": "a hulking mud-caked fen-newt churning the marsh, two bright crystals welling up from the turned muck each dawn",
     "type": "creature",
@@ -4226,15 +4226,15 @@
     ]
   },
   {
-    "id": "green_violet_sprawling_wisp",
+    "id": "green_violet_budding_mirage",
     "name": {
-      "ru": "Разросшийся морок",
-      "en": "Sprawling Wisp"
+      "ru": "Почкующийся морок",
+      "en": "Budding Mirage"
     },
     "text": {
       "ru": "Один морок сеет целый рой."
     },
-    "art": "a round-bodied wisp-creature, a floating orb of tangled green vines wrapped in violet haze, budding a faint hollow copy of itself as the undergrowth thickens",
+    "art": "a round-bodied mirage-creature, a floating orb of tangled green vines wrapped in violet haze, budding a faint hollow copy of itself as the undergrowth thickens",
     "type": "creature",
     "color": [
       "green",
@@ -4496,15 +4496,15 @@
     ]
   },
   {
-    "id": "violet_row_shade",
+    "id": "violet_lurking_shade",
     "name": {
-      "ru": "Тень в ряду",
-      "en": "Row Shade"
+      "ru": "Затаившаяся тень",
+      "en": "Lurking Shade"
     },
     "text": {
       "ru": "Затаится в кристаллах, встанет незримой."
     },
-    "art": "a flat violet shadow-shape lurking hidden in a row of banked glowing violet crystals, its edges melting into the dark gaps between them",
+    "art": "a flat violet shadow-shape lurking hidden among banked glowing violet crystals, its edges melting into the dark gaps between them",
     "type": "creature",
     "color": [
       "violet"
@@ -5284,7 +5284,7 @@
       "en": "Quartz Newt"
     },
     "text": {
-      "ru": "Растёт с запасом — и студит на входе."
+      "ru": "Копит камень — и дышит стужей."
     },
     "art": "a newt with moss-green flanks and a spine of quartz ice, swelling with every crystal you hoard, breathing a rime of frost across the reeds",
     "type": "creature",
@@ -5578,7 +5578,7 @@
       "en": "Barbican"
     },
     "text": {
-      "ru": "Держит фронт и куёт герою броню."
+      "ru": "Ворота на замке — герой в броне."
     },
     "art": "a massive fortified barbican gatehouse of golden light barring the road, its raised gate layering fresh armor onto the hero sheltered within",
     "type": "creature",
