@@ -1008,15 +1008,15 @@
     ]
   },
   {
-    "id": "yellow_fading_light",
+    "id": "yellow_moth_of_fading_light",
     "name": {
-      "ru": "Гаснущий свет",
-      "en": "Fading Light"
+      "ru": "Мотылёк гаснущего света",
+      "en": "Moth of Fading Light"
     },
     "text": {
       "ru": "Гаснет — и напоследок слепит убийц."
     },
-    "art": "a dying flame of golden light collapsing into one last brilliant flash, a moth-shape folded inside the guttering glow, its halo swallowing a hostile curse-bolt",
+    "art": "a great lantern-moth in sharp close-up, its wings a guttering halo of golden light collapsing into one last brilliant flash",
     "type": "creature",
     "color": [
       "yellow"
@@ -1400,15 +1400,15 @@
     ]
   },
   {
-    "id": "green_sporeburst",
+    "id": "green_spore_weevil",
     "name": {
-      "ru": "Всплеск спор",
-      "en": "Sporeburst"
+      "ru": "Споровый долгоносик",
+      "en": "Spore Weevil"
     },
     "text": {
       "ru": "Лопнет — и на его месте двое."
     },
-    "art": "a bloated puffball fungus mid-burst, two small sprout-forms tumbling out of its spore-cloud",
+    "art": "a fat armoured weevil in sharp close-up, two swollen spore-sacs on its back straining to burst into fresh sprouts",
     "type": "creature",
     "color": [
       "green"
@@ -2373,15 +2373,15 @@
     ]
   },
   {
-    "id": "violet_dim_ember",
+    "id": "violet_dim_firefly",
     "name": {
-      "ru": "Тусклый огонёк",
-      "en": "Dim Ember"
+      "ru": "Тусклый светляк",
+      "en": "Dim Firefly"
     },
     "text": {
       "ru": "Пока не вспыхнет — его не видно."
     },
-    "art": "a violet glow-beetle in sharp close-up dimming its own light to a faint ember, unseen in the dark until it suddenly flares",
+    "art": "a violet firefly in sharp close-up dimming its own glow down to a faint ember, unseen in the dark until it suddenly flares",
     "type": "creature",
     "color": [
       "violet"
@@ -2400,15 +2400,15 @@
     ]
   },
   {
-    "id": "violet_halflight",
+    "id": "violet_halflight_wraith",
     "name": {
-      "ru": "Полуявь",
-      "en": "Halflight"
+      "ru": "Призрак полуяви",
+      "en": "Halflight Wraith"
     },
     "text": {
       "ru": "Явь ли, тень ли — поди разбери, которая."
     },
-    "art": "a lone figure of violet shadow caught half-dissolved, flickering between solid form and empty air, three faint overlapping copies of it trailing off",
+    "art": "a violet wraith caught half-dissolved between solid form and empty air, three faint overlapping copies of it trailing off",
     "type": "creature",
     "color": [
       "violet"
@@ -4752,15 +4752,15 @@
     ]
   },
   {
-    "id": "yellow_flare_fracture",
+    "id": "yellow_flare_dragonfly",
     "name": {
-      "ru": "Вспышка на изломе",
-      "en": "Flare Fracture"
+      "ru": "Стрекоза-вспышка",
+      "en": "Flare Dragonfly"
     },
     "text": {
       "ru": "Разобьётся — и полыхнёт по глазам."
     },
-    "art": "a crystal dragonfly caught at the instant of shattering, its fracturing wings bursting into a blinding flare that floods everything near",
+    "art": "a crystal-winged dragonfly in sharp close-up striking first, its fracturing wings bursting at the shatter-instant into a blinding golden flare",
     "type": "creature",
     "color": [
       "yellow"
@@ -5317,15 +5317,15 @@
     ]
   },
   {
-    "id": "green_blue_rapids",
+    "id": "green_blue_rapids_otter",
     "name": {
-      "ru": "Стремнина",
-      "en": "Rapids"
+      "ru": "Выдра стремнины",
+      "en": "Rapids Otter"
     },
     "text": {
       "ru": "Несёт ростки и студит берега."
     },
-    "art": "a sleek river-otter with a solid clearly drawn body riding the rushing rapids, seeds scattering from its wake, hoarfrost trailing off its whiskers",
+    "art": "a sleek river-otter with a solid clearly drawn body riding the rushing green-and-blue rapids, seeds scattering from its wake, hoarfrost trailing off its whiskers",
     "type": "creature",
     "color": [
       "green",
@@ -5355,10 +5355,10 @@
     ]
   },
   {
-    "id": "green_blue_rime_sheet",
+    "id": "green_blue_rime_ray",
     "name": {
-      "ru": "Наледь",
-      "en": "Rime Sheet"
+      "ru": "Наледный скат",
+      "en": "Rime Ray"
     },
     "text": {
       "ru": "Тонкий лёд чинит своих и студит чужих."
@@ -5880,10 +5880,10 @@
     ]
   },
   {
-    "id": "yellow_green_oakwood",
+    "id": "yellow_green_oakwood_elk",
     "name": {
-      "ru": "Дубрава",
-      "en": "Oakwood"
+      "ru": "Дубравный лось",
+      "en": "Oakwood Elk"
     },
     "text": {
       "ru": "Чем гуще лес за ним, тем шире рога."
