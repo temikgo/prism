@@ -3609,15 +3609,15 @@
     ]
   },
   {
-    "id": "red_blue_twin_hornet",
+    "id": "red_blue_hornet_of_ember_and_frost",
     "name": {
-      "ru": "Двужалый шершень",
-      "en": "Twin Hornet"
+      "ru": "Шершень жара и стужи",
+      "en": "Hornet of Ember and Frost"
     },
     "text": {
       "ru": "Один укус — а жал будто два."
     },
-    "art": "one narrow-waisted banded hornet diving along a single lance of light, the lance splitting through its stinger into an ember-red ray and a frost-blue ray, the forked rays striking one point together",
+    "art": "one narrow-waisted banded hornet split cleanly down the middle, its left half blazing ember-red and its right half icy frost-blue, lunging stinger-first at one point",
     "type": "creature",
     "color": [
       "red",
