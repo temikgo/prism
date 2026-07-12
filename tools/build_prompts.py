@@ -373,6 +373,7 @@ _VAGUE_RE = re.compile(
     r"^(?:\S+\s+){0,7}?\S*(leviathan|colossus|titan|behemoth|giant|spirit|wisp|being|shape|shade|phantom|wraith)\b")
 _ANATOMY_RE = re.compile(
     r"(-shaped|-bodied|-like\b|clearly drawn|head|jaws|arms?\b|legged|legs|paws|"
+    r"face|hooded|sleeves|robe|cloak|"
     r"wings?\b|fins|antlers|horn|coils|shoulders|whiskers|tail\b|limbs|"
     r"whale|bull|bear|ox\b|tortoise|serpent|otter|raven|cuttlefish|toad|stag|"
     r"boar|wolf|panther|fox\b|moth|beetle|spider|crab|owl|heron|mantis|scarab|"
