@@ -1718,7 +1718,7 @@
   {
     "id": "green_ancient_titan",
     "name": {
-      "ru": "Вековой исполин",
+      "ru": "Древний титан",
       "en": "Ancient Titan"
     },
     "text": {
@@ -2070,7 +2070,7 @@
   {
     "id": "blue_frostgrip",
     "name": {
-      "ru": "Морозный захват",
+      "ru": "Морозная хватка",
       "en": "Frostgrip"
     },
     "text": {
@@ -2217,7 +2217,7 @@
   {
     "id": "blue_deep_freeze",
     "name": {
-      "ru": "Глубокая заморозка",
+      "ru": "Вечная мерзлота",
       "en": "Deep Freeze"
     },
     "text": {
@@ -3010,7 +3010,7 @@
   {
     "id": "red_sootfly",
     "name": {
-      "ru": "Сажемошка",
+      "ru": "Сажевая мошка",
       "en": "Sootfly"
     },
     "text": {
@@ -3158,7 +3158,7 @@
   {
     "id": "red_green_blood_acolyte",
     "name": {
-      "ru": "Кровавый служка",
+      "ru": "Кровавый послушник",
       "en": "Blood Acolyte"
     },
     "text": {
@@ -3644,7 +3644,7 @@
   {
     "id": "red_blue_ember_oracle",
     "name": {
-      "ru": "Тлеющий оракул",
+      "ru": "Оракул углей",
       "en": "Ember Oracle"
     },
     "text": {
@@ -3946,7 +3946,7 @@
   {
     "id": "green_mossy_acolyte",
     "name": {
-      "ru": "Мшистый служка",
+      "ru": "Мшистый послушник",
       "en": "Mossy Acolyte"
     },
     "text": {
@@ -4092,7 +4092,7 @@
   {
     "id": "green_fen_cultivator",
     "name": {
-      "ru": "Топяной пахарь",
+      "ru": "Болотный пахарь",
       "en": "Fen Cultivator"
     },
     "text": {
@@ -4194,7 +4194,7 @@
   {
     "id": "green_violet_crystal_colossus",
     "name": {
-      "ru": "Хрустальный колосс",
+      "ru": "Кристальный колосс",
       "en": "Crystal Colossus"
     },
     "text": {
@@ -4909,7 +4909,7 @@
   {
     "id": "yellow_violet_waking_colossus",
     "name": {
-      "ru": "Пробуждённый исполин",
+      "ru": "Пробуждённый колосс",
       "en": "Waking Colossus"
     },
     "text": {
@@ -5357,7 +5357,7 @@
   {
     "id": "green_blue_rime_ray",
     "name": {
-      "ru": "Наледный скат",
+      "ru": "Скат-наледь",
       "en": "Rime Ray"
     },
     "text": {
