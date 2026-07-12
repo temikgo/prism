@@ -3309,13 +3309,13 @@
   {
     "id": "red_green_field_reaper",
     "name": {
-      "ru": "Косарь полей",
+      "ru": "Жнец полей",
       "en": "Field Reaper"
     },
     "text": {
       "ru": "Что скосит своё — тем и растёт."
     },
-    "art": "a great locust of red-and-green light in a half-mown field of glowing stalks, its serrated hind-legs sweeping like long scythe-blades through the swathe",
+    "art": "a gaunt robed reaper swinging a long scythe through a half-mown field of glowing stalks, the cut swathe withering behind it, drawn as flat glowing red and green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "red",
