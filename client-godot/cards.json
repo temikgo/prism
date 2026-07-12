@@ -3609,15 +3609,15 @@
     ]
   },
   {
-    "id": "red_blue_prism_unicorn",
+    "id": "red_blue_volt_unicorn",
     "name": {
-      "ru": "Единорог-призма",
-      "en": "Prism Unicorn"
+      "ru": "Вольтов единорог",
+      "en": "Volt Unicorn"
     },
     "text": {
       "ru": "Один рог — а лучей два."
     },
-    "art": "a crystal unicorn mid-charge with horn lowered, its long spiral prism-horn splitting one incoming lance of light into an ember-red ray and a frost-blue ray, its mane streaming embers and its tail trailing frost",
+    "art": "a crystal unicorn mid-charge with horn lowered, a bolt of lightning striking its long spiral horn and splitting into an ember-red ray and a frost-blue ray, its mane streaming embers and its tail trailing frost",
     "type": "creature",
     "color": [
       "red",
@@ -4098,7 +4098,7 @@
     "text": {
       "ru": "Каждое утро — двойная жатва света."
     },
-    "art": "a mud-spattered ploughman of green light pushing a simple hand-plough of pure light through soggy marsh furrows, bright crystals welling up from the turned muck behind it, drawn as flat glowing green light-lines, not a realistic painted person",
+    "art": "a hulking marsh-beast with a broad plough-shaped bone snout, churning deep straight furrows through the soggy fen, bright crystals welling up from the turned muck behind it",
     "type": "creature",
     "color": [
       "green"
