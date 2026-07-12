@@ -346,7 +346,7 @@
     "text": {
       "ru": "Плюнуть жаром — недолго и недалеко, но метко."
     },
-    "art": "a compact gout of fire streaking flat across the frame, tight and aimed, sparks peeling off its tail",
+    "art": "a compact gout of fire spat hard and flat across the frame, tight and aimed, sparks peeling off its tail",
     "type": "spell",
     "color": [
       "red"
@@ -1268,7 +1268,7 @@
     "text": {
       "ru": "Забьёт из земли — и щедро."
     },
-    "art": "a spring welling up through cracked earth, two crystals rising and turning in the upflow",
+    "art": "a spring of liquid light welling up through cracked earth, two crystals rising and turning in the bright upflow",
     "type": "spell",
     "color": [
       "green"
@@ -1782,7 +1782,7 @@
     "text": {
       "ru": "Черпай — не вычерпаешь."
     },
-    "art": "a deep stone well brimming with liquid light, three crystals welling up and spilling over its rim",
+    "art": "a deep stone well brimming with liquid sunlight, three crystals welling up and spilling over its sun-bright rim",
     "type": "spell",
     "color": [
       "green"
@@ -2223,7 +2223,7 @@
     "text": {
       "ru": "Разом и надолго."
     },
-    "art": "a whole stretch of ground and air sealed inside one solid block of clear ice, frozen mid-motion",
+    "art": "a whole stretch of ground and air sealed inside one solid block of ancient clear ice, frozen mid-motion for an age",
     "type": "spell",
     "color": [
       "blue"
@@ -3164,7 +3164,7 @@
     "text": {
       "ru": "Что вас лечит, то врага жжёт."
     },
-    "art": "a squat blood-drinking pitcher-plant creature veined red and green, spitting a searing thorn whenever warm healing light washes over it",
+    "art": "a kneeling novice in rough robes cupping a blood-red pitcher-bloom, the bloom spitting a searing thorn whenever warm healing light washes over it, drawn as flat glowing red and green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "red",
@@ -3257,7 +3257,7 @@
     "text": {
       "ru": "Пасёт грибное стадо."
     },
-    "art": "a shaggy fungus-horned goat guiding a drifting flock of tiny spore-sprites along",
+    "art": "a robed shepherd with a tall crook herding a trotting flock of small round mushrooms down a woodland path, drawn as flat glowing green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "green"
@@ -3315,7 +3315,7 @@
     "text": {
       "ru": "Что скосит своё — тем и растёт."
     },
-    "art": "a great locust of red-and-green light, its serrated hind-legs curved like long scythe-blades, small wisps withering around it as it swells",
+    "art": "a great locust of red-and-green light in a half-mown field of glowing stalks, its serrated hind-legs sweeping like long scythe-blades through the swathe",
     "type": "creature",
     "color": [
       "red",
@@ -3952,7 +3952,7 @@
     "text": {
       "ru": "Греется на свету — и копит его в кристалл."
     },
-    "art": "a moss-shelled giant snail basking with its face to the light, drawing a single crystal down out of the light",
+    "art": "a novice in a moss-grown hooded robe kneeling toward the light, a single crystal condensing in its cupped hands, drawn as flat glowing green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "green"
@@ -3980,7 +3980,7 @@
     "text": {
       "ru": "Тряхнёт щетиной — и всходы тут как тут."
     },
-    "art": "a squat bristly boar, seeds shaking loose from its hide to sprout around its hooves",
+    "art": "a squat bristly boar standing guard over a patch of fresh sprouts, seeds shaking loose from its hide to sprout around its hooves",
     "type": "creature",
     "color": [
       "green"
@@ -4411,7 +4411,7 @@
     "text": {
       "ru": "Крадётся в сумерках мимо любых стен."
     },
-    "art": "a lithe violet shadow-marten slinking unseen through the dusk, slipping past a standing wall into the gloom",
+    "art": "a lithe violet shadow-marten on the hunt, slinking unseen through the dusk, slipping past a standing wall into the gloom",
     "type": "creature",
     "color": [
       "violet"
