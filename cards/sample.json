@@ -3609,15 +3609,15 @@
     ]
   },
   {
-    "id": "red_blue_hornet_of_ember_and_frost",
+    "id": "red_blue_prism_unicorn",
     "name": {
-      "ru": "Шершень жара и стужи",
-      "en": "Hornet of Ember and Frost"
+      "ru": "Единорог-призма",
+      "en": "Prism Unicorn"
     },
     "text": {
-      "ru": "Один укус — а жал будто два."
+      "ru": "Один рог — а лучей два."
     },
-    "art": "one narrow-waisted banded hornet split cleanly down the middle, its left half blazing ember-red and its right half icy frost-blue, lunging stinger-first at one point",
+    "art": "a crystal unicorn mid-charge with horn lowered, its long spiral prism-horn splitting one incoming lance of light into an ember-red ray and a frost-blue ray, its mane streaming embers and its tail trailing frost",
     "type": "creature",
     "color": [
       "red",
@@ -4098,7 +4098,7 @@
     "text": {
       "ru": "Каждое утро — двойная жатва света."
     },
-    "art": "a mud-spattered ploughman of green light driving a wooden plough through soggy marsh furrows, bright crystals welling up from the turned muck behind it, drawn as flat glowing green light-lines, not a realistic painted person",
+    "art": "a mud-spattered ploughman of green light pushing a simple hand-plough of pure light through soggy marsh furrows, bright crystals welling up from the turned muck behind it, drawn as flat glowing green light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "green"

@@ -22,6 +22,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      glowing <colour> light-lines, not a realistic painted person". Keep them
 #      the minority of the set (most cards read fine as beasts/spirits/plants);
 #      never let recognizability lose to a no-humanoid reflex -- rule 10 wins.
+#      TOOLS A FIGURE HOLDS MUST BE SIMPLE AND MADE OF LIGHT (a crook, a
+#      hand-plough of pure light, a banner of shadow). NEVER realistic
+#      machinery -- tractors, combines, engines, gears, vehicles: machines and
+#      the light-world are incompatible ("wooden plough" rendered farm
+#      machinery). Light-tech only.
 #   3. MULTICOLOR = WEAVE EVERY COLOUR INTO THE SUBJECT, BALANCED. One colour's
 #      imagery silently dominates (frost/rime/mist=blue, fire/ember=red,
 #      bloom=green) and the palette line does NOT fix it -- the SUBJECT words set
