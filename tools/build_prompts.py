@@ -370,7 +370,7 @@ _BLUE_RE = re.compile(r"\b(blue|cyan|teal|azure|turquoise)\b")
 # --- Subject lints: every art-authoring rule we have violated at least once,
 # --- encoded so it can never silently recur (run on every generation).
 _VAGUE_RE = re.compile(
-    r"^(?:\S+\s+){0,7}?\S*(leviathan|colossus|titan|behemoth|giant|spirit|wisp|being)\b")
+    r"^(?:\S+\s+){0,7}?\S*(leviathan|colossus|titan|behemoth|giant|spirit|wisp|being|shape|shade|phantom|wraith)\b")
 _ANATOMY_RE = re.compile(
     r"(-shaped|-bodied|-like\b|clearly drawn|head|jaws|arms?\b|legged|legs|paws|"
     r"wings?\b|fins|antlers|horn|coils|shoulders|whiskers|tail\b|limbs|"
