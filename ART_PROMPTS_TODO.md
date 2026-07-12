@@ -1,48 +1,6 @@
-# ART TODO — карты без арта (97 шт.)
+# ART TODO — карты без арта (90 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
-
-## Единорог льда и огня — `red_blue_unicorn_of_ice_and_fire`  (существо)
-save: `client-godot/art/red_blue_unicorn_of_ice_and_fire.png`
-```
-a crystal unicorn rearing, its body split cleanly down the middle, the left half wreathed in blazing fire with a mane of flame, the right half sheathed in thick blue ice with a tail of icicles, its spiral horn glowing where both halves meet, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red and blue light, glowing red and blue light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only red and crimson and deep blue and cyan tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling red and blue energy in the same palette with drifting red and blue light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png https://cdn.midjourney.com/0ae56907-7024-42fd-b4fd-4195d1da1a97/0_2.png --sw 100
-```
-
-## Болотный пахарь — `green_fen_cultivator`  (существо)
-save: `client-godot/art/green_fen_cultivator.png`
-```
-a hulking marsh-beast with a broad plough-shaped bone snout, churning deep straight furrows through the soggy fen, bright crystals welling up from the turned muck behind it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
-```
-
-## Кристальный колосс — `green_violet_crystal_colossus`  (существо)
-save: `client-godot/art/green_violet_crystal_colossus.png`
-```
-a four-legged colossus hewn of green crystal rising to its feet, its blocky legs, broad shoulders and horned head clearly drawn, a violet phantom twin looming half-transparent behind it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of beings made of living green and violet light, glowing green and violet light-lines tracing their shapes, every figure in frame clearly drawn with a clean readable silhouette, a strict colour palette of only lime green and grass green and violet and purple tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and violet energy in the same palette with drifting green and violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Почкующийся морок — `green_violet_budding_mirage`  (существо)
-save: `client-godot/art/green_violet_budding_mirage.png`
-```
-two round-bodied wisp-orbs of tangled green vines wrapped in violet haze, the larger budding the smaller hollow copy straight out of its side, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of beings made of living green and violet light, glowing green and violet light-lines tracing their shapes, every figure in frame clearly drawn with a clean readable silhouette, a strict colour palette of only lime green and grass green and violet and purple tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and violet energy in the same palette with drifting green and violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Спящий вал — `green_violet_dormant_rampart`  (существо)
-save: `client-godot/art/green_violet_dormant_rampart.png`
-```
-a long crenellated rampart wall of mossy green stone-light lying dormant under a violet cloak of shadow, half-buried among banked crystals, its wall-tiers slowly rising even as it sleeps, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living green and violet light, glowing green and violet light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only lime green and grass green and violet and purple tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling green and violet energy in the same palette with drifting green and violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Сумеречный ловчий — `violet_dusk_hunter`  (существо)
-save: `client-godot/art/violet_dusk_hunter.png`
-```
-a lithe violet shadow-marten on the hunt, slinking unseen through the dusk, slipping past a standing wall into the gloom, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Хранитель отзвуков — `violet_keeper_of_echoes`  (существо)
-save: `client-godot/art/violet_keeper_of_echoes.png`
-```
-a violet shadow-bat wheeling through the dark, an incoming beam bending off it toward a fainter echo of itself, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
 
 ## Тусклый фонарщик — `yellow_dim_lamplighter`  (существо)
 save: `client-godot/art/yellow_dim_lamplighter.png`
