@@ -88,6 +88,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      light ("deep shadow pooling around its paws" -- the panther trick);
 #      airborne/mid-leap pose. A standing pose with visible hooves on open
 #      ground needs a strong reason.
+#  15. SAME-FAMILY SPECIES NEED THEIR HALLMARK FEATURE SPELLED OUT. The species
+#      TOKEN alone renders the same generic bug/bird/fish ("scarab" and
+#      "beetle" both drew one beetle; bare "flea"/"fly" drew blobs/ribbons).
+#      Write the field mark: weevil = long down-curved snout; scarab = wide
+#      fan-edged head plate; dung-beetle = flattened digging forelegs;
+#      bombardier = venting shell; flea = hunched shell + oversized springing
+#      hind legs; firefly = tail-lantern; fly = big compound eyes. The name's
+#      species and the drawn species must be the same recognisable animal.
 #  14. COPY/SWARM CARDS: STATE THE COUNT IN THE OPENING WORDS. "a figure ...
 #      its double rises from its back" buries the twin mid-sentence and MJ
 #      drops it (Haunting Double rendered with no double). Open with the

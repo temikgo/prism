@@ -372,7 +372,7 @@
     "text": {
       "ru": "Панцирь набит жаром, и он не любит терпеть."
     },
-    "art": "a fat armored beetle with a cracked venting shell packed with heat, jets of hot light hissing from the cracks, an instant from bursting apart",
+    "art": "a fat armored bombardier beetle, its cracked venting shell packed with heat, jets of hot light hissing from the cracks, an instant from bursting apart",
     "type": "creature",
     "color": [
       "red"
@@ -1408,7 +1408,7 @@
     "text": {
       "ru": "Лопнет — и на его месте двое."
     },
-    "art": "a fat armoured weevil in sharp close-up, two swollen spore-sacs on its back straining to burst into fresh sprouts",
+    "art": "a fat armoured weevil with a long down-curved snout, two swollen spore-sacs on its back straining to burst into fresh sprouts",
     "type": "creature",
     "color": [
       "green"
@@ -3016,7 +3016,7 @@
     "text": {
       "ru": "Летит в лицо и там сгорает."
     },
-    "art": "a ragged soot-black fly dragging a long smear of soot across the frame, the dull red glow inside it guttering out in a final puff of soot against its mark",
+    "art": "a ragged fly insect with big red compound eyes and tattered soot-black wings, a thin smear of soot trailing behind it, its inner glow guttering out in a puff of soot against its mark",
     "type": "creature",
     "color": [
       "red"
@@ -3045,7 +3045,7 @@
     "text": {
       "ru": "Кормит собой два новых ростка."
     },
-    "art": "a fat scarab rolling a great ball of packed carrion, two spores already sprouting from the ball's crust",
+    "art": "a fat scarab with a wide fan-edged head plate rolling a great ball of packed carrion, two spores already sprouting from the ball's crust",
     "type": "creature",
     "color": [
       "green"
@@ -4009,7 +4009,7 @@
     "text": {
       "ru": "Жиреет на всём, что гниёт рядом."
     },
-    "art": "a fat lumbering beetle burrowing through humus, its thick shell swelling heavier as fodder rots and decays around it",
+    "art": "a broad-domed dung-beetle with flattened digging forelegs burrowing through dark humus, its thick shell heavier the more everything rots around it",
     "type": "creature",
     "color": [
       "green"
