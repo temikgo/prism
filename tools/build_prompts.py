@@ -423,7 +423,7 @@ _SPECIES_CLASS = {
     "jellyfish": ["jellyfish"], "cuttlefish": ["cuttlefish", "octopus", "squid"],
     "figure": ["figure", "figures", "sentry", "sower", "mourner", "bannerman", "marshal"],
     "tree": ["oak", "elm", "treant", "tree"], "fungus": ["mushroom", "puffball",
-             "fungus", "toadstool"], "wall": ["wall", "rampart", "gatehouse",
+             "fungus", "toadstool"], "wall": ["wall", "rampart", "gatehouse", "hedge",
              "bastion", "vault", "shutter"],
 }
 _ACTION_CLASS = {

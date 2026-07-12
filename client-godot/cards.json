@@ -213,7 +213,7 @@
     "text": {
       "ru": "Один укол — и щит уже ни при чём."
     },
-    "art": "a hornet with an oversized barbed stinger, driving it clean through a raised shield into the space beyond",
+    "art": "a hornet with an oversized barbed stinger shedding a trail of embers, driving it clean through a raised shield into the space beyond",
     "type": "creature",
     "color": [
       "red"
@@ -430,7 +430,7 @@
     "text": {
       "ru": "Что клинок отнимает, то жар возвращает хозяину."
     },
-    "art": "a heavy branded ram marked with searing glyphs, warm light streaming back off-frame with every goring blow",
+    "art": "a heavy branded ram standing guard at a narrow pass, searing glyph-brands glowing along its flanks, warm light streaming back off-frame with every goring blow it lands",
     "type": "creature",
     "color": [
       "red"
@@ -1437,7 +1437,7 @@
     "text": {
       "ru": "С каждым днём гуще и злее."
     },
-    "art": "a dense living hedge bristling with long thorns, thickening taller and meaner season by season",
+    "art": "a sheer fortress wall built entirely of woven thorn-branches, bristling with long spikes, thickening taller and meaner season by season",
     "type": "creature",
     "color": [
       "green"
@@ -1552,7 +1552,7 @@
     "text": {
       "ru": "Растёт быстрее, чем его успевают срубить."
     },
-    "art": "a towering treant warden of trunk and root, visibly swelling broader and taller by the hour",
+    "art": "a towering treant standing watch at the edge of a young grove, its trunk and roots swelling broader and taller by the hour",
     "type": "creature",
     "color": [
       "green"
@@ -1898,7 +1898,7 @@
     "text": {
       "ru": "Придёт волна — и унесёт лишнее обратно."
     },
-    "art": "a sleek long-whiskered seal of blue light curling back off the shore, the tide drawn out after it, flotsam dragged in its wake",
+    "art": "a sleek half-translucent seal-spirit of pale blue light curling back off the shore, the tide drawn out after it, flotsam dragged in its wake",
     "type": "creature",
     "color": [
       "blue"
@@ -1928,7 +1928,7 @@
     "text": {
       "ru": "Каждое заклинание точит его грани."
     },
-    "art": "a faceted crystal dragonfly hovering in place, every wing-edge honed keener each time a stray bolt of light crackles past",
+    "art": "a faceted crystal dragonfly hovering in place, gazing unblinking as if reading what comes next in the light, every wing-edge honed keener each time a stray bolt crackles past",
     "type": "creature",
     "color": [
       "blue"
@@ -5888,7 +5888,7 @@
     "text": {
       "ru": "Чем гуще лес за ним, тем шире рога."
     },
-    "art": "a towering elk whose antlers branch into a whole golden-leafed oak grove, spreading broader and barring the road as more woodland crowds in behind it",
+    "art": "a towering elk whose antlers branch into a whole oak grove of green boughs and golden leaves, the woodland crowding thick around its legs as it bars the road",
     "type": "creature",
     "color": [
       "yellow",

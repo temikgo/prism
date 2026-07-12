@@ -1,6 +1,18 @@
-# ART TODO — карты без арта (99 шт.)
+# ART TODO — карты без арта (101 шт.)
 
 Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. Сохраняй PNG по строке `save:`.
+
+## Терновая стена — `green_thornwall`  (существо)
+save: `client-godot/art/green_thornwall.png`
+```
+a sheer fortress wall built entirely of woven thorn-branches, bristling with long spikes, thickening taller and meaner season by season, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a structure of living green light, glowing green light-lines tracing its form, one single bold object with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
+```
+
+## Хранитель рощи — `green_grove_warden`  (существо)
+save: `client-godot/art/green_grove_warden.png`
+```
+a towering treant standing watch at the edge of a young grove, its trunk and roots swelling broader and taller by the hour, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
+```
 
 ## Кровавый послушник — `red_green_blood_acolyte`  (существо)
 save: `client-godot/art/red_green_blood_acolyte.png`
@@ -251,7 +263,7 @@ a vast arching vault of golden-and-green light curving overhead like a domed fir
 ## Дубравный лось — `yellow_green_oakwood_elk`  (существо)
 save: `client-godot/art/yellow_green_oakwood_elk.png`
 ```
-a towering elk whose antlers branch into a whole golden-leafed oak grove, spreading broader and barring the road as more woodland crowds in behind it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow and green light, glowing yellow and green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only gold and amber and lime green and grass green tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling yellow and green energy in the same palette with drifting yellow and green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
+a towering elk whose antlers branch into a whole oak grove of green boughs and golden leaves, the woodland crowding thick around its legs as it bars the road, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow and green light, glowing yellow and green light-lines tracing its shape, one single creature with a clean readable silhouette in a simple uncluttered pose, a strict colour palette of only gold and amber and lime green and grass green tones in equal measure with no colour dominant, no other colours, on a deep dark flat background of swirling yellow and green energy in the same palette with drifting yellow and green light-motes, clean and graphic, the subject large and centered, filling the frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
 ```
 
 ## Кряжистый вяз — `yellow_green_gnarled_elm`  (существо)
