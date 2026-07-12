@@ -3611,13 +3611,13 @@
   {
     "id": "red_blue_twin_hornet",
     "name": {
-      "ru": "Сдвоенный шершень",
+      "ru": "Двужалый шершень",
       "en": "Twin Hornet"
     },
     "text": {
       "ru": "Один укус — а жал будто два."
     },
-    "art": "a hornet mid-strike splitting into two mirrored after-images, the left one trailing embers and the right one trailing frost, their stingers striking as one",
+    "art": "two mirrored images of one narrow-waisted banded hornet mid-strike, overlapping wing to wing, the left image trailing embers and the right trailing frost, both barbed stingers striking the same point",
     "type": "creature",
     "color": [
       "red",
