@@ -240,9 +240,13 @@ legalActions / сериализация / реплеи / фазз / лог де�
    - **Пресеты** = `client-godot/presets.json` (data, генерю по цвету: 20 карт цвета ×2 = 40),
      грузятся в `Decks.builtin()`; в loadout отдельной группой «Пресеты» + тумблер
      `Decks.presets_hidden()`. Read-only. Герой выбирается отдельно.
-   - **Арт**: `ART_PROMPTS.md` (все) / `ART_PROMPTS_TODO.md` (только 179 без арта) — `python3 tools/build_prompts.py`;
-     генерю в MJ → `client-godot/art/<id>.png`. 23 уже с артом (4 героя + 19 совпавших имён). Мипмапы авто
-     (`[importer_defaults]`); для колодостроителя — `gen_thumbs.py`; `run_client.sh` достаточно.
+   - **Арт**: **ГОТОВ ЦЕЛИКОМ (2026-07) — 198/198 карт + 4 героя, `ART_PROMPTS_TODO.md` пуст.**
+     Пайплайн: `tools/build_prompts.py` (генератор+8 линтов: blue/subject/twin/formula/species-per-colour/
+     generic-opener/two-colour-balance/analogous-intermix) → промпт в MJ v7 → intake (Downloads→art/<id>.png→
+     `gen_thumbs.py`→Godot `--import` мипмапы→`check_art.py`→md5-rm). Стиль-замок: пер-цветовые sref-якоря
+     `--sw 100`; аналог. пары (жёлто-зелёный и т.п.) — `--sw 30` + зонная палитра + нейтр. glow (иначе
+     соседние hue сливаются в шартрёз, замерено hue-гистограммой). Полный свод грабель — память
+     `art-prompt-authoring`. Самая длинная работа проекта (~5 дней покарточной сверки имя↔арт↔суть).
    - **Арт-субъекты переписаны (198 карт, коммит bd2263a):** воркфлоу prism-art-rewrite (12 групп по цвету,
      Rewrite→Verify критик) сделал существо=живое (не явление/объект), имя-концепт в центре кадра, мультицвет
      поровну, ни одного чужого/синего слова у не-синих (blue-defence OK). Правила остаются в шапке

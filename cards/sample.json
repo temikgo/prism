@@ -346,7 +346,7 @@
     "text": {
       "ru": "Плюнуть жаром — недолго и недалеко, но метко."
     },
-    "art": "a compact gout of fire spat hard and flat across the frame, tight and aimed, sparks peeling off its tail",
+    "art": "a hard tight ball of fire spat out flat and fast across the frame like a spitting-cobra strike, a compact shooting fireball trailing a short sharp spray of sparks, sudden and violent",
     "type": "spell",
     "color": [
       "red"
@@ -487,7 +487,7 @@
     "text": {
       "ru": "Ритм гонит вперёд и не даёт остыть."
     },
-    "art": "a ring of great war-drums of red ray-light, their struck skins rippling, concentric shockwaves of heat rolling out with every beat",
+    "art": "three great war-drums of red ray-light of clearly different sizes clustered close together, each drum whole and separate with its own round rippling skin, rings of heat pulsing outward from the group as they are struck",
     "type": "aura",
     "color": [
       "red"
@@ -504,15 +504,15 @@
     ]
   },
   {
-    "id": "red_wrath_of_pyrrhus",
+    "id": "red_fiery_reckoning",
     "name": {
-      "ru": "Гнев Пирра",
-      "en": "Wrath of Pyrrhus"
+      "ru": "Огненная кара свыше",
+      "en": "Fiery Reckoning"
     },
     "text": {
-      "ru": "Он не целит в строй — он целит выше."
+      "ru": "Бьёт не по строю — по тому, кто выше."
     },
-    "art": "a towering column of fire plunging from a smoke-dark sky onto one distant point on an empty plain, the ground between left untouched",
+    "art": "a massive bolt of fire hurled straight down out of a break in the smoke-dark sky above, slamming into a single point on the dark plain far below and bursting apart on impact, the ground around it left untouched",
     "type": "spell",
     "color": [
       "red"
@@ -957,7 +957,7 @@
     "text": {
       "ru": "На белое солнце не смотрят дважды."
     },
-    "art": "one colossal graphic sunburst, its core burned to pure searing white, a full crown of hard straight rays radiating to every edge of the frame, the thin strip of plain below bleached bone-white",
+    "art": "one colossal graphic sunburst, its core a blown-out overexposed blaze of pure white light so fierce it burns all colour away to blank white, a full crown of hard straight golden rays radiating from it to every edge of the frame, the thin strip of plain below bleached bone-white",
     "type": "spell",
     "color": [
       "yellow"
@@ -1260,15 +1260,15 @@
     ]
   },
   {
-    "id": "green_springlight",
+    "id": "green_gemspring",
     "name": {
-      "ru": "Родник света",
-      "en": "Springlight"
+      "ru": "Самоцветный ключ",
+      "en": "Gemspring"
     },
     "text": {
       "ru": "Забьёт из земли — и щедро."
     },
-    "art": "a spring of liquid light welling up through cracked earth, two crystals rising and turning in the bright upflow",
+    "art": "a natural spring bubbling up between mossy green rocks, welling not water but bright faceted gemstones that rise and tumble up out of the source, two fresh crystals cresting on the upflow",
     "type": "spell",
     "color": [
       "green"
@@ -1347,7 +1347,7 @@
     "id": "green_strangleveil",
     "name": {
       "ru": "Удушающие лозы",
-      "en": "Strangleveil"
+      "en": "Stranglevine"
     },
     "text": {
       "ru": "Обовьёт и стравит — сам в стороне."
@@ -2096,13 +2096,13 @@
   {
     "id": "blue_undertow",
     "name": {
-      "ru": "Отбойное течение",
+      "ru": "Тягун",
       "en": "Undertow"
     },
     "text": {
       "ru": "Утянет чужого — или спасёт своего."
     },
-    "art": "a violent spiralling current twisting down beneath a calm sea surface, dragging weed and driftwood under in its funnel",
+    "art": "a powerful dark undertow surging sideways just below a calm sea surface, sweeping tangled weed and driftwood away from the shallows and dragging them off into the deep",
     "type": "spell",
     "color": [
       "blue"
@@ -2127,7 +2127,7 @@
     "text": {
       "ru": "Видит дальше — берёт лучшее."
     },
-    "art": "a still scrying-pool mirroring several far-off visions, one of them rising up out of the water as a pane of light",
+    "art": "a great spyglass of blue light trained far out across a dark sea, distant far-off visions surfacing in the bright circle of its far view, one of them drawn back toward the viewer as a clear pane of light",
     "type": "spell",
     "color": [
       "blue"
@@ -2158,7 +2158,7 @@
     "text": {
       "ru": "Луч, что не гасят ни щит, ни нимб."
     },
-    "art": "a needle-thin lance of light striking a floating round shield and splintering on impact into a fan of shard-rays",
+    "art": "a needle-thin beam of light lancing in and shattering at its point of impact into a spray of sharp forward-flying splinter-shards",
     "type": "spell",
     "color": [
       "blue"
@@ -2281,7 +2281,7 @@
     "text": {
       "ru": "Ляжет весь строй — и надолго."
     },
-    "art": "upright hollow sarcophagi of clear ice standing in silent rows on dark ground, a long winter sealed inside them",
+    "art": "a frozen burial-crypt of blue ice, its heavy carved lid sealed under thick hoarfrost, worn gravestones leaning in the rimed ground around it, an ancient deathly cold locked away inside",
     "type": "spell",
     "color": [
       "blue"
@@ -2333,7 +2333,7 @@
     "text": {
       "ru": "Сквозь дымку и заклинание идёт с трудом."
     },
-    "art": "a hanging curtain of pale freezing mist drawn across the field, the air behind it thick and still",
+    "art": "a hanging curtain of pale freezing mist drawn across the field, everything beyond it fading and blurring away into a dim white blankness, hoarfrost beading along the near edge of the veil",
     "type": "aura",
     "color": [
       "blue"
@@ -2358,7 +2358,7 @@
     "text": {
       "ru": "Всё двоится — и удар тоже."
     },
-    "art": "a shimmering doubled after-image lying over the whole field, every shape softly split into two overlapping copies",
+    "art": "a pair of round spectacles of blue light hanging in the dark, and seen through their two lenses a single bright arrow-bolt splits into two identical bolts flying side by side, everything beyond the glass doubled and offset",
     "type": "aura",
     "color": [
       "blue"
@@ -2491,7 +2491,7 @@
     "text": {
       "ru": "Свет уходит — и с ним сила."
     },
-    "art": "a creeping violet dusk sweeping across the ground, every glow it passes over guttering down to a faint ember",
+    "art": "a waning violet crescent moon high in a dark sky, its light visibly ebbing away, the once-full disc worn down to a thin dwindling sliver as its glow drains off into the surrounding dark",
     "type": "spell",
     "color": [
       "violet"
@@ -2597,15 +2597,15 @@
     ]
   },
   {
-    "id": "violet_fractured_whisper",
+    "id": "violet_phantasm",
     "name": {
-      "ru": "Расколотый шёпот",
-      "en": "Fractured Whisper"
+      "ru": "Наваждение",
+      "en": "Phantasm"
     },
     "text": {
-      "ru": "Повтори слух — и вот их уже двое."
+      "ru": "Морок множит — и вот их уже двое."
     },
-    "art": "a violet echo-ripple spreading from a point in the dark, splitting into two identical rings drifting apart",
+    "art": "a single wavering violet phantom shape splitting into two identical shimmering copies of itself, the illusory double peeling away and drifting alongside the first, both flickering unreal like a mirage",
     "type": "spell",
     "color": [
       "violet"
@@ -2720,7 +2720,7 @@
     "text": {
       "ru": "Не рой, а морок роя — но с когтями."
     },
-    "art": "a violet haze breaking apart into a swarm of three small flickering illusory clawed shapes",
+    "art": "three small identical violet clawed shadow-shapes swarming forward close together in a cluster, each a sharp-clawed flickering silhouette, half-transparent and unreal like a shared mirage",
     "type": "spell",
     "color": [
       "violet"
@@ -3132,7 +3132,7 @@
     "text": {
       "ru": "Один сноп в жертву — и полные руки взамен."
     },
-    "art": "a bound sheaf of green light-stalks collapsing and scattering apart in a bright fall, two glowing panes of green light rising up out of the spilling grain",
+    "art": "a tall bound sheaf of green wheat-ears tied at the waist, toppling and bursting open in a bright scatter of grain, two glowing panes of green light rising up out of the spilling harvest",
     "type": "spell",
     "color": [
       "green"
@@ -3338,15 +3338,15 @@
     ]
   },
   {
-    "id": "red_green_crimson_surge",
+    "id": "red_green_blood_and_bloom",
     "name": {
-      "ru": "Багряный прибой",
-      "en": "Crimson Surge"
+      "ru": "Кровь и всходы",
+      "en": "Blood and Bloom"
     },
     "text": {
-      "ru": "Прилив крови бьёт в чужой берег."
+      "ru": "Где схлынет кровь — там встанут всходы."
     },
-    "art": "a breaking tide of crimson blood and green sap surging up a dark shore, a searing lance of light bursting forward out of each cresting wave",
+    "art": "a crimson tide of blood washing up over a dark shore, and where the red water draws back thick bright green shoots and sprouts burst up fast from the blood-soaked ground",
     "type": "spell",
     "color": [
       "red",
@@ -3425,15 +3425,15 @@
     ]
   },
   {
-    "id": "red_green_wake",
+    "id": "red_green_immolation",
     "name": {
-      "ru": "Тризна",
-      "en": "Wake"
+      "ru": "Всесожжение",
+      "en": "Immolation"
     },
     "text": {
       "ru": "Всех на костёр — и пусть враг горит."
     },
-    "art": "a funeral pyre of red flame and green kindling-boughs consuming a row of small guttering wisps, a wave of scorching heat rolling outward from it",
+    "art": "a towering funeral pyre, tall red flames devouring a great heaped mound of fresh green leafy boughs and cut green sheaves piled high, a wave of scorching heat rolling outward across the dark ground",
     "type": "spell",
     "color": [
       "red",
@@ -3746,13 +3746,13 @@
   {
     "id": "red_crimson_flicker",
     "name": {
-      "ru": "Багровый всполох",
-      "en": "Crimson Flicker"
+      "ru": "Багровая вспышка",
+      "en": "Crimson Flash"
     },
     "text": {
       "ru": "Короткая вспышка — прямо в лицо."
     },
-    "art": "a single thin whip-crack of crimson flame arcing high across the dark and gone in an instant",
+    "art": "a single sharp red flash-burst on a plain black background, a small blinding white-red core with hard straight flash-rays snapping outward from it in a tight starburst, sudden and instant, nothing else in frame",
     "type": "spell",
     "color": [
       "red"
@@ -3778,7 +3778,7 @@
     "text": {
       "ru": "Разряд под дых."
     },
-    "art": "a sharp colourless spark leaping a short gap between two dark stones, snapping hard at the point of impact",
+    "art": "a sharp colourless shockwave punching outward from a single point, a hard concussive jolt of force slamming forward and knocking the dark stones back",
     "type": "spell",
     "cost": {
       "generic": 1
@@ -3793,15 +3793,15 @@
     ]
   },
   {
-    "id": "red_blue_needle_bolt",
+    "id": "red_blue_puncture",
     "name": {
-      "ru": "Игольчатый разряд",
-      "en": "Needle Bolt"
+      "ru": "Бронебой",
+      "en": "Armor-Piercer"
     },
     "text": {
       "ru": "Тонкий разряд — сквозь щит и нимб."
     },
-    "art": "a needle-thin bolt, half searing fire and half biting frost, punching clean through a floating shield and a ring of light beyond it",
+    "art": "one straight arrow driven clean through the exact centre of a single round metal shield, punching one neat round hole, the arrow glowing red-hot along its front half and icy blue along its back half, plain dark background, nothing else",
     "type": "spell",
     "color": [
       "red",
@@ -3834,7 +3834,7 @@
     "text": {
       "ru": "По морозу — и трещина до дна."
     },
-    "art": "a fracture line racing across a block of solid ice until it bursts apart into glittering shards",
+    "art": "a single tall vase of clear blue ice cracked apart down its side and breaking into a few glittering shards, plain black background, nothing else in frame",
     "type": "spell",
     "color": [
       "blue"
@@ -3866,7 +3866,7 @@
     "text": {
       "ru": "Свои — ярче, чужие — тусклее."
     },
-    "art": "a dark plain split clean in two, one half flaring with ember-heat, the other locked under creeping frost, the borderline razor-sharp",
+    "art": "a frame divided by one hard vertical line down the exact middle, the whole left half filled with real leaping red-orange flames and glowing red embers, the whole right half filled with solid blue ice, hanging icicles and white frost, the two halves meeting sharply along the centre line",
     "type": "aura",
     "color": [
       "red",
@@ -3897,7 +3897,7 @@
     "text": {
       "ru": "Чем больше искр за ход, тем громче удар."
     },
-    "art": "a churning red-and-blue storm-anvil built entirely of glowing ray-light, lit brightly from within, discharging a single massive forked bolt down at a distant point",
+    "art": "a churning storm-anvil built of glowing ray-light, one flank blazing red with heat-lightning and the other churning deep blue with frozen storm-cloud, discharging a single massive forked bolt down at a distant point",
     "type": "spell",
     "color": [
       "red",
@@ -4263,13 +4263,13 @@
   {
     "id": "green_second_sowing",
     "name": {
-      "ru": "Второй посев",
-      "en": "Second Sowing"
+      "ru": "Пересев",
+      "en": "Resowing"
     },
     "text": {
       "ru": "Что скошено — вновь в ладонь."
     },
-    "art": "two glowing seeds flung up out of a turned furrow, arcing high against the dark and falling back toward the near edge of the frame",
+    "art": "a field of freshly cut green stubble under a dark sky, fresh new green shoots already springing back up in rows through the cut ground, two bright seeds dropping back down into the near furrows",
     "type": "spell",
     "color": [
       "green"
@@ -4324,13 +4324,13 @@
   {
     "id": "violet_veil_of_glints",
     "name": {
-      "ru": "Пелена бликов",
-      "en": "Veil of Glints"
+      "ru": "Мерцание",
+      "en": "Shimmer"
     },
     "text": {
       "ru": "Среди бликов не разглядеть идущего."
     },
-    "art": "a hanging violet veil of scattered glints, the shadow beneath it pooling deeper and darker than the night around",
+    "art": "a dense shimmer of countless dancing violet glints and sparkles scattered across the dark air, everything behind the flicker blurred and lost, hard to make out in the restless glittering",
     "type": "aura",
     "color": [
       "violet"
@@ -4466,15 +4466,15 @@
     ]
   },
   {
-    "id": "yellow_dim_lamplighter",
+    "id": "yellow_fireeye_gecko",
     "name": {
-      "ru": "Тусклый фонарщик",
-      "en": "Dim Lamplighter"
+      "ru": "Огнеглазый геккон",
+      "en": "Fire-Eyed Gecko"
     },
     "text": {
-      "ru": "Прикрутит фитиль — и враг слепнет."
+      "ru": "Вспыхнет глазами — и ты ослеп."
     },
-    "art": "a lamplighter of dull golden light-lines filling the frame, reaching up with long tongs to pinch a small hanging lantern's flame down to its last dim ember, deep darkness pressing in all around, drawn as flat glowing yellow light-lines, not a realistic painted person",
+    "art": "a wide-eyed golden gecko clinging low on dark rock, its huge round eyes suddenly blazing a blinding flash of light straight ahead, splayed sticky toes gripping the stone, deep darkness all around",
     "type": "creature",
     "color": [
       "yellow"
@@ -4496,15 +4496,15 @@
     ]
   },
   {
-    "id": "violet_lurking_shade",
+    "id": "violet_faceted_chameleon",
     "name": {
-      "ru": "Затаившаяся тень",
-      "en": "Lurking Shade"
+      "ru": "Гранёный хамелеон",
+      "en": "Faceted Chameleon"
     },
     "text": {
-      "ru": "Затаится в кристаллах, встанет незримой."
+      "ru": "Ударишь по нему — а это обманка."
     },
-    "art": "a long flat shadow spilled across the ground between banked glowing crystals, its lurking outline hinting a crouched prowling beast, two narrow glowing eyes opening inside the darkness of it",
+    "art": "a crystal-scaled violet chameleon crouched dead still among banked glowing gemstones, its faceted hide taking their colour until it nearly vanishes, a faint second outline of itself shimmering apart from it as a decoy, eyes swivelling slow and separate, watchful and unseen",
     "type": "creature",
     "color": [
       "violet"
@@ -4535,7 +4535,7 @@
     "text": {
       "ru": "Свет манит удары на себя."
     },
-    "art": "a night watchman of golden light-lines making the rounds, holding up a bright lantern on a staff, blows arcing out of the dark toward the lantern-light and breaking against its raised shield, drawn as flat glowing yellow light-lines, not a realistic painted person",
+    "art": "a hulking lantern-headed sentinel beast of golden light, its whole head a great blazing four-paned lantern raised high on a thick neck, the light drawing every arrow and blow out of the surrounding dark onto itself, a broad ridged carapace-shield across its back turning the strikes aside, planted immovably square in the lane, towering against the black night",
     "type": "creature",
     "color": [
       "yellow"
@@ -4630,7 +4630,7 @@
     "text": {
       "ru": "Входит — и гасит первого попавшегося."
     },
-    "art": "a hulking gaoler-hound of golden light looming chest-up over a barred cage of light, its first hard glare snuffing the captive glow inside",
+    "art": "a great barred cage of golden light standing in the dark, a hulking gaoler-hound of light on guard beside it, one captive spark trapped behind the bars going dark under the hound's first hard glare",
     "type": "creature",
     "color": [
       "yellow"
@@ -4697,7 +4697,7 @@
     "text": {
       "ru": "Высветит всё, что враг прячет в запасе."
     },
-    "art": "a great watch-owl perched atop a blazing beacon-pyre, its searchlight gaze sweeping the dark and laying every hidden thing bare",
+    "art": "a tall watch-beacon of golden light blazing atop a lone signal-tower, its hard searchlight beam sweeping out across the dark and pinning every hidden thing in the open",
     "type": "creature",
     "color": [
       "yellow"
@@ -4728,7 +4728,7 @@
     "text": {
       "ru": "Зарыт среди кристаллов — до первого удара."
     },
-    "art": "a violet scorpion-shade half-buried among glowing violet crystals, only the bright bared tip of its long blade-tail glinting above the shards, poised to strike",
+    "art": "a living blade of violet light buried upright in the ground among glowing violet crystals, only its bared edge showing above the shards, a faint second blade shimmering beside it as a decoy",
     "type": "creature",
     "color": [
       "violet"
@@ -4760,7 +4760,7 @@
     "text": {
       "ru": "Разобьётся — и полыхнёт по глазам."
     },
-    "art": "a dragonfly of brittle golden glass striking first, its wings bursting at the shatter-instant into a blinding golden flare",
+    "art": "a golden dragonfly striking first, its wings bursting in that instant into a blinding golden flare",
     "type": "creature",
     "color": [
       "yellow"
@@ -4784,15 +4784,15 @@
     ]
   },
   {
-    "id": "yellow_prison_warden",
+    "id": "yellow_all_seeing_argus",
     "name": {
-      "ru": "Тюремщик",
-      "en": "Prison Warden"
+      "ru": "Всевидящий Аргус",
+      "en": "All-Seeing Argus"
     },
     "text": {
-      "ru": "Каждый ход гасит по одному."
+      "ru": "Сто глаз, и ни одной слепой зоны."
     },
-    "art": "a slow-pacing gaol-keeper basilisk, its stare snuffing one cell-light after another as it passes",
+    "art": "a towering guardian of golden light covered head to foot in dozens of wide open glowing eyes, eyes upon eyes crowding every surface of it and staring outward in all directions at once, a slow watchful many-eyed shape sweeping a blinding golden glare across the dark",
     "type": "creature",
     "color": [
       "yellow"
@@ -4847,13 +4847,13 @@
   {
     "id": "violet_snuffing_verdict",
     "name": {
-      "ru": "Гасящий приговор",
-      "en": "Snuffing Verdict"
+      "ru": "Приговор тьмы",
+      "en": "Verdict of Dark"
     },
     "text": {
       "ru": "Ослеп — значит приговорён."
     },
-    "art": "a great violet snuffer-bell of shadow descending over a small guttering flame, the last light choking out beneath its rim",
+    "art": "a great heavy headsman's axe of dark violet light swinging down hard, its broad edge falling across a last faint dying glimmer of light and cutting it clean out, deep shadow closing in all around",
     "type": "spell",
     "color": [
       "violet"
@@ -4880,7 +4880,7 @@
     "text": {
       "ru": "Бей его — попадёшь в соседа; убей — ослепнешь."
     },
-    "art": "a broad violet shadow-crab planting itself as a living cage, attacks bending off its shell, bursting blinding-bright when it breaks",
+    "art": "a mirage-beast of violet light coiled into the shape of a barred prison-cage, its bars wavering and unreal, drawing every blow onto itself so the strikes bend and refract through it and burst bright",
     "type": "creature",
     "color": [
       "violet"
@@ -4915,7 +4915,7 @@
     "text": {
       "ru": "Проснётся — и весь строй ослепнет."
     },
-    "art": "a mountainous four-legged stone-shelled beast heaving awake from under banked crystals in violet dusk, loosing one blinding golden flash across the horizon",
+    "art": "a colossal stone guardian heaving awake, lifting its heavy craggy head and opening two huge glowing golden eyes for the first time, its great shoulders and slab-like arms clearly drawn, a cracked-open geode of violet crystal set into its hunched back blazing out one blinding golden flash across the dark",
     "type": "creature",
     "color": [
       "yellow",
@@ -4953,7 +4953,7 @@
     "text": {
       "ru": "Незрима — и бьёт дважды."
     },
-    "art": "a hushed shrike of yellow glare half-dissolved into violet shadow, its sickle-hooked beak and wing-blades cutting its prey down twice, unseen",
+    "art": "a hooded reaper of yellow-and-violet light gliding unseen through the dusk, swinging a long scythe of light that cuts twice in one silent stroke, half-dissolved into shadow, drawn as flat glowing light-lines, not a realistic painted person",
     "type": "creature",
     "color": [
       "yellow",
@@ -5014,13 +5014,13 @@
   {
     "id": "green_alluvium",
     "name": {
-      "ru": "Наносы",
-      "en": "Alluvium"
+      "ru": "Речная россыпь",
+      "en": "River Placer"
     },
     "text": {
-      "ru": "Река наносит — и щедро, и с толком."
+      "ru": "Река намоет — и самоцвет, и путь."
     },
-    "art": "a spread of river-silt fanning across a floodplain, a single crystal surfacing as the current sorts and reveals the path ahead",
+    "art": "a fan of washed river-gravel spread across a shallow bright stream-bed, several faceted crystals gleaming scattered among the wet pebbles, the clearing water opening a view of the path on ahead",
     "type": "spell",
     "color": [
       "green"
@@ -5165,7 +5165,7 @@
     "text": {
       "ru": "Отлив уносит лишнее прочь."
     },
-    "art": "a receding ebb-tide sliding back off a dark shore, dragging weed and driftwood off the sand with it",
+    "art": "a low tide pulled far out from a dark shore, a wide stretch of glistening wet seabed bared behind the retreating waterline, stranded tide-pools and scattered shells left on the dark mud as the sea slides away toward the horizon",
     "type": "spell",
     "color": [
       "blue"
@@ -5213,15 +5213,15 @@
     ]
   },
   {
-    "id": "blue_ice_jam",
+    "id": "blue_ice_fetters",
     "name": {
-      "ru": "Ледяной затор",
-      "en": "Ice Jam"
+      "ru": "Оковы льда",
+      "en": "Ice Fetters"
     },
     "text": {
-      "ru": "Встал сам — и всё за ним встало."
+      "ru": "Скуёт льдом — и не шелохнётся."
     },
-    "art": "a grinding jam of river ice-floes crushing together in a narrow channel, frozen solid at the moment of impact",
+    "art": "a heavy pair of manacles and thick chains cast from clear blue ice, snapping shut and locking tight around empty air, hoarfrost bursting out and spreading from the frozen shackles as they clamp, plain dark background",
     "type": "spell",
     "color": [
       "blue"
@@ -5363,7 +5363,7 @@
     "text": {
       "ru": "Тонкий лёд чинит своих и студит чужих."
     },
-    "art": "a broad flat lichen-backed ray gliding low over the water, moss-beds mending in its green shadow, its frost-rimed wings numbing the surface it passes over",
+    "art": "a living manta ray, its broad flat wings and long whip-tail and small eyes all clearly drawn, gliding low over the water, its pale-blue hide crusted with a thin rime of frost and its wing-edges hung with little icicles, the water skinning over with ice in its wake, a fringe of green moss and waterweed trailing from its edges",
     "type": "creature",
     "color": [
       "green",
@@ -5397,7 +5397,7 @@
     "text": {
       "ru": "Нырнёт — и унесёт добычу с собой."
     },
-    "art": "a kingfisher with moss-green plumage and frost-rimed wings diving to snatch a gleaming catch clean out of the dark water, dawn light beading into a crystal on its back",
+    "art": "a kingfisher in icy pale-blue plumage plunging headlong in a steep power-dive, wings swept back and beak first, punching through the dark water in an explosion of ice-shards and snow, the surface cracking into a starburst of ice at the impact, a few frozen green reeds torn up in its claws",
     "type": "creature",
     "color": [
       "green",
@@ -5551,7 +5551,7 @@
     "text": {
       "ru": "Тихо оплетает и дорастает до стены."
     },
-    "art": "a dense creeping mass of green ray-light ivy, tendrils coiling and thickening upward to fill the frame, broadening hour by hour",
+    "art": "a climbing ivy of green light winding up a tall weathered standing stone, its distinct five-lobed heart-shaped leaves clearly drawn one by one along clinging tendrils, spreading and thickening as it creeps steadily higher",
     "type": "creature",
     "color": [
       "green"
@@ -5580,7 +5580,7 @@
     "text": {
       "ru": "Ворота на замке — герой в броне."
     },
-    "art": "a massive fortified barbican gatehouse of golden light barring the road, its raised gate layering fresh armor onto the hero sheltered within",
+    "art": "a massive fortified barbican gatehouse of golden light barring the road, its portcullis dropping as fresh plates of golden armor layer thick across its face",
     "type": "creature",
     "color": [
       "yellow"
@@ -5636,15 +5636,15 @@
     ]
   },
   {
-    "id": "yellow_mantle",
+    "id": "yellow_morning_haze",
     "name": {
-      "ru": "Покров",
-      "en": "Mantle"
+      "ru": "Утренняя дымка",
+      "en": "Morning Haze"
     },
     "text": {
-      "ru": "Накинь покров — и удар, и проклятье мимо."
+      "ru": "Укроет дымкой — и удар, и проклятье мимо."
     },
-    "art": "a mantle of golden light settling like a cloak over a rough standing stone, a shield-halo and a ward-halo kindling around it",
+    "art": "a thick glowing golden dawn haze lying low through a quiet forest, the dim shapes of a few deer standing sheltered and half-hidden among the trees, barely seen and safe within the glowing mist",
     "type": "spell",
     "color": [
       "yellow"
@@ -5671,7 +5671,7 @@
     "text": {
       "ru": "Ясный день — броня герою и покой раненым."
     },
-    "art": "a bright golden noon over a green meadow, sunbeams hardening into hovering plates of golden armor while drifting leaves knit torn grass whole",
+    "art": "a calm bright clear day, the golden noon sky above hardening into a solid shield-canopy of golden light stretched protectively over the land, the green meadow below lush and healthy with torn grass knitting back together whole",
     "type": "aura",
     "color": [
       "yellow",
@@ -5701,7 +5701,7 @@
     "text": {
       "ru": "Растёт — и с каждым кольцом хозяину теплее."
     },
-    "art": "a young oak putting on a fresh bright growth-ring, warm light streaming back from its boughs to its keeper",
+    "art": "a slender young oak sapling with a thin whippy trunk and only a handful of fresh bright new leaves, a single acorn resting at its foot, putting on one new growth-ring as warm golden light streams along it and seals a small split in its bark shut",
     "type": "creature",
     "color": [
       "green"
@@ -5758,7 +5758,7 @@
     "text": {
       "ru": "Стягивает удары и глотает первое проклятье."
     },
-    "art": "a broad angular ravelin bastion of golden light jutting forward in a hard wedge, incoming blows sliding off its sloped faces while a halo swallows the first curse-bolt",
+    "art": "a compact triangular star-fort of golden light, three thick angled earthwork ramparts with a low crenellated parapet meeting at sharp corners, one spearhead corner jutting forward toward the viewer, a dark moat encircling the whole squat fortress, seen from a raised three-quarter angle as one solid compact bastion, a steady golden ward-halo kindling at its jutting point",
     "type": "creature",
     "color": [
       "yellow"
@@ -5821,7 +5821,7 @@
     "text": {
       "ru": "Год от года гуще — и уже не выкорчевать."
     },
-    "art": "a broad hawthorn shrub bristling with long thorns, swelling denser and larger year by year into an unkillable thicket",
+    "art": "a hawthorn shrub of green light, its branches smothered in dense clusters of tiny five-petalled may-blossoms and knots of small round haw-berries, its deeply-lobed leaves and long sharp thorns all clearly drawn, swelling denser and larger into an unkillable thicket",
     "type": "creature",
     "color": [
       "green"
@@ -5850,7 +5850,7 @@
     "text": {
       "ru": "Растущий бастион под бронёй."
     },
-    "art": "a vast arching vault of golden-and-green light curving overhead like a domed firmament, hardening plate by plate into a towering wall",
+    "art": "a colossal curved fortress wall arching up and over the land like a great shielding dome, its lower courses built of solid overlapping golden shield-plates and its upper rim crowned with a thick band of solid green living hedge, hardening course by course into a towering rampart",
     "type": "creature",
     "color": [
       "yellow",
@@ -5888,7 +5888,7 @@
     "text": {
       "ru": "Чем гуще лес за ним, тем шире рога."
     },
-    "art": "a towering elk whose antlers branch into a whole oak grove of green boughs and golden leaves, the woodland crowding thick around its legs as it bars the road",
+    "art": "a towering elk with a solid golden body and hide, its great antlers up top branching into a whole oak grove of solid deep-green leaves and boughs, a clear line where the green forest crown meets the golden beast below, as it bars the road",
     "type": "creature",
     "color": [
       "yellow",
@@ -5922,7 +5922,7 @@
     "text": {
       "ru": "Чинится и растёт быстрее, чем его бьют."
     },
-    "art": "a gnarled old elm-treant rooted across the road, its split bark knitting shut under a sheath of golden light while fresh green shoots bud faster than axes can bite",
+    "art": "a gnarled old elm-treant rooted across the road, its massive trunk and limbs of solid golden bark, crowned above with a separate dense mass of solid green foliage and fresh shoots, a clear boundary between the green crown and the gold trunk, its bark knitting shut faster than axes can bite",
     "type": "creature",
     "color": [
       "yellow",
@@ -5960,7 +5960,7 @@
     "text": {
       "ru": "Держит небо — и дважды роняет его на врага."
     },
-    "art": "a colossal oak-titan straining to hold up the sky on its golden boughs, its green-barked trunk braced as two massive limb-arms hammer down twice",
+    "art": "a colossal oak-titan, a vast billowing crown of solid deep-green oak-leaves up top and a massive trunk and limb-arms of solid bright gold below, a clear line where the green canopy gives way to the golden wood, straining to hold up a golden sun overhead as it hammers down twice",
     "type": "creature",
     "color": [
       "yellow",
@@ -5994,7 +5994,7 @@
     "text": {
       "ru": "Башня, что сама идёт на приступ — и бьёт дважды."
     },
-    "art": "a towering keep-shaped guardian of interlaced golden roots and green bramble rising from a dense thicket, barring the way and slamming down twice with root-fists",
+    "art": "a towering keep-shaped guardian, its lower body a solid fortress of bright golden roots and glowing golden stonework, its whole upper half draped in a separate thick blanket of solid deep-green leaves and bramble with a clean line where the green canopy meets the gold below, rising from a thicket and slamming down twice with root-fists",
     "type": "creature",
     "color": [
       "yellow",

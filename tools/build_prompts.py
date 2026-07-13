@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import re
@@ -27,11 +28,38 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #      machinery -- tractors, combines, engines, gears, vehicles: machines and
 #      the light-world are incompatible ("wooden plough" rendered farm
 #      machinery). Light-tech only.
-#   3. MULTICOLOR = WEAVE EVERY COLOUR INTO THE SUBJECT, BALANCED. One colour's
-#      imagery silently dominates (frost/rime/mist=blue, fire/ember=red,
-#      bloom=green) and the palette line does NOT fix it -- the SUBJECT words set
-#      the colour ratio. Name each colour's element explicitly and say "in equal
-#      measure, neither dominant".
+#   3. MULTICOLOR = EACH COLOUR EARNS ITS PLACE BY ITS MEANING, NOT AT RANDOM.
+#      The failure isn't "the body is two colours" -- a body CAN be two-toned
+#      (ice crusting a mushroom-body, embers glowing through a stone hide). The
+#      failure is a colour that's there for no reason, or one colour silently
+#      taken over by the subject noun (a "frost X" going all-blue, a "bloom X"
+#      all-green) so the second colour never appears. Fix: give EACH of the
+#      card's colours a concrete carrier that MAKES SENSE for that colour, and
+#      make sure BOTH are actually visible in the frame. The colour vocabulary:
+#        - red    = fire / heat / embers / molten / cinders / a burning glow
+#        - yellow = light / sun / dawn-gold / lightning / rays / radiance
+#        - green  = living growth -- moss, leaves, vines, reeds, sprouts, bark
+#        - blue   = water / ice / frost / rime / snow / cold
+#        - violet = shadow / dusk / gloom / crystal / the void
+#      Read the creature's nature to decide HOW each colour attaches: a frost
+#      creature is naturally ice-bodied, so green comes as moss/reeds it wears or
+#      trails; a treant is naturally wood-bodied, so blue comes as frost rimacross
+#      its bark. Either colour may sit on the body or around it -- what matters is
+#      the pairing is logical and neither colour goes missing. A subject noun that
+#      screams one colour (frost/rime/ember/bloom) needs the OTHER colour given an
+#      explicit, sensible home or MJ drops it. (Floodlord: ice-blue whale body,
+#      green reeds as its mane -- both present, both logical.)
+#      ANALOGOUS PAIRS (yellow+green, red+yellow) BLUR TO ONE HUE IF INTERMIXED.
+#      Neighbouring colours on the wheel (gold light shining THROUGH green leaves)
+#      average into lime/chartreuse and the boundary vanishes -- so the card reads
+#      as one colour, unlike a contrasting pair (red+blue). Best mitigation in the
+#      SUBJECT text: keep each colour on its own distinct part (a green canopy up
+#      top, a gold trunk below), NOT one colour glowing/veined/haloed/threaded/
+#      woven through the other -- those words are the trap. verify_intermix() warns
+#      on them. (NB a palette-side "two solid zones" wrapper fix was tried and
+#      reverted: it did not measurably improve renders and bloated the prompt.)
+#      verify_both_colours() below warns when a two-colour art shows no carrier
+#      word for one of its colours (that colour will render missing).
 #   4. NO ABSTRACT JARGON AS THE SUBJECT. "mycelium", "oblivion", "resonance"
 #      don't render recognizably -- spell out the visual (threads + mushroom-caps
 #      + spore-clouds; an unmaking ray erasing a form into motes).
@@ -185,7 +213,16 @@ def _sref(cols):
     urls = [ANCHORS[c] for c in cols if ANCHORS.get(c, "")]
     if not urls or len(cols) >= 5:
         return ""
-    return " --sref " + " ".join(urls) + " --sw " + str(ANCHOR_SW)
+    # Analogous pairs (yellow+green, green+blue...) at full --sw 100 avg the two
+    # neighbouring anchor palettes into one muddy chartreuse across the frame
+    # (measured: an elm rendered 0% true green, all hue 48-75deg). Chosen fix
+    # (tested on the elk, 3 ways): keep BOTH anchors but at --sw 30 -- the low
+    # weight lets palette()'s two solid zones drive the colour (clean gold + clean
+    # green) while the anchors still carry the flat manner. Dropping anchors
+    # entirely (sw 0) also fixed colour but drifted the manner off the set; a
+    # single anchor rendered near-mono. Contrasting duals keep the full sw 100.
+    sw = 30 if _is_analogous(cols) else ANCHOR_SW
+    return " --sref " + " ".join(urls) + " --sw " + str(sw)
 
 # Flat-2D vocabulary, repeated so it wins over v7's default realism. NO "energy
 # given form" / "depth" (those invite volumetric 3D).
@@ -198,8 +235,7 @@ _FLAT = (
 # card. This binding -- not --no -- is what actually locks the colour.
 CREATURE_HEAD = (
     "a " + _FLAT + " of a being made of living {g}light, glowing {g}light-lines "
-    "tracing its shape, one single creature with a clean readable silhouette "
-    "in a simple uncluttered pose, "
+    "tracing its shape, one single creature with a clean readable silhouette, "
 )
 # Copy/swarm cards (a double, three duplicates, phantom ranks) must NOT get the
 # "one single creature" clause -- it fights the subject and MJ drops the copies.
@@ -220,15 +256,14 @@ EFFECT_HEAD = (
 # would fight it. This head keeps the light-line look without demanding a beast.
 STRUCT_HEAD = (
     "a " + _FLAT + " of a structure of living {g}light, glowing {g}light-lines "
-    "tracing its form, one single bold object with a clean readable silhouette "
-    "in a simple uncluttered pose, "
+    "tracing its form, one single bold object with a clean readable silhouette, "
 )
 # Words that mark a creature card whose subject is really an object/structure.
 # Matched only against the OPENING of the art (the headline noun), so an
 # incidental "shield-wall" or "blade-arms" on a real beast doesn't trip it.
 _STRUCT_WORDS = (
     "wall", "rampart", "barbican", "ravelin", "gatehouse", "vault", "pillar",
-    "shutter", "sword", "waymark", "standing stone",
+    "shutter", "sword", "waymark", "standing stone", "beacon",
 )
 
 
@@ -237,9 +272,42 @@ def _is_struct(art):
     return any(w in head for w in _STRUCT_WORDS)
 TAIL = (
     ", on a deep dark flat background of swirling {g}energy in the same palette "
-    "with drifting {g}light-motes, clean and graphic, the subject large and "
-    "centered, filling the frame"
+    "with drifting {g}light-motes, clean and graphic, {f}"
 )
+# A shared --sref + one fixed "large and centered, filling the frame" tail dragged
+# every card of a colour into the SAME composition (two yellow hounds came out
+# near-identical). Fix: keep the subject prominent (anti-tiny, rule 11) but drop
+# the centring diktat and hand each SINGLE creature a per-card camera angle, so
+# the anchor styles the colour while the framing varies the shot. Deterministic
+# by id (md5, stable across builds -- no churn); skipped when the art already
+# names its own shot, and not applied to structures/groups/effects (a wall must
+# not be told to leap; effects own EFFECT_TAIL's middle-distance framing).
+# Camera-only directions (no body action like "leap"/"rears up"), so they read
+# sensibly on a beast, a tree or a structure alike. Variety here breaks the
+# every-card-centered sameness; the art's own words (prowling, coiled...) still
+# lead when present.
+FRAMINGS = [
+    "framed in a tight close crop",
+    "seen from a dramatic low angle looking up",
+    "seen from a high angle looking down",
+    "viewed side-on in profile",
+    "seen at a three-quarter angle",
+    "set off to one side with sweeping empty dark around it",
+    "pushed up close and filling much of the frame",
+]
+_CAMERA_RE = re.compile(
+    r"portrait|close-up|close up|chest-up|chest up|\bprofile\b|mid-leap|mid-air|"
+    r"airborne|looming|from above|from below|low angle|high angle|overhead|"
+    r"side-on|three-quarter|in flight|coiled|planted|crouched|perched|rearing|"
+    r"prowling|looking down|looking up|seen from|clinging|square in the lane")
+
+
+def _framing(card, single):
+    base = "the subject large in frame"
+    if not single or _CAMERA_RE.search(card.get("art", "").lower()):
+        return base
+    idx = int(hashlib.md5(card["id"].encode()).hexdigest(), 16) % len(FRAMINGS)
+    return base + ", " + FRAMINGS[idx]
 EFFECT_TAIL = (
     ", on a deep dark flat background of swirling {g}energy in the same palette "
     "with drifting {g}light-motes, clean and graphic with crisp fine linework, "
@@ -258,7 +326,16 @@ FLAGS = (
     " volumetric lighting, depth of field, plain background, deformed,"
     " mutated, extra limbs, extra legs, fused limbs"
 )
-EFFECT_FLAGS = FLAGS + ", creature, character, person, figure, monster, animal, face"
+# Spells/auras normally ban invented creatures (a "pure light phenomenon" makes
+# MJ conjure a random beast). But a few effect arts DELIBERATELY stage faint
+# background wildlife (deer sheltered in dawn mist). For those, keep the humanoid
+# ban but drop creature/animal so the intended beasts render. Humanoids stay
+# banned always -- an effect should never draw a person.
+EFFECT_HUMANOID_BAN = ", character, person, figure, monster, face"
+EFFECT_CREATURE_BAN = ", creature, animal"
+_WILDLIFE_RE = re.compile(
+    r"\b(deer|stag|doe|elk|beast|beasts|birds?|hares?|foxes?|wolves|herd|"
+    r"fish|flock|creatures of the)\b")
 HERO_FLAGS = FLAGS.replace("--ar 2:3", "--ar 1:1")
 
 TOKENS = [
@@ -272,6 +349,24 @@ TOKENS = [
 ]
 
 
+# Wheel-adjacent colour pairs -- their hues sit next to each other and average
+# into one muddy in-between tone (yellow+green -> lime). Three wrapper levers,
+# tuned together, keep the two colours apart (tested on the elk):
+#   palette() -> two solid colour blocks with a hard edge (not "equal measure",
+#                which averages neighbours);
+#   _glow     -> neutral (not "yellow and green" on every light-line, which blends);
+#   _sref     -> both anchors but at --sw 30 (full 100 renders 0% true green;
+#                dropping anchors fixes colour but drifts the manner).
+# Also used by verify_intermix() to warn on colour-mixing words in the subject.
+_ANALOG_SET = {frozenset(p) for p in
+               (("red", "yellow"), ("yellow", "green"), ("green", "blue"),
+                ("blue", "violet"), ("violet", "red"))}
+
+
+def _is_analogous(cols):
+    return len(cols) == 2 and frozenset(cols) in _ANALOG_SET
+
+
 def palette(colors):
     if not colors:
         return "a clean monochrome palette of pure bright neutral white and soft pale grey, crisp neutral white, no other hue"
@@ -279,7 +374,13 @@ def palette(colors):
         return "the full spectrum in balanced rainbow, every colour of light, none dominant"
     if len(colors) == 1:
         return "a palette of " + RANGE[colors[0]] + ", and no other colour"
-    # Multicolor: enforce balance so a colour-skewed subject can't render mono.
+    # Analogous pair: two solid zones with a hard edge, never a blended gradient
+    # (equal-measure would average neighbouring hues into one lime/amber tone).
+    if _is_analogous(colors):
+        return ("a palette of two solid colour blocks, one block solid " + TONE[colors[0]]
+                + ", the other block solid " + TONE[colors[1]]
+                + ", split by one hard clean edge, never blended or graded, no other colours")
+    # Contrasting multicolor: enforce balance so a skewed subject can't render mono.
     tones = " and ".join(TONE[c] for c in colors)
     return ("a strict colour palette of only " + tones
             + " tones in equal measure with no colour dominant, no other colours")
@@ -295,7 +396,12 @@ def _glow(cols):
     # two-colour: bind BOTH colours onto every "light/energy/motes" mention.
     # An empty glow let MJ default the positive light to blue and let whichever
     # colour the subject implied dominate; naming both, evenly, is what actually
-    # locks a balanced two-tone (a soft --no never could).
+    # locks a balanced two-tone (a soft --no never could). EXCEPT analogous pairs:
+    # binding both hues onto every light-line is exactly what averages them into
+    # one tone, so those keep the two colours in the palette's separate zones and
+    # get a neutral "glowing" glow here instead of "yellow and green" per line.
+    if _is_analogous(cols):
+        return ""
     return " and ".join(cols) + " "
 
 
@@ -305,15 +411,20 @@ def style_for(card):
     is_effect = card["type"] in ("spell", "aura")
     is_struct = (not is_effect) and _is_struct(card.get("art", ""))
     if is_effect:
-        head = EFFECT_HEAD.format(g=g)
+        head, kind = EFFECT_HEAD.format(g=g), "effect"
     elif is_struct:
-        head = STRUCT_HEAD.format(g=g)
+        head, kind = STRUCT_HEAD.format(g=g), "struct"
     elif _MULTI_RE.search(card.get("art", "").lower()):
-        head = GROUP_HEAD.format(g=g)
+        head, kind = GROUP_HEAD.format(g=g), "group"
     else:
-        head = CREATURE_HEAD.format(g=g)
+        head, kind = CREATURE_HEAD.format(g=g), "creature"
     # A structure subject must not carry the creature/animal --no bans.
-    flags = EFFECT_FLAGS if is_effect else FLAGS
+    if is_effect:
+        flags = FLAGS + EFFECT_HUMANOID_BAN
+        if not _WILDLIFE_RE.search(card.get("art", "").lower()):
+            flags += EFFECT_CREATURE_BAN
+    else:
+        flags = FLAGS
     # Colour lock for 1- and 2-colour cards: exclude every colour NOT in the
     # card's identity, plus the grey/steel tones the moody background drifts into
     # (e.g. red+yellow leaking a blue-grey). Colourless (white/silver) and penta
@@ -341,8 +452,11 @@ def style_for(card):
         flags = flags.replace("building, architecture, ", "")
     # Colour-matched style anchors last, so the URL list terminates the --no list.
     flags = flags + _sref(cols)
-    tail = EFFECT_TAIL if is_effect else TAIL
-    body = head + palette(cols) + tail.format(g=g)
+    if is_effect:
+        tail = EFFECT_TAIL.format(g=g)
+    else:
+        tail = TAIL.format(g=g, f=_framing(card, single=(kind == "creature")))
+    body = head + palette(cols) + tail
     return body, flags
 
 
@@ -387,13 +501,32 @@ _FLOWING_BODY_RE = re.compile(
     r"(surging |rushing |drifting |ebbing )?"
     r"(the )?(flood(water)?|whitewater|tidewater|meltwater)\b")
 _SIZE_OPEN_RE = re.compile(r"^a (tiny|small|little) ")
+# A creature art that OPENS with a contentless container noun (beast/creature/
+# animal...) hands MJ no silhouette, so it locks onto the generic word and draws
+# a random animal, DROPPING any hallmark stated later mid-sentence (Argus's
+# hundred eyes, the colossus's shell). The distinctive feature must lead the
+# string. Warning-only (some openers are legitimately fine once a hallmark sits
+# right after) -- eyeballed, not build-failing.
+_GENERIC_OPENER_RE = re.compile(
+    r"^(?:a|an|the)\s+(?:\w+\s+){0,2}?(beast|creature|animal|monster|thing|entity)\b")
 _LIMB_COUNT_RE = re.compile(
     r"\b(one|two|three|four|five|six|seven|eight) (leg|wing|arm|eye|head|tail)s?\b")
 _NEGATION_RE = re.compile(r"\bno \w+|\bnever\b|\bwithout\b")
+# Rule 7: a spell/aura must not draw the effect's target/victim -- MJ renders the
+# little burning/sacrificed beings instead of the phenomenon (Wake drew a row of
+# guttering wisps being consumed). "wisp/prey/victim" join the figure words.
 _TARGET_RE = re.compile(
-    r"\b(enemy|enemies|foe|foes|ally|allies|caster|hero|soldier|defender|person|figure)\b")
+    r"\b(enemy|enemies|foe|foes|ally|allies|caster|hero|soldier|defender|"
+    r"person|figure|wisps?|prey|victims?)\b")
 _META_RE = re.compile(
     r"\b(cards?|deck|mana|player|turns?)\b|you hoard|\byour\b")
+# Diffusion models can't bind an object to a specific part of another object
+# ("a lantern in its chest" -> the lantern is dropped or floats alongside; a
+# structural limit, not a wording one). Force such details out as a separate
+# large form instead (head/held object), which MJ renders reliably.
+_NESTED_RE = re.compile(
+    r"\b(inside|within|in|deep in|set in|buried in|embedded in) (its|their|the) "
+    r"(chest|breast|belly|core|heart|ribs|forehead|body|torso|gut|maw)\b")
 _ANCHOR_PHRASE = "not a realistic painted person"
 
 
@@ -475,6 +608,94 @@ def verify_formulas(cards):
     return bad
 
 
+def verify_color_species(cards):
+    """Rule 10: a species/archetype appears at most once per colour. Two creatures
+    of the SAME colour identity sharing a species-class read as the same beast
+    recoloured even when their action differs (two yellow hounds, night_watchman
+    vs cage_keeper -- twin-lint missed them because it needs species AND action to
+    match). Only classed species are checked; unclassed invented beasts are free."""
+    from collections import defaultdict
+    seen = defaultdict(list)  # (colour-key, species-class) -> [ids]
+    for c in cards:
+        if c.get("type") != "creature" or not c.get("art"):
+            continue
+        ck = ",".join(sorted(c.get("color", []))) or "none"
+        for sp in _classes(c["art"], _SPECIES_CLASS):
+            seen[(ck, sp)].append(c["id"])
+    return [(ck, sp, ids) for (ck, sp), ids in sorted(seen.items()) if len(ids) > 1]
+
+
+# Carrier words that give a colour a visible home in a subject (rule 3). Used to
+# warn when a two-colour art names no carrier for one of its colours -- that
+# colour then renders missing (a "frost X" going all-blue with no green in sight).
+_CARRIER = {
+    # red carries fire AND the electric discharge of the red+blue storm cards
+    # (sparks/charge/volt read red on canvas; blue there is the frost/rain).
+    "red": r"red|scarlet|crimson|vermilion|ember|cinder|flame|fire|molten|coal|"
+           r"lava|burning|blazing|magma|smould|spark|charge|volt|arc\b|electric|"
+           r"storm|thunder|jolt",
+    "yellow": r"yellow|gold|amber|bronze|honey|sun|solar|dawn|radian|lightning|"
+              r"beam|ray-|rays|glare|blazing|searchlight",
+    "green": r"green|moss|lichen|leaf|leaves|vine|ivy|reed|sprout|seed|root|"
+             r"bark|bramble|thorn|frond|grass|bloom|bud|fern|petal|verdant|"
+             r"duckweed|hedge|oak|elm|grove|wood",
+    "blue": r"blue|cyan|azure|teal|frost|rime|ice|icy|snow|hoarfrost|meltwater|"
+            r"glacier|chill|cold|water|flood|tide|wave|river|rapids|surge|swell",
+    "violet": r"violet|purple|lilac|magenta|amethyst|shadow|dusk|gloom|umbral|"
+              r"void|night|dark|crystal|shade",
+}
+_CARRIER_RE = {c: re.compile(r"\b(" + pat + r")", re.I) for c, pat in _CARRIER.items()}
+
+
+def verify_both_colours(cards):
+    """Rule 3: a two-colour art must give BOTH colours a carrier word, else the
+    unnamed colour renders missing. Warning-only (semantics -- whether the pairing
+    is LOGICAL -- still needs a human eye; this only catches an absent colour)."""
+    bad = []
+    for c in cards:
+        cols = c.get("color", [])
+        if c.get("type") == "hero" or len(cols) != 2 or not c.get("art"):
+            continue
+        art = c["art"]
+        missing = [col for col in cols if not _CARRIER_RE[col].search(art)]
+        if missing:
+            bad.append((c["id"], "no carrier for " + "+".join(missing)))
+    return bad
+
+
+# Analogous pairs (neighbours on the wheel) average into one hue when intermixed
+# instead of kept in separate spatial zones (rule 3). Uses _ANALOG_SET (defined
+# by palette()). Contrasting pairs (red+blue, yellow+violet) don't blur, exempt.
+_INTERMIX_RE = re.compile(
+    r"veined with|veined all through|haloed with|lit through|lit and haloed|"
+    r"blazing through|blaze with|shot through with|threaded through|threads of|"
+    r"glowing through|shining through|woven half|woven from|washed through", re.I)
+
+
+def verify_intermix(cards):
+    """Rule 3: an analogous two-colour card that intermixes its colours (one
+    glowing through the other) blurs to a single lime/amber hue. Warn so the
+    colours get separate spatial zones instead. Warning-only (green+blue where
+    the two sit in distinct parts is fine -- this only flags the mixing words)."""
+    bad = []
+    for c in cards:
+        cols = c.get("color", [])
+        if not _is_analogous(cols) or not c.get("art"):
+            continue
+        if _INTERMIX_RE.search(c["art"]):
+            bad.append(c["id"])
+    return bad
+
+
+def verify_generic_openers(cards):
+    """Warn on creature arts that lead with a contentless beast noun (see
+    _GENERIC_OPENER_RE). The hallmark must come first or MJ draws a random
+    animal. Warning-only."""
+    return [c["id"] for c in cards
+            if c.get("type") == "creature" and c.get("art")
+            and _GENERIC_OPENER_RE.match(c["art"].strip().lower())]
+
+
 def verify_pairs(cards, threshold=0.42):
     """Twin-prompt lint: two subjects this lexically close render identically
     (Sootfly vs Spark Flea: both 'small red insect bursting bright'). Compares
@@ -512,6 +733,8 @@ def verify_subjects(cards):
             bad.append((c["id"], "negation in the subject body (rule 8)"))
         if _META_RE.search(low):
             bad.append((c["id"], "game-meta vocabulary in the art (cards/deck/turn/mana/you)"))
+        if _NESTED_RE.search(low):
+            bad.append((c["id"], "object nested inside a body part (MJ can't bind it; make it a separate large form)"))
         if c.get("type") in ("spell", "aura"):
             if _TARGET_RE.search(low):
                 bad.append((c["id"], "names the effect's target (rule 7)"))
@@ -644,6 +867,45 @@ def main():
             print("  - %s ~ %s (formula %s)" % (a, b, why))
         sys.exit(1)
     print("twin-lint: OK (no two subjects share a visual formula)")
+
+    # Same species-class more than once per colour. NOT build-failing: the set
+    # uses deliberate, hallmark-differentiated families (red's insect swarm,
+    # green's beetles, defensive structures). A warning to eyeball -- each group
+    # below must read as visibly distinct beasts (rule 15), never one recoloured.
+    dups = verify_color_species(pool)
+    if dups:
+        print("species-per-colour: %d family group(s) to keep visibly distinct:" % len(dups))
+        for ck, sp, ids in dups:
+            print("  - [%s] %s: %s" % (ck, sp, ", ".join(ids)))
+    else:
+        print("species-per-colour: OK (no repeated species within a colour)")
+
+    # Creature arts leading with a contentless beast noun (hallmark buried later).
+    openers = verify_generic_openers(pool)
+    if openers:
+        print("generic-opener: %d creature(s) lead with a bare beast noun (put the hallmark first):" % len(openers))
+        for cid in openers:
+            print("  - " + cid)
+    else:
+        print("generic-opener: OK (every creature leads with its distinctive form)")
+
+    # Two-colour arts missing a carrier word for one colour (it renders absent).
+    twotone = verify_both_colours(pool)
+    if twotone:
+        print("two-colour balance: %d card(s) where a colour has no carrier word:" % len(twotone))
+        for cid, why in twotone:
+            print("  - %s: %s" % (cid, why))
+    else:
+        print("two-colour balance: OK (both colours carried in every dual art)")
+
+    # Analogous duals whose colours intermix into one hue (need spatial zones).
+    intermix = verify_intermix(pool)
+    if intermix:
+        print("analogous-intermix: %d card(s) blending neighbour colours into one hue:" % len(intermix))
+        for cid in intermix:
+            print("  - " + cid)
+    else:
+        print("analogous-intermix: OK (neighbour colours kept in separate zones)")
 
 
 if __name__ == "__main__":
