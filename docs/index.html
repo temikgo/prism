@@ -6,76 +6,72 @@
 <title>Prism — над чем идёт работа</title>
 <meta name="description" content="Призма раскладывает свет в спектр — живое дерево разработки модульной онлайн-ККИ Prism.">
 <style>
-  :root { --bg:#0c0d13; --ink:#f2f3f8; --dim:#8a8ea0; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    -webkit-font-smoothing:antialiased; }
-  a { color:inherit; }
-  @font-face { font-family:"Chakra Petch"; font-weight:700;
-    src:url("fonts/ChakraPetch-Bold.ttf") format("truetype"); }
-  .wrap { max-width:1320px; margin:0 auto; padding:0 24px; }
+  :root{
+    --bg:#0a0b11; --ink:#eef0f7; --dim:#8b90a3; --faint:#565b6e;
+    --font:"Chakra Petch",ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+    -webkit-font-smoothing:antialiased;}
+  @font-face{font-family:"Chakra Petch";font-weight:700;font-display:swap;
+    src:url("fonts/ChakraPetch-Bold.ttf") format("truetype");}
+  a{color:inherit;}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 24px;}
 
-  header.hero { padding:96px 0 44px; position:relative; text-align:center; }
-  /* a soft spectral aura behind the lockup -- the game's own bloom, so the
-     colour lives behind white glyphs instead of being smeared across them */
-  .hero .bloom { position:absolute; left:50%; top:46%;
-    width:min(900px,92vw); height:420px; transform:translate(-50%,-50%);
-    pointer-events:none; z-index:0; opacity:.5;
+  header.hero{position:relative;text-align:center;padding:88px 0 30px;}
+  .bloom{position:absolute;left:50%;top:44%;width:min(920px,94vw);height:360px;
+    transform:translate(-50%,-50%);pointer-events:none;z-index:0;opacity:.55;
     background:radial-gradient(ellipse at center,
-      #ff5a6e22 0%, #ffd23f1c 26%, #46e07a1c 48%, #3aa0ff1f 70%,
-      #b06bff14 86%, transparent 100%);
-    filter:blur(26px); }
-  .hero .lock { position:relative; z-index:1; }
-  /* the in-game wordmark: Chakra Petch Bold, wide tracking, clean near-white */
-  .hero h1 { margin:0; padding-top:.12em; font-family:"Chakra Petch",
-    "Segoe UI",sans-serif; font-size:clamp(56px,12vw,150px); font-weight:700;
-    letter-spacing:.10em; line-height:1.08; color:#f4f7ff;
-    text-shadow:0 3px 14px #02030855, 0 0 40px #6f86ff22; }
-  .hero .lore { margin:14px 0 0; color:var(--dim);
-    font-size:clamp(11px,1.5vw,14px); letter-spacing:.28em;
-    font-weight:600; }
-  .hero .tag { margin:26px auto 0; max-width:680px; color:#c9ccda;
-    font-size:clamp(16px,2.2vw,20px); line-height:1.55; }
+      #ff5a6e24 0%,#ffd23f1a 24%,#46e07a1a 46%,#3aa0ff1e 68%,#b06bff16 85%,transparent 100%);
+    filter:blur(30px);}
+  .lock{position:relative;z-index:1;}
+  h1{margin:0;padding-top:.1em;font-size:clamp(54px,12vw,144px);font-weight:700;
+    letter-spacing:.12em;line-height:1;color:#f4f7ff;
+    text-shadow:0 3px 16px #02030855,0 0 46px #6f86ff22;}
+  .lore{margin:14px 0 0;color:var(--dim);font-size:clamp(10px,1.5vw,13px);
+    letter-spacing:.3em;font-weight:600;}
+  .tag{position:relative;z-index:1;margin:24px auto 0;max-width:640px;color:#c6c9d8;
+    font-size:clamp(15px,2vw,18px);line-height:1.6;text-wrap:balance;}
 
-  section.map { padding:18px 0 40px; }
-  section.map h2 { font-size:25px; font-weight:700; letter-spacing:2px;
-    margin:0 0 6px; }
-  section.map p.lead { color:#9aa0b4; font-size:15.5px; margin:0 0 20px;
-    max-width:820px; line-height:1.55; }
-  .mapbox { position:relative; border:1px solid #16171f; border-radius:14px;
-    overflow:hidden; background:#0a0b10; }
-  svg#map { width:100%; height:auto; display:block; cursor:grab;
-    touch-action:none; }
-  svg#map.grabbing { cursor:grabbing; }
-  .hint { color:#5d6172; font-size:12.5px; margin:10px 2px 0; }
+  section.map{padding:22px 0 20px;}
+  .maphead{display:flex;align-items:flex-end;justify-content:space-between;
+    gap:20px;flex-wrap:wrap;margin:0 0 14px;}
+  .maphead h2{margin:0;font-size:23px;font-weight:700;letter-spacing:1.5px;}
+  .maphead p{margin:5px 0 0;color:#9aa0b4;font-size:14.5px;max-width:660px;line-height:1.5;}
+  .tools{display:flex;gap:8px;align-items:center;}
+  .tools button{font-family:var(--font);font-size:14px;font-weight:600;color:#c6c9d8;
+    background:#12141d;border:1px solid #23262f;border-radius:9px;padding:7px 13px;
+    cursor:pointer;transition:border-color .15s,color .15s;}
+  .tools button:hover{border-color:#3a3e4d;color:#fff;}
+  .tools button:focus-visible{outline:2px solid #5b6cff;outline-offset:2px;}
 
-  .pulse { transform-box:fill-box; transform-origin:center;
-    animation:breathe 2.6s ease-in-out infinite; }
-  @keyframes breathe { 0%,100% { opacity:.3; } 50% { opacity:.8; } }
-  @media (prefers-reduced-motion:reduce) { .pulse { animation:none; } }
+  .mapbox{position:relative;border:1px solid #14161f;border-radius:16px;
+    overflow:hidden;background:radial-gradient(120% 90% at 12% 30%,#141626 0%,#0a0b10 60%);}
+  svg#map{width:100%;height:auto;display:block;cursor:grab;touch-action:none;}
+  svg#map.grab{cursor:grabbing;}
+  .hint{color:var(--faint);font-size:12.5px;margin:11px 4px 0;}
 
-  .node { cursor:pointer; outline:none; }
-  .node:hover, .node:focus-visible { filter:brightness(1.4); }
-  .commit { cursor:pointer; }
-  .commit:hover circle { r:4; opacity:1; filter:brightness(1.5); }
+  .node{cursor:pointer;outline:none;}
+  .node:hover,.node:focus-visible{filter:brightness(1.45);}
+  .cmt{cursor:pointer;}
+  .cmt:hover .v{r:6.5;opacity:1;}
+  .plan{cursor:default;}
 
-  #tip { position:fixed; pointer-events:none; z-index:20; opacity:0;
-    transform:translateY(4px); transition:opacity .12s, transform .12s;
-    background:#15161f; border:1px solid #2a2c3a; border-radius:10px;
-    padding:9px 12px; max-width:280px; box-shadow:0 10px 30px #0009; }
-  #tip.on { opacity:1; transform:translateY(0); }
-  #tip .t { font-size:13.5px; font-weight:600; }
-  #tip .s { font-size:11.5px; margin-top:3px; color:var(--dim);
-    letter-spacing:.3px; }
-  #tip .n { font-size:12px; margin-top:6px; color:#c5c8d6;
-    font-style:italic; }
+  #tip{position:fixed;pointer-events:none;z-index:30;opacity:0;transform:translateY(4px);
+    transition:opacity .12s,transform .12s;background:#14151e;border:1px solid #2b2d3b;
+    border-radius:11px;padding:10px 13px;max-width:320px;box-shadow:0 14px 40px #000a;}
+  #tip.on{opacity:1;transform:none;}
+  #tip .t{font-size:13.5px;font-weight:700;letter-spacing:.2px;line-height:1.35;}
+  #tip .s{font-size:11.5px;margin-top:4px;color:var(--dim);letter-spacing:.4px;
+    font-variant-numeric:tabular-nums;}
+  #tip .n{font-size:12px;margin-top:7px;color:#cbcedd;font-style:italic;line-height:1.4;}
 
-  footer { border-top:1px solid #1c1d28; margin-top:24px; padding:26px 0 48px;
-    color:var(--dim); font-size:13px; display:flex; flex-wrap:wrap; gap:18px;
-    justify-content:space-between; }
-  footer a { color:#aeb2c2; text-decoration:none; }
-  footer a:hover { color:var(--ink); }
+  footer{border-top:1px solid #14161f;margin-top:20px;padding:24px 0 48px;
+    color:var(--dim);font-size:13px;display:flex;flex-wrap:wrap;gap:16px;
+    justify-content:space-between;}
+  footer a{color:#aeb2c2;text-decoration:none;}
+  footer a:hover{color:var(--ink);}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
 <body>
@@ -86,641 +82,30 @@
       <h1>PRISM</h1>
       <p class="lore">·&nbsp; СВЕТ МЕГА-ПРИЗМЫ РАСКОЛОТ НА ПЯТЬ ЦВЕТОВ &nbsp;·</p>
     </div>
-    <p class="tag">Модульная онлайн-ККИ 1v1 — мир света и спектра, где призмант
-      материализует лучи Мега-Призмы в существ. Белый луч входит в призму и
-      раскладывается в спектр: каждый луч — отдельный трек разработки.</p>
+    <p class="tag">Модульная онлайн-ККИ 1&nbsp;на&nbsp;1. Белый луч входит в призму и
+      раскладывается в спектр — каждый луч&nbsp;— свой трек разработки.</p>
   </header>
 
   <section class="map">
-    <h2>Над чем идёт работа</h2>
-    <div class="mapbox">
-      <svg id="map" viewBox="0 0 1320 882" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Дерево разработки Prism">
-<defs>
-<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<radialGradient id="bg" cx="14%" cy="50%" r="95%"><stop offset="0%" stop-color="#16172170"/><stop offset="100%" stop-color="#0c0d13"/></radialGradient>
-</defs>
-<rect x="-2000" y="-2000" width="6000" height="6000" fill="#0c0d13"/>
-<rect width="1320" height="882" fill="url(#bg)"/>
-<line x1="155.0" y1="110" x2="155.0" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="155.0" y="102" fill="#5d6172" font-size="11" text-anchor="middle">02.06</text>
-<line x1="299.5" y1="110" x2="299.5" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="299.5" y="102" fill="#5d6172" font-size="11" text-anchor="middle">07.06</text>
-<line x1="444.1" y1="110" x2="444.1" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="444.1" y="102" fill="#5d6172" font-size="11" text-anchor="middle">12.06</text>
-<line x1="588.6" y1="110" x2="588.6" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="588.6" y="102" fill="#5d6172" font-size="11" text-anchor="middle">17.06</text>
-<line x1="733.2" y1="110" x2="733.2" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="733.2" y="102" fill="#5d6172" font-size="11" text-anchor="middle">22.06</text>
-<line x1="877.7" y1="110" x2="877.7" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="877.7" y="102" fill="#5d6172" font-size="11" text-anchor="middle">27.06</text>
-<line x1="1022.2" y1="110" x2="1022.2" y2="774" stroke="#ffffff" stroke-width="1" opacity="0.045"/>
-<text x="1022.2" y="102" fill="#5d6172" font-size="11" text-anchor="middle">02.07</text>
-<rect x="1104" y="110" width="168" height="664" fill="#ffffff" opacity="0.02"/>
-<line x1="1104" y1="110" x2="1104" y2="774" stroke="#cfd3e2" stroke-width="1.4" stroke-dasharray="2 4" opacity="0.6"/>
-<text x="1104" y="102" fill="#cfd3e2" font-size="11.5" font-weight="600" text-anchor="middle">сейчас</text>
-<text x="1188" y="102" fill="#70748a" font-size="11" text-anchor="middle" font-style="italic">план →</text>
-<text x="135" y="149" fill="#f05c4b" font-size="17" font-weight="700" text-anchor="end">Движок</text>
-<text x="135" y="166" fill="#7e8295" font-size="11.5" text-anchor="end">57 коммитов</text>
-<circle cx="155" cy="150" r="3" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="155" y1="150" x2="1272" y2="150" stroke="#b14033" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="Engine Phase 1: core game loop with tests" data-sub="8486646 · 02.06.2026"><circle cx="155.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Phase 2 keywords, CI, naming convention" data-sub="6a7ea81 · 02.06.2026"><circle cx="155.9" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="ctest: discover each doctest case as a separate test" data-sub="86a4d84 · 02.06.2026"><circle cx="156.1" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Phase 2: event queue, tokens/illusions (spores, split)" data-sub="8560488 · 02.06.2026"><circle cx="156.2" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Phase 2: awaken from the mana row; illusions are permanent" data-sub="2f7cd83 · 02.06.2026"><circle cx="156.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Add .clang-format, format check (ctest + CI)" data-sub="af8e1f1 · 02.06.2026"><circle cx="156.8" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Drop DEF (2-stat ATK/HP); implement most remaining keywords" data-sub="d4b0e44 · 02.06.2026"><circle cx="157.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Polish effects: drop brittle, illusions keep keywords, stealth vs spells" data-sub="229f500 · 02.06.2026"><circle cx="158.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Continuous attack layer: undergrowth, resonance, chill (Model A)" data-sub="b3f7ba6 · 02.06.2026"><circle cx="158.4" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: friendly/any spell targets and no duplicate auras" data-sub="ec0a42c · 03.06.2026"><circle cx="164.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: insert creatures at a chosen board position" data-sub="3083aed · 03.06.2026"><circle cx="172.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: add mulligan phase; blind now suppresses combat retaliation" data-sub="f1db33f · 03.06.2026"><circle cx="172.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: fix awaken cost so the banked crystal pays its own color" data-sub="27c7d82 · 03.06.2026"><circle cx="173.8" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: add ward, dispel, and germinate keywords" data-sub="5af764f · 03.06.2026"><circle cx="175.2" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: add floodlight, delay, decoy, and scry keywords" data-sub="99ba0b1 · 03.06.2026"><circle cx="176.8" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: summon spawned bodies at the source position, with spores/haunt priority" data-sub="6e7d16c · 05.06.2026"><circle cx="236.9" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: a mulliganed card cannot return in the same mulligan" data-sub="6b67d9b · 05.06.2026"><circle cx="237.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Hero roster: four balanced heroes (Palette, Facet, Lighteater) + cleanup" data-sub="ed31b79 · 05.06.2026"><circle cx="238.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: graveyard accounts cards correctly (overdraw in, tokens out)" data-sub="322b0c3 · 06.06.2026"><circle cx="248.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine+client: haunt reborns a creature exactly once" data-sub="5bf1ecc · 06.06.2026"><circle cx="249.1" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Engine: lingering damage from spells is unhealable too" data-sub="b2f7122 · 06.06.2026"><circle cx="267.2" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Tests: point sample.json schema test at the new card pool" data-sub="a7c01e6 · 06.06.2026"><circle cx="267.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Skip optional targeted effects with no target; block required ones" data-sub="d7215bc · 09.06.2026"><circle cx="348.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: remove unused dispel effect" data-sub="3c7574e · 09.06.2026"><circle cx="352.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: add legalActions enumeration + Action move type" data-sub="842ef0e · 10.06.2026"><circle cx="363.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: add full-state Game serialization (toJson/fromJson)" data-sub="b26ccc3 · 10.06.2026"><circle cx="363.9" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: add replay format, runner, and prism_replay CLI" data-sub="0566619 · 10.06.2026"><circle cx="364.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: add fuzz test (random games, invariants + legalActions soundness + replay)" data-sub="b0573c0 · 10.06.2026"><circle cx="364.4" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: undergrowth HP is continuous, not baked at summon" data-sub="ac426b1 · 13.06.2026"><circle cx="449.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: fix decoy on non-awaken cards and delay losing its target" data-sub="7b66d9d · 14.06.2026"><circle cx="504.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: add Game::clone() for move simulation" data-sub="4263853 · 16.06.2026"><circle cx="563.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Native deep-copy clone (~16x faster than JSON round-trip), behaviorally identical" data-sub="e077db6 · 21.06.2026"><circle cx="705.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Enforce deck legality in the engine and server (40/&lt;=2)" data-sub="30832b9 · 24.06.2026"><circle cx="779.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Effect language: make AoE a selector, drop flash/damage_all dupes" data-sub="8e570b6 · 25.06.2026"><circle cx="812.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Keywords: round each color out to 8, derived from light physics" data-sub="0d47360 · 25.06.2026"><circle cx="815.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Red: replace lingering with the spark active (pay 1 -&gt; N to face)" data-sub="58f0fea · 26.06.2026"><circle cx="841.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Penta phase 1: Echo Beast, Prism Mirror, Prism Vanguard + Blackmail design" data-sub="dee37e0 · 28.06.2026"><circle cx="902.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Fix flare blind wasted when it fires on the enemy's own turn" data-sub="ba80b48 · 28.06.2026"><circle cx="909.3" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Fix provoke+stealth soft-lock and mirage+haunt; fix bot-ramp test guard" data-sub="1570c11 · 30.06.2026"><circle cx="954.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: choose which crystal an activated ability spends" data-sub="adf7536 · 30.06.2026"><circle cx="956.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: extract refractTarget, split legalActions into per-action enumerators" data-sub="f6b51eb · 30.06.2026"><circle cx="966.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="bot: belief-conditioned determinize (weight resample by opponent's revealed colors)" data-sub="31d9857 · 02.07.2026"><circle cx="1008.9" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="style: clang-format determinize doc comment" data-sub="76f70ad · 02.07.2026"><circle cx="1008.9" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: retune heroes (facet -1/1 removed, prism shift any-colour)" data-sub="0f91998 · 02.07.2026"><circle cx="1016.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="selfplay: --colors N forces a rainbow draft (measure rarely-cast cards)" data-sub="0cd8036 · 02.07.2026"><circle cx="1016.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Penta wave 1: 7 five-colour mythics (effects + edge tests)" data-sub="057737d · 02.07.2026"><circle cx="1019.8" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="Harden engine + client: serialize gaps, decision-after-over guard, view guards" data-sub="9d6cf6b · 04.07.2026"><circle cx="1073.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: fire on_death effects as data (trigger-as-data foundation)" data-sub="4d4c4ac · 04.07.2026"><circle cx="1082.8" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: data triggers, Reflux/Requiem/Renewal, redesign selectors &amp; actions" data-sub="cab4c1b · 05.07.2026"><circle cx="1085.4" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: Bulwark and warden start-of-turn keywords" data-sub="907af1f · 05.07.2026"><circle cx="1085.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: end-of-turn timed modifiers + prowess" data-sub="f99c81c · 05.07.2026"><circle cx="1085.7" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: fight action (two chosen targets)" data-sub="d41f998 · 05.07.2026"><circle cx="1099.6" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: harvest (targeted activate) + veil (Into the Mirage)" data-sub="0a9aa69 · 05.07.2026"><circle cx="1100.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: serialize spellsCastThisTurn; cover new state + both-die fight" data-sub="a9e5fa9 · 05.07.2026"><circle cx="1100.5" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: auras react to board-scan data triggers (Stained Glass)" data-sub="9652688 · 05.07.2026"><circle cx="1101.0" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: incandescence/glimmer/mulch also read from creature bodies" data-sub="1b0fbee · 05.07.2026"><circle cx="1101.4" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="commit" data-label="engine: reflux/bulwark on auras, guard action, random_enemy selector" data-sub="b294ca9 · 05.07.2026"><circle cx="1103.4" cy="150" r="2.1" fill="#f05c4b" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="Игровой цикл и бой" data-sub="сделано · 8486646 · 02.06.2026">
-<circle cx="155.6" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<text x="155.6" y="132.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Игровой цикл и бой</text>
-</g>
-<g class="node" tabindex="0" data-label="Ключевики и эффекты" data-sub="сделано · 6a7ea81 · 02.06.2026">
-<circle cx="155.9" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="155.9" y1="141" x2="155.9" y2="120.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="155.9" y="116.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Ключевики и эффекты</text>
-</g>
-<g class="node" tabindex="0" data-label="иллюзии/токены" data-sub="сделано · 8560488 · 02.06.2026">
-<circle cx="156.2" cy="150" r="5" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="156.2" y1="141" x2="156.2" y2="104.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="156.2" y="100.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">иллюзии/токены</text>
-</g>
-<g class="node" tabindex="0" data-label="континуальные баффы" data-sub="сделано · b3f7ba6 · 02.06.2026">
-<circle cx="158.4" cy="150" r="5" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="158.4" y1="141" x2="158.4" y2="88.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="158.4" y="84.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">континуальные баффы</text>
-</g>
-<g class="node" tabindex="0" data-label="4 героя" data-sub="сделано · ed31b79 · 05.06.2026">
-<circle cx="238.6" cy="150" r="5" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="238.6" y1="141" x2="238.6" y2="72.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="238.6" y="68.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">4 героя</text>
-</g>
-<g class="node" tabindex="0" data-label="Сериализация и clone" data-sub="сделано · b26ccc3 · 10.06.2026">
-<circle cx="363.9" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<text x="363.9" y="132.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Сериализация и clone</text>
-</g>
-<g class="node" tabindex="0" data-label="Валидация колод 40/≤2" data-sub="сделано · 30832b9 · 24.06.2026">
-<circle cx="779.3" cy="150" r="5" fill="#f05c4b" filter="url(#glow)"/>
-<text x="779.3" y="132.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Валидация колод 40/≤2</text>
-</g>
-<g class="node" tabindex="0" data-label="Ключевики ×8 на цвет" data-sub="сделано · 0d47360 · 25.06.2026">
-<circle cx="815.0" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="815.0" y1="141" x2="815.0" y2="120.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="815.0" y="116.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Ключевики ×8 на цвет</text>
-</g>
-<g class="node" tabindex="0" data-label="Триггеры-как-данные + Reflux/Requiem/Renewal" data-sub="сделано · cab4c1b · 05.07.2026">
-<circle cx="1085.4" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<text x="1085.4" y="132.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Триггеры-как-данные + Reflux/Requiem/Renewal</text>
-</g>
-<g class="node" tabindex="0" data-label="Пересбор: селекторы + действия" data-sub="сделано · cab4c1b · 05.07.2026">
-<circle cx="1085.4" cy="150" r="5" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="1085.4" y1="141" x2="1085.4" y2="120.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="1085.4" y="116.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Пересбор: селекторы + действия</text>
-</g>
-<g class="node" tabindex="0" data-label="Пересбор: кейворды + timed-модификаторы + fight/harvest/veil" data-sub="сделано · 0a9aa69 · 05.07.2026">
-<circle cx="1100.0" cy="150" r="7" fill="#f05c4b" filter="url(#glow)"/>
-<line x1="1100.0" y1="141" x2="1100.0" y2="104.0" stroke="#f05c4b" stroke-width="1" opacity="0.25"/>
-<text x="1100.0" y="100.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Пересбор: кейворды + timed-модификаторы + fight/harvest/veil</text>
-</g>
-<text x="135" y="267" fill="#f0c74b" font-size="17" font-weight="700" text-anchor="end">Карты</text>
-<text x="135" y="284" fill="#7e8295" font-size="11.5" text-anchor="end">37 коммитов</text>
-<circle cx="155" cy="268" r="3" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="155" y1="268" x2="1272" y2="268" stroke="#b19233" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="Design phase: rules, effect grammar, keyword catalog, art pipeline" data-sub="e9db85c · 02.06.2026"><circle cx="155.0" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Add Mirror Image demo card (any-target mirage)" data-sub="9ec9122 · 03.06.2026"><circle cx="164.0" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Make Hazy Shift bounce any creature instead of adding a demo card" data-sub="49eaac4 · 03.06.2026"><circle cx="164.0" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: note the self-target archetype (engine already supports it)" data-sub="79f9f85 · 03.06.2026"><circle cx="164.1" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Cards: generate rules text from data; lore-grounded names" data-sub="874a29c · 03.06.2026"><circle cx="175.6" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: mark C keyword set 7/9 done (ambush, refract remain)" data-sub="f191576 · 03.06.2026"><circle cx="176.9" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Cards: replace pool with a balanced 65-card set" data-sub="be519e7 · 06.06.2026"><circle cx="267.2" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: customization via card packs + gambling-style events" data-sub="c4c7d21 · 06.06.2026"><circle cx="269.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="tools: drop stale new_set.json, point build_prompts at sample.json" data-sub="9624a96 · 09.06.2026"><circle cx="352.6" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: recalibrate scorer to playtest feel, tune cards into curve" data-sub="fd70d63 · 12.06.2026"><circle cx="440.7" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="fix: sync client cards.json with master after balance pass" data-sub="4ffb33e · 13.06.2026"><circle cx="448.1" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: revalue growth/self_lifesteal/resonance, tame resonance bombs" data-sub="ceece47 · 13.06.2026"><circle cx="449.6" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="feat: dispel -- destroy auras, a neutral answer for all colours" data-sub="5c7c336 · 13.06.2026"><circle cx="450.8" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="docs: card-rework plan -- fixed 1:1 count, feature utility effects, dispel, diverse light art" data-sub="fcfe34b · 13.06.2026"><circle cx="450.8" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="rework card set: activate underused keywords, vary N, trim freeze" data-sub="986fb3a · 13.06.2026"><circle cx="452.4" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="rebuild card set: even keyword spread, equal colour counts, no neutral pool" data-sub="e77b549 · 13.06.2026"><circle cx="469.7" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="cards: declone set, spread keyword N, fix decoy; tokens return on scatter" data-sub="43cc615 · 15.06.2026"><circle cx="524.9" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Re-cost 6 over-curve cards; calibrate balance.py coefficients" data-sub="eda4719 · 21.06.2026"><circle cx="698.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Nerf false_ripple 3-&gt;4 mana (CRN-confirmed); journal balance pass + bot v2 plan" data-sub="164921d · 21.06.2026"><circle cx="703.1" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Set v2: author 150-card skeleton, balance to zero outliers" data-sub="432629c · 27.06.2026"><circle cx="875.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Set v2: add 10 penta stubs (5-colour cost+stats, engine effects TODO)" data-sub="4448315 · 27.06.2026"><circle cx="875.7" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Art pass v2: MJ prompts for all 160 cards (incl. penta stubs)" data-sub="9f7d82d · 27.06.2026"><circle cx="875.8" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Fix v2/v1 collision: rename violet_sleeper_agent -&gt; violet_latent_prowler" data-sub="076210f · 27.06.2026"><circle cx="876.4" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Penta cards: printed rules text (localised) instead of keyword chips" data-sub="b832e97 · 28.06.2026"><circle cx="908.3" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="Dim Veil &amp; Dawn Watch: choose which enemy aura to dispel" data-sub="981918e · 28.06.2026"><circle cx="909.8" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: rework blue into a control colour (Brittle + Lens)" data-sub="7f7dab1 · 30.06.2026"><circle cx="962.0" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="art: rewrite blue card subjects to single clean images (undertow=current, no affected-target rendering)" data-sub="a2cb973 · 30.06.2026"><circle cx="962.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="art: deep_freeze/cold_snap drop metaphorical wave/front (rendered ocean waves)" data-sub="1a32e15 · 30.06.2026"><circle cx="962.8" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: slow_frost -&gt; delayed AoE (3 to all enemies); a small delayed bolt was useless, delay wants a big payoff" data-sub="64dfc3c · 30.06.2026"><circle cx="963.2" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="cards: add blue top-end (Deep Leviathan, Hoarfrost Colossus, Winter Stream, Ice Tomb) so control can close, not just splash" data-sub="b62959e · 30.06.2026"><circle cx="963.4" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="art: make the expensive blue cards grand/epic in scale (read as costly at a glance)" data-sub="3d2be67 · 30.06.2026"><circle cx="963.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: logical green de-snowball -- steeper per-n slopes (not flat +X) on beta-flagged keywords" data-sub="09da707 · 30.06.2026"><circle cx="964.4" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="balance: re-cost CRN-confirmed overperformers (resonance + cheap draw)" data-sub="004067d · 01.07.2026"><circle cx="971.4" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="cards: redesign decks 1-3 (Open Flame R, Long Noon Y, Overgrowth G)" data-sub="c296558 · 05.07.2026"><circle cx="1101.1" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="cards: redesign decks 4-5 (Glass Hour B, False Light V)" data-sub="43f7925 · 05.07.2026"><circle cx="1101.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="set: swap to the deck-first pool + 5 mono presets (playable slice)" data-sub="8b17940 · 05.07.2026"><circle cx="1102.5" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="commit" data-label="cards: all 11 decks live (6 dual colours) + 11 presets" data-sub="7a3bbf7 · 05.07.2026"><circle cx="1104.0" cy="268" r="2.1" fill="#f0c74b" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="MVP-сет, 5 цветов" data-sub="сделано · be519e7 · 06.06.2026">
-<circle cx="267.2" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<text x="267.2" y="250.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">MVP-сет, 5 цветов</text>
-</g>
-<g class="node" tabindex="0" data-label="калибровка модели" data-sub="сделано · fd70d63 · 12.06.2026">
-<circle cx="440.7" cy="268" r="5" fill="#f0c74b" filter="url(#glow)"/>
-<text x="440.7" y="250.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">калибровка модели</text>
-</g>
-<g class="node" tabindex="0" data-label="деклон, спред N" data-sub="сделано · 43cc615 · 15.06.2026">
-<circle cx="524.9" cy="268" r="5" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="524.9" y1="259" x2="524.9" y2="238.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="524.9" y="234.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">деклон, спред N</text>
-</g>
-<g class="node" tabindex="0" data-label="пере-кост 6 карт" data-sub="сделано · eda4719 · 21.06.2026">
-<circle cx="698.5" cy="268" r="5" fill="#f0c74b" filter="url(#glow)"/>
-<text x="698.5" y="250.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">пере-кост 6 карт</text>
-</g>
-<g class="node" tabindex="0" data-label="нерф false_ripple" data-sub="сделано · 164921d · 21.06.2026">
-<circle cx="703.1" cy="268" r="5" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="703.1" y1="259" x2="703.1" y2="238.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="703.1" y="234.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">нерф false_ripple</text>
-</g>
-<g class="node" tabindex="0" data-label="Сет v2: 150 карт, баланс без выбросов" data-sub="сделано · 432629c · 27.06.2026">
-<circle cx="875.5" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="875.5" y1="259" x2="875.5" y2="222.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="875.5" y="218.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Сет v2: 150 карт, баланс без выбросов</text>
-</g>
-<g class="node" tabindex="0" data-label="Сет v2 в проде: 160 карт + арты" data-sub="сделано · 14fe2b8 · 28.06.2026">
-<circle cx="884.7" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="884.7" y1="259" x2="884.7" y2="206.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="884.7" y="202.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Сет v2 в проде: 160 карт + арты</text>
-</g>
-<g class="node" tabindex="0" data-label="Реворк синего в контроль (Brittle/Lens)" data-sub="сделано · 7f7dab1 · 30.06.2026">
-<circle cx="962.0" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<text x="962.0" y="250.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Реворк синего в контроль (Brittle/Lens)</text>
-</g>
-<g class="node" tabindex="0" data-label="Пента Волна 1: 7 карт (эффекты + edge-тесты)" data-sub="сделано · 057737d · 02.07.2026">
-<circle cx="1019.8" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="1019.8" y1="259" x2="1019.8" y2="238.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="1019.8" y="234.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Пента Волна 1: 7 карт (эффекты + edge-тесты)</text>
-</g>
-<g class="node" tabindex="0" data-label="Пента Волна 2: под-игры оппонента" data-sub="сделано · f805c1a · 02.07.2026">
-<circle cx="1022.3" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="1022.3" y1="259" x2="1022.3" y2="190.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="1022.3" y="186.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Пента Волна 2: под-игры оппонента</text>
-</g>
-<g class="node" tabindex="0" data-label="Deck-first пересбор: 11 колод, 218 карт + 11 пресетов в прод" data-sub="сделано · 7a3bbf7 · 05.07.2026">
-<circle cx="1104.0" cy="268" r="7" fill="#f0c74b" filter="url(#glow)"/>
-<line x1="1104.0" y1="259" x2="1104.0" y2="174.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="1104.0" y="170.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Deck-first пересбор: 11 колод, 218 карт + 11 пресетов в прод</text>
-</g>
-<g class="node" tabindex="0" data-label="Авто-тюнер β" data-sub="план">
-<circle cx="1160.0" cy="268" r="7" fill="#0c0d13" stroke="#b19233" stroke-width="2" opacity="0.85"/>
-<line x1="1160.0" y1="259" x2="1160.0" y2="222.0" stroke="#f0c74b" stroke-width="1" opacity="0.25"/>
-<text x="1160.0" y="218.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Авто-тюнер β</text>
-</g>
-<g class="node" tabindex="0" data-label="Расширение сета" data-sub="план">
-<circle cx="1216.0" cy="268" r="7" fill="#0c0d13" stroke="#b19233" stroke-width="2" opacity="0.85"/>
-<text x="1216.0" y="250.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Расширение сета</text>
-</g>
-<text x="135" y="385" fill="#4bf074" font-size="17" font-weight="700" text-anchor="end">Клиент</text>
-<text x="135" y="402" fill="#7e8295" font-size="11.5" text-anchor="end">104 коммита</text>
-<circle cx="155" cy="386" r="3" fill="#4bf074" filter="url(#glow)"/>
-<line x1="155" y1="386" x2="1272" y2="386" stroke="#33b153" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="Godot 4 client: render the view, send actions over WebSocket" data-sub="a0a0e75 · 03.06.2026"><circle cx="159.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Redesign Godot client: card visuals, drag-and-drop, art" data-sub="d8215ec · 03.06.2026"><circle cx="160.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Modernize card visuals and client shell" data-sub="dc9ab78 · 03.06.2026"><circle cx="162.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Add 10 bicolor cards, sprout token, and their art" data-sub="10adcc2 · 03.06.2026"><circle cx="163.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client UX: cost pips, mana crystals, hero zone, tooltips, highlights" data-sub="a9574e3 · 03.06.2026"><circle cx="163.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: friendly/any spell targeting and smarter attack highlights" data-sub="bfc9153 · 03.06.2026"><circle cx="164.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: status tooltips, aura zones, and mirror engine targeting rules" data-sub="096518b · 03.06.2026"><circle cx="164.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Auras on a side shelf so End Turn always fits; backlog an admin panel" data-sub="92a2e1a · 03.06.2026"><circle cx="164.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Game-feel: attack arrow, hand fan, game-over screen" data-sub="cf7d6ca · 03.06.2026"><circle cx="164.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Game-feel: damage/death/summon animations via view diffing" data-sub="d8debcd · 03.06.2026"><circle cx="165.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: modern aiming arrow, juicier effects, board reflow, fixes" data-sub="e4563b6 · 03.06.2026"><circle cx="172.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: mulligan screen; distinguish freeze from blind" data-sub="271dbae · 03.06.2026"><circle cx="172.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Refactor: extract UiCard and FxLayer into their own files" data-sub="fd66316 · 03.06.2026"><circle cx="173.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: dedup label and panel builders" data-sub="de10bc6 · 03.06.2026"><circle cx="173.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Refactor: split Main.gd into modules; awaken mini-card" data-sub="dcfd2bd · 03.06.2026"><circle cx="174.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Cards + client: five color-payoff cards and the new-keyword UI" data-sub="71f5ae1 · 03.06.2026"><circle cx="175.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: UI for floodlight, delay, decoy, scry; rename decoy to Подготовка" data-sub="f934dec · 03.06.2026"><circle cx="176.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Cards: five fat top-end cards exercising the new keywords" data-sub="edf1779 · 03.06.2026"><circle cx="176.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: tooltip rules, token art, and a real activated-ability UI" data-sub="b7edf29 · 03.06.2026"><circle cx="178.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Add hero passives, flank-medallion UI, radial mana picker" data-sub="88b2ca4 · 03.06.2026"><circle cx="182.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Art direction (beings of living light) and mana/UX fixes" data-sub="50704c4 · 04.06.2026"><circle cx="188.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="New light-native card set, resonance/ramp fixes, UI redesign spec" data-sub="7f3c0e9 · 04.06.2026"><circle cx="208.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Prefix generated token ids with token_ and add sprout art" data-sub="b6d40f7 · 04.06.2026"><circle cx="208.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Board game-feel pass and drag-only targeting" data-sub="c20f580 · 04.06.2026"><circle cx="216.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Refactor client: split Main god-object into modules" data-sub="c9838dd · 05.06.2026"><circle cx="217.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Extract ManaPicker overlay; stop widget-splitting at the coupled view-controllers" data-sub="73ad146 · 05.06.2026"><circle cx="217.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Design doc for the app shell (menu, screens, rooms)" data-sub="e2d09b9 · 05.06.2026"><circle cx="231.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="App shell phase A: router, main menu, settings; match as a screen" data-sub="6013f76 · 05.06.2026"><circle cx="232.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Typography pass: Lato UI font, Dela Gothic One wordmark; no button focus rect" data-sub="f1dd76d · 05.06.2026"><circle cx="233.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="App shell phase B: private rooms (server room manager + lobby) and screens" data-sub="7b3c5fe · 05.06.2026"><circle cx="235.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Typography pass: highlighted keyword rules, heavier card numbers and labels" data-sub="39427b7 · 05.06.2026"><circle cx="236.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: persistent board nodes (incremental board, P1 parity)" data-sub="0e25ca7 · 05.06.2026"><circle cx="241.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: animated board (P2) -- reflow, settle, spell dissolve, fixes" data-sub="fb324fd · 05.06.2026"><circle cx="242.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: persistent hand fan that slides on draw/play (P3)" data-sub="6d71990 · 05.06.2026"><circle cx="242.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Loadout: hero + deck selection after Play (app shell phase C)" data-sub="48b387c · 06.06.2026"><circle cx="247.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: pulse the mana block and deck/graveyard stacks on change (P4)" data-sub="6292983 · 06.06.2026"><circle cx="248.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Art: flat-2D light card/hero art and Midjourney prompt pipeline" data-sub="07b184a · 06.06.2026"><circle cx="267.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Redesign client UI to match the art direction" data-sub="5d155e4 · 06.06.2026"><circle cx="269.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Float damage numbers on a hero taking face damage" data-sub="507782c · 06.06.2026"><circle cx="269.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Update hero art: Erebus (young, monochrome eclipse) and Gemma" data-sub="f6ac29f · 06.06.2026"><circle cx="269.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Fix infinite-loop spam from the ready-to-attack pulse" data-sub="2617bb5 · 07.06.2026"><circle cx="275.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Let the player choose which crystals pay a card's generic cost" data-sub="18ed896 · 07.06.2026"><circle cx="275.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Client: optional-target safeguard, attack target frames, layout fixes" data-sub="ded9101 · 09.06.2026"><circle cx="348.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: per-effect VFX (passive state + one-shot on trigger)" data-sub="c77c71e · 09.06.2026"><circle cx="348.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Cap mana column height so the hand isn't clipped on a big mana pool" data-sub="55a0506 · 09.06.2026"><circle cx="348.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: drop dead _prism_bar, share Ui.gap() spacer" data-sub="bf36bdf · 09.06.2026"><circle cx="352.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: add DevKit harness + headless tests, route Shot through demo_view" data-sub="918f38d · 09.06.2026"><circle cx="354.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: extract Rules (pure legality queries) from Main" data-sub="2323f07 · 09.06.2026"><circle cx="354.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: extract overlays (mulligan/scry/game-over) + CardView.widget" data-sub="8cf8d58 · 09.06.2026"><circle cx="358.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: extract PilesColumn (right flank) + Rules.can_awaken" data-sub="63d812d · 09.06.2026"><circle cx="359.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: extract BoardRow (battlefield lane + creatures + abilities) with intent signals" data-sub="543a3e9 · 09.06.2026"><circle cx="360.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: extract HeroMedallion (hero portrait + face-attack intent)" data-sub="2983d11 · 09.06.2026"><circle cx="360.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: note the harmless drag-time layout warning" data-sub="a232554 · 09.06.2026"><circle cx="360.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="docs: lock board redesign direction (Claude Design ref + spec + slice plan)" data-sub="158b33d · 11.06.2026"><circle cx="406.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="board redesign slice 1: faceted mana crystals" data-sub="4b07769 · 11.06.2026"><circle cx="413.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="board redesign slice 2: glass rail slabs + design tokens" data-sub="1e4133b · 11.06.2026"><circle cx="414.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="board redesign slice 3: hero medallion" data-sub="e774452 · 11.06.2026"><circle cx="415.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="fix: render MJ art at full quality (mipmaps)" data-sub="058cd63 · 12.06.2026"><circle cx="432.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: typography — Exo2 body + Chakra Petch numerals" data-sub="ebb1f6b · 12.06.2026"><circle cx="432.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="board redesign slice 4 + pile/mana/medallion polish" data-sub="de11e1d · 12.06.2026"><circle cx="432.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: spectrum rename, merged turn pill, floodlight click-to-peek" data-sub="e522e34 · 12.06.2026"><circle cx="435.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: richer card description — stats, full coloured cost, gradient border" data-sub="ee137bc · 12.06.2026"><circle cx="436.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="deploy: commit the Web export preset (relative paths, no secrets)" data-sub="c5f36b8 · 12.06.2026"><circle cx="437.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: beam attack/targeting arrow (gold-&gt;red gradient, flowing motes)" data-sub="c64242d · 12.06.2026"><circle cx="446.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="chore: remove board-redesign reference (design ported to Godot)" data-sub="404f8e8 · 12.06.2026"><circle cx="446.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: scroll the awaken-chip column past two chips" data-sub="68a2913 · 13.06.2026"><circle cx="449.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: port Claude Design main menu; fix art mipmaps; gate content checks in CI" data-sub="50c78f1 · 13.06.2026"><circle cx="472.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: port Claude Design lobby; shared shell chrome; glow titles" data-sub="ddc36ce · 14.06.2026"><circle cx="505.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: restyle loadout + settings to the shell design language" data-sub="a85559b · 15.06.2026"><circle cx="521.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Add deck builder, collection and local storage (M4 client)" data-sub="c2f661c · 24.06.2026"><circle cx="779.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Stream deck-builder card art via threaded loading" data-sub="60c96ce · 25.06.2026"><circle cx="806.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Show the in-game card tooltip in the deck builder on hover" data-sub="5508cf4 · 25.06.2026"><circle cx="807.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Add deck-builder art thumbnails (kills the pool load stall)" data-sub="de4bfe1 · 25.06.2026"><circle cx="808.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Ship card set v2 to live (160 cards + art), retire v1" data-sub="14fe2b8 · 28.06.2026"><circle cx="884.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Deck builder: smooth touchpad/wheel scrolling for the card pool" data-sub="d109abc · 28.06.2026"><circle cx="901.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Deck builder: auto-generate button + color-pick dialog" data-sub="0014aea · 28.06.2026"><circle cx="903.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Remove 85 orphan v1 thumbnails left in art_thumb after the v2 swap" data-sub="06392d4 · 28.06.2026"><circle cx="903.5" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Bot deck/ramp fixes + 12 gameplay/UI bug fixes" data-sub="b93ac55 · 28.06.2026"><circle cx="907.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Decks: share/import via a code" data-sub="3e41af9 · 28.06.2026"><circle cx="909.9" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Loadout/deck builder UI: edit button, exclusive selection, multicolour swatches" data-sub="9a8d629 · 28.06.2026"><circle cx="910.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Loadout deck tiles: share button, drop icon tooltips" data-sub="3668407 · 28.06.2026"><circle cx="910.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Loadout: center share dialog; drop the blue glow halo behind deck tiles" data-sub="f4567ea · 29.06.2026"><circle cx="910.4" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Deck manager: drop the blue glow frame behind deck rows" data-sub="3719fe6 · 29.06.2026"><circle cx="910.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Deck list: tooltip the (clipped) card name so long names stay readable" data-sub="8628cd2 · 29.06.2026"><circle cx="910.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Radial colour picker: word 'отмена' instead of a ✕ glyph in the cancel hole" data-sub="0158fe6 · 29.06.2026"><circle cx="910.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Rules text: Russian numeral declension + resonance snapshot wording" data-sub="05d5da4 · 29.06.2026"><circle cx="931.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Training: mirror mode + bot drafts the full human-like distribution" data-sub="fde335e · 29.06.2026"><circle cx="931.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Support draws: a double-KO is a draw, not a win for whoever died first" data-sub="49dd4d9 · 30.06.2026"><circle cx="954.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="art: remove the 12 replaced blue card arts and import artifacts" data-sub="93d39aa · 30.06.2026"><circle cx="962.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="art: blue control kit images + thumbnails (imports, mipmaps on)" data-sub="e8d6d3a · 30.06.2026"><circle cx="963.1" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="art: blue top-end card images + thumbnails (imports, mipmaps on)" data-sub="c2f60da · 30.06.2026"><circle cx="963.6" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: Palette.crystal_color helper, dedupe 3 call sites" data-sub="b28eafe · 30.06.2026"><circle cx="966.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client tests: remap stale card ids to current set (38-&gt;47 passing)" data-sub="1f41600 · 30.06.2026"><circle cx="966.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="engine+client: player-chosen generic mana for awaken; prune resolved F debts" data-sub="8be9a31 · 01.07.2026"><circle cx="969.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: prune removed cards from saved decks; block starting an illegal deck" data-sub="ad06b0a · 02.07.2026"><circle cx="1014.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Penta wave 2: opponent-decision sub-games + art" data-sub="f805c1a · 02.07.2026"><circle cx="1022.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="View exposes canAwaken; client stops re-deriving awaken legality" data-sub="77aca5f · 02.07.2026"><circle cx="1024.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="backlog: retire finished pentas + done quick-wins, open Sound+VFX milestone" data-sub="9c38a68 · 02.07.2026"><circle cx="1025.2" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="backlog: detailed plan for sound + vfx + opponent-turn playback (T2)" data-sub="86e3b57 · 02.07.2026"><circle cx="1025.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="fix(client): repair awaken chip and a stale demo card reference" data-sub="c58608d · 03.07.2026"><circle cx="1026.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Sound/VFX Ф1: play the opponent's turn out step by step" data-sub="23202ec · 03.07.2026"><circle cx="1026.8" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="Sound/VFX Ф2: procedural audio + wire sound across the client" data-sub="2bcf169 · 03.07.2026"><circle cx="1039.3" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="art: drop orphaned art for the retired old-set cards" data-sub="1e61fed · 05.07.2026"><circle cx="1102.7" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="commit" data-label="client: default new texture imports to mipmaps on" data-sub="137177b · 05.07.2026"><circle cx="1103.0" cy="386" r="2.1" fill="#4bf074" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="арт-стиль" data-sub="сделано · 50704c4 · 04.06.2026">
-<circle cx="188.2" cy="386" r="5" fill="#4bf074" filter="url(#glow)"/>
-<text x="188.2" y="368.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">арт-стиль</text>
-</g>
-<g class="node" tabindex="0" data-label="Оболочка: меню/матч" data-sub="сделано · 6013f76 · 05.06.2026">
-<circle cx="232.5" cy="386" r="7" fill="#4bf074" filter="url(#glow)"/>
-<line x1="232.5" y1="377" x2="232.5" y2="356.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="232.5" y="352.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Оболочка: меню/матч</text>
-</g>
-<g class="node" tabindex="0" data-label="Логотип-wordmark" data-sub="сделано · f1dd76d · 05.06.2026">
-<circle cx="233.0" cy="386" r="7" fill="#4bf074" filter="url(#glow)"/>
-<line x1="233.0" y1="377" x2="233.0" y2="340.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="233.0" y="336.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Логотип-wordmark</text>
-</g>
-<g class="node" tabindex="0" data-label="фикс mipmaps" data-sub="сделано · 058cd63 · 12.06.2026">
-<circle cx="432.3" cy="386" r="5" fill="#4bf074" filter="url(#glow)"/>
-<text x="432.3" y="368.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">фикс mipmaps</text>
-</g>
-<g class="node" tabindex="0" data-label="рестайл экранов" data-sub="сделано · a85559b · 15.06.2026">
-<circle cx="521.5" cy="386" r="5" fill="#4bf074" filter="url(#glow)"/>
-<line x1="521.5" y1="377" x2="521.5" y2="356.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="521.5" y="352.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">рестайл экранов</text>
-</g>
-<g class="node" tabindex="0" data-label="Колодостроитель + автоколода" data-sub="сделано · 0014aea · 28.06.2026">
-<circle cx="903.4" cy="386" r="7" fill="#4bf074" filter="url(#glow)"/>
-<text x="903.4" y="368.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Колодостроитель + автоколода</text>
-</g>
-<g class="node" tabindex="0" data-label="Батч багфиксов: dispel/искра/дымка/decoy и др." data-sub="сделано · b93ac55 · 28.06.2026">
-<circle cx="907.9" cy="386" r="7" fill="#4bf074" filter="url(#glow)"/>
-<line x1="907.9" y1="377" x2="907.9" y2="356.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="907.9" y="352.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Батч багфиксов: dispel/искра/дымка/decoy и др.</text>
-</g>
-<g class="node" tabindex="0" data-label="Адаптивный UI" data-sub="план">
-<circle cx="1128.0" cy="386" r="7" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<text x="1128.0" y="368.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Адаптивный UI</text>
-</g>
-<g class="node" tabindex="0" data-label="Звук и VFX" data-sub="план">
-<circle cx="1152.0" cy="386" r="7" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<line x1="1152.0" y1="377" x2="1152.0" y2="356.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="1152.0" y="352.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Звук и VFX</text>
-</g>
-<g class="node" tabindex="0" data-label="Туториал-матч" data-sub="план">
-<circle cx="1176.0" cy="386" r="7" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<line x1="1176.0" y1="377" x2="1176.0" y2="340.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="1176.0" y="336.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Туториал-матч</text>
-</g>
-<g class="node" tabindex="0" data-label="Драфт-режим" data-sub="план">
-<circle cx="1200.0" cy="386" r="7" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<line x1="1200.0" y1="377" x2="1200.0" y2="324.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="1200.0" y="320.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Драфт-режим</text>
-</g>
-<g class="node" tabindex="0" data-label="Реплей-вьювер" data-sub="план">
-<circle cx="1224.0" cy="386" r="4.5" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<line x1="1224.0" y1="377" x2="1224.0" y2="308.0" stroke="#4bf074" stroke-width="1" opacity="0.25"/>
-<text x="1224.0" y="304.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Реплей-вьювер</text>
-</g>
-<g class="node" tabindex="0" data-label="Deck-codes" data-sub="план">
-<circle cx="1248.0" cy="386" r="4.5" fill="#0c0d13" stroke="#33b153" stroke-width="2" opacity="0.85"/>
-<text x="1248.0" y="368.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Deck-codes</text>
-</g>
-<text x="135" y="503" fill="#4bf0b9" font-size="17" font-weight="700" text-anchor="end">Сеть / сервер</text>
-<text x="135" y="520" fill="#7e8295" font-size="11.5" text-anchor="end">11 коммитов</text>
-<circle cx="155" cy="504" r="3" fill="#4bf0b9" filter="url(#glow)"/>
-<line x1="155" y1="504" x2="1272" y2="504" stroke="#33b187" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="Add network protocol layer: per-player view + action dispatch" data-sub="7ee5add · 02.06.2026"><circle cx="158.6" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="WebSocket server: one room of two players over the protocol layer" data-sub="2c244bb · 03.06.2026"><circle cx="158.9" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="Server: cap WebSocket frame size" data-sub="f175b1d · 03.06.2026"><circle cx="172.0" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="Server: random per-game seed and clearer startup" data-sub="572797f · 03.06.2026"><circle cx="182.7" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="CI: fix WebSocket smoke test for the room-manager protocol" data-sub="f1d86c7 · 06.06.2026"><circle cx="249.3" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="engine: keep deckCount stable during scry (peeked cards still belong to the deck)" data-sub="32bab40 · 09.06.2026"><circle cx="359.8" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="server: record match action log, dump replay on game-over (M1)" data-sub="8edfeb8 · 12.06.2026"><circle cx="436.7" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="server+client: same-process reconnect (rejoin a dropped match)" data-sub="531e524 · 02.07.2026"><circle cx="1014.3" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="Sound/VFX Ф0: annotate each broadcast with the public action, stream bot turns" data-sub="10595d3 · 03.07.2026"><circle cx="1026.0" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="Mint reconnect tokens and the match seed from a CSPRNG (B3)" data-sub="767dfc5 · 04.07.2026"><circle cx="1075.6" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="commit" data-label="Non-blocking server I/O: no single connection can stall the server (B1/B2/B8)" data-sub="80e9e77 · 04.07.2026"><circle cx="1075.9" cy="504" r="2.1" fill="#4bf0b9" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="Протокол: вид под игрока" data-sub="сделано · 7ee5add · 02.06.2026">
-<circle cx="158.6" cy="504" r="7" fill="#4bf0b9" filter="url(#glow)"/>
-<text x="158.6" y="486.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Протокол: вид под игрока</text>
-</g>
-<g class="node" tabindex="0" data-label="WebSocket-сервер" data-sub="сделано · 2c244bb · 03.06.2026">
-<circle cx="158.9" cy="504" r="7" fill="#4bf0b9" filter="url(#glow)"/>
-<line x1="158.9" y1="495" x2="158.9" y2="474.0" stroke="#4bf0b9" stroke-width="1" opacity="0.25"/>
-<text x="158.9" y="470.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">WebSocket-сервер</text>
-</g>
-<g class="node" tabindex="0" data-label="Комнаты по коду" data-sub="сделано · 7b3c5fe · 05.06.2026">
-<circle cx="235.3" cy="504" r="5" fill="#4bf0b9" filter="url(#glow)"/>
-<line x1="235.3" y1="495" x2="235.3" y2="458.0" stroke="#4bf0b9" stroke-width="1" opacity="0.25"/>
-<text x="235.3" y="454.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Комнаты по коду</text>
-</g>
-<g class="node" tabindex="0" data-label="Реплеи матча" data-sub="сделано · 8edfeb8 · 12.06.2026">
-<circle cx="436.7" cy="504" r="5" fill="#4bf0b9" filter="url(#glow)"/>
-<text x="436.7" y="486.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Реплеи матча</text>
-</g>
-<g class="node" tabindex="0" data-label="Реконнект + room-GC (same-process)" data-sub="сделано · 531e524 · 02.07.2026">
-<circle cx="1014.3" cy="504" r="7" fill="#4bf0b9" filter="url(#glow)"/>
-<text x="1014.3" y="486.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Реконнект + room-GC (same-process)</text>
-</g>
-<g class="node" tabindex="0" data-label="Аккаунты / матчмейкинг" data-sub="план">
-<circle cx="1160.0" cy="504" r="7" fill="#0c0d13" stroke="#33b187" stroke-width="2" opacity="0.85"/>
-<line x1="1160.0" y1="495" x2="1160.0" y2="474.0" stroke="#4bf0b9" stroke-width="1" opacity="0.25"/>
-<text x="1160.0" y="470.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Аккаунты / матчмейкинг</text>
-</g>
-<g class="node" tabindex="0" data-label="Release-mile: versioning + restart-persist" data-sub="план" data-note="on hold вместе с web-релизом; реконнект-срез сделан">
-<circle cx="1216.0" cy="504" r="7" fill="#0c0d13" stroke="#33b187" stroke-width="2" opacity="0.85"/>
-<line x1="1216.0" y1="495" x2="1216.0" y2="458.0" stroke="#4bf0b9" stroke-width="1" opacity="0.25"/>
-<text x="1216.0" y="454.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Release-mile: versioning + restart-persist</text>
-</g>
-<text x="135" y="621" fill="#4babf0" font-size="17" font-weight="700" text-anchor="end">Бот / ИИ</text>
-<text x="135" y="638" fill="#7e8295" font-size="11.5" text-anchor="end">18 коммитов</text>
-<circle cx="155" cy="622" r="3" fill="#4babf0" filter="url(#glow)"/>
-<line x1="155" y1="622" x2="1272" y2="622" stroke="#337db1" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="feat: single-player 'Тренировка' vs a heuristic bot" data-sub="50e237b · 16.06.2026"><circle cx="542.9" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="bot: 1-ply lookahead search + heuristic polish" data-sub="ec2f361 · 17.06.2026"><circle cx="563.5" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Add prism_selfplay: bot-vs-bot balance probe (seat/hero/card winrate)" data-sub="9bbe8aa · 17.06.2026"><circle cx="564.4" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Add draft self-play mode and balance_lab.py per-card regression screen" data-sub="9bad605 · 21.06.2026"><circle cx="698.5" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Bot determinization v1: resample opponent's hidden cards, average over K worlds" data-sub="02a8302 · 21.06.2026"><circle cx="704.6" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Journal honest-bot vs cheating-bot screen: determinization shifts bomb/evasion card values" data-sub="7e1b907 · 22.06.2026"><circle cx="718.0" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Honest own-deck reshuffle + vsgreedy harness; MCTS tried, weaker than greedy (reverted)" data-sub="f09e0fa · 22.06.2026"><circle cx="726.4" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Journal: per-card balance precision capped by ~2pp bot-policy noise floor" data-sub="467c40e · 22.06.2026"><circle cx="727.5" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: add set-v2 + balance-metric milestones (cards, bot)" data-sub="1aba056 · 27.06.2026"><circle cx="875.5" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: coherent bot deck + ramp fix" data-sub="ad20564 · 28.06.2026"><circle cx="907.9" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="Bot: keyword-aware eval, human-like draft, mana discipline, vs-blind A/B" data-sub="f07d8a9 · 29.06.2026"><circle cx="931.7" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: keyword-aware bot (B0) and balance linters milestones" data-sub="1b67ce0 · 30.06.2026"><circle cx="956.6" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="balance: drop 5 phantom coefficients (ambush/umbra/clairvoyance/damage_all/flash), add drift-lint gate" data-sub="e16b893 · 30.06.2026"><circle cx="966.7" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="bot: rollout-leaf search (depth-4) + measurement knobs" data-sub="0523b87 · 01.07.2026"><circle cx="970.4" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="bot: extract scoreAll; document PUCT as a negative result" data-sub="79448d6 · 01.07.2026"><circle cx="981.8" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="bot: learned value-leaf pipeline (set-agnostic features -&gt; ML value model)" data-sub="79a51ba · 01.07.2026"><circle cx="983.3" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="bot: remove learned value/policy experiments, keep rollout-1ply" data-sub="d92fca5 · 02.07.2026"><circle cx="1011.8" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: anchor abandoned PUCT and value/policy phases to their commits" data-sub="8c357ce · 04.07.2026"><circle cx="1082.9" cy="622" r="2.1" fill="#4babf0" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="Жадный рефлекс" data-sub="сделано · 50e237b · 16.06.2026">
-<circle cx="542.9" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<text x="542.9" y="604.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Жадный рефлекс</text>
-</g>
-<g class="node" tabindex="0" data-label="режим Тренировка" data-sub="сделано · 50e237b · 16.06.2026">
-<circle cx="542.9" cy="622" r="5" fill="#4babf0" filter="url(#glow)"/>
-<line x1="542.9" y1="613" x2="542.9" y2="592.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="542.9" y="588.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">режим Тренировка</text>
-</g>
-<g class="node" tabindex="0" data-label="1-ply поиск" data-sub="сделано · ec2f361 · 17.06.2026">
-<circle cx="563.5" cy="622" r="5" fill="#4babf0" filter="url(#glow)"/>
-<line x1="563.5" y1="613" x2="563.5" y2="576.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="563.5" y="572.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">1-ply поиск</text>
-</g>
-<g class="node" tabindex="0" data-label="Self-play баланс-проба" data-sub="сделано · 9bbe8aa · 17.06.2026">
-<circle cx="564.4" cy="622" r="5" fill="#4babf0" filter="url(#glow)"/>
-<line x1="564.4" y1="613" x2="564.4" y2="560.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="564.4" y="556.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Self-play баланс-проба</text>
-</g>
-<g class="node" tabindex="0" data-label="Детерминизация" data-sub="сделано · 02a8302 · 21.06.2026">
-<circle cx="704.6" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<text x="704.6" y="604.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Детерминизация</text>
-</g>
-<g class="node" tabindex="0" data-label="MCTS-поиск" data-sub="пробовали → откат · f09e0fa · 22.06.2026" data-note="слабее жадного — откат">
-<path d="M719.9,615.5 L732.9,628.5 M732.9,615.5 L719.9,628.5" stroke="#4babf0" stroke-width="2.2" opacity="0.7" stroke-linecap="round"/>
-<line x1="726.4" y1="613" x2="726.4" y2="592.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="726.4" y="588.0" text-anchor="middle" fill="#a59aa0" font-size="12" font-weight="400" font-style="italic">MCTS-поиск</text>
-</g>
-<g class="node" tabindex="0" data-label="Метрика confirmed=0 + бот-фиксы" data-sub="сделано · 432629c · 27.06.2026">
-<circle cx="875.5" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<line x1="875.5" y1="613" x2="875.5" y2="576.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="875.5" y="572.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Метрика confirmed=0 + бот-фиксы</text>
-</g>
-<g class="node" tabindex="0" data-label="Когерентная колода бота + рамп-фикс" data-sub="сделано · b93ac55 · 28.06.2026">
-<circle cx="907.9" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<line x1="907.9" y1="613" x2="907.9" y2="560.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="907.9" y="556.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Когерентная колода бота + рамп-фикс</text>
-</g>
-<g class="node" tabindex="0" data-label="Бот ценит ключевики (B0)" data-sub="сделано · f07d8a9 · 29.06.2026">
-<circle cx="931.7" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<text x="931.7" y="604.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Бот ценит ключевики (B0)</text>
-</g>
-<g class="node" tabindex="0" data-label="Роллаут-лист поиск (74% vs greedy)" data-sub="сделано · 0523b87 · 01.07.2026">
-<circle cx="970.4" cy="622" r="7" fill="#4babf0" filter="url(#glow)"/>
-<line x1="970.4" y1="613" x2="970.4" y2="592.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="970.4" y="588.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Роллаут-лист поиск (74% vs greedy)</text>
-</g>
-<g class="node" tabindex="0" data-label="PUCT" data-sub="пробовали → откат · 79448d6 · 01.07.2026" data-note="плато ниже роллаут-1ply без обученного листа">
-<path d="M975.3,615.5 L988.3,628.5 M988.3,615.5 L975.3,628.5" stroke="#4babf0" stroke-width="2.2" opacity="0.7" stroke-linecap="round"/>
-<line x1="981.8" y1="613" x2="981.8" y2="544.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="981.8" y="540.0" text-anchor="middle" fill="#a59aa0" font-size="12" font-weight="400" font-style="italic">PUCT</text>
-</g>
-<g class="node" tabindex="0" data-label="Обученные value/policy" data-sub="пробовали → откат · d92fca5 · 02.07.2026" data-note="supervised эксплуатируется argmax'ом / не бьёт эвристику — выпилено; on-policy (AlphaZero) не начат">
-<path d="M1005.3,615.5 L1018.3,628.5 M1018.3,615.5 L1005.3,628.5" stroke="#4babf0" stroke-width="2.2" opacity="0.7" stroke-linecap="round"/>
-<line x1="1011.8" y1="613" x2="1011.8" y2="528.0" stroke="#4babf0" stroke-width="1" opacity="0.25"/>
-<text x="1011.8" y="524.0" text-anchor="middle" fill="#a59aa0" font-size="12" font-weight="400" font-style="italic">Обученные value/policy</text>
-</g>
-<text x="135" y="739" fill="#f04bcf" font-size="17" font-weight="700" text-anchor="end">Инфра</text>
-<text x="135" y="756" fill="#7e8295" font-size="11.5" text-anchor="end">49 коммитов</text>
-<circle cx="155" cy="740" r="3" fill="#f04bcf" filter="url(#glow)"/>
-<line x1="155" y1="740" x2="1272" y2="740" stroke="#b13398" stroke-width="1.6" opacity="0.4"/>
-<g class="commit" data-label="gitignore the local Godot binary (client-godot/.godot-bin)" data-sub="f6dc116 · 03.06.2026"><circle cx="159.2" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Docs: prune stale content across markdown" data-sub="0bd3cee · 07.06.2026"><circle cx="275.9" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Add refactor/orientation plan (PLAN.md)" data-sub="7d69d62 · 09.06.2026"><circle cx="351.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Add ARCHITECTURE.md: repo map + protocol + cookbook" data-sub="c06804c · 09.06.2026"><circle cx="351.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: trim REFACTOR tombstones, fix EFFECTS/ARCHITECTURE" data-sub="9f20dc3 · 09.06.2026"><circle cx="352.6" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="ci: run Godot client tests + parse check" data-sub="cab3795 · 09.06.2026"><circle cx="354.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="ci: fix YAML block scalar for client test step" data-sub="32cf8c9 · 09.06.2026"><circle cx="354.2" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: update ARCHITECTURE client map for the Main decomposition (D)" data-sub="349183f · 09.06.2026"><circle cx="360.9" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: close refactor initiative, add public web release roadmap" data-sub="c9caa42 · 10.06.2026"><circle cx="361.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: cards all-available (no rarity/collection), cosmetic-only economy, Claude Design for UI; close M1" data-sub="d2c7f68 · 10.06.2026"><circle cx="364.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="deploy: web export preset, same-origin wss default, caddy/systemd/README (M5 start)" data-sub="f2b1ba4 · 12.06.2026"><circle cx="437.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="deploy: local production-mirror script + free-hosting notes" data-sub="8d49bdb · 12.06.2026"><circle cx="437.9" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="deploy: turnkey Docker Compose stack (prism_server + caddy), parameterised Caddyfile" data-sub="c3b30f1 · 12.06.2026"><circle cx="439.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: fix garbled deploy status line in BACKLOG decision log" data-sub="4762536 · 12.06.2026"><circle cx="440.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Add generated Prism dev-tree (roadmap.json -&gt; roadmap.svg) to README" data-sub="6c793da · 22.06.2026"><circle cx="728.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Dev-tree: real per-track node counts, weight-sized nodes, collapse for scale" data-sub="9fc11b1 · 23.06.2026"><circle cx="748.0" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Replace static dev-tree SVG with interactive GitHub Pages landing" data-sub="5f153c6 · 23.06.2026"><circle cx="762.6" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: dev-tree shipped, add deck-builder + deck-rule milestones" data-sub="9525168 · 25.06.2026"><circle cx="807.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: attribute commits by code, not journals" data-sub="eb7b740 · 25.06.2026"><circle cx="808.6" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: route doc-only commits to their track by subject" data-sub="5b960d7 · 25.06.2026"><circle cx="808.9" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: decline &quot;коммит&quot; by count, drop the intro blurb" data-sub="5227cb4 · 25.06.2026"><circle cx="810.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: anchor phases to their commits, commit rug, fold balance into bot" data-sub="b2f8f38 · 25.06.2026"><circle cx="810.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: commits back to dots, show anchor hash+date in phase tooltip" data-sub="eff7d61 · 25.06.2026"><circle cx="810.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: add the 8-keywords-per-colour milestone (engine)" data-sub="9e2375f · 25.06.2026"><circle cx="815.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: new-set v2 blueprint (full regen; mono / synergy-bicolor / penta-totality)" data-sub="5e68eab · 26.06.2026"><circle cx="841.0" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Backlog: v2 status (skeleton locked, pentas stubbed, art prompts done) + remaining" data-sub="08f01b2 · 27.06.2026"><circle cx="876.0" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: card set v2 shipped to live" data-sub="7e0917d · 28.06.2026"><circle cx="884.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Roadmap: deck builder done + bugfix batch node" data-sub="8ec2244 · 28.06.2026"><circle cx="908.2" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Docs: balance audit (holes, roots, rework plan) and set principles" data-sub="822a4ed · 29.06.2026"><circle cx="931.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="balance: set-role framework + structural linters" data-sub="392cf6f · 30.06.2026"><circle cx="956.5" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: blue control rework milestone" data-sub="54554d6 · 30.06.2026"><circle cx="962.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="art: regenerate prompts for the reworked blue cards" data-sub="bf7c042 · 30.06.2026"><circle cx="962.2" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="tools: shared _common card loader, DRY the linters" data-sub="9fa6d20 · 30.06.2026"><circle cx="966.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="chore: gitignore build-release, roadmap node for the cleanup pass" data-sub="21a8f2a · 30.06.2026"><circle cx="966.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: external repo audit -- findings + roadmap tracks" data-sub="515468c · 02.07.2026"><circle cx="1012.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="chore: audit quick wins -- cards-sync gate, Release CI, LICENSE, ARCHITECTURE" data-sub="0b12301 · 02.07.2026"><circle cx="1012.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: reconnect (same-process) done" data-sub="933d4f0 · 02.07.2026"><circle cx="1014.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="backlog: penta measurement (inert in any meta) + implement decision" data-sub="2a73a3f · 02.07.2026"><circle cx="1016.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: mark penta wave 1 phase done" data-sub="fcb7626 · 02.07.2026"><circle cx="1019.8" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: mark penta wave 2 phase done" data-sub="d1d1716 · 02.07.2026"><circle cx="1022.3" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: regenerate roadmap landing (penta wave 1+2)" data-sub="363613d · 02.07.2026"><circle cx="1022.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="Fix Thicket Brute resonance (dropped n) + lint numeric keywords" data-sub="4967edb · 02.07.2026"><circle cx="1023.5" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: hug track labels to the left edge (PLOT_X0 250-&gt;155)" data-sub="438890c · 03.07.2026"><circle cx="1039.6" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="docs: lock the deck-first set redesign (design doc + roster data)" data-sub="7d24cc0 · 04.07.2026"><circle cx="1082.6" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: close the trigger/selector/action redesign phase (cab4c1b)" data-sub="5a22a48 · 05.07.2026"><circle cx="1085.4" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="roadmap: engine phase of the deck-first redesign complete (0a9aa69)" data-sub="9607206 · 05.07.2026"><circle cx="1100.0" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="backlog: note deferred multi-target generalization (choose N creatures)" data-sub="de91247 · 05.07.2026"><circle cx="1100.3" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="art: regenerate ART_PROMPTS.md for the deck-first mono set (105 prompts)" data-sub="0583be9 · 05.07.2026"><circle cx="1102.7" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="commit" data-label="backlog: cards-phase state (5/11 mono decks live, presets, art pipeline)" data-sub="c1d340f · 05.07.2026"><circle cx="1103.1" cy="740" r="2.1" fill="#f04bcf" opacity="0.5"/></g>
-<g class="node" tabindex="0" data-label="CI, чеки, тесты" data-sub="сделано · af8e1f1 · 02.06.2026">
-<circle cx="156.8" cy="740" r="7" fill="#f04bcf" filter="url(#glow)"/>
-<text x="156.8" y="722.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">CI, чеки, тесты</text>
-</g>
-<g class="node" tabindex="0" data-label="Дерево разработки" data-sub="сделано · 5f153c6 · 23.06.2026">
-<circle cx="762.6" cy="740" r="7" fill="#f04bcf" filter="url(#glow)"/>
-<text x="762.6" y="722.0" text-anchor="middle" fill="#e6e8f0" font-size="13" font-weight="700">Дерево разработки</text>
-</g>
-<g class="node" tabindex="0" data-label="Структурные линтеры баланса" data-sub="сделано · 392cf6f · 30.06.2026">
-<circle cx="956.5" cy="740" r="5" fill="#f04bcf" filter="url(#glow)"/>
-<text x="956.5" y="722.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Структурные линтеры баланса</text>
-</g>
-<g class="node" tabindex="0" data-label="Чистка кода + дрифт-линтер баланса" data-sub="сделано · e16b893 · 30.06.2026">
-<circle cx="966.7" cy="740" r="5" fill="#f04bcf" filter="url(#glow)"/>
-<line x1="966.7" y1="731" x2="966.7" y2="710.0" stroke="#f04bcf" stroke-width="1" opacity="0.25"/>
-<text x="966.7" y="706.0" text-anchor="middle" fill="#aeb2c2" font-size="11.5" font-weight="500">Чистка кода + дрифт-линтер баланса</text>
-</g>
-<g class="node" tabindex="0" data-label="Аудит-2026-07: quick wins (CI-гейты, Release-CI, LICENSE)" data-sub="план">
-<circle cx="1188.0" cy="740" r="4.5" fill="#0c0d13" stroke="#b13398" stroke-width="2" opacity="0.85"/>
-<line x1="1188.0" y1="731" x2="1188.0" y2="694.0" stroke="#f04bcf" stroke-width="1" opacity="0.25"/>
-<text x="1188.0" y="690.0" text-anchor="middle" fill="#8a8ea0" font-size="12" font-weight="600">Аудит-2026-07: quick wins (CI-гейты, Release-CI, LICENSE)</text>
-</g>
-<text x="40" y="810" fill="#878089" font-size="12.5" letter-spacing="2">ЛЕГЕНДА</text>
-<circle cx="47" cy="826" r="6" fill="#aeb2c2"/>
-<text x="62" y="831" fill="#aab0c0" font-size="13.5">этап сделан</text>
-<circle cx="207.2" cy="826" r="11" fill="none" stroke="#aeb2c2" stroke-width="1.6" opacity="0.7"/>
-<circle cx="207.2" cy="826" r="6" fill="#aeb2c2"/>
-<text x="222.2" y="831" fill="#aab0c0" font-size="13.5">в работе</text>
-<circle cx="342.79999999999995" cy="826" r="6" fill="#0c0d13" stroke="#aeb2c2" stroke-width="2"/>
-<text x="357.79999999999995" y="831" fill="#aab0c0" font-size="13.5">план</text>
-<path d="M441.59999999999997,822 L449.59999999999997,830 M449.59999999999997,822 L441.59999999999997,830" stroke="#aeb2c2" stroke-width="1.5" opacity="0.7" stroke-linecap="round"/>
-<text x="460.59999999999997" y="831" fill="#aab0c0" font-size="13.5">пробовали → откат</text>
-<circle cx="655.0" cy="826" r="2.4" fill="#aeb2c2" opacity="0.7"/>
-<text x="670.0" y="831" fill="#aab0c0" font-size="13.5">коммит</text>
-</svg>
+    <div class="maphead">
+      <div>
+        <h2>Над чем идёт работа</h2>
+        <p>Каждая точка стоит на своём реальном времени коммита — всплески кучнее,
+          затишья с зазором. Клик по точке&nbsp;— открыть коммит. Растяните ось,
+          чтобы развести плотные периоды.</p>
+      </div>
+      <div class="tools">
+        <button id="zin">＋ растянуть</button>
+        <button id="zout">－ сжать</button>
+        <button id="zrst">сброс</button>
+      </div>
     </div>
-    <p class="hint">Колесо — зум, перетаскивание — двигать, двойной клик —
-      сброс. Наведение на точку или этап — детали.</p>
+    <div class="mapbox"><svg id="map" role="img" aria-label="Дерево разработки Prism"></svg></div>
+    <p class="hint">Наведите&nbsp;— тема коммита и дата. Клик&nbsp;— коммит на GitHub. Тяните&nbsp;— двигать. Колесо над картой&nbsp;— растянуть ось.</p>
   </section>
 
   <footer>
-    <span>Призма раскладывает свет — мы раскладываем работу по трекам.</span>
+    <span>Призма раскладывает свет&nbsp;— мы раскладываем работу по трекам.</span>
     <span><a href="https://github.com/temikgo/prism">temikgo/prism</a></span>
   </footer>
 </div>
@@ -728,80 +113,212 @@
 <div id="tip"><div class="t"></div><div class="s"></div><div class="n"></div></div>
 
 <script>
-  // --- tooltip (shared by phase milestones and commits) ---
-  var tip = document.getElementById("tip");
-  var tt = tip.querySelector(".t"), ts = tip.querySelector(".s"),
-      tn = tip.querySelector(".n");
-  function show(e) {
-    var g = e.currentTarget;
-    tt.textContent = g.getAttribute("data-label") || "";
-    ts.textContent = g.getAttribute("data-sub") || "";
-    var note = g.getAttribute("data-note");
-    tn.textContent = note || ""; tn.style.display = note ? "block" : "none";
-    tip.classList.add("on"); move(e);
+"use strict";
+const P={"repo": "https://github.com/temikgo/prism", "tFirst": 1780423136, "tNow": 1783993924, "title": "Над чем идёт работа", "tracks": [{"name": "Движок", "hue": 6, "count": 57, "commits": [["8486646", 1780424904, "Engine Phase 1: core game loop with tests"], ["6a7ea81", 1780425952, "Phase 2 keywords, CI, naming convention"], ["86a4d84", 1780426483, "ctest: discover each doctest case as a separate test"], ["8560488", 1780426656, "Phase 2: event queue, tokens/illusions (spores, split)"], ["2f7cd83", 1780428082, "Phase 2: awaken from the mana row; illusions are permanent"], ["af8e1f1", 1780428632, "Add .clang-format, format check (ctest + CI)"], ["d4b0e44", 1780430141, "Drop DEF (2-stat ATK/HP); implement most remaining keywords"], ["229f500", 1780431958, "Polish effects: drop brittle, illusions keep keywords, stealth vs spells"], ["b3f7ba6", 1780433325, "Continuous attack layer: undergrowth, resonance, chill (Model A)"], ["ec0a42c", 1780449915, "Engine: friendly/any spell targets and no duplicate auras"], ["3083aed", 1780474023, "Engine: insert creatures at a chosen board position"], ["f1db33f", 1780476015, "Engine: add mulligan phase; blind now suppresses combat retaliation"], ["27c7d82", 1780479220, "Engine: fix awaken cost so the banked crystal pays its own color"], ["5af764f", 1780483415, "Engine: add ward, dispel, and germinate keywords"], ["99ba0b1", 1780488248, "Engine: add floodlight, delay, decoy, and scry keywords"], ["6e7d16c", 1780667903, "Engine: summon spawned bodies at the source position, with spores/haunt priority"], ["6b67d9b", 1780668092, "Engine: a mulliganed card cannot return in the same mulligan"], ["ed31b79", 1780673104, "Hero roster: four balanced heroes (Palette, Facet, Lighteater) + cleanup"], ["322b0c3", 1780701193, "Engine: graveyard accounts cards correctly (overdraw in, tokens out)"], ["5bf1ecc", 1780704429, "Engine+client: haunt reborns a creature exactly once"], ["b2f7122", 1780758327, "Engine: lingering damage from spells is unhealable too"], ["a7c01e6", 1780758640, "Tests: point sample.json schema test at the new card pool"], ["d7215bc", 1781000098, "Skip optional targeted effects with no target; block required ones"], ["3c7574e", 1781013849, "engine: remove unused dispel effect"], ["842ef0e", 1781045634, "engine: add legalActions enumeration + Action move type"], ["b26ccc3", 1781047344, "engine: add full-state Game serialization (toJson/fromJson)"], ["0566619", 1781047854, "engine: add replay format, runner, and prism_replay CLI"], ["b0573c0", 1781048914, "engine: add fuzz test (random games, invariants + legalActions soundness + replay)"], ["ac426b1", 1781303618, "engine: undergrowth HP is continuous, not baked at summon"], ["7b66d9d", 1781468267, "engine: fix decoy on non-awaken cards and delay losing its target"], ["4263853", 1781643328, "engine: add Game::clone() for move simulation"], ["e077db6", 1782066841, "Native deep-copy clone (~16x faster than JSON round-trip), behaviorally identical"], ["30832b9", 1782289163, "Enforce deck legality in the engine and server (40/\u003c=2)"], ["8e570b6", 1782388692, "Effect language: make AoE a selector, drop flash/damage_all dupes"], ["0d47360", 1782395825, "Keywords: round each color out to 8, derived from light physics"], ["58f0fea", 1782473468, "Red: replace lingering with the spark active (pay 1 -> N to face)"], ["dee37e0", 1782657486, "Penta phase 1: Echo Beast, Prism Mirror, Prism Vanguard + Blackmail design"], ["ba80b48", 1782677715, "Fix flare blind wasted when it fires on the enemy's own turn"], ["1570c11", 1782811037, "Fix provoke+stealth soft-lock and mirage+haunt; fix bot-ramp test guard"], ["adf7536", 1782818907, "engine: choose which crystal an activated ability spends"], ["f6b51eb", 1782849202, "engine: extract refractTarget, split legalActions into per-action enumerators"], ["31d9857", 1782975283, "bot: belief-conditioned determinize (weight resample by opponent's revealed colors)"], ["76f70ad", 1782975353, "style: clang-format determinize doc comment"], ["0f91998", 1782998584, "balance: retune heroes (facet -1/1 removed, prism shift any-colour)"], ["0cd8036", 1782998584, "selfplay: --colors N forces a rainbow draft (measure rarely-cast cards)"], ["057737d", 1783007863, "Penta wave 1: 7 five-colour mythics (effects + edge tests)"], ["9d6cf6b", 1783169038, "Harden engine + client: serialize gaps, decision-after-over guard, view guards"], ["4d4c4ac", 1783196105, "engine: fire on_death effects as data (trigger-as-data foundation)"], ["cab4c1b", 1783203885, "engine: data triggers, Reflux/Requiem/Renewal, redesign selectors & actions"], ["907af1f", 1783204347, "engine: Bulwark and warden start-of-turn keywords"], ["f99c81c", 1783204776, "engine: end-of-turn timed modifiers + prowess"], ["d41f998", 1783246466, "engine: fight action (two chosen targets)"], ["0a9aa69", 1783247579, "engine: harvest (targeted activate) + veil (Into the Mirage)"], ["a9e5fa9", 1783249018, "engine: serialize spellsCastThisTurn; cover new state + both-die fight"], ["9652688", 1783250657, "engine: auras react to board-scan data triggers (Stained Glass)"], ["1b0fbee", 1783251731, "engine: incandescence/glimmer/mulch also read from creature bodies"], ["b294ca9", 1783257771, "engine: reflux/bulwark on auras, guard action, random_enemy selector"]], "phases": [{"l": "Игровой цикл и бой", "s": "done", "w": "major", "at": "8486646", "t": 1780424904, "note": null}, {"l": "Ключевики и эффекты", "s": "done", "w": "major", "at": "6a7ea81", "t": 1780425952, "note": null}, {"l": "иллюзии/токены", "s": "done", "w": "minor", "at": "8560488", "t": 1780426656, "note": null}, {"l": "континуальные баффы", "s": "done", "w": "minor", "at": "b3f7ba6", "t": 1780433325, "note": null}, {"l": "4 героя", "s": "done", "w": "minor", "at": "ed31b79", "t": 1780673104, "note": null}, {"l": "Сериализация и clone", "s": "done", "w": "major", "at": "b26ccc3", "t": 1781047344, "note": null}, {"l": "Валидация колод 40/≤2", "s": "done", "w": "minor", "at": "30832b9", "t": 1782289163, "note": null}, {"l": "Ключевики ×8 на цвет", "s": "done", "w": "major", "at": "0d47360", "t": 1782395825, "note": null}, {"l": "Триггеры-как-данные + Reflux/Requiem/Renewal", "s": "done", "w": "major", "at": "cab4c1b", "t": 1783203885, "note": null}, {"l": "Пересбор: селекторы + действия", "s": "done", "w": "minor", "at": "cab4c1b", "t": 1783203885, "note": null}, {"l": "Пересбор: кейворды + timed-модификаторы + fight/harvest/veil", "s": "done", "w": "major", "at": "0a9aa69", "t": 1783247579, "note": null}]}, {"name": "Карты", "hue": 45, "count": 87, "commits": [["e9db85c", 1780423136, "Design phase: rules, effect grammar, keyword catalog, art pipeline"], ["9ec9122", 1780449915, "Add Mirror Image demo card (any-target mirage)"], ["49eaac4", 1780450149, "Make Hazy Shift bounce any creature instead of adding a demo card"], ["79f9f85", 1780450437, "Backlog: note the self-target archetype (engine already supports it)"], ["874a29c", 1780484804, "Cards: generate rules text from data; lore-grounded names"], ["f191576", 1780488631, "Backlog: mark C keyword set 7/9 done (ambush, refract remain)"], ["be519e7", 1780758327, "Cards: replace pool with a balanced 65-card set"], ["c4c7d21", 1780765407, "Backlog: customization via card packs + gambling-style events"], ["9624a96", 1781013849, "tools: drop stale new_set.json, point build_prompts at sample.json"], ["fd70d63", 1781276983, "balance: recalibrate scorer to playtest feel, tune cards into curve"], ["4ffb33e", 1781299255, "fix: sync client cards.json with master after balance pass"], ["ceece47", 1781303618, "balance: revalue growth/self_lifesteal/resonance, tame resonance bombs"], ["5c7c336", 1781307252, "feat: dispel -- destroy auras, a neutral answer for all colours"], ["fcfe34b", 1781307252, "docs: card-rework plan -- fixed 1:1 count, feature utility effects, dispel, diverse light art"], ["986fb3a", 1781311954, "rework card set: activate underused keywords, vary N, trim freeze"], ["e77b549", 1781363637, "rebuild card set: even keyword spread, equal colour counts, no neutral pool"], ["43cc615", 1781528614, "cards: declone set, spread keyword N, fix decoy; tokens return on scatter"], ["eda4719", 1782047417, "Re-cost 6 over-curve cards; calibrate balance.py coefficients"], ["164921d", 1782061400, "Nerf false_ripple 3->4 mana (CRN-confirmed); journal balance pass + bot v2 plan"], ["432629c", 1782576564, "Set v2: author 150-card skeleton, balance to zero outliers"], ["4448315", 1782577111, "Set v2: add 10 penta stubs (5-colour cost+stats, engine effects TODO)"], ["9f7d82d", 1782577472, "Art pass v2: MJ prompts for all 160 cards (incl. penta stubs)"], ["076210f", 1782579372, "Fix v2/v1 collision: rename violet_sleeper_agent -> violet_latent_prowler"], ["b832e97", 1782674689, "Penta cards: printed rules text (localised) instead of keyword chips"], ["981918e", 1782679087, "Dim Veil & Dawn Watch: choose which enemy aura to dispel"], ["7f7dab1", 1782835123, "balance: rework blue into a control colour (Brittle + Lens)"], ["a2cb973", 1782836534, "art: rewrite blue card subjects to single clean images (undertow=current, no affected-target rendering)"], ["1a32e15", 1782837356, "art: deep_freeze/cold_snap drop metaphorical wave/front (rendered ocean waves)"], ["64dfc3c", 1782838551, "balance: slow_frost -> delayed AoE (3 to all enemies); a small delayed bolt was useless, delay wants a big payoff"], ["b62959e", 1782839114, "cards: add blue top-end (Deep Leviathan, Hoarfrost Colossus, Winter Stream, Ice Tomb) so control can close, not just splash"], ["3d2be67", 1782839519, "art: make the expensive blue cards grand/epic in scale (read as costly at a glance)"], ["09da707", 1782842133, "balance: logical green de-snowball -- steeper per-n slopes (not flat +X) on beta-flagged keywords"], ["004067d", 1782863135, "balance: re-cost CRN-confirmed overperformers (resonance + cheap draw)"], ["c296558", 1783250934, "cards: redesign decks 1-3 (Open Flame R, Long Noon Y, Overgrowth G)"], ["43f7925", 1783251952, "cards: redesign decks 4-5 (Glass Hour B, False Light V)"], ["8b17940", 1783255103, "set: swap to the deck-first pool + 5 mono presets (playable slice)"], ["7a3bbf7", 1783259481, "cards: all 11 decks live (6 dual colours) + 11 presets"], ["c6c449e", 1783261908, "cards: consolidate 16 duplicate cards before art"], ["bd2263a", 1783268567, "art: rewrite all 198 card art subjects to match names and the authoring rules"], ["5b750c5", 1783332033, "art: fitness pass -- 12 art-only fixes + retheme Coal Slinger to Ember Archerfish"], ["e8ccb38", 1783334427, "i18n: fix 40 Russian card names to faithfully translate the English and match the art"], ["3d4b1c3", 1783633112, "art: harden MJ generation -- literal stylize, anatomy guards, per-colour style anchors"], ["cf7373b", 1783635441, "art: fix phenomenon prompts -- no targets in subjects, positive-only effect wrapper"], ["1c6682d", 1783635932, "art: noon glare -- blinding made visual (white-out core, spear-rays), single sun guard"], ["ead68b6", 1783637208, "art: phenomena locked to proven templates; pre-flight audit instead of per-card patching"], ["864f290", 1783637424, "art: eclipses recomposed to the black-sun-with-corona archetype, no disc/sky-wide wording"], ["b0154f2", 1783638399, "art: noon glare keeps its sun -- sunburst archetype (white-hot core, full crown of rays), rule 9 templates serve the name"], ["c8a4ee1", 1783670095, "art: bijection audit -- unique visual key per card, Noon Glare renamed to White Sun"], ["a702df7", 1783672621, "art: frost minnow staged above the ice -- underwater murk was dragging blue into a soft smudged style"], ["b04b8b4", 1783673063, "art: frost minnow back to the wake staging, close-up scale -- 'tiny' fought the frame-filling wrapper and rendered sketch-small"], ["d15f7da", 1783673641, "art: no size words on main subjects -- \"a tiny X\" renders sketch-small"], ["12da0e4", 1783678068, "art: name-art match audit -- the named subject is now the headline of every card"], ["af27c3a", 1783682456, "art: phenomenon-named creatures headline their phenomenon (glint = the flash itself, heat lightning = the bolt hawk-shaped), beast folded inside"], ["b19e162", 1783682652, "art: final shakiness sweep -- 7 subjects where the name's key was not in frame"], ["d6f6d77", 1783722644, "art: single numeric style code replaces image anchors; 11 yellow creatures renamed as beings"], ["824914b", 1783727414, "art: hide leg-ground contact on the 5 pending quadruped standers (rule 13 guards)"], ["e2dec16", 1783730832, "cards: honest full-set review -- 8 renames, 5 art bugs, 9 flavor fixes"], ["dcef91d", 1783735502, "i18n: Заиндевевший -> Заиндевелый колосс (smoother adjectival form)"], ["11a14f2", 1783735647, "art: hoarfrost colossus hewn of block-cut glacial ice, monumental low-angle stance -- frost-fur read as a yeti, no geometry read as crooked"], ["a0f68c9", 1783735671, "art: glimmer lantern -- the lure is now literally a hanging lantern, brightest point in frame"], ["1900172", 1783736246, "art: hoarfrost colossus reworked as an ice mammoth -- bipedal giants keep failing (yeti/crooked), a mammoth silhouette carries the mass"], ["e348285", 1783740782, "art: budding mirage round-bodied (subject-lint catch)"], ["df4fa5a", 1783747941, "art: game-meta vocabulary purged from subjects and linted"], ["aa20ad4", 1783839718, "art: spark flea gets explicit insect anatomy (hunched shell, springing hind legs) -- bare 'flea' is a rare token and rendered blobs/beasts"], ["9c5d787", 1783841194, "art: species hallmarks -- the named species must be the drawn species"], ["12aaf71", 1783842008, "art: carrion scarab in its iconic side-view ball-pushing pose -- fat-scarab-plus-ball merged into one blob (turtle/cocoon)"], ["3467a40", 1783842874, "art: every RU name word must be staged in the prompt -- 10 gaps closed"], ["2275014", 1783843032, "art: scarab braced on the ground BEHIND the ball, shoving it -- 'pushing with hind legs' rendered as standing on top"], ["5c2aca3", 1783843328, "cards: Field Reaper is Жнец полей (косарь is money slang) and the art is an actual scythe-swinging reaper -- locust rendered as a grasshopper"], ["4a0be54", 1783844072, "cards: Twin Hornet is Двужалый шершень (сдвоенный was murky) and the hornet itself is front-loaded with banded anatomy -- the abstract split had eaten the insect"], ["dc05e6a", 1783844173, "art: twin hornet as ONE hornet with a superimposed ghost-echo -- 'two mirrored images' split into two side-by-side hornets"], ["5e35d89", 1783844377, "art: twin hornet literally two-stinged -- one hornet, stinger forked into ember-red left barb and frost-blue right barb"], ["85f6238", 1783845000, "art: twin hornet's STRIKE-RAY forks (birefringence), not a tail detail -- large linear split survives where the tiny forked stinger was ignored"], ["e8b4542", 1783845259, "art: fen cultivator is a ploughman, sprout warden a staff-leaning warden -- role nouns in the id must be the beings on the art (leftover animal stand-ins from the no-humanoid era)"], ["2b8401e", 1783846792, "art: ebb seal-spirit gets its whiskers-and-fins anatomy (subject-lint catch on my own sweep fix)"], ["fa043c1", 1783846861, "art: sky vault hardens plate by plate -- twin-lint caught the new thornwall sharing wall+grow with it"], ["927ab33", 1783848015, "art: crystal colossus stands up out of the hoard; dormant rampart is a wall"], ["93cffee", 1783848561, "cards: Prism Unicorn joins the volt tribe as Volt Unicorn (prism link was forced); fen cultivator is a plough-snouted marsh-beast -- invented body-performs-the-role beasts preferred over human figures"], ["be99ba4", 1783848681, "cards: Unicorn of Ice and Fire (volt was a third tribal repeat)"], ["995e088", 1783849045, "art: ice-and-fire unicorn carries the split on its BODY (half flame, half ice) -- 'lance of light' kept rendering a jousting spear and horn-rays"], ["1ecbdbb", 1783849140, "art: unicorn wording avoids the multi-detector (both halves, not two) -- keeps the one-single-creature wrapper"], ["4fcfc94", 1783850069, "art: formless shades get bodies; shape/shade/phantom/wraith join the vague-noun lint"], ["4150edf", 1783853077, "art: lamplighter gets a lantern to snuff (the glowfly's own lamp rendered as a bare bulb); lurking shade back to a SHADE with a crisply cut animal silhouette (cat overshot -- flat pure shadow, pricked ears and paws etched against the crystal glow, eyes the only light)"], ["a4f7be1", 1783853415, "art: lantern sentry is an actual sentry at post with a lantern-staff -- the beacon-crab was a no-humanoid-era invention that read as just a crab"], ["4fa8583", 1783854323, "art: lamplighter as the classic ladder-and-street-lantern figure (imp was too small to survive the bright lantern); lurking shade silhouette is a crouching hooded figure -- ears+paws wording kept summoning cats"], ["388f1d9", 1783854621, "art: lamplighter scene goes dim (one guttering lantern, dull light-lines, darkness at the edges); lurking shade is a spindly long-armed shadow-theatre silhouette -- hooded crouch read as a street tough"], ["bcab5ec", 1783868944, "cards: lamplighter loses the ladder, the shade becomes a cast shadow, Lantern Sentry renamed Night Watchman"]], "phases": [{"l": "MVP-сет, 5 цветов", "s": "done", "w": "major", "at": "be519e7", "t": 1780758327, "note": null}, {"l": "деклон, спред N", "s": "done", "w": "minor", "at": "43cc615", "t": 1781528614, "note": null}, {"l": "калибровка модели", "s": "done", "w": "minor", "at": "fd70d63", "t": 1781276983, "note": null}, {"l": "пере-кост 6 карт", "s": "done", "w": "minor", "at": "eda4719", "t": 1782047417, "note": null}, {"l": "нерф false_ripple", "s": "done", "w": "minor", "at": "164921d", "t": 1782061400, "note": null}, {"l": "Сет v2: 150 карт, баланс без выбросов", "s": "done", "w": "major", "at": "432629c", "t": 1782576564, "note": null}, {"l": "Сет v2 в проде: 160 карт + арты", "s": "done", "w": "major", "at": "14fe2b8", "t": 1782604060, "note": null}, {"l": "Реворк синего в контроль (Brittle/Lens)", "s": "done", "w": "major", "at": "7f7dab1", "t": 1782835123, "note": null}, {"l": "Авто-тюнер β", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Расширение сета", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Пента Волна 1: 7 карт (эффекты + edge-тесты)", "s": "done", "w": "major", "at": "057737d", "t": 1783007863, "note": null}, {"l": "Пента Волна 2: под-игры оппонента", "s": "done", "w": "major", "at": "f805c1a", "t": 1783015153, "note": null}, {"l": "Deck-first пересбор: 11 колод, 218 карт + 11 пресетов в прод", "s": "done", "w": "major", "at": "7a3bbf7", "t": 1783259481, "note": null}, {"l": "Переписаны 198 арт-субъектов (имя↔арт, существо=живое)", "s": "done", "w": "minor", "at": "bd2263a", "t": 1783268567, "note": null}]}, {"name": "Клиент", "hue": 135, "count": 129, "commits": [["a0a0e75", 1780435302, "Godot 4 client: render the view, send actions over WebSocket"], ["d8215ec", 1780438878, "Redesign Godot client: card visuals, drag-and-drop, art"], ["dc9ab78", 1780444772, "Modernize card visuals and client shell"], ["10adcc2", 1780448525, "Add 10 bicolor cards, sprout token, and their art"], ["a9574e3", 1780448525, "Client UX: cost pips, mana crystals, hero zone, tooltips, highlights"], ["bfc9153", 1780449915, "Client: friendly/any spell targeting and smarter attack highlights"], ["096518b", 1780451518, "Client: status tooltips, aura zones, and mirror engine targeting rules"], ["92a2e1a", 1780451900, "Auras on a side shelf so End Turn always fits; backlog an admin panel"], ["cf7d6ca", 1780452676, "Game-feel: attack arrow, hand fan, game-over screen"], ["d8debcd", 1780453012, "Game-feel: damage/death/summon animations via view diffing"], ["e4563b6", 1780474023, "Client: modern aiming arrow, juicier effects, board reflow, fixes"], ["271dbae", 1780476022, "Client: mulligan screen; distinguish freeze from blind"], ["fd66316", 1780477102, "Refactor: extract UiCard and FxLayer into their own files"], ["de10bc6", 1780479220, "Client: dedup label and panel builders"], ["dcfd2bd", 1780480411, "Refactor: split Main.gd into modules; awaken mini-card"], ["71f5ae1", 1780483415, "Cards + client: five color-payoff cards and the new-keyword UI"], ["f934dec", 1780488248, "Client: UI for floodlight, delay, decoy, scry; rename decoy to Подготовка"], ["edf1779", 1780488249, "Cards: five fat top-end cards exercising the new keywords"], ["b7edf29", 1780492364, "Client: tooltip rules, token art, and a real activated-ability UI"], ["88b2ca4", 1780504346, "Add hero passives, flank-medallion UI, radial mana picker"], ["50704c4", 1780522265, "Art direction (beings of living light) and mana/UX fixes"], ["7f3c0e9", 1780581992, "New light-native card set, resonance/ramp fixes, UI redesign spec"], ["b6d40f7", 1780582595, "Prefix generated token ids with token_ and add sprout art"], ["c20f580", 1780606633, "Board game-feel pass and drag-only targeting"], ["c9838dd", 1780610759, "Refactor client: split Main god-object into modules"], ["73ad146", 1780611260, "Extract ManaPicker overlay; stop widget-splitting at the coupled view-controllers"], ["e2d09b9", 1780651793, "Design doc for the app shell (menu, screens, rooms)"], ["6013f76", 1780654653, "App shell phase A: router, main menu, settings; match as a screen"], ["f1dd76d", 1780656175, "Typography pass: Lato UI font, Dela Gothic One wordmark; no button focus rect"], ["7b3c5fe", 1780663253, "App shell phase B: private rooms (server room manager + lobby) and screens"], ["39427b7", 1780667460, "Typography pass: highlighted keyword rules, heavier card numbers and labels"], ["0e25ca7", 1780680651, "Client: persistent board nodes (incremental board, P1 parity)"], ["fb324fd", 1780683658, "Client: animated board (P2) -- reflow, settle, spell dissolve, fixes"], ["6d71990", 1780684173, "Client: persistent hand fan that slides on draw/play (P3)"], ["48b387c", 1780699952, "Loadout: hero + deck selection after Play (app shell phase C)"], ["6292983", 1780701206, "Client: pulse the mana block and deck/graveyard stacks on change (P4)"], ["07b184a", 1780758332, "Art: flat-2D light card/hero art and Midjourney prompt pipeline"], ["5d155e4", 1780763810, "Redesign client UI to match the art direction"], ["507782c", 1780764805, "Float damage numbers on a hero taking face damage"], ["f6ac29f", 1780765407, "Update hero art: Erebus (young, monochrome eclipse) and Gemma"], ["2617bb5", 1780781808, "Fix infinite-loop spam from the ready-to-attack pulse"], ["18ed896", 1780783064, "Let the player choose which crystals pay a card's generic cost"], ["ded9101", 1781000098, "Client: optional-target safeguard, attack target frames, layout fixes"], ["c77c71e", 1781000098, "Backlog: per-effect VFX (passive state + one-shot on trigger)"], ["55a0506", 1781002275, "Cap mana column height so the hand isn't clipped on a big mana pool"], ["bf36bdf", 1781013849, "client: drop dead _prism_bar, share Ui.gap() spacer"], ["918f38d", 1781018226, "client: add DevKit harness + headless tests, route Shot through demo_view"], ["2323f07", 1781020276, "client: extract Rules (pure legality queries) from Main"], ["8cf8d58", 1781032209, "client: extract overlays (mulligan/scry/game-over) + CardView.widget"], ["63d812d", 1781033329, "client: extract PilesColumn (right flank) + Rules.can_awaken"], ["543a3e9", 1781037412, "client: extract BoardRow (battlefield lane + creatures + abilities) with intent signals"], ["2983d11", 1781038132, "client: extract HeroMedallion (hero portrait + face-attack intent)"], ["a232554", 1781038178, "Backlog: note the harmless drag-time layout warning"], ["158b33d", 1781175779, "docs: lock board redesign direction (Claude Design ref + spec + slice plan)"], ["4b07769", 1781196476, "board redesign slice 1: faceted mana crystals"], ["1e4133b", 1781199564, "board redesign slice 2: glass rail slabs + design tokens"], ["e774452", 1781200459, "board redesign slice 3: hero medallion"], ["058cd63", 1781251900, "fix: render MJ art at full quality (mipmaps)"], ["ebb1f6b", 1781252030, "client: typography — Exo2 body + Chakra Petch numerals"], ["de11e1d", 1781252064, "board redesign slice 4 + pile/mana/medallion polish"], ["e522e34", 1781262425, "client: spectrum rename, merged turn pill, floodlight click-to-peek"], ["ee137bc", 1781264037, "client: richer card description — stats, full coloured cost, gradient border"], ["c5f36b8", 1781266323, "deploy: commit the Web export preset (relative paths, no secrets)"], ["c64242d", 1781294425, "client: beam attack/targeting arrow (gold->red gradient, flowing motes)"], ["404f8e8", 1781294912, "chore: remove board-redesign reference (design ported to Godot)"], ["68a2913", 1781303618, "client: scroll the awaken-chip column past two chips"], ["50c78f1", 1781370796, "client: port Claude Design main menu; fix art mipmaps; gate content checks in CI"], ["ddc36ce", 1781469554, "client: port Claude Design lobby; shared shell chrome; glow titles"], ["a85559b", 1781518579, "client: restyle loadout + settings to the shell design language"], ["c2f661c", 1782289163, "Add deck builder, collection and local storage (M4 client)"], ["60c96ce", 1782371658, "Stream deck-builder card art via threaded loading"], ["5508cf4", 1782372961, "Show the in-game card tooltip in the deck builder on hover"], ["de4bfe1", 1782375655, "Add deck-builder art thumbnails (kills the pool load stall)"], ["14fe2b8", 1782604060, "Ship card set v2 to live (160 cards + art), retire v1"], ["d109abc", 1782655406, "Deck builder: smooth touchpad/wheel scrolling for the card pool"], ["0014aea", 1782659825, "Deck builder: auto-generate button + color-pick dialog"], ["06392d4", 1782660284, "Remove 85 orphan v1 thumbnails left in art_thumb after the v2 swap"], ["b93ac55", 1782673310, "Bot deck/ramp fixes + 12 gameplay/UI bug fixes"], ["3e41af9", 1782679478, "Decks: share/import via a code"], ["9a8d629", 1782680051, "Loadout/deck builder UI: edit button, exclusive selection, multicolour swatches"], ["3668407", 1782680392, "Loadout deck tiles: share button, drop icon tooltips"], ["f4567ea", 1782680971, "Loadout: center share dialog; drop the blue glow halo behind deck tiles"], ["3719fe6", 1782681551, "Deck manager: drop the blue glow frame behind deck rows"], ["8628cd2", 1782681865, "Deck list: tooltip the (clipped) card name so long names stay readable"], ["0158fe6", 1782682003, "Radial colour picker: word 'отмена' instead of a ✕ glyph in the cancel hole"], ["05d5da4", 1782744655, "Rules text: Russian numeral declension + resonance snapshot wording"], ["fde335e", 1782744655, "Training: mirror mode + bot drafts the full human-like distribution"], ["49dd4d9", 1782813542, "Support draws: a double-KO is a draw, not a win for whoever died first"], ["93d39aa", 1782835451, "art: remove the 12 replaced blue card arts and import artifacts"], ["e8d6d3a", 1782838420, "art: blue control kit images + thumbnails (imports, mipmaps on)"], ["c2f60da", 1782839863, "art: blue top-end card images + thumbnails (imports, mipmaps on)"], ["b28eafe", 1782849202, "client: Palette.crystal_color helper, dedupe 3 call sites"], ["1f41600", 1782849202, "client tests: remap stale card ids to current set (38->47 passing)"], ["8be9a31", 1782858054, "engine+client: player-chosen generic mana for awaken; prune resolved F debts"], ["ad06b0a", 1782992607, "client: prune removed cards from saved decks; block starting an illegal deck"], ["f805c1a", 1783015153, "Penta wave 2: opponent-decision sub-games + art"], ["77aca5f", 1783022894, "View exposes canAwaken; client stops re-deriving awaken legality"], ["9c38a68", 1783023974, "backlog: retire finished pentas + done quick-wins, open Sound+VFX milestone"], ["86e3b57", 1783025373, "backlog: detailed plan for sound + vfx + opponent-turn playback (T2)"], ["c58608d", 1783027277, "fix(client): repair awaken chip and a stale demo card reference"], ["23202ec", 1783028630, "Sound/VFX Ф1: play the opponent's turn out step by step"], ["2bcf169", 1783066239, "Sound/VFX Ф2: procedural audio + wire sound across the client"], ["1e61fed", 1783255545, "art: drop orphaned art for the retired old-set cards"], ["137177b", 1783256488, "client: default new texture imports to mipmaps on"], ["945e4f6", 1783260335, "client: rules text for the redesign's new effect actions"], ["8224012", 1783263261, "client: target the enemy face (any-target burn) and fight's second creature"], ["0d98f59", 1783674970, "art: wire the 5 per-colour style anchors (first calibration set, 5/5 first try)"], ["2e51623", 1783681300, "art: 6 stress-test renders accepted -- the generation system is validated"], ["aec800c", 1783682846, "art: 9 red renders sorted into place (46 imports OK, 157 to go)"], ["7ef5250", 1783726532, "art: restore the proven per-colour anchor system and all 46 accepted renders"], ["f480cbe", 1783727958, "art: yellow anchor accepted -- chest-up dawn stag in the series manner; all yellow prompts re-anchored"], ["5886f33", 1783728041, "art: drop the two yellow renders made under the wavy stag anchor (phoenix, barbican) -- back to TODO for regeneration under the new anchor"], ["61f3415", 1783729207, "cards: full-set name audit -- no creature is named a bare phenomenon, in any colour"], ["a3823cd", 1783731423, "art: drop 4 renders whose subjects were rewritten in the review (hawk, sunbird, polyp, drums) -- back to TODO for regeneration"], ["d3b94fb", 1783734494, "art: 13 renders sorted (62 imports OK, TODO 141); bramble swarm subject re-thorned -- spikes are the headline now"], ["ddcdeb5", 1783735117, "art: regenerate the old-set blue renders; fireflies keyed by their tail-lantern"], ["427fa1c", 1783735287, "art: 13 more renders sorted (61 imports OK); fireflies staged airborne with glowing abdomen -- 'beetle' keying was the bug"], ["6ed2953", 1783735814, "art: 9 renders sorted -- violet blades/moth/firefly, blue leviathan/manta/ebb/wall/heron/drake (70 imports OK, TODO 133)"], ["317f20d", 1783738079, "cards: species dedup across the whole set + concept-first violet figures"], ["a2410a9", 1783738529, "art: sort lantern anglerfish + night nightjar (70 imports); discard 3 renders of reworked subjects (serpent ward, stag double, mammoth colossus)"], ["54adcd7", 1783740735, "art: copy-cards lead with their count; group wrapper replaces \"one single creature\""], ["39da0eb", 1783775326, "art: 4 violet renders sorted (returned, sleeping threat, bannerman, shifting ward); 3 stale discards (old rot cap burst, old flea close-up, figure-pair double)"], ["2e61cbd", 1783841809, "i18n: full RU translation review -- 11 names fixed"], ["1a2ef37", 1783845463, "art: 21 renders sorted; Twin Hornet becomes Hornet of Ember and Frost"], ["9675078", 1783846609, "art: full 15-rule sweep over all 198 cards, generated included"], ["5db1355", 1783847928, "cards: hornet concept replaced with Prism Unicorn; light-tech-only rule"], ["ddea8cc", 1783850669, "art: 7 renders sorted (echo bat, dusk marten, ice-and-fire unicorn, plough-snout marsh-beast, dormant rampart wall, budding mirage orbs, crystal colossus on its feet) -- 112 imports OK, TODO 90"], ["44e6ca9", 1783961920, "art: complete the set — 198/198 card arts imported"], ["067c7da", 1783993924, "ui: scrollable deck lists with a reusable SmoothScroll"]], "phases": [{"l": "Оболочка: меню/матч", "s": "done", "w": "major", "at": "6013f76", "t": 1780654653, "note": null}, {"l": "арт-стиль", "s": "done", "w": "minor", "at": "50704c4", "t": 1780522265, "note": null}, {"l": "Логотип-wordmark", "s": "done", "w": "major", "at": "f1dd76d", "t": 1780656175, "note": null}, {"l": "рестайл экранов", "s": "done", "w": "minor", "at": "a85559b", "t": 1781518579, "note": null}, {"l": "фикс mipmaps", "s": "done", "w": "minor", "at": "058cd63", "t": 1781251900, "note": null}, {"l": "Колодостроитель + автоколода", "s": "done", "w": "major", "at": "0014aea", "t": 1782659825, "note": null}, {"l": "Батч багфиксов: dispel/искра/дымка/decoy и др.", "s": "done", "w": "major", "at": "b93ac55", "t": 1782673310, "note": null}, {"l": "Адаптивный UI", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Звук и VFX", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Туториал-матч", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Драфт-режим", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Реплей-вьювер", "s": "planned", "w": "minor", "at": null, "t": null, "note": null}, {"l": "Deck-codes", "s": "planned", "w": "minor", "at": null, "t": null, "note": null}]}, {"name": "Сеть / сервер", "hue": 160, "count": 11, "commits": [["7ee5add", 1780433988, "Add network protocol layer: per-player view + action dispatch"], ["2c244bb", 1780434915, "WebSocket server: one room of two players over the protocol layer"], ["f175b1d", 1780474023, "Server: cap WebSocket frame size"], ["572797f", 1780505794, "Server: random per-game seed and clearer startup"], ["f1d86c7", 1780704859, "CI: fix WebSocket smoke test for the room-manager protocol"], ["32bab40", 1781035368, "engine: keep deckCount stable during scry (peeked cards still belong to the deck)"], ["8edfeb8", 1781264964, "server: record match action log, dump replay on game-over (M1)"], ["531e524", 1782991350, "server+client: same-process reconnect (rejoin a dropped match)"], ["10595d3", 1783026240, "Sound/VFX Ф0: annotate each broadcast with the public action, stream bot turns"], ["767dfc5", 1783174452, "Mint reconnect tokens and the match seed from a CSPRNG (B3)"], ["80e9e77", 1783175393, "Non-blocking server I/O: no single connection can stall the server (B1/B2/B8)"]], "phases": [{"l": "Протокол: вид под игрока", "s": "done", "w": "major", "at": "7ee5add", "t": 1780433988, "note": null}, {"l": "WebSocket-сервер", "s": "done", "w": "major", "at": "2c244bb", "t": 1780434915, "note": null}, {"l": "Комнаты по коду", "s": "done", "w": "minor", "at": "7b3c5fe", "t": 1780663253, "note": null}, {"l": "Реплеи матча", "s": "done", "w": "minor", "at": "8edfeb8", "t": 1781264964, "note": null}, {"l": "Аккаунты / матчмейкинг", "s": "planned", "w": "major", "at": null, "t": null, "note": null}, {"l": "Реконнект + room-GC (same-process)", "s": "done", "w": "major", "at": "531e524", "t": 1782991350, "note": null}, {"l": "Release-mile: versioning + restart-persist", "s": "planned", "w": "major", "at": null, "t": null, "note": "on hold вместе с web-релизом; реконнект-срез сделан"}]}, {"name": "Бот / ИИ", "hue": 205, "count": 18, "commits": [["50e237b", 1781582603, "feat: single-player 'Тренировка' vs a heuristic bot"], ["ec2f361", 1781643917, "bot: 1-ply lookahead search + heuristic polish"], ["9bbe8aa", 1781646629, "Add prism_selfplay: bot-vs-bot balance probe (seat/hero/card winrate)"], ["9bad605", 1782047417, "Add draft self-play mode and balance_lab.py per-card regression screen"], ["02a8302", 1782065801, "Bot determinization v1: resample opponent's hidden cards, average over K worlds"], ["7e1b907", 1782105805, "Journal honest-bot vs cheating-bot screen: determinization shifts bomb/evasion card values"], ["f09e0fa", 1782130861, "Honest own-deck reshuffle + vsgreedy harness; MCTS tried, weaker than greedy (reverted)"], ["467c40e", 1782134213, "Journal: per-card balance precision capped by ~2pp bot-policy noise floor"], ["1aba056", 1782576693, "Roadmap: add set-v2 + balance-metric milestones (cards, bot)"], ["ad20564", 1782673376, "Roadmap: coherent bot deck + ramp fix"], ["f07d8a9", 1782744655, "Bot: keyword-aware eval, human-like draft, mana discipline, vs-blind A/B"], ["1b67ce0", 1782818962, "roadmap: keyword-aware bot (B0) and balance linters milestones"], ["e16b893", 1782849202, "balance: drop 5 phantom coefficients (ambush/umbra/clairvoyance/damage_all/flash), add drift-lint gate"], ["0523b87", 1782860251, "bot: rollout-leaf search (depth-4) + measurement knobs"], ["79448d6", 1782894375, "bot: extract scoreAll; document PUCT as a negative result"], ["79a51ba", 1782898607, "bot: learned value-leaf pipeline (set-agnostic features -> ML value model)"], ["d92fca5", 1782983834, "bot: remove learned value/policy experiments, keep rollout-1ply"], ["8c357ce", 1783196372, "roadmap: anchor abandoned PUCT and value/policy phases to their commits"]], "phases": [{"l": "Жадный рефлекс", "s": "done", "w": "major", "at": "50e237b", "t": 1781582603, "note": null}, {"l": "режим Тренировка", "s": "done", "w": "minor", "at": "50e237b", "t": 1781582603, "note": null}, {"l": "1-ply поиск", "s": "done", "w": "minor", "at": "ec2f361", "t": 1781643917, "note": null}, {"l": "Self-play баланс-проба", "s": "done", "w": "minor", "at": "9bbe8aa", "t": 1781646629, "note": null}, {"l": "Детерминизация", "s": "done", "w": "major", "at": "02a8302", "t": 1782065801, "note": null}, {"l": "MCTS-поиск", "s": "abandoned", "w": "major", "at": "f09e0fa", "t": 1782130861, "note": "слабее жадного — откат"}, {"l": "Метрика confirmed=0 + бот-фиксы", "s": "done", "w": "major", "at": "432629c", "t": 1782576564, "note": null}, {"l": "Когерентная колода бота + рамп-фикс", "s": "done", "w": "major", "at": "b93ac55", "t": 1782673310, "note": null}, {"l": "Бот ценит ключевики (B0)", "s": "done", "w": "major", "at": "f07d8a9", "t": 1782744655, "note": null}, {"l": "Роллаут-лист поиск (74% vs greedy)", "s": "done", "w": "major", "at": "0523b87", "t": 1782860251, "note": null}, {"l": "PUCT", "s": "abandoned", "w": "major", "at": "79448d6", "t": 1782894375, "note": "плато ниже роллаут-1ply без обученного листа"}, {"l": "Обученные value/policy", "s": "abandoned", "w": "major", "at": "d92fca5", "t": 1782983834, "note": "supervised эксплуатируется argmax'ом / не бьёт эвристику — выпилено; on-policy (AlphaZero) не начат"}]}, {"name": "Инфра", "hue": 312, "count": 66, "commits": [["f6dc116", 1780435625, "gitignore the local Godot binary (client-godot/.godot-bin)"], ["0bd3cee", 1780784339, "Docs: prune stale content across markdown"], ["7d69d62", 1781011171, "Add refactor/orientation plan (PLAN.md)"], ["c06804c", 1781011171, "Add ARCHITECTURE.md: repo map + protocol + cookbook"], ["9f20dc3", 1781013849, "docs: trim REFACTOR tombstones, fix EFFECTS/ARCHITECTURE"], ["cab3795", 1781018226, "ci: run Godot client tests + parse check"], ["32cf8c9", 1781018400, "ci: fix YAML block scalar for client test step"], ["349183f", 1781038376, "docs: update ARCHITECTURE client map for the Main decomposition (D)"], ["c9caa42", 1781040068, "docs: close refactor initiative, add public web release roadmap"], ["d2c7f68", 1781050222, "docs: cards all-available (no rarity/collection), cosmetic-only economy, Claude Design for UI; close M1"], ["f2b1ba4", 1781266224, "deploy: web export preset, same-origin wss default, caddy/systemd/README (M5 start)"], ["8d49bdb", 1781268673, "deploy: local production-mirror script + free-hosting notes"], ["c3b30f1", 1781272322, "deploy: turnkey Docker Compose stack (prism_server + caddy), parameterised Caddyfile"], ["4762536", 1781276983, "docs: fix garbled deploy status line in BACKLOG decision log"], ["6c793da", 1782137001, "Add generated Prism dev-tree (roadmap.json -> roadmap.svg) to README"], ["9fc11b1", 1782195596, "Dev-tree: real per-track node counts, weight-sized nodes, collapse for scale"], ["5f153c6", 1782239063, "Replace static dev-tree SVG with interactive GitHub Pages landing"], ["9525168", 1782372961, "Roadmap: dev-tree shipped, add deck-builder + deck-rule milestones"], ["eb7b740", 1782376630, "Roadmap: attribute commits by code, not journals"], ["5b960d7", 1782377503, "Roadmap: route doc-only commits to their track by subject"], ["5227cb4", 1782381172, "Roadmap: decline \"коммит\" by count, drop the intro blurb"], ["b2f8f38", 1782382907, "Roadmap: anchor phases to their commits, commit rug, fold balance into bot"], ["eff7d61", 1782383194, "Roadmap: commits back to dots, show anchor hash+date in phase tooltip"], ["9e2375f", 1782395901, "Roadmap: add the 8-keywords-per-colour milestone (engine)"], ["5e68eab", 1782473468, "Backlog: new-set v2 blueprint (full regen; mono / synergy-bicolor / penta-totality)"], ["08f01b2", 1782577921, "Backlog: v2 status (skeleton locked, pentas stubbed, art prompts done) + remaining"], ["7e0917d", 1782604082, "Roadmap: card set v2 shipped to live"], ["8ec2244", 1782674153, "Roadmap: deck builder done + bugfix batch node"], ["822a4ed", 1782744655, "Docs: balance audit (holes, roots, rework plan) and set principles"], ["392cf6f", 1782818718, "balance: set-role framework + structural linters"], ["54554d6", 1782835292, "roadmap: blue control rework milestone"], ["bf7c042", 1782835635, "art: regenerate prompts for the reworked blue cards"], ["9fa6d20", 1782849202, "tools: shared _common card loader, DRY the linters"], ["21a8f2a", 1782849353, "chore: gitignore build-release, roadmap node for the cleanup pass"], ["515468c", 1782986856, "docs: external repo audit -- findings + roadmap tracks"], ["0b12301", 1782986856, "chore: audit quick wins -- cards-sync gate, Release CI, LICENSE, ARCHITECTURE"], ["933d4f0", 1782991659, "roadmap: reconnect (same-process) done"], ["2a73a3f", 1782998584, "backlog: penta measurement (inert in any meta) + implement decision"], ["fcb7626", 1783007942, "roadmap: mark penta wave 1 phase done"], ["d1d1716", 1783015162, "roadmap: mark penta wave 2 phase done"], ["363613d", 1783015537, "docs: regenerate roadmap landing (penta wave 1+2)"], ["4967edb", 1783018879, "Fix Thicket Brute resonance (dropped n) + lint numeric keywords"], ["438890c", 1783067067, "roadmap: hug track labels to the left edge (PLOT_X0 250->155)"], ["7d24cc0", 1783195411, "docs: lock the deck-first set redesign (design doc + roster data)"], ["5a22a48", 1783203924, "roadmap: close the trigger/selector/action redesign phase (cab4c1b)"], ["9607206", 1783247633, "roadmap: engine phase of the deck-first redesign complete (0a9aa69)"], ["de91247", 1783248333, "backlog: note deferred multi-target generalization (choose N creatures)"], ["0583be9", 1783255621, "art: regenerate ART_PROMPTS.md for the deck-first mono set (105 prompts)"], ["c1d340f", 1783256750, "backlog: cards-phase state (5/11 mono decks live, presets, art pipeline)"], ["b37a3e5", 1783259634, "docs: all 11 redesign decks live (218 cards, 11 presets)"], ["671ce90", 1783260506, "backlog: glossary text for new actions done"], ["d0cd68b", 1783263345, "backlog: client targeting for new selectors done"], ["d0a97ff", 1783263519, "art: ART_PROMPTS_TODO.md — only the 179 cards missing art"], ["c398346", 1783264444, "backlog: plan the art-subject rewrite workflow (name\u003c->art, no phenomenon-creatures)"], ["a18c550", 1783268671, "roadmap+backlog: record the 198-card art-subject rewrite"], ["6a1a0a7", 1783334774, "tools: build_prompts.py emits ART_PROMPTS_TODO.md too, so the two never drift"], ["75e659a", 1783634417, "backlog: anchor calibration 5/5 first try; black renders fine in mono palettes"], ["48011c5", 1783636816, "art: noon glare as sky-wide flare (disc read as UFO); effect tail drops literal ground line, adds fine linework"], ["256d983", 1783675766, "art: Sower actually sows; humanoids allowed (sparingly, anchored)"], ["a880e5a", 1783679397, "art: re-anchor violet with a bold panther; label every prompt by card type"], ["63f12d2", 1783680612, "art: creature bodies MJ can draw + a subject lint enforcing every learned rule"], ["4146472", 1783723757, "art: clean slate -- delete all renders (kept in git history); check_art treats an empty art dir as OK"], ["c800af7", 1783727356, "art: dawnkeeper anchor as chest-up portrait (rule 13: no standing quadrupeds on visible ground -- hoof/ground contact is an MJ weak spot)"], ["6b77cdf", 1783745071, "art: twin-lint -- no two cards may share a visual formula; 12 twins split"], ["e98e742", 1783846201, "backlog: green anchor slated for replacement -- shaggy ox manner sags green cards into tangled-thread lines (kept for now)"], ["7eb5f14", 1783850376, "lint: hooded/face/sleeves/robe/cloak count as anatomy for ghost archetypes"]], "phases": [{"l": "CI, чеки, тесты", "s": "done", "w": "major", "at": "af8e1f1", "t": 1780428632, "note": null}, {"l": "Дерево разработки", "s": "done", "w": "major", "at": "5f153c6", "t": 1782239063, "note": null}, {"l": "Структурные линтеры баланса", "s": "done", "w": "minor", "at": "392cf6f", "t": 1782818718, "note": null}, {"l": "Чистка кода + дрифт-линтер баланса", "s": "done", "w": "minor", "at": "e16b893", "t": 1782849202, "note": null}, {"l": "Аудит-2026-07: quick wins (CI-гейты, Release-CI, LICENSE)", "s": "planned", "w": "minor", "at": null, "t": null, "note": null}]}]};
+const SVGNS="http://www.w3.org/2000/svg";
+const REPO=P.repo, T0=P.tFirst, TN=P.tNow, SPAN=Math.max(1,TN-T0);
+const STATUS_RU={done:"сделано",planned:"план",abandoned:"пробовали → откат"};
+const pad=n=>String(n).padStart(2,"0");
+const fmt=t=>{const d=new Date(t*1000);return pad(d.getDate())+"."+pad(d.getMonth()+1)+"."+d.getFullYear();};
+function plural(n){const a=n%10,b=n%100;if(a===1&&b!==11)return"коммит";
+  if(a>=2&&a<=4&&!(b>=12&&b<=14))return"коммита";return"коммитов";}
+
+const W=1680, LANE=178, TOP=140, X0=214, RPAD=60;
+const X1=W-RPAD, FUTUREW=250, NOWX=X1-FUTUREW;
+const H=TOP+(P.tracks.length-1)*LANE+150;
+const xOfT=t=>X0+Math.max(0,Math.min(1,(t-T0)/SPAN))*(NOWX-X0);
+
+const svg=document.getElementById("map");
+svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+svg.setAttribute("font-family","var(--font)");
+function el(n,a){const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function hsl(h,s,l){return `hsl(${((h%360)+360)%360} ${s}% ${l}%)`;}
+
+const flex=[]; // {node,kind:'cx'|'x'|'x2'|'trans',base,base2}
+function reg(node,kind,base,base2){flex.push({node,kind,base,base2});if(base2!=null&&node.dataset)node.dataset.start=base2;}
+
+const defs=el("defs",{});
+defs.innerHTML='<filter id="glow" x="-70%" y="-70%" width="240%" height="240%">'+
+ '<feGaussianBlur stdDeviation="3" result="b"/><feMerge>'+
+ '<feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+ '<clipPath id="pc"><rect x="'+(X0-2)+'" y="0" width="'+(W-X0+2)+'" height="'+H+'"/></clipPath>';
+svg.appendChild(defs);
+svg.appendChild(el("rect",{x:0,y:0,width:W,height:H,fill:"transparent"}));
+
+const plot=el("g",{"clip-path":"url(#pc)"});
+svg.appendChild(plot);
+
+// month grid from the real date range
+(function(){
+  let d=new Date(T0*1000); d=new Date(d.getFullYear(),d.getMonth(),1);
+  if(d.getTime()/1000<T0) d.setMonth(d.getMonth()+1);
+  let guard=0;
+  while(d.getTime()/1000<=TN && guard++<48){
+    const t=d.getTime()/1000, bx=xOfT(t);
+    const ln=el("line",{y1:TOP-46,y2:H-96,stroke:"#ffffff","stroke-width":1,opacity:.04,x1:bx,x2:bx});
+    reg(ln,"x2",bx,bx); plot.appendChild(ln);
+    const tx=el("text",{y:TOP-54,fill:"#5d6172","font-size":11.5,"text-anchor":"middle",x:bx});
+    tx.textContent="01."+pad(d.getMonth()+1); reg(tx,"x",bx); plot.appendChild(tx);
+    d.setMonth(d.getMonth()+1);
   }
-  function move(e) {
-    var x = e.clientX + 14, y = e.clientY + 14;
-    var w = tip.offsetWidth, h = tip.offsetHeight;
-    if (x + w > innerWidth - 8) x = innerWidth - w - 8;
-    if (y + h > innerHeight - 8) y = e.clientY - h - 14;
-    tip.style.left = x + "px"; tip.style.top = y + "px";
-  }
-  function hide() { tip.classList.remove("on"); }
-  document.querySelectorAll(".node, .commit").forEach(function (g) {
-    g.addEventListener("mouseenter", show);
-    g.addEventListener("mousemove", move);
-    g.addEventListener("mouseleave", hide);
-    g.addEventListener("focus", function () {
-      var r = g.getBoundingClientRect();
-      show({ currentTarget: g, clientX: r.left + r.width / 2,
-        clientY: r.top + r.height / 2 });
-    });
-    g.addEventListener("blur", hide);
+})();
+
+const fz=el("rect",{y:TOP-46,width:X1-NOWX,height:H-96-(TOP-46),fill:"#ffffff",opacity:.022,x:NOWX});
+reg(fz,"x",NOWX); plot.appendChild(fz);
+const nowL=el("line",{y1:TOP-46,y2:H-96,stroke:"#cfd3e2","stroke-width":1.5,"stroke-dasharray":"2 5",opacity:.65,x1:NOWX,x2:NOWX});
+reg(nowL,"x2",NOWX,NOWX);plot.appendChild(nowL);
+const nowT=el("text",{y:TOP-54,fill:"#cfd3e2","font-size":12.5,"font-weight":700,"text-anchor":"middle",x:NOWX});
+nowT.textContent="сейчас";reg(nowT,"x",NOWX);plot.appendChild(nowT);
+const planT=el("text",{y:TOP-54,fill:"#71758b","font-size":12,"font-style":"italic","text-anchor":"middle",x:(NOWX+X1)/2});
+planT.textContent="план →";reg(planT,"x",(NOWX+X1)/2);plot.appendChild(planT);
+
+const names=[];
+function tip(g,label,sub,note,href){
+  g.setAttribute("data-label",label);g.setAttribute("data-sub",sub);
+  if(note)g.setAttribute("data-note",note);
+  if(href)g.dataset.href=href;
+}
+
+P.tracks.forEach((tr,i)=>{
+  const y=TOP+i*LANE, hue=tr.hue;
+  const bright=hsl(hue,74,63), dim=hsl(hue,44,46);
+
+  const lane=el("line",{y1:y,y2:y,stroke:dim,"stroke-width":1.6,opacity:.4,x1:X0,x2:X1});
+  reg(lane,"x2",X1,X0); plot.appendChild(lane);
+  const cap=el("circle",{cx:X0,cy:y,r:3.2,fill:bright,filter:"url(#glow)"});
+  reg(cap,"cx",X0); plot.appendChild(cap);
+
+  // commits at their REAL times (bursts cluster, quiet periods gap)
+  tr.commits.forEach(c=>{
+    const h=c[0], at=c[1], subj=c[2], bx=xOfT(at);
+    const g=el("g",{class:"cmt"});
+    g.appendChild(el("circle",{cy:y,r:7,fill:"#000",opacity:0,cx:bx,"pointer-events":"all"}));
+    g.appendChild(el("circle",{class:"v",cy:y,r:3.6,fill:bright,opacity:.5,cx:bx,"pointer-events":"none"}));
+    tip(g,subj,"коммит · "+h+" · "+fmt(at),null,REPO+"/commit/"+h);
+    reg(g,"trans",bx); plot.appendChild(g);
   });
 
-  // --- pan / zoom via the SVG viewBox ---
-  var svg = document.getElementById("map");
-  var vb0 = svg.getAttribute("viewBox").split(" ").map(Number);
-  var W0 = vb0[2], H0 = vb0[3];
-  var vb = { x: 0, y: 0, w: W0, h: H0 };
-  function apply() {
-    svg.setAttribute("viewBox", vb.x + " " + vb.y + " " + vb.w + " " + vb.h);
+  const done=tr.phases.filter(x=>x.s!=="planned");
+  const plan=tr.phases.filter(x=>x.s==="planned");
+  const rowsT=[],rowsB=[]; let li=0;
+
+  function node(ph,base){
+    const l=ph.l, s=ph.s, major=ph.w==="major";
+    const href=ph.at?REPO+"/commit/"+ph.at:null;
+    const g=el("g",{class:s==="planned"?"plan":"node",tabindex:s==="planned"?-1:0});
+    const sub=(STATUS_RU[s]||s)+(ph.at?" · "+ph.at:"")+(ph.t?" · "+fmt(ph.t):"");
+    tip(g,l,sub,ph.note,href);
+
+    if(s==="abandoned"){
+      const rr=7;
+      g.appendChild(el("line",{x1:base-rr,y1:y-rr,x2:base+rr,y2:y+rr,stroke:bright,"stroke-width":2.6,opacity:.8,"stroke-linecap":"round"}));
+      g.appendChild(el("line",{x1:base+rr,y1:y-rr,x2:base-rr,y2:y+rr,stroke:bright,"stroke-width":2.6,opacity:.8,"stroke-linecap":"round"}));
+      g.appendChild(el("circle",{cx:base,cy:y,r:9,fill:"#000",opacity:0,"pointer-events":"all"}));
+    }else if(s==="planned"){
+      const r=major?7.5:5;
+      g.appendChild(el("circle",{cy:y,r:r+3,fill:"#000",opacity:0,cx:base,"pointer-events":"all"}));
+      g.appendChild(el("circle",{cy:y,r,fill:"#0a0b11",stroke:dim,"stroke-width":2,opacity:.9,cx:base}));
+    }else{
+      const r=major?8:5.5;
+      g.appendChild(el("circle",{cy:y,r:r+3,fill:"#000",opacity:0,cx:base,"pointer-events":"all"}));
+      g.appendChild(el("circle",{cy:y,r,fill:bright,filter:"url(#glow)",cx:base}));
+    }
+
+    if(major||s==="abandoned"){
+      const fs=major?13.5:12;
+      const fill=s==="abandoned"?"#a59aa0":(s==="planned"?"#8e92a4":(major?"#e8eaf2":"#b9bdcc"));
+      const half=l.length*0.29*fs+6;
+      const side=(li++%2===0)?-1:1; const rows=side<0?rowsT:rowsB;
+      let lvl=0; while(lvl<rows.length && base-half<=rows[lvl]+10)lvl++;
+      if(lvl===rows.length)rows.push(0); rows[lvl]=base+half;
+      const ly=side<0?(y-24-lvl*17):(y+32+lvl*17);
+      const tx=el("text",{y:ly,"text-anchor":"middle",fill,"font-size":fs,"font-weight":major?700:500,x:base,"pointer-events":"none"});
+      if(s==="abandoned")tx.setAttribute("font-style","italic");
+      tx.textContent=l; g.appendChild(tx);
+      if(lvl>0||Math.abs(ly-y)>28){
+        g.appendChild(el("line",{y1:side<0?y-9:y+9,y2:side<0?ly+5:ly-13,stroke:bright,"stroke-width":1,opacity:.22,x1:base,x2:base,"pointer-events":"none"}));
+      }
+    }
+    reg(g,"trans",base); plot.appendChild(g);
   }
-  function clamp() {
-    vb.x = Math.max(0, Math.min(W0 - vb.w, vb.x));
-    vb.y = Math.max(0, Math.min(H0 - vb.h, vb.y));
+  done.forEach(ph=>node(ph, ph.t?xOfT(ph.t):xOfT(TN)));
+  plan.forEach((ph,j)=>node(ph, NOWX+(j+1)/(plan.length+1)*(X1-NOWX)));
+
+  const nm=el("text",{x:X0-26,y:y-1,fill:bright,"font-size":18,"font-weight":700,"text-anchor":"end"});
+  nm.textContent=tr.name; names.push(nm);
+  const cc=el("text",{x:X0-26,y:y+17,fill:"#7e8295","font-size":11.5,"text-anchor":"end"});
+  cc.textContent=tr.count+" "+plural(tr.count); names.push(cc);
+});
+
+svg.appendChild(el("rect",{x:0,y:0,width:X0-2,height:H,fill:"#0b0c13"}));
+names.forEach(n=>svg.appendChild(n));
+
+// legend
+(function(){
+  const ly=H-52,gh="#aeb2c2"; let gx=40;
+  const t0=el("text",{x:40,y:ly-18,fill:"#878089","font-size":12,"letter-spacing":2});
+  t0.textContent="ЛЕГЕНДА"; svg.appendChild(t0);
+  [["done","этап сделан"],["planned","план"],["abandoned","пробовали → откат"],["cmt","коммит"]].forEach(a=>{
+    const st=a[0], name=a[1];
+    if(st==="done")svg.appendChild(el("circle",{cx:gx+7,cy:ly,r:6,fill:gh}));
+    else if(st==="planned")svg.appendChild(el("circle",{cx:gx+7,cy:ly,r:6,fill:"#0a0b11",stroke:gh,"stroke-width":2}));
+    else if(st==="cmt")svg.appendChild(el("circle",{cx:gx+7,cy:ly,r:3.4,fill:gh,opacity:.6}));
+    else svg.appendChild(el("path",{d:"M"+(gx+3)+","+(ly-4)+" L"+(gx+11)+","+(ly+4)+" M"+(gx+11)+","+(ly-4)+" L"+(gx+3)+","+(ly+4),stroke:gh,"stroke-width":1.6,"stroke-linecap":"round",opacity:.75}));
+    const t=el("text",{x:gx+22,y:ly+5,fill:"#aab0c0","font-size":13.5});t.textContent=name;svg.appendChild(t);
+    gx+=64+name.length*8.2;
+  });
+})();
+
+// ---- stretch + pan ----
+let stretch=1,panX=0;
+function reflow(){
+  for(const f of flex){
+    const nx=X0+(f.base-X0)*stretch+panX;
+    if(f.kind==="cx")f.node.setAttribute("cx",nx);
+    else if(f.kind==="x")f.node.setAttribute("x",nx);
+    else if(f.kind==="trans")f.node.setAttribute("transform","translate("+(nx-f.base)+",0)");
+    else if(f.kind==="x2"){
+      const sB=f.node.dataset.start!==undefined?+f.node.dataset.start:f.base2;
+      const sx=X0+(sB-X0)*stretch+panX;
+      f.node.setAttribute("x1",sx);f.node.setAttribute("x2",nx);
+    }
   }
-  svg.addEventListener("wheel", function (e) {
-    e.preventDefault();
-    var r = svg.getBoundingClientRect();
-    var px = vb.x + (e.clientX - r.left) / r.width * vb.w;
-    var py = vb.y + (e.clientY - r.top) / r.height * vb.h;
-    var f = e.deltaY < 0 ? 0.85 : 1 / 0.85;
-    var nw = Math.max(W0 * 0.16, Math.min(W0, vb.w * f));
-    var nh = nw * H0 / W0;
-    vb.x = px - (px - vb.x) * (nw / vb.w);
-    vb.y = py - (py - vb.y) * (nh / vb.h);
-    vb.w = nw; vb.h = nh; clamp(); apply();
-  }, { passive: false });
-  var drag = false, lx = 0, ly = 0;
-  svg.addEventListener("pointerdown", function (e) {
-    drag = true; lx = e.clientX; ly = e.clientY;
-    svg.setPointerCapture(e.pointerId); svg.classList.add("grabbing");
-  });
-  svg.addEventListener("pointermove", function (e) {
-    if (!drag) return;
-    var r = svg.getBoundingClientRect();
-    vb.x -= (e.clientX - lx) / r.width * vb.w;
-    vb.y -= (e.clientY - ly) / r.height * vb.h;
-    lx = e.clientX; ly = e.clientY; clamp(); apply();
-  });
-  function endDrag() { drag = false; svg.classList.remove("grabbing"); }
-  svg.addEventListener("pointerup", endDrag);
-  svg.addEventListener("pointercancel", endDrag);
-  svg.addEventListener("dblclick", function () {
-    vb = { x: 0, y: 0, w: W0, h: H0 }; apply();
-  });
+}
+function clampPan(){const maxOff=(X1-X0)*(stretch-1);panX=Math.max(-maxOff,Math.min(0,panX));}
+function setStretch(ns,cx){ns=Math.max(1,Math.min(7,ns));const wb=(cx-X0-panX)/stretch;stretch=ns;panX=cx-X0-wb*stretch;clampPan();reflow();}
+svg.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=svg.getBoundingClientRect();
+  const cx=Math.max(X0,Math.min(X1,(e.clientX-r.left)/r.width*W));
+  setStretch(stretch*(e.deltaY>0?1.12:1/1.12),cx);   // wheel up = zoom in
+},{passive:false});
+let drag=false,lastX=0,moved=0;
+svg.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;moved=0;svg.setPointerCapture(e.pointerId);svg.classList.add("grab");});
+svg.addEventListener("pointermove",e=>{if(!drag)return;const r=svg.getBoundingClientRect();const dx=e.clientX-lastX;moved+=Math.abs(dx);panX+=dx/r.width*W;lastX=e.clientX;clampPan();reflow();});
+function endDrag(){drag=false;svg.classList.remove("grab");}
+svg.addEventListener("pointerup",endDrag);svg.addEventListener("pointercancel",endDrag);
+document.getElementById("zin").onclick=()=>setStretch(stretch*1.4,(X0+X1)/2);
+document.getElementById("zout").onclick=()=>setStretch(stretch/1.4,(X0+X1)/2);
+document.getElementById("zrst").onclick=()=>{stretch=1;panX=0;reflow();};
+
+// ---- tooltip + click ----
+const tp=document.getElementById("tip");
+const tt=tp.querySelector(".t"),ts=tp.querySelector(".s"),tn=tp.querySelector(".n");
+function tshow(e){const g=e.currentTarget;
+  tt.textContent=g.getAttribute("data-label")||"";
+  ts.textContent=g.getAttribute("data-sub")||"";
+  const note=g.getAttribute("data-note");tn.textContent=note||"";tn.style.display=note?"block":"none";
+  tp.classList.add("on");tmove(e);}
+function tmove(e){let x=e.clientX+15,y=e.clientY+15;const w=tp.offsetWidth,h=tp.offsetHeight;
+  if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=e.clientY-h-15;tp.style.left=x+"px";tp.style.top=y+"px";}
+function thide(){tp.classList.remove("on");}
+document.querySelectorAll(".node,.cmt,.plan").forEach(g=>{
+  g.addEventListener("mouseenter",tshow);g.addEventListener("mousemove",tmove);g.addEventListener("mouseleave",thide);
+  g.addEventListener("focus",()=>{const r=g.getBoundingClientRect();tshow({currentTarget:g,clientX:r.left+r.width/2,clientY:r.top+r.height/2});});
+  g.addEventListener("blur",thide);
+  g.addEventListener("click",()=>{if(moved>6)return;const href=g.dataset.href;if(href)window.open(href,"_blank","noopener");});
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"){const href=g.dataset.href;if(href)window.open(href,"_blank","noopener");}});
+});
 </script>
 </body>
 </html>
