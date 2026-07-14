@@ -1,9 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /home/temikgo/main/MyFiles/junk/prism/engine
-# Build directory: /home/temikgo/main/MyFiles/junk/prism/build-debug/engine
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.
-include("/home/temikgo/main/MyFiles/junk/prism/build-debug/engine/prism_tests_include-b858cb2.cmake")
-add_test(format_check "/usr/local/llvm-20.1.0/bin/clang-format" "--dry-run" "--Werror" "/home/temikgo/main/MyFiles/junk/prism/engine/../server/src/main.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/../server/src/ws.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/bot.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/card.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/deck.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/game.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/protocol.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/include/prism/types.hpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/bot.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/card.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/deck.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/game.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/protocol.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/src/serialize.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/tests/tests.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/tools/replay.cpp" "/home/temikgo/main/MyFiles/junk/prism/engine/tools/selfplay.cpp")
-set_tests_properties(format_check PROPERTIES  _BACKTRACE_TRIPLES "/home/temikgo/main/MyFiles/junk/prism/engine/CMakeLists.txt;48;add_test;/home/temikgo/main/MyFiles/junk/prism/engine/CMakeLists.txt;0;")

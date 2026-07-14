@@ -83,8 +83,8 @@ func _test_card_data() -> void:
 	_eq(CardData.target_side("red_firespit"), "enemy", "any-target burn targets enemy creatures")
 	_ok(CardData.hits_face("red_firespit"), "any-target burn can hit the face")
 	_ok(not CardData.hits_face("blue_frostgrip"), "a plain freeze cannot hit the face")
-	_eq(CardData.target_side("violet_snuffing_verdict"), "enemy", "blinded-only removal targets enemy")
-	_ok(CardData.is_fight("green_strangleveil"), "fight card is flagged two-target")
+	_eq(CardData.target_side("violet_verdict_of_dark"), "enemy", "blinded-only removal targets enemy")
+	_ok(CardData.is_fight("green_stranglevine"), "fight card is flagged two-target")
 	_ok(not CardData.is_fight("red_firespit"), "a burn is not a fight")
 
 	# target_required: no current card is a required-target cost -> all false...

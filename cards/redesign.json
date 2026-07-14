@@ -1276,7 +1276,7 @@
     ]
   },
   {
-    "id": "green_strangleveil",
+    "id": "green_stranglevine",
     "name": {
       "ru": "Хищный вьюн",
       "en": "Strangleveil"
@@ -3676,7 +3676,7 @@
     ]
   },
   {
-    "id": "red_crimson_flicker",
+    "id": "red_crimson_flash",
     "name": {
       "ru": "Багровый всполох",
       "en": "Crimson Flicker"
@@ -4193,7 +4193,7 @@
     ]
   },
   {
-    "id": "green_second_sowing",
+    "id": "green_resowing",
     "name": {
       "ru": "Второй посев",
       "en": "Second Sowing"
@@ -4254,7 +4254,7 @@
     ]
   },
   {
-    "id": "violet_veil_of_glints",
+    "id": "violet_shimmer",
     "name": {
       "ru": "Пелена бликов",
       "en": "Veil of Glints"
@@ -4777,7 +4777,7 @@
     ]
   },
   {
-    "id": "violet_snuffing_verdict",
+    "id": "violet_verdict_of_dark",
     "name": {
       "ru": "Гасящий приговор",
       "en": "Snuffing Verdict"
@@ -4944,7 +4944,7 @@
     ]
   },
   {
-    "id": "green_alluvium",
+    "id": "green_river_placer",
     "name": {
       "ru": "Наносы",
       "en": "Alluvium"

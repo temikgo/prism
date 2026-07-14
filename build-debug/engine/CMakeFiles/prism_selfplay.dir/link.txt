@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/prism_selfplay.dir/tools/selfplay.cpp.o -o prism_selfplay  libprism_engine.a 

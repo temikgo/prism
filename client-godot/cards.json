@@ -1344,7 +1344,7 @@
     ]
   },
   {
-    "id": "green_strangleveil",
+    "id": "green_stranglevine",
     "name": {
       "ru": "Удушающие лозы",
       "en": "Stranglevine"
@@ -3744,7 +3744,7 @@
     ]
   },
   {
-    "id": "red_crimson_flicker",
+    "id": "red_crimson_flash",
     "name": {
       "ru": "Багровая вспышка",
       "en": "Crimson Flash"
@@ -3793,7 +3793,7 @@
     ]
   },
   {
-    "id": "red_blue_puncture",
+    "id": "red_blue_armor_piercer",
     "name": {
       "ru": "Бронебой",
       "en": "Armor-Piercer"
@@ -4261,7 +4261,7 @@
     ]
   },
   {
-    "id": "green_second_sowing",
+    "id": "green_resowing",
     "name": {
       "ru": "Пересев",
       "en": "Resowing"
@@ -4322,7 +4322,7 @@
     ]
   },
   {
-    "id": "violet_veil_of_glints",
+    "id": "violet_shimmer",
     "name": {
       "ru": "Мерцание",
       "en": "Shimmer"
@@ -4466,7 +4466,7 @@
     ]
   },
   {
-    "id": "yellow_fireeye_gecko",
+    "id": "yellow_fire_eyed_gecko",
     "name": {
       "ru": "Огнеглазый геккон",
       "en": "Fire-Eyed Gecko"
@@ -4845,7 +4845,7 @@
     ]
   },
   {
-    "id": "violet_snuffing_verdict",
+    "id": "violet_verdict_of_dark",
     "name": {
       "ru": "Приговор тьмы",
       "en": "Verdict of Dark"
@@ -5012,7 +5012,7 @@
     ]
   },
   {
-    "id": "green_alluvium",
+    "id": "green_river_placer",
     "name": {
       "ru": "Речная россыпь",
       "en": "River Placer"
