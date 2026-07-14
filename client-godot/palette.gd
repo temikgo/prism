@@ -25,12 +25,16 @@ const RU := {
 const KW_COLOR := {
 	"pierce": "red", "bypass": "red", "regen": "red", "self_lifesteal": "red",
 	"incandescence": "red", "cauterize": "red", "sear": "red", "spark": "red",
+	"requiem": "red",
 	"floodlight": "yellow", "blind": "yellow", "provoke": "yellow", "shield": "yellow",
 	"ward": "yellow", "firststrike": "yellow", "strobe": "yellow", "flare": "yellow",
+	"bulwark": "yellow", "warden": "yellow", "reflux": "yellow",
 	"photosynthesis": "green", "germinate": "green", "growth": "green", "compost": "green",
 	"spores": "green", "undergrowth": "green", "resonance": "green", "mulch": "green",
+	"harvest": "green", "renewal": "green",
 	"freeze": "blue", "chill": "blue", "delay": "blue", "scry": "blue",
 	"scatter": "blue", "haze": "blue", "birefringence": "blue", "pinpoint": "blue",
+	"prowess": "blue",
 	"awaken": "violet", "decoy": "violet", "stealth": "violet", "refract": "violet",
 	"split": "violet", "mirage": "violet", "haunt": "violet", "glimmer": "violet",
 }

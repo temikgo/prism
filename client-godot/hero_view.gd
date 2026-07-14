@@ -22,8 +22,13 @@ static func portrait_with_hp(hero: Dictionary, px: float, accent: Color = ACCENT
 	hp.position = Vector2(px - 40, px - 40)
 	holder.add_child(hp)
 	if int(hero.get("armor", 0)) > 0:
-		var ar := Tokens.gem(str(int(hero["armor"])), Color(0.72, 0.82, 0.98), 34, 0, true, 0.96)
+		# Glow (engine: heroArmor) -- laid down by Зарево, burnt off by damage
+		# before HP. It only ever appears mid-match, so it carries its own tooltip:
+		# nothing else on screen explains where the number came from.
+		var ar := Tokens.gem(str(int(hero["armor"])), Color(0.99, 0.82, 0.36), 34, 0, true, 0.96)
 		ar.position = Vector2(-6, px - 30)
+		ar.tooltip_text = "Зарево: поглощает урон по герою раньше HP."
+		ar.mouse_filter = Control.MOUSE_FILTER_STOP
 		holder.add_child(ar)
 	return holder
 

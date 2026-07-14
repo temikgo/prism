@@ -179,12 +179,21 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 	# generated rules so the text matches what the copy actually does.
 	var illusion := typeof(runtime) == TYPE_DICTIONARY and bool(runtime.get("token", false))
 	var delay_n := CardData.keyword_n(def_id, "delay")
-	var effs := []
+	# Effects are grouped by WHEN they fire, in card order, so a card with a
+	# non-on_play trigger (a start-of-turn aura, an on-death body) prints its
+	# timing instead of printing nothing at all.
+	var groups := {}
+	var whens := []
 	for e in d.get("effects", []):
-		if String(e.get("trigger", "")) == "on_play":
-			var s := Glossary.effect_text(e)
-			if s != "":
-				effs.append(s)
+		var s := Glossary.effect_text(e)
+		if s == "":
+			continue
+		var tr := String(e.get("trigger", "on_play"))
+		if not groups.has(tr):
+			groups[tr] = []
+			whens.append(tr)
+		groups[tr].append(s)
+	var effs: Array = groups.get("on_play", [])
 	# Delay is shown as the effect's timing, not as a separate keyword.
 	var fold_delay := delay_n > 0 and not effs.is_empty()
 
@@ -202,14 +211,17 @@ static func tooltip(def_id: String, runtime = null) -> Control:
 		if nm != "":
 			var kc := Palette.keyword_color(hid, col).lightened(0.42).to_html(false)
 			head += "[b][color=#%s]%s[/color][/b]. " % [kc, nm]
-	if not effs.is_empty():
-		var joined: String = " ".join(effs)
+	for tr in whens:
+		var joined: String = " ".join(groups[tr])
 		var when := ""
-		if fold_delay:
-			when = "[b]Через %d ход(ов):[/b] " % delay_n
-		elif is_creature:
-			when = "[b]При выходе:[/b] "
-		head += when + joined
+		if tr == "on_play":
+			if fold_delay:
+				when = "[b]%s:[/b] " % Glossary.delay_prefix(delay_n)
+			elif is_creature:
+				when = "[b]При выходе:[/b] "
+		else:
+			when = "[b]%s:[/b] " % Glossary.trigger_label(tr)
+		head += when + joined + " "
 	# Bespoke cards (pentas) carry an explicit printed rules string instead of a
 	# generated keyword/effect line -- append it so it reads as the card's rules.
 	var printed := CardData.rules_of(def_id)

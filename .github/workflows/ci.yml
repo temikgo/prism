@@ -17,6 +17,8 @@ jobs:
         run: python3 tools/check_ids.py
       - name: Generated rules grammar (no undeclined templates / leaked placeholders)
         run: python3 tools/grammar_lint.py
+      - name: Rules text present (no card ships with a blank description)
+        run: python3 tools/check_rules_text.py
       - name: Numeric keyword has its n (no leaked "N" / inert keyword)
         run: python3 tools/check_keyword_n.py
       - name: Balance coefficient drift (no phantom KW/EFF -- carded or implemented)
