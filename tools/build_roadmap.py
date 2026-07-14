@@ -272,7 +272,8 @@ function plural(n){const a=n%10,b=n%100;if(a===1&&b!==11)return"коммит";
 const W=1680, LANE=178, TOP=140, X0=214, RPAD=60;
 const X1=W-RPAD, FUTUREW=250, NOWX=X1-FUTUREW;
 const H=TOP+(P.tracks.length-1)*LANE+150;
-const xOfT=t=>X0+Math.max(0,Math.min(1,(t-T0)/SPAN))*(NOWX-X0);
+const LPAD=16;  // the first commit must not sit glued to the lane cap
+const xOfT=t=>X0+LPAD+Math.max(0,Math.min(1,(t-T0)/SPAN))*(NOWX-X0-LPAD);
 
 const svg=document.getElementById("map");
 svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
@@ -280,7 +281,8 @@ svg.setAttribute("font-family","var(--font)");
 function el(n,a){const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
 function hsl(h,s,l){return `hsl(${((h%360)+360)%360} ${s}% ${l}%)`;}
 
-const flex=[]; // {node,kind:'cx'|'x'|'x2'|'trans',base,base2}
+const flex=[];   // {node,kind:'cx'|'x'|'x2'|'trans',base,base2}
+const labels=[]; // phase labels, clamped into the plot on every reflow
 function reg(node,kind,base,base2){flex.push({node,kind,base,base2});if(base2!=null&&node.dataset)node.dataset.start=base2;}
 
 const defs=el("defs",{});
@@ -294,28 +296,47 @@ svg.appendChild(el("rect",{x:0,y:0,width:W,height:H,fill:"transparent"}));
 const plot=el("g",{"clip-path":"url(#pc)"});
 svg.appendChild(plot);
 
-// month grid from the real date range
+// Date grid, stepped to the REAL span: a months-only grid prints a single tick on
+// a six-week project. Aim for ~6-12 ticks whatever the range.
 (function(){
-  let d=new Date(T0*1000); d=new Date(d.getFullYear(),d.getMonth(),1);
-  if(d.getTime()/1000<T0) d.setMonth(d.getMonth()+1);
-  let guard=0;
-  while(d.getTime()/1000<=TN && guard++<48){
-    const t=d.getTime()/1000, bx=xOfT(t);
-    const ln=el("line",{y1:TOP-46,y2:H-96,stroke:"#ffffff","stroke-width":1,opacity:.04,x1:bx,x2:bx});
-    reg(ln,"x2",bx,bx); plot.appendChild(ln);
-    const tx=el("text",{y:TOP-54,fill:"#5d6172","font-size":11.5,"text-anchor":"middle",x:bx});
-    tx.textContent="01."+pad(d.getMonth()+1); reg(tx,"x",bx); plot.appendChild(tx);
-    d.setMonth(d.getMonth()+1);
+  const days=SPAN/86400;
+  const ticks=[];
+  if(days<=90){                       // weeks: every Monday inside the range
+    const step=days<=21?2:7;
+    let d=new Date(T0*1000); d.setHours(0,0,0,0);
+    if(step===7) d.setDate(d.getDate()+((8-d.getDay())%7));  // next Monday
+    let guard=0;
+    while(d.getTime()/1000<=TN && guard++<64){
+      ticks.push(new Date(d)); d.setDate(d.getDate()+step);
+    }
+  }else{                              // months (quarters once it gets long)
+    const step=days<=420?1:3;
+    let d=new Date(T0*1000); d=new Date(d.getFullYear(),d.getMonth(),1);
+    if(d.getTime()/1000<T0) d.setMonth(d.getMonth()+1);
+    let guard=0;
+    while(d.getTime()/1000<=TN && guard++<64){
+      ticks.push(new Date(d)); d.setMonth(d.getMonth()+step);
+    }
   }
+  ticks.forEach(d=>{
+    const bx=xOfT(d.getTime()/1000);
+    if(NOWX-bx<44) return;  // the last tick would print through the "сейчас" marker
+    const ln=el("line",{y1:TOP-54,y2:H-96,stroke:"#ffffff","stroke-width":1,opacity:.06,x1:bx,x2:bx});
+    reg(ln,"x2",bx,bx); plot.appendChild(ln);
+    const tx=el("text",{y:TOP-64,fill:"#9aa0b4","font-size":12.5,"font-weight":600,"text-anchor":"middle",x:bx});
+    tx.textContent=pad(d.getDate())+"."+pad(d.getMonth()+1); reg(tx,"x",bx); plot.appendChild(tx);
+  });
+  const yr=el("text",{x:X0+4,y:TOP-64,fill:"#5d6172","font-size":12,"font-weight":600,"text-anchor":"start"});
+  yr.textContent=new Date(T0*1000).getFullYear(); svg.appendChild(yr);
 })();
 
-const fz=el("rect",{y:TOP-46,width:X1-NOWX,height:H-96-(TOP-46),fill:"#ffffff",opacity:.022,x:NOWX});
+const fz=el("rect",{y:TOP-54,width:X1-NOWX,height:H-96-(TOP-54),fill:"#ffffff",opacity:.022,x:NOWX});
 reg(fz,"x",NOWX); plot.appendChild(fz);
-const nowL=el("line",{y1:TOP-46,y2:H-96,stroke:"#cfd3e2","stroke-width":1.5,"stroke-dasharray":"2 5",opacity:.65,x1:NOWX,x2:NOWX});
+const nowL=el("line",{y1:TOP-54,y2:H-96,stroke:"#cfd3e2","stroke-width":1.5,"stroke-dasharray":"2 5",opacity:.65,x1:NOWX,x2:NOWX});
 reg(nowL,"x2",NOWX,NOWX);plot.appendChild(nowL);
-const nowT=el("text",{y:TOP-54,fill:"#cfd3e2","font-size":12.5,"font-weight":700,"text-anchor":"middle",x:NOWX});
+const nowT=el("text",{y:TOP-64,fill:"#cfd3e2","font-size":12.5,"font-weight":700,"text-anchor":"middle",x:NOWX});
 nowT.textContent="сейчас";reg(nowT,"x",NOWX);plot.appendChild(nowT);
-const planT=el("text",{y:TOP-54,fill:"#71758b","font-size":12,"font-style":"italic","text-anchor":"middle",x:(NOWX+X1)/2});
+const planT=el("text",{y:TOP-64,fill:"#71758b","font-size":12,"font-style":"italic","text-anchor":"middle",x:(NOWX+X1)/2});
 planT.textContent="план →";reg(planT,"x",(NOWX+X1)/2);plot.appendChild(planT);
 
 const names=[];
@@ -374,16 +395,28 @@ P.tracks.forEach((tr,i)=>{
       const fs=major?13.5:12;
       const fill=s==="abandoned"?"#a59aa0":(s==="planned"?"#8e92a4":(major?"#e8eaf2":"#b9bdcc"));
       const half=l.length*0.29*fs+6;
+      // Rows are packed against where the label will actually LAND (clamped into
+      // the plot), not against its dot -- else two early milestones, both pushed
+      // right off the left edge, are packed as if they were still far apart and
+      // print on top of each other.
+      const cx0=Math.max(X0+8+half,Math.min(X1-8-half,base));
       const side=(li++%2===0)?-1:1; const rows=side<0?rowsT:rowsB;
-      let lvl=0; while(lvl<rows.length && base-half<=rows[lvl]+10)lvl++;
-      if(lvl===rows.length)rows.push(0); rows[lvl]=base+half;
+      let lvl=0; while(lvl<rows.length && cx0-half<=rows[lvl]+10)lvl++;
+      if(lvl===rows.length)rows.push(0); rows[lvl]=cx0+half;
       const ly=side<0?(y-24-lvl*17):(y+32+lvl*17);
       const tx=el("text",{y:ly,"text-anchor":"middle",fill,"font-size":fs,"font-weight":major?700:500,x:base,"pointer-events":"none"});
       if(s==="abandoned")tx.setAttribute("font-style","italic");
       tx.textContent=l; g.appendChild(tx);
-      if(lvl>0||Math.abs(ly-y)>28){
-        g.appendChild(el("line",{y1:side<0?y-9:y+9,y2:side<0?ly+5:ly-13,stroke:bright,"stroke-width":1,opacity:.22,x1:base,x2:base,"pointer-events":"none"}));
-      }
+      // A label is centred on its dot, so an early milestone (its dot sits at the
+      // very start of the axis) would spill left, under the opaque track-name
+      // column, and lose its first words. Keep every label inside the plot; the
+      // leader line then leans over to reach the dot. Redone on every zoom/pan,
+      // which is also when a label can be pushed off the edge.
+      const need=lvl>0||Math.abs(ly-y)>28;
+      const ln=el("line",{y1:side<0?y-9:y+9,y2:side<0?ly+5:ly-13,stroke:bright,"stroke-width":1,
+        opacity:need?.22:0,x1:base,x2:base,"pointer-events":"none"});
+      g.appendChild(ln);
+      labels.push({tx,ln,base,half,need});
     }
     reg(g,"trans",base); plot.appendChild(g);
   }
@@ -429,7 +462,16 @@ function reflow(){
       f.node.setAttribute("x1",sx);f.node.setAttribute("x2",nx);
     }
   }
+  for(const L of labels){
+    const nx=X0+(L.base-X0)*stretch+panX;                      // where its dot is now
+    const cx=Math.max(X0+8+L.half,Math.min(X1-8-L.half,nx));   // where the text may sit
+    const local=cx-nx+L.base;                                  // the group is already translated
+    L.tx.setAttribute("x",local);
+    L.ln.setAttribute("x2",local);
+    L.ln.setAttribute("opacity",(L.need||Math.abs(cx-nx)>2)?.22:0);
+  }
 }
+reflow();
 function clampPan(){const maxOff=(X1-X0)*(stretch-1);panX=Math.max(-maxOff,Math.min(0,panX));}
 function setStretch(ns,cx){ns=Math.max(1,Math.min(7,ns));const wb=(cx-X0-panX)/stretch;stretch=ns;panX=cx-X0-wb*stretch;clampPan();reflow();}
 svg.addEventListener("wheel",e=>{
