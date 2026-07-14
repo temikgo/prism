@@ -162,6 +162,30 @@ static func panel_glass() -> StyleBoxFlat:
 	return sb
 
 
+# Slim the native vertical scrollbar of a ScrollContainer: a faint thin track and
+# a rounded grabber (brighter on hover/press), ~`width`px wide. The default bar is
+# chunky; this keeps it visible but discreet. Reusable across scroll panels.
+static func slim_scrollbar(scroll: ScrollContainer, width := 6) -> void:
+	var bar := scroll.get_v_scroll_bar()
+	bar.custom_minimum_size.x = width
+
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(1, 1, 1, 0.04)
+	track.set_corner_radius_all(width / 2)
+	track.content_margin_left = 0
+	track.content_margin_right = 0
+	bar.add_theme_stylebox_override("scroll", track)
+
+	var grab := func(alpha: float) -> StyleBoxFlat:
+		var g := StyleBoxFlat.new()
+		g.bg_color = Color(SIDE_ME.r, SIDE_ME.g, SIDE_ME.b, alpha)
+		g.set_corner_radius_all(width / 2)
+		return g
+	bar.add_theme_stylebox_override("grabber", grab.call(0.4))
+	bar.add_theme_stylebox_override("grabber_highlight", grab.call(0.62))
+	bar.add_theme_stylebox_override("grabber_pressed", grab.call(0.8))
+
+
 # Style a LineEdit to the design's `.field input`: dark inset glass, hairline
 # stroke, a blue-lit focus ring. `mono`/`big` switches to the large Chakra-Petch
 # room-code look (Latin codes only).

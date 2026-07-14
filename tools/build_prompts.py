@@ -834,12 +834,20 @@ def main():
         m = re.search(r"`([a-z_0-9]+)`", b.split("\n", 1)[0])
         if m and m.group(1) not in have:
             kept.append(b)
-    todo = ("# ART TODO — карты без арта (" + str(len(kept)) + " шт.)\n\n"
-            "Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. "
-            "Сохраняй PNG по строке `save:`.\n\n" + "".join(kept))
+    # Only maintain the TODO file while art is still outstanding. Once every card
+    # has a PNG (kept is empty) there's nothing to do, so remove any stale TODO
+    # rather than leave an empty file behind.
     todo_dest = os.path.join(ROOT, "ART_PROMPTS_TODO.md")
-    open(todo_dest, "w", encoding="utf-8").write(todo)
-    print("wrote " + todo_dest + " with " + str(len(kept)) + " prompts (no art yet)")
+    if kept:
+        todo = ("# ART TODO — карты без арта (" + str(len(kept)) + " шт.)\n\n"
+                "Каждый блок: имя, id, путь сохранения, готовый MJ-промпт. "
+                "Сохраняй PNG по строке `save:`.\n\n" + "".join(kept))
+        open(todo_dest, "w", encoding="utf-8").write(todo)
+        print("wrote " + todo_dest + " with " + str(len(kept)) + " prompts (no art yet)")
+    else:
+        if os.path.exists(todo_dest):
+            os.remove(todo_dest)
+        print("all cards have art -- no TODO (removed stale ART_PROMPTS_TODO.md)")
 
     issues = verify_blue(pool + TOKENS)
     if issues:

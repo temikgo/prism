@@ -11,6 +11,7 @@ signal edit_deck(deck_id: String)  # "" = build a new deck; else edit that one
 signal back_pressed
 
 var _list: VBoxContainer = null
+var _scroll: SmoothScroll = null
 
 
 func _ready() -> void:
@@ -35,9 +36,9 @@ func _ready() -> void:
 		13, Ui.INK_DIM))
 	root.add_child(head)
 
-	var scroll := ScrollContainer.new()
+	var scroll := SmoothScroll.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll = scroll
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -64,6 +65,8 @@ func _ready() -> void:
 
 
 func _rebuild() -> void:
+	if _scroll != null:
+		_scroll.reset()  # drop any in-flight glide before the list reflows
 	for c in _list.get_children():
 		c.queue_free()
 	var decks := Decks.all()

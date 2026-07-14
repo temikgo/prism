@@ -133,7 +133,8 @@ func _summary_pick(into: HBoxContainer, label: String) -> Label:
 
 # A full-height glass column with a header row: a title (left) and a small count
 # caption (right). `content` expands to fill the body.
-func _column_panel(title: String, count: String, content: Control) -> Control:
+func _column_panel(title: String, count: String, content: Control,
+		trailing: Control = null) -> Control:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -143,12 +144,19 @@ func _column_panel(title: String, count: String, content: Control) -> Control:
 	panel.add_child(v)
 
 	var headrow := HBoxContainer.new()
+	headrow.add_theme_constant_override("separation", 12)
 	v.add_child(headrow)
 	var ht := Ui.label(title, 20, Ui.INK, false, true)
 	headrow.add_child(ht)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	headrow.add_child(spacer)
+	# An optional action (the presets show/hide toggle) rides in the header, kept
+	# OUT of the scroll below -- inside it, ScrollContainer's clip turns the button's
+	# soft rounded shadow into a hard black rectangle and cuts its top.
+	if trailing != null:
+		trailing.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		headrow.add_child(trailing)
 	var cnt := Ui.caption(count, Ui.INK_DIM, 2)
 	cnt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	headrow.add_child(cnt)
@@ -234,32 +242,51 @@ func _deck_column() -> Control:
 	var presets := Decks.builtin()
 	var hidden := Decks.presets_hidden()
 	var shown := users.size() + (0 if hidden else presets.size())
+
+	# The deck list can outgrow the panel (11 presets + your own decks), so it
+	# lives in a ScrollContainer -- same as the deck manager. The "Создать колоду"
+	# button stays pinned below the scroll so it never scrolls out of reach.
 	var content := VBoxContainer.new()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 12)
+
+	var scroll := SmoothScroll.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var listing := VBoxContainer.new()
+	listing.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	listing.add_theme_constant_override("separation", 12)
+	scroll.add_child(listing)
+
+	# The presets show/hide toggle rides in the column header (below), not in the
+	# scroll -- a shadowed button inside the scroll gets its shadow clipped square.
+	var toggle: Control = null
+	if not presets.is_empty():
+		toggle = Ui.mbtn("Показать" if hidden else "Скрыть", "ghost", Ui.ACC_VIOLET, 120)
+		toggle.pressed.connect(func() -> void:
+			Decks.set_presets_hidden(not hidden)
+			_rebuild())
+
 	if users.is_empty() and presets.is_empty():
 		var center := CenterContainer.new()
 		center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		center.add_child(Ui.label("У вас пока нет колод.\nСоздайте колоду, чтобы играть.",
 			16, Ui.INK_DIM, true))
-		content.add_child(center)
+		listing.add_child(center)
 	else:
-		# Your decks first, then the preset group with a hide/show toggle.
+		# Your decks first, then the preset group (its toggle lives in the header).
 		if not users.is_empty():
-			content.add_child(_deck_group_header("Мои колоды", null))
-			content.add_child(_deck_list(users))
+			listing.add_child(_deck_group_header("Мои колоды", null))
+			listing.add_child(_deck_list(users))
 		if not presets.is_empty():
-			var toggle := Ui.mbtn("Показать" if hidden else "Скрыть", "ghost", Ui.ACC_VIOLET, 120)
-			toggle.pressed.connect(func() -> void:
-				Decks.set_presets_hidden(not hidden)
-				_rebuild())
-			content.add_child(_deck_group_header("Пресеты", toggle))
+			listing.add_child(_deck_group_header("Пресеты", null))
 			if not hidden:
-				content.add_child(_deck_list(presets))
+				listing.add_child(_deck_list(presets))
+	content.add_child(scroll)
+
 	var create := Ui.mbtn("Создать колоду", "ghost", Ui.ACC_VIOLET, 300)
 	create.pressed.connect(func() -> void: create_deck.emit())
 	content.add_child(create)
-	return _column_panel("Колоды", "%d %s" % [shown, _decks_word(shown)], content)
+	return _column_panel("Колоды", "%d %s" % [shown, _decks_word(shown)], content, toggle)
 
 
 # A titled group header inside the deck column, with an optional trailing control
@@ -394,7 +421,10 @@ func _deck_panel(deck: Dictionary, scale_target: Control = null) -> Control:
 			Audio.play("ui_tap")
 			_deck_id = did
 			_refresh())
-	_hook_hover(panel, func() -> bool: return did == _deck_id, scale_target)
+	# No hover-lift: deck tiles live inside a clipping ScrollContainer, so a scale
+	# lift would be cut at the edges and ride over the scrollbar. Selection reads
+	# from the border + lit bg instead (like the deck builder's scrolled tiles).
+	_hook_hover(panel, func() -> bool: return did == _deck_id, scale_target, false)
 	return panel
 
 
@@ -459,7 +489,11 @@ func _refresh() -> void:
 # `scale_target` is the node that scales/lifts on hover (defaults to the panel
 # itself; a wrapped user-deck tile passes its wrapper so the delete button scales
 # and stays on top with the panel instead of falling behind it).
-func _hook_hover(panel: Control, selected_fn: Callable, scale_target: Control = null) -> void:
+# `lift` scales the tile up a touch on hover; pass false for tiles inside a
+# ScrollContainer (the scale would clip against the viewport and ride the bar) --
+# they keep the cursor + border/bg feedback but no transform.
+func _hook_hover(panel: Control, selected_fn: Callable, scale_target: Control = null,
+		lift: bool = true) -> void:
 	var st: Control = scale_target if scale_target != null else panel
 	panel.set_meta("hovered", false)
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -467,14 +501,16 @@ func _hook_hover(panel: Control, selected_fn: Callable, scale_target: Control = 
 		Audio.play("ui_hover")
 		panel.set_meta("hovered", true)
 		_restyle(panel, selected_fn.call())
-		st.pivot_offset = st.size / 2.0
-		st.z_index = 10
-		st.create_tween().tween_property(st, "scale", Vector2(1.03, 1.03), 0.08))
+		if lift:
+			st.pivot_offset = st.size / 2.0
+			st.z_index = 10
+			st.create_tween().tween_property(st, "scale", Vector2(1.03, 1.03), 0.08))
 	panel.mouse_exited.connect(func() -> void:
 		panel.set_meta("hovered", false)
 		_restyle(panel, selected_fn.call())
-		st.z_index = 0
-		st.create_tween().tween_property(st, "scale", Vector2.ONE, 0.08))
+		if lift:
+			st.z_index = 0
+			st.create_tween().tween_property(st, "scale", Vector2.ONE, 0.08))
 
 
 func _restyle(panel: Control, selected: bool) -> void:
@@ -501,10 +537,11 @@ func _tile_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 		sb.border_color = Ui.PANEL_STROKE.lerp(Ui.SIDE_ME, 0.55)
 		sb.shadow_size = 0
 	else:
+		# Plain dark slab, NO shadow -- the translucent black drop shadow read as a
+		# stray frame behind the deck name (same bug fixed in the deck manager).
 		sb.bg_color = Color(0.043, 0.051, 0.094, 0.7)
 		sb.border_color = Ui.PANEL_STROKE
-		sb.shadow_size = 8
-		sb.shadow_color = Color(0, 0, 0, 0.4)
+		sb.shadow_size = 0
 	return sb
 
 
