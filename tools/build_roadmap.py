@@ -237,8 +237,8 @@ TMPL = r"""<!DOCTYPE html>
       <div>
         <h2>Над чем идёт работа</h2>
         <p>Каждая точка стоит на своём реальном времени коммита — всплески кучнее,
-          затишья с зазором. Клик по точке&nbsp;— открыть коммит. Растяните ось,
-          чтобы развести плотные периоды.</p>
+          затишья с зазором. Клик по точке&nbsp;— открыть коммит. Растяните ось: плотные
+          периоды разойдутся, и проступят подписи мелких шагов.</p>
       </div>
       <div class="tools">
         <button id="zin">＋ растянуть</button>
@@ -282,7 +282,8 @@ function el(n,a){const e=document.createElementNS(SVGNS,n);for(const k in a)e.se
 function hsl(h,s,l){return `hsl(${((h%360)+360)%360} ${s}% ${l}%)`;}
 
 const flex=[];   // {node,kind:'cx'|'x'|'x2'|'trans',base,base2}
-const labels=[]; // phase labels, clamped into the plot on every reflow
+const laneLabels=[]; // per track: every phase label; layout() decides which print
+const axisTicks=[];  // date ticks, coarse (tier 1) + fine (tier 2); layout() gates them
 function reg(node,kind,base,base2){flex.push({node,kind,base,base2});if(base2!=null&&node.dataset)node.dataset.start=base2;}
 
 const defs=el("defs",{});
@@ -297,34 +298,36 @@ const plot=el("g",{"clip-path":"url(#pc)"});
 svg.appendChild(plot);
 
 // Date grid, stepped to the REAL span: a months-only grid prints a single tick on
-// a six-week project. Aim for ~6-12 ticks whatever the range.
+// a six-week project. Two densities are built -- the coarse one is always up, the
+// fine one surfaces as you stretch the axis and the room appears (layout()).
 (function(){
-  const days=SPAN/86400;
-  const ticks=[];
-  if(days<=90){                       // weeks: every Monday inside the range
-    const step=days<=21?2:7;
-    let d=new Date(T0*1000); d.setHours(0,0,0,0);
-    if(step===7) d.setDate(d.getDate()+((8-d.getDay())%7));  // next Monday
-    let guard=0;
-    while(d.getTime()/1000<=TN && guard++<64){
-      ticks.push(new Date(d)); d.setDate(d.getDate()+step);
-    }
-  }else{                              // months (quarters once it gets long)
-    const step=days<=420?1:3;
-    let d=new Date(T0*1000); d=new Date(d.getFullYear(),d.getMonth(),1);
-    if(d.getTime()/1000<T0) d.setMonth(d.getMonth()+1);
-    let guard=0;
-    while(d.getTime()/1000<=TN && guard++<64){
-      ticks.push(new Date(d)); d.setMonth(d.getMonth()+step);
-    }
-  }
-  ticks.forEach(d=>{
-    const bx=xOfT(d.getTime()/1000);
-    if(NOWX-bx<44) return;  // the last tick would print through the "сейчас" marker
-    const ln=el("line",{y1:TOP-54,y2:H-96,stroke:"#ffffff","stroke-width":1,opacity:.06,x1:bx,x2:bx});
+  const days=SPAN/86400, DAY=86400e3;
+  const walk=(startFn,nextFn)=>{
+    const out=[]; let d=startFn(), guard=0;
+    while(d.getTime()/1000<=TN && guard++<400){ out.push(new Date(d)); nextFn(d); }
+    return out;
+  };
+  const firstDay=()=>{const d=new Date(T0*1000);d.setHours(0,0,0,0);d.setTime(d.getTime()+DAY);return d;};
+  const firstMonday=()=>{const d=firstDay();d.setDate(d.getDate()+((8-d.getDay())%7));return d;};
+  const firstOfMonth=()=>{let d=new Date(T0*1000);d=new Date(d.getFullYear(),d.getMonth(),1);
+    if(d.getTime()/1000<T0)d.setMonth(d.getMonth()+1);return d;};
+  const long=days>90;
+  const coarse=long?walk(firstOfMonth,d=>d.setMonth(d.getMonth()+1))
+                   :walk(firstMonday,d=>d.setDate(d.getDate()+7));
+  const fine  =long?walk(firstMonday,d=>d.setDate(d.getDate()+7))
+                   :walk(firstDay,d=>d.setDate(d.getDate()+1));
+  const key=d=>d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate();
+  const isCoarse=new Set(coarse.map(key));
+  const all=new Map();
+  coarse.concat(fine).forEach(d=>all.set(key(d),d));
+  [...all.values()].sort((a,b)=>a-b).forEach(d=>{
+    const bx=xOfT(d.getTime()/1000), tier=isCoarse.has(key(d))?1:2;
+    const ln=el("line",{y1:TOP-54,y2:H-96,stroke:"#ffffff","stroke-width":1,opacity:0,x1:bx,x2:bx});
     reg(ln,"x2",bx,bx); plot.appendChild(ln);
-    const tx=el("text",{y:TOP-64,fill:"#9aa0b4","font-size":12.5,"font-weight":600,"text-anchor":"middle",x:bx});
+    const tx=el("text",{y:TOP-64,fill:tier===1?"#9aa0b4":"#6b7084","font-size":tier===1?12.5:11,
+      "font-weight":600,"text-anchor":"middle",x:bx,opacity:0});
     tx.textContent=pad(d.getDate())+"."+pad(d.getMonth()+1); reg(tx,"x",bx); plot.appendChild(tx);
+    axisTicks.push({ln,tx,base:bx,tier});
   });
   const yr=el("text",{x:X0+4,y:TOP-64,fill:"#5d6172","font-size":12,"font-weight":600,"text-anchor":"start"});
   yr.textContent=new Date(T0*1000).getFullYear(); svg.appendChild(yr);
@@ -367,7 +370,7 @@ P.tracks.forEach((tr,i)=>{
 
   const done=tr.phases.filter(x=>x.s!=="planned");
   const plan=tr.phases.filter(x=>x.s==="planned");
-  const rowsT=[],rowsB=[]; let li=0;
+  const laneL=[]; laneLabels.push(laneL); let li=0;
 
   function node(ph,base){
     const l=ph.l, s=ph.s, major=ph.w==="major";
@@ -391,33 +394,19 @@ P.tracks.forEach((tr,i)=>{
       g.appendChild(el("circle",{cy:y,r,fill:bright,filter:"url(#glow)",cx:base}));
     }
 
-    if(major||s==="abandoned"){
-      const fs=major?13.5:12;
-      const fill=s==="abandoned"?"#a59aa0":(s==="planned"?"#8e92a4":(major?"#e8eaf2":"#b9bdcc"));
-      const half=l.length*0.29*fs+6;
-      // Rows are packed against where the label will actually LAND (clamped into
-      // the plot), not against its dot -- else two early milestones, both pushed
-      // right off the left edge, are packed as if they were still far apart and
-      // print on top of each other.
-      const cx0=Math.max(X0+8+half,Math.min(X1-8-half,base));
-      const side=(li++%2===0)?-1:1; const rows=side<0?rowsT:rowsB;
-      let lvl=0; while(lvl<rows.length && cx0-half<=rows[lvl]+10)lvl++;
-      if(lvl===rows.length)rows.push(0); rows[lvl]=cx0+half;
-      const ly=side<0?(y-24-lvl*17):(y+32+lvl*17);
-      const tx=el("text",{y:ly,"text-anchor":"middle",fill,"font-size":fs,"font-weight":major?700:500,x:base,"pointer-events":"none"});
-      if(s==="abandoned")tx.setAttribute("font-style","italic");
-      tx.textContent=l; g.appendChild(tx);
-      // A label is centred on its dot, so an early milestone (its dot sits at the
-      // very start of the axis) would spill left, under the opaque track-name
-      // column, and lose its first words. Keep every label inside the plot; the
-      // leader line then leans over to reach the dot. Redone on every zoom/pan,
-      // which is also when a label can be pushed off the edge.
-      const need=lvl>0||Math.abs(ly-y)>28;
-      const ln=el("line",{y1:side<0?y-9:y+9,y2:side<0?ly+5:ly-13,stroke:bright,"stroke-width":1,
-        opacity:need?.22:0,x1:base,x2:base,"pointer-events":"none"});
-      g.appendChild(ln);
-      labels.push({tx,ln,base,half,need});
-    }
+    // EVERY phase carries a label; which ones are actually printed is decided per
+    // zoom level in layout() -- majors always, the smaller steps as you zoom in.
+    const fs=major?13.5:12;
+    const fill=s==="abandoned"?"#a59aa0":(s==="planned"?"#8e92a4":(major?"#e8eaf2":"#b9bdcc"));
+    const tx=el("text",{"text-anchor":"middle",fill,"font-size":fs,"font-weight":major?700:500,
+      x:base,y:y,"pointer-events":"none"});
+    if(s==="abandoned")tx.setAttribute("font-style","italic");
+    tx.textContent=l; g.appendChild(tx);
+    const ln=el("line",{stroke:bright,"stroke-width":1,opacity:0,x1:base,x2:base,y1:y,y2:y,
+      "pointer-events":"none"});
+    g.appendChild(ln);
+    laneL.push({tx,ln,base,y,half:l.length*0.29*fs+6,
+      tier:major?1:(s==="abandoned"?2:3), side:(li++%2===0)?-1:1});
     reg(g,"trans",base); plot.appendChild(g);
   }
   done.forEach(ph=>node(ph, ph.t?xOfT(ph.t):xOfT(TN)));
@@ -462,13 +451,58 @@ function reflow(){
       f.node.setAttribute("x1",sx);f.node.setAttribute("x2",nx);
     }
   }
-  for(const L of labels){
-    const nx=X0+(L.base-X0)*stretch+panX;                      // where its dot is now
-    const cx=Math.max(X0+8+L.half,Math.min(X1-8-L.half,nx));   // where the text may sit
-    const local=cx-nx+L.base;                                  // the group is already translated
-    L.tx.setAttribute("x",local);
-    L.ln.setAttribute("x2",local);
-    L.ln.setAttribute("opacity",(L.need||Math.abs(cx-nx)>2)?.22:0);
+  layout();
+}
+
+// Which labels print, and where. Rerun on every zoom/pan, because both answers
+// change with it:
+//   * a label whose dot has been panned out of the plot must go with it -- a
+//     caption pinned to the edge with nothing to point at is a lie;
+//   * zoomed all the way out there is no room for every step, so only the major
+//     phases print. Stretch the axis and the smaller ones surface as the space
+//     to print them appears (dead ends first, then the minor steps).
+// Rows are packed against where the text actually LANDS (clamped into the plot),
+// not against its dot -- else two labels pinned to the same edge would be packed
+// as if they were still far apart, and print on top of each other.
+function tierOf(){ return stretch>=2.6?3:(stretch>=1.6?2:1); }
+function layout(){
+  const tier=tierOf();
+
+  // Date axis: coarse ticks always, the fine ones once the axis is stretched
+  // enough to hold them without the labels touching. A tick panned off the plot,
+  // or crowding "сейчас", is dropped.
+  const showFine=stretch>=1.8;
+  let lastX=-1e9;
+  for(const T of axisTicks){
+    const nx=X0+(T.base-X0)*stretch+panX;
+    // X0+34 clears the year stamp at the origin; else the first tick overprints it.
+    const on=(T.tier===1||showFine) && nx>=X0+34 && nx<=X1+1 && NOWX-nx>=44 && nx-lastX>=52;
+    T.ln.setAttribute("opacity",on?(T.tier===1?.06:.035):0);
+    T.tx.setAttribute("opacity",on?1:0);
+    if(on){ T.ln.setAttribute("x1",nx); T.ln.setAttribute("x2",nx); T.tx.setAttribute("x",nx); lastX=nx; }
+  }
+
+  for(const lane of laneLabels){
+    const rowsT=[],rowsB=[];
+    for(const L of lane){
+      const nx=X0+(L.base-X0)*stretch+panX;      // where its dot is now
+      if(L.tier>tier || nx<X0-1 || nx>X1+1){
+        L.tx.setAttribute("opacity",0); L.ln.setAttribute("opacity",0);
+        continue;
+      }
+      const cx=Math.max(X0+8+L.half,Math.min(X1-8-L.half,nx));
+      const rows=L.side<0?rowsT:rowsB;
+      let lvl=0; while(lvl<rows.length && cx-L.half<=rows[lvl]+10)lvl++;
+      if(lvl===rows.length)rows.push(0); rows[lvl]=cx+L.half;
+      const ly=L.side<0?(L.y-24-lvl*17):(L.y+32+lvl*17);
+      const local=cx-nx+L.base;                  // the group is already translated
+      L.tx.setAttribute("opacity",1);
+      L.tx.setAttribute("x",local); L.tx.setAttribute("y",ly);
+      L.ln.setAttribute("x2",local);
+      L.ln.setAttribute("y1",L.side<0?L.y-9:L.y+9);
+      L.ln.setAttribute("y2",L.side<0?ly+5:ly-13);
+      L.ln.setAttribute("opacity",(lvl>0||Math.abs(cx-nx)>2||Math.abs(ly-L.y)>28)?.22:0);
+    }
   }
 }
 reflow();
