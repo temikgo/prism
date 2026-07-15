@@ -514,10 +514,18 @@ svg.addEventListener("wheel",e=>{
   const cx=Math.max(X0,Math.min(X1,(e.clientX-r.left)/r.width*W));
   setStretch(stretch*(e.deltaY>0?1.12:1/1.12),cx);   // wheel up = zoom in
 },{passive:false});
-let drag=false,lastX=0,moved=0;
-svg.addEventListener("pointerdown",e=>{drag=true;lastX=e.clientX;moved=0;svg.setPointerCapture(e.pointerId);svg.classList.add("grab");});
-svg.addEventListener("pointermove",e=>{if(!drag)return;const r=svg.getBoundingClientRect();const dx=e.clientX-lastX;moved+=Math.abs(dx);panX+=dx/r.width*W;lastX=e.clientX;clampPan();reflow();});
-function endDrag(){drag=false;svg.classList.remove("grab");}
+// Capture is DEFERRED to the first few px of real movement. If it grabbed on
+// pointerdown, the SVG would swallow the click a plain tap on a dot fires, and
+// the dot's click-through to its commit would never run.
+let down=false,dragging=false,lastX=0,moved=0,pid=0;
+svg.addEventListener("pointerdown",e=>{down=true;dragging=false;lastX=e.clientX;moved=0;pid=e.pointerId;});
+svg.addEventListener("pointermove",e=>{
+  if(!down)return;
+  const r=svg.getBoundingClientRect();const dx=e.clientX-lastX;moved+=Math.abs(dx);
+  if(!dragging&&moved>4){dragging=true;svg.setPointerCapture(pid);svg.classList.add("grab");}
+  if(dragging){panX+=dx/r.width*W;lastX=e.clientX;clampPan();reflow();}
+});
+function endDrag(){if(dragging){try{svg.releasePointerCapture(pid);}catch(_){}}down=false;dragging=false;svg.classList.remove("grab");}
 svg.addEventListener("pointerup",endDrag);svg.addEventListener("pointercancel",endDrag);
 document.getElementById("zin").onclick=()=>setStretch(stretch*1.4,(X0+X1)/2);
 document.getElementById("zout").onclick=()=>setStretch(stretch/1.4,(X0+X1)/2);
