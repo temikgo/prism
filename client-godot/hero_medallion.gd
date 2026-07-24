@@ -31,9 +31,15 @@ func setup(hero: Dictionary, mine: bool, view: Dictionary) -> void:
 			if data.get("kind", "") == "hand":
 				return bool(data.get("hits_face", false)) and bool(data.get("playable", true))
 			return false
+		# The face lights up for whatever it can actually receive -- an attacker it
+		# may be hit by, or a face-aimed burn. Mirrors can_drop_fn; the attacker
+		# branch used to be missing, so a legal face attack drew no highlight.
 		highlight_check = func(data: Variant) -> bool:
-			return typeof(data) == TYPE_DICTIONARY and data.get("kind", "") == "hand" \
-				and bool(data.get("hits_face", false))
+			if typeof(data) != TYPE_DICTIONARY:
+				return false
+			if data.get("kind", "") == "attacker":
+				return not Rules.enemy_has_provoke(view) or bool(data.get("bypass", false))
+			return data.get("kind", "") == "hand" and bool(data.get("hits_face", false))
 		drop_fn = func(data: Variant) -> void:
 			if data.get("kind", "") == "attacker":
 				attack_hero_requested.emit(int(data["id"]))

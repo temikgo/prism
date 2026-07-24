@@ -51,11 +51,21 @@ func _input(e: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if _target < 0.0:
 		return
-	var cur := float(scroll_vertical)
-	var diff := _target - cur
-	if absf(diff) < 0.5:
+	var cur := scroll_vertical
+	var diff := _target - float(cur)
+	var t: float = clampf(SMOOTH * delta, 0.0, 1.0)
+	var want := int(round(float(cur) + diff * t))
+	# Reached (or as close as the integer scroll gets): snap and stop. The engine
+	# clamps scroll_vertical to the real content range, so a target parked just
+	# past the true max resolves here instead of lingering forever.
+	if absf(diff) < 0.5 or want == cur:
 		scroll_vertical = int(round(_target))
 		_target = -1.0
 		return
-	var t: float = clampf(SMOOTH * delta, 0.0, 1.0)
-	scroll_vertical = int(round(cur + diff * t))
+	scroll_vertical = want
+	# The engine didn't let us move -> we're pinned at the top/bottom. Drop the
+	# (possibly over-range) target so the next scroll starts from the true
+	# position instead of unwinding a phantom overshoot. That phantom was the
+	# bottom-edge glitch; the top clamps to exactly 0, so it never showed it.
+	if scroll_vertical == cur:
+		_target = -1.0
