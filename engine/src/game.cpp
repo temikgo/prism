@@ -167,9 +167,10 @@ void Game::applyTurnStartTriggers(Player& p) {
     if (wd > 0) {
       Player& enemy = players_[1 - p.index];
       std::vector<int> pool;
+      // Random selectors reach hidden creatures too -- stealth blocks only
+      // being hand-picked as a target, not a random or board-wide effect.
       for (int i = 0; i < static_cast<int>(enemy.board.size()); ++i)
-        if (enemy.board[i].blindTurns == 0 && !enemy.board[i].stealthed)
-          pool.push_back(i);
+        if (enemy.board[i].blindTurns == 0) pool.push_back(i);
       std::shuffle(pool.begin(), pool.end(), rng_);
       for (int k = 0; k < wd && k < static_cast<int>(pool.size()); ++k)
         if (!absorbWard(enemy.board[pool[k]]))
@@ -388,14 +389,15 @@ void Game::playResolved(Player& p, const CardInstance& ci, EntityId target,
                  : static_cast<int>(p.board.size());
     p.board.insert(p.board.begin() + at, nc);
     // Violet glimmer: the first creature you play each turn slips in unseen --
-    // granted by a glimmer aura OR a glimmer body already in play (a body may
-    // cloak itself when it is that first creature).
+    // granted by a glimmer aura OR ANOTHER glimmer body already in play. A
+    // glimmer body does NOT cloak itself (it isn't in play yet as it enters),
+    // so exclude the creature just inserted at `at` from the source scan.
     if (!p.summonedThisTurn) {
       bool glim = false;
       for (const auto* a : p.auras)
         if (a->hasKeyword("glimmer")) glim = true;
-      for (const auto& c : p.board)
-        if (c.def->hasKeyword("glimmer")) glim = true;
+      for (int i = 0; i < static_cast<int>(p.board.size()); ++i)
+        if (i != at && p.board[i].def->hasKeyword("glimmer")) glim = true;
       if (glim) p.board[at].stealthed = true;
     }
     p.summonedThisTurn = true;
@@ -798,10 +800,11 @@ void Game::reactTo(const Event& e) {
       healHero(owner, rq);
     }
   }
-  // Green Renewal: a dying creature pulls N random creature cards back from the
-  // grave to hand (its own card, already in the grave, may be among them).
+  // Green Renewal: a dying creature pulls N random OTHER creature cards back
+  // from the grave to hand -- never itself or another Renewal card (no grave
+  // loop).
   int rn = e.card->keywordN("renewal");
-  if (rn > 0) reclaimFromGrave(owner, rn);
+  if (rn > 0) reclaimFromGrave(owner, rn, /*fromRenewal=*/true);
   // Data-driven triggers: the dying card's own `on_death` effects fire now. Its
   // controller is `owner`; the effects use auto-resolving selectors
   // (enemy_hero, all_friendly, ...) since a death trigger has no chosen target.
@@ -942,13 +945,22 @@ void Game::buffStats(Creature& c, int n) {
   c.hp += n;
 }
 
-void Game::reclaimFromGrave(Player& p, int n) {
+void Game::reclaimFromGrave(Player& p, int n, bool fromRenewal) {
   if (n <= 0) return;
-  // Only creature cards are recoverable. Pick n at random, newest-index-first
-  // when removing so earlier indices stay valid mid-loop.
+  // Recoverable = a real creature CARD. Skip generated tokens (a germinate
+  // sprout must not come back as a playable card); an illusion's def IS its
+  // original card, so a dead illusion still returns full-bodied. A Renewal
+  // death also skips other Renewal cards -- else the grave rebuilds the engine
+  // (A pulls B pulls A), so Renewal only ever recurs OTHER, non-Renewal
+  // creatures.
   std::vector<int> idx;
-  for (int i = 0; i < static_cast<int>(p.graveyard.size()); ++i)
-    if (p.graveyard[i]->type == CardType::Creature) idx.push_back(i);
+  for (int i = 0; i < static_cast<int>(p.graveyard.size()); ++i) {
+    const CardDef* d = p.graveyard[i];
+    if (d->type != CardType::Creature) continue;
+    if (d->id.rfind("token_", 0) == 0) continue;
+    if (fromRenewal && d->keywordN("renewal") > 0) continue;
+    idx.push_back(i);
+  }
   std::shuffle(idx.begin(), idx.end(), rng_);
   int take = std::min(n, static_cast<int>(idx.size()));
   std::vector<int> chosen(idx.begin(), idx.begin() + take);
@@ -966,8 +978,9 @@ void Game::recomputeContinuous() {
   for (int pi = 0; pi < 2; ++pi) {
     Player& me = players_[pi];
     Player& opp = players_[1 - pi];
-    int enemyChill = 0;
+    int enemyChill = 0;  // Blue Стужа: attack debuff from enemy auras OR bodies
     for (const auto* a : opp.auras) enemyChill += a->keywordN("chill");
+    for (const auto& c : opp.board) enemyChill += c.def->keywordN("chill");
     int myIncand = 0;  // Red Накал: attack anthem from your auras OR bodies
     for (const auto* a : me.auras) myIncand += a->keywordN("incandescence");
     for (const auto& c : me.board) myIncand += c.def->keywordN("incandescence");
@@ -1729,10 +1742,11 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
                                            Player& owner, EntityId target) {
   std::vector<Creature*> out;
   if (selector == "random_enemy") {
-    // One random unhidden enemy creature (Cage Keeper's on-entry blind).
+    // One random enemy creature, hidden ones included: stealth blocks only
+    // being hand-picked as a target, not a random hit (Cage Keeper's on-entry
+    // blind).
     std::vector<Creature*> pool;
-    for (auto& c : players_[1 - owner.index].board)
-      if (!c.stealthed) pool.push_back(&c);
+    for (auto& c : players_[1 - owner.index].board) pool.push_back(&c);
     if (!pool.empty()) out.push_back(pool[rng_() % pool.size()]);
   } else if (selector == "all_enemies") {
     for (auto& c : players_[1 - owner.index].board) out.push_back(&c);
@@ -1768,9 +1782,11 @@ std::vector<Creature*> Game::selectTargets(const std::string& selector,
     // random valid target of the same side (the beam is doubly refracted).
     if (splashable && ownerHasBirefringence(owner)) {
       std::vector<Creature*> pool;
+      // The split half lands at random -- so it can hit a hidden creature (only
+      // the hand-picked primary target is barred from being stealthed).
       auto gather = [&](Player& pl) {
         for (auto& c : pl.board)
-          if (c.id != out[0]->id && !c.stealthed) pool.push_back(&c);
+          if (c.id != out[0]->id) pool.push_back(&c);
       };
       if (selector == "chosen_friendly_minion")
         gather(owner);

@@ -495,7 +495,7 @@ class Game {
   void onHealed(Player& healed);
   // Move up to n random creature cards from p's graveyard back to hand (Green
   // Renewal / the reclaim action), respecting the hand cap; overflow stays.
-  void reclaimFromGrave(Player& p, int n);
+  void reclaimFromGrave(Player& p, int n, bool fromRenewal = false);
   void buffStats(Creature& c, int n);  // permanent "+n/+n" (base atk +n)
   // Recompute every creature's effective atk from baseAtk plus the live
   // continuous layer: undergrowth (+N per other ally), resonance (+N per

@@ -127,6 +127,9 @@ static const char* kTestCards = R"json([
   { "id": "incandbody", "name": { "ru": "Костровое тело" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
     "keywords": [{ "id": "incandescence", "n": 1 }] },
+  { "id": "chillbody", "name": { "ru": "Стужа-тело" }, "type": "creature",
+    "color": [], "cost": { "generic": 0 }, "stats": { "atk": 1, "hp": 4 },
+    "keywords": [{ "id": "chill", "n": 1 }] },
   { "id": "glimmerbody", "name": { "ru": "Мерцающее тело" }, "type": "creature",
     "color": [], "cost": { "generic": 0 }, "stats": { "atk": 2, "hp": 1 },
     "keywords": [{ "id": "glimmer" }] },
@@ -919,27 +922,45 @@ TEST_CASE("a 0..n sacrifice clears the board and pays out per body") {
   CHECK(g.player(1).heroHp == hp - 4);  // 2 bodies x 2
 }
 
-TEST_CASE("Renewal returns a creature card from the grave when it dies") {
+TEST_CASE("Renewal returns another creature but never a Renewal card") {
   CardLibrary lib = testLib();
   Game g(lib, {"renewer", "bear", "bear", "bear"}, repeat("bruiser", 30), 7);
   begin(g);
   REQUIRE(g.playCard(handIndexOf(g, 0, "renewer")));  // 2/2, renewal 1
+  REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));     // 3/4 vanilla
   g.endTurn();
-  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4 killer
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bruiser")));  // 4/4, sick
   EntityId br = g.player(1).board[0].id;
-  g.endTurn();
-  g.endTurn();  // -> p1, bruiser awakes
-  auto creaturesInGrave = [&] {
-    int n = 0;
+  g.endTurn();  // -> p0
+  g.endTurn();  // -> p1: bruiser can attack
+  REQUIRE(g.attackCreature(br, g.player(0).board[1].id));  // bear dies to grave
+  g.endTurn();                                             // -> p0
+  g.endTurn();  // -> p1: the 1/4 bruiser finishes the renewer
+  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));  // renewer dies
+  auto graveHas = [&](const std::string& id) {
     for (const auto* d : g.player(0).graveyard)
-      if (d->type == CardType::Creature) ++n;
-    return n;
+      if (d->id == id) return true;
+    return false;
   };
-  // renewer dies -> Renewal reclaims a creature (itself, the only one in the
-  // grave) back to hand, so the grave nets zero creatures.
-  REQUIRE(g.attackCreature(br, g.player(0).board[0].id));
-  CHECK(creaturesInGrave() == 0);
-  CHECK(handIndexOf(g, 0, "renewer") != -1);  // it is back in hand
+  // Renewal skips itself and any Renewal card, so the renewer stays down and
+  // the vanilla bear is the one pulled back -- no grave self-loop.
+  CHECK(graveHas("renewer"));
+  CHECK_FALSE(graveHas("bear"));
+}
+
+TEST_CASE("a random selector reaches a hidden creature") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"blindrandspell", "bear", "bear", "bear"}, repeat("hider", 30),
+         7);
+  begin(g);
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "hider")));  // sole enemy, stealthed
+  CHECK(g.player(1).board[0].stealthed);
+  g.endTurn();  // -> p0
+  REQUIRE(
+      g.playCard(handIndexOf(g, 0, "blindrandspell")));  // random_enemy blind
+  // Stealth bars only hand-picked targeting, so a random hit still lands.
+  CHECK(g.player(1).board[0].blindTurns > 0);
 }
 
 TEST_CASE("the reclaim action pulls a dead creature back to hand") {
@@ -1234,12 +1255,24 @@ TEST_CASE("incandescence on a creature body anthems the board, like the aura") {
   CHECK(g.player(0).board[1].atk == 4);  // and the bear (3 + 1)
 }
 
-TEST_CASE("glimmer on a creature body cloaks your first creature each turn") {
+TEST_CASE("chill on a creature body lowers enemy attack, like the aura") {
+  CardLibrary lib = testLib();
+  Game g(lib, {"chillbody", "bear", "bear", "bear"}, repeat("bear", 30), 7);
+  begin(g);
+  REQUIRE(g.playCard(handIndexOf(g, 0, "chillbody")));  // 1/4, chill 1
+  g.endTurn();
+  REQUIRE(g.playCard(handIndexOf(g, 1, "bear")));  // enemy 3/4
+  CHECK(g.player(1).board[0].atk == 2);  // chilled by the body (3 - 1)
+}
+
+TEST_CASE(
+    "glimmer on a creature body cloaks your first creature but not itself") {
   CardLibrary lib = testLib();
   Game g(lib, {"glimmerbody", "bear", "bear", "bear"}, repeat("bear", 30), 7);
   begin(g);
-  REQUIRE(g.playCard(handIndexOf(g, 0, "glimmerbody")));  // first -> self-cloak
-  CHECK(g.player(0).board[0].stealthed);
+  REQUIRE(g.playCard(
+      handIndexOf(g, 0, "glimmerbody")));  // enters -> NOT self-cloaked
+  CHECK(!g.player(0).board[0].stealthed);
   g.endTurn();
   g.endTurn();                                     // -> p0's next turn
   REQUIRE(g.playCard(handIndexOf(g, 0, "bear")));  // first creature this turn
