@@ -928,7 +928,7 @@
       "en": "Stained Glass"
     },
     "text": {
-      "ru": "Свет, процеженный сквозь цвет, чинит павших."
+      "ru": "Свет, процеженный сквозь цвет, врачует стоящего под ним."
     },
     "art": "a great stained-glass rose window ablaze at midday, its warmest beam finding and knitting the deepest crack in the mosaic floor below",
     "type": "aura",
@@ -942,7 +942,7 @@
     "effects": [
       {
         "trigger": "start_of_turn",
-        "selector": "most_wounded_friendly",
+        "selector": "friendly_hero",
         "action": "heal",
         "value": 2
       }
@@ -1227,35 +1227,6 @@
         "selector": "friendly_hero",
         "action": "heal",
         "value": 6
-      }
-    ]
-  },
-  {
-    "id": "green_primrose",
-    "name": {
-      "ru": "Первоцвет",
-      "en": "Primrose"
-    },
-    "text": {
-      "ru": "Первый цветок дня — и первый лишний кристалл."
-    },
-    "art": "a primrose bud in sharp close-up unfurling at dawn, drawing a single crystal out of the first light",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 1,
-      "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "photosynthesis",
-        "n": 1
       }
     ]
   },
@@ -2429,33 +2400,6 @@
     ]
   },
   {
-    "id": "violet_unseen_prowler",
-    "name": {
-      "ru": "Незримый лазутчик",
-      "en": "Unseen Prowler"
-    },
-    "text": {
-      "ru": "Ты его заметишь, когда уже поздно."
-    },
-    "art": "a powerful violet panther prowling low and taut in sharp close-up, muscles bold and clearly drawn, eyes fixed ahead, deep shadow pooling around its paws as it steals forward unseen",
-    "type": "creature",
-    "color": [
-      "violet"
-    ],
-    "cost": {
-      "violet": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 2
-    },
-    "keywords": [
-      {
-        "id": "stealth"
-      }
-    ]
-  },
-  {
     "id": "violet_duskwing",
     "name": {
       "ru": "Сумеречный мотылёк",
@@ -2948,34 +2892,6 @@
       },
       {
         "id": "refract"
-      }
-    ]
-  },
-  {
-    "id": "red_spark_flea",
-    "name": {
-      "ru": "Искровая блоха",
-      "en": "Spark Flea"
-    },
-    "text": {
-      "ru": "Лопнет искрой — и достанет до лица."
-    },
-    "art": "a hunched hard-shelled flea insect with oversized springing hind legs, caught mid-leap high against the dark, a chain of small sparks crackling along its jump arc",
-    "type": "creature",
-    "color": [
-      "red"
-    ],
-    "cost": {
-      "red": 1
-    },
-    "stats": {
-      "atk": 1,
-      "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "sear",
-        "n": 1
       }
     ]
   },
@@ -4813,38 +4729,6 @@
     ]
   },
   {
-    "id": "yellow_dawnkeeper",
-    "name": {
-      "ru": "Хранитель рассвета",
-      "en": "Dawnkeeper"
-    },
-    "text": {
-      "ru": "Держит фронт и чинится к утру."
-    },
-    "art": "a great antlered stag of dawn in a noble chest-up portrait, vast antlers filling the top of the frame, first light breaking behind its head, its wounds closing again by morning",
-    "type": "creature",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "generic": 2,
-      "yellow": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 6
-    },
-    "keywords": [
-      {
-        "id": "provoke"
-      },
-      {
-        "id": "regen",
-        "n": 2
-      }
-    ]
-  },
-  {
     "id": "violet_verdict_of_dark",
     "name": {
       "ru": "Приговор тьмы",
@@ -5065,35 +4949,6 @@
     "keywords": [
       {
         "id": "photosynthesis",
-        "n": 1
-      }
-    ]
-  },
-  {
-    "id": "green_mudskipper",
-    "name": {
-      "ru": "Илистый прыгун",
-      "en": "Mudskipper"
-    },
-    "text": {
-      "ru": "Скачет по илу, роняет ростки."
-    },
-    "art": "a mudskipper fish hopping across glistening silt, a young sprout springing up in its wake",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "germinate",
         "n": 1
       }
     ]

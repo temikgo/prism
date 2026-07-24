@@ -136,7 +136,7 @@ func _test_rules() -> void:
 	# A live board: your turn, you have mixed crystals, enemy has a provoker (warden)
 	# and a stealthed creature.
 	var enemy_board := [DevKit.creature(21, "yellow_haze_wall", 0, 4, 4),
-		DevKit.creature(22, "violet_unseen_prowler", 2, 3, 3, {"stealth": true})]
+		DevKit.creature(22, "violet_pale_phantom", 2, 3, 3, {"stealth": true})]
 	var v := DevKit.view(
 		DevKit.player({"mana": DevKit.mana(DevKit.pool(2, 0, 0, 1, 1, 0), DevKit.pool(2, 0, 0, 1, 1, 0))}),
 		DevKit.player({"board": enemy_board}))

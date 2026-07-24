@@ -1163,35 +1163,6 @@
     ]
   },
   {
-    "id": "green_primrose",
-    "name": {
-      "ru": "Первоцвет",
-      "en": "Primrose"
-    },
-    "text": {
-      "ru": "Первый цветок дня — и первый лишний кристалл."
-    },
-    "art": "a small primrose bud of green ray-light unfurling at dawn, drawing a bright crystal from the light",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 1,
-      "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "photosynthesis",
-        "n": 1
-      }
-    ]
-  },
-  {
     "id": "green_springlight",
     "name": {
       "ru": "Родник света",
@@ -2357,33 +2328,6 @@
       {
         "id": "split",
         "n": 2
-      }
-    ]
-  },
-  {
-    "id": "violet_unseen_prowler",
-    "name": {
-      "ru": "Незримый лазутчик",
-      "en": "Unseen Prowler"
-    },
-    "text": {
-      "ru": "Ты его заметишь, когда уже поздно."
-    },
-    "art": "a low prowling shape of violet shadow-light, edges dissolving into the dark around it",
-    "type": "creature",
-    "color": [
-      "violet"
-    ],
-    "cost": {
-      "violet": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 2
-    },
-    "keywords": [
-      {
-        "id": "stealth"
       }
     ]
   },
@@ -4745,38 +4689,6 @@
     ]
   },
   {
-    "id": "yellow_dawnkeeper",
-    "name": {
-      "ru": "Заря-хранитель",
-      "en": "Dawnkeeper"
-    },
-    "text": {
-      "ru": "Держит фронт и чинится к утру."
-    },
-    "art": "a broad dawn-gold wall-keeper of light barring the way, its wounds mending by morning",
-    "type": "creature",
-    "color": [
-      "yellow"
-    ],
-    "cost": {
-      "generic": 2,
-      "yellow": 2
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 6
-    },
-    "keywords": [
-      {
-        "id": "provoke"
-      },
-      {
-        "id": "regen",
-        "n": 2
-      }
-    ]
-  },
-  {
     "id": "violet_verdict_of_dark",
     "name": {
       "ru": "Гасящий приговор",
@@ -4997,35 +4909,6 @@
     "keywords": [
       {
         "id": "photosynthesis",
-        "n": 1
-      }
-    ]
-  },
-  {
-    "id": "green_mudskipper",
-    "name": {
-      "ru": "Илистый прыгун",
-      "en": "Mudskipper"
-    },
-    "text": {
-      "ru": "Скачет по илу, роняет ростки."
-    },
-    "art": "a mudskipper fish of green light hopping across silt, a glowing sprout in its wake",
-    "type": "creature",
-    "color": [
-      "green"
-    ],
-    "cost": {
-      "generic": 1,
-      "green": 1
-    },
-    "stats": {
-      "atk": 2,
-      "hp": 1
-    },
-    "keywords": [
-      {
-        "id": "germinate",
         "n": 1
       }
     ]

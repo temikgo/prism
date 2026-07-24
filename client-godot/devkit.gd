@@ -156,7 +156,7 @@ static func demo_view() -> Dictionary:
 		"handCount": 5, "deckCount": 16, "graveyardCount": 1, "pendingCount": 1,
 		"board": [
 			creature(21, "blue_frost_sentinel", 2, 4, 4, {"frozen": 1}),
-			creature(22, "violet_unseen_prowler", 2, 3, 3, {"stealth": true}),
+			creature(22, "violet_pale_phantom", 2, 3, 3, {"stealth": true}),
 		],
 	})
 	return view(me, opp, {"turn": 5, "current": 0, "you": 0})

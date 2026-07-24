@@ -202,12 +202,6 @@ save: `client-godot/art/yellow_lion_of_helios.png`
 a colossal radiant lion-titan maned in noon-fire in a heroic chest-up portrait, its mane blazing to the frame's edge, roaring toward a far horizon, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
 ```
 
-## Первоцвет — `green_primrose`  (существо)
-save: `client-godot/art/green_primrose.png`
-```
-a primrose bud in sharp close-up unfurling at dawn, drawing a single crystal out of the first light, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
-```
-
 ## Кристальный крот — `green_crystal_mole`  (существо)
 save: `client-godot/art/green_crystal_mole.png`
 ```
@@ -358,12 +352,6 @@ save: `client-godot/art/violet_halflight_wraith.png`
 three overlapping images of one hooded violet wraith with a gaunt face and trailing sleeves, caught half-dissolved between solid form and empty air, each copy fainter than the last, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of beings made of living violet light, glowing violet light-lines tracing their shapes, every figure in frame clearly drawn with a clean readable silhouette, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
 ```
 
-## Незримый лазутчик — `violet_unseen_prowler`  (существо)
-save: `client-godot/art/violet_unseen_prowler.png`
-```
-a powerful violet panther prowling low and taut in sharp close-up, muscles bold and clearly drawn, eyes fixed ahead, deep shadow pooling around its paws as it steals forward unseen, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
 ## Сумеречный мотылёк — `violet_duskwing`  (существо)
 save: `client-godot/art/violet_duskwing.png`
 ```
@@ -428,12 +416,6 @@ a huge violet shadow-crocodile lying deathly still among banked crystals, one he
 save: `client-godot/art/violet_the_returned.png`
 ```
 a towering violet shadow-cicada clawing up from a cache of buried crystals, hostile light sliding off its carapace, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living violet light, glowing violet light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of violet, freely varied -- purple, lilac, magenta, amethyst, ultraviolet, and no other colour, on a deep dark flat background of swirling violet energy in the same palette with drifting violet light-motes, clean and graphic, the subject large in frame, viewed side-on in profile --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, green, blue, grey --sref https://cdn.midjourney.com/7baedbd9-f934-4d8c-9abd-5c184b6ce932/0_1.png --sw 100
-```
-
-## Искровая блоха — `red_spark_flea`  (существо)
-save: `client-godot/art/red_spark_flea.png`
-```
-a hunched hard-shelled flea insect with oversized springing hind legs, caught mid-leap high against the dark, a chain of small sparks crackling along its jump arc, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living red light, glowing red light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of red, freely varied -- scarlet, crimson, ember-orange, vermilion, blood-red, and no other colour, on a deep dark flat background of swirling red energy in the same palette with drifting red light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, gold, green, blue, violet, grey --sref https://cdn.midjourney.com/711297ce-fa4e-41e0-bb6d-2f5ad22834f3/0_0.png --sw 100
 ```
 
 ## Гнилой опёнок — `green_rot_cap`  (существо)
@@ -718,12 +700,6 @@ save: `client-godot/art/yellow_all_seeing_argus.png`
 a towering guardian of golden light covered head to foot in dozens of wide open glowing eyes, eyes upon eyes crowding every surface of it and staring outward in all directions at once, a slow watchful many-eyed shape sweeping a blinding golden glare across the dark, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large in frame, seen from a dramatic low angle looking up --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
 ```
 
-## Хранитель рассвета — `yellow_dawnkeeper`  (существо)
-save: `client-godot/art/yellow_dawnkeeper.png`
-```
-a great antlered stag of dawn in a noble chest-up portrait, vast antlers filling the top of the frame, first light breaking behind its head, its wounds closing again by morning, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living yellow light, glowing yellow light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of gold, freely varied -- amber, bronze, honey, dawn-gold, white-gold, and no other colour, on a deep dark flat background of swirling yellow energy in the same palette with drifting yellow light-motes, clean and graphic, the subject large in frame --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, green, blue, violet, grey --sref https://cdn.midjourney.com/83447cee-7915-40c9-ba5b-b9a6a31efde8/0_3.png --sw 100
-```
-
 ## Тюремный мираж — `violet_gaol_mirage`  (существо)
 save: `client-godot/art/violet_gaol_mirage.png`
 ```
@@ -752,12 +728,6 @@ a huge matriarch spider crouched in violet dusk-webs, her many eyes and silk gli
 save: `client-godot/art/green_waterlily.png`
 ```
 a broad lily pad afloat on still water, drawing a crystal up from the depths beneath it, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large in frame, seen from a high angle looking down --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
-```
-
-## Илистый прыгун — `green_mudskipper`  (существо)
-save: `client-godot/art/green_mudskipper.png`
-```
-a mudskipper fish hopping across glistening silt, a young sprout springing up in its wake, a flat 2D illustration, bold clean thick ink outlines, cel-shaded with flat colour fills, graphic poster art, no shading gradients, no 3D of a being made of living green light, glowing green light-lines tracing its shape, one single creature with a clean readable silhouette, a palette of any shade of green, freely varied -- lime, emerald, jade, moss, forest green, and no other colour, on a deep dark flat background of swirling green energy in the same palette with drifting green light-motes, clean and graphic, the subject large in frame, framed in a tight close crop --ar 2:3 --v 7 --style raw --c 0 --s 25 --no border, frame, panel, text, building, architecture, photo, photorealistic, 3D, 3d render, CGI, octane render, realistic shading, volumetric lighting, depth of field, plain background, deformed, mutated, extra limbs, extra legs, fused limbs, red, gold, blue, violet, grey, cyan, teal --sref https://cdn.midjourney.com/72a0fa5e-72e4-49fc-ad9a-ebe820c8ed4a/0_0.png --sw 100
 ```
 
 ## Студёный гольян — `blue_frost_minnow`  (существо)
