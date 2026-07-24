@@ -23,6 +23,10 @@ jobs:
         run: python3 tools/check_keyword_n.py
       - name: Balance coefficient drift (no phantom KW/EFF -- carded or implemented)
         run: python3 tools/balance_drift_lint.py
+      - name: No strictly dominated cards (no dead duplicate anyone never picks)
+        run: python3 tools/domination_lint.py
+      - name: Preset decks valid (ids resolve, 40/<=2 legal, colours match)
+        run: python3 tools/check_presets.py
       - name: Art imports (mipmaps on, sidecar present)
         run: python3 tools/check_art.py
 
